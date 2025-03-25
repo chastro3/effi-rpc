@@ -1,0 +1,20 @@
+plugins {
+    id("java-library")
+}
+description = "Provide some commonly used components, utility classes, and constants."
+dependencies {
+    api(platform(project(":effi-rpc-bom")))
+    api("com.lmax:disruptor")
+    compileOnly("org.slf4j:slf4j-api")
+    compileOnly("org.apache.logging.log4j:log4j-api")
+    compileOnly("commons-logging:commons-logging")
+    compileOnly("io.vertx:vertx-core")
+}
+
+
+tasks.withType<ProcessResources> {
+    filesMatching("META-INF/effi-rpc/version") {
+        expand("version" to project.version)
+    }
+}
+
