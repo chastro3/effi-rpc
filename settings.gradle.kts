@@ -33,13 +33,12 @@ findProject(":effi-rpc-serialization:effi-rpc-serialization-msgpack")?.name = "e
 include("effi-rpc-serialization:effi-rpc-serialization-protobuf")
 findProject(":effi-rpc-serialization:effi-rpc-serialization-protobuf")?.name = "effi-rpc-serialization-protobuf"
 include("effi-rpc-metrics")
-include("effi-rpc-transport")
-include("effi-rpc-default-support")
 include("effi-rpc-protocol")
-include("effi-rpc-protocol:effi-rpc-protocol-api")
-findProject(":effi-rpc-protocol:effi-rpc-protocol-api")?.name = "effi-rpc-protocol-api"
-include("effi-rpc-protocol:effi-rpc-protocol-http")
-findProject(":effi-rpc-protocol:effi-rpc-protocol-http")?.name = "effi-rpc-protocol-http"
+include("effi-rpc-engine")
+include("effi-rpc-engine:effi-rpc-engine-api")
+findProject(":effi-rpc-engine:effi-rpc-engine-api")?.name = "effi-rpc-engine-api"
+include("effi-rpc-engine:effi-rpc-engine-http")
+findProject(":effi-rpc-engine:effi-rpc-engine-http")?.name = "effi-rpc-engine-http"
 include("effi-rpc-test")
 include("effi-rpc-demo")
 include("effi-rpc-demo:consumer")

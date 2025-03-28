@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":effi-rpc-protocol:effi-rpc-protocol-http"))
+    implementation(project(":effi-rpc-engine:effi-rpc-engine-http"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api")
     implementation(project(":effi-rpc-registry:effi-rpc-registry-consul"))
     implementation(project(":effi-rpc-registry:effi-rpc-registry-nacos"))

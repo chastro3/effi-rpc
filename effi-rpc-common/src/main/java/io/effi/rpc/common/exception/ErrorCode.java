@@ -8,16 +8,12 @@ import io.effi.rpc.common.util.StringUtil;
 public interface ErrorCode {
 
     /**
-     * Gets the error code.
-     *
-     * @return the error code
+     * Returns the error code.
      */
     String code();
 
     /**
-     * Gets the error message.
-     *
-     * @return the error message
+     * Returns the error message.
      */
     String message();
 

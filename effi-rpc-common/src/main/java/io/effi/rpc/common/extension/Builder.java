@@ -9,9 +9,7 @@ package io.effi.rpc.common.extension;
 public interface Builder<T> {
 
     /**
-     * Builds and returns an object of type T.
-     *
-     * @return the constructed object
+     * Builds and returns an instance.
      */
     T build();
 }

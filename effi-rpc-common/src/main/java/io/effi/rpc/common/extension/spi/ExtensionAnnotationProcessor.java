@@ -32,29 +32,6 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
     private Messager messager;
 
     private Map<String, File> fileMap;
-
-    /**
-     * Gets the fully-qualified name of the specified type element.
-     *
-     * @param typeElement
-     * @return
-     */
-    private static CharSequence getFullClassName(TypeElement typeElement) {
-        if (typeElement.getModifiers().contains(Modifier.STATIC)
-                && typeElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
-            String innerClassName = typeElement.getSimpleName().toString();
-            return ((TypeElement) typeElement.getEnclosingElement()).getQualifiedName() + "$" + innerClassName;
-        } else if (typeElement.getKind().equals(ElementKind.CLASS)) {
-            return typeElement.getQualifiedName();
-        }
-        throw new IllegalArgumentException("Unsupported type element: " + typeElement);
-    }
-
-    /**
-     * Initializes the processor environment, preparing necessary resources.
-     *
-     * @param processingEnv the processing environment
-     */
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
@@ -98,11 +75,19 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
+    private static CharSequence getFullClassName(TypeElement typeElement) {
+        if (typeElement.getModifiers().contains(Modifier.STATIC)
+                && typeElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
+            String innerClassName = typeElement.getSimpleName().toString();
+            return ((TypeElement) typeElement.getEnclosingElement()).getQualifiedName() + "$" + innerClassName;
+        } else if (typeElement.getKind().equals(ElementKind.CLASS)) {
+            return typeElement.getQualifiedName();
+        }
+        throw new IllegalArgumentException("Unsupported type element: " + typeElement);
+    }
+
     /**
      * Collects all interfaces implemented by the specified {@link TypeElement}, including inherited interfaces.
-     *
-     * @param typeElement the type element representing the class
-     * @return the list of fully-qualified names of all interfaces annotation with {@link Extensible}
      */
     private List<CharSequence> getAllInterfaces(TypeElement typeElement) {
         Set<TypeElement> allInterfaces = new HashSet<>();
@@ -115,9 +100,6 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
 
     /**
      * Recursively collects interfaces for the specified class and its parent classes.
-     *
-     * @param typeElement         the type element representing the class
-     * @param collectedInterfaces the set of collected interfaces
      */
     private void collectInterfacesRecursively(TypeElement typeElement, Set<TypeElement> collectedInterfaces) {
         if (typeElement == null) {
@@ -140,9 +122,6 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
 
     /**
      * Retrieves the interfaces specified in the {@link Extension} annotation.
-     *
-     * @param annotationMirror the annotation mirror for the {@link Extension} annotation
-     * @return the list of interfaces declared in the annotation
      */
     @SuppressWarnings("unchecked")
     private List<CharSequence> getInterfaces(AnnotationMirror annotationMirror) {
@@ -165,9 +144,6 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
 
     /**
      * Writes the SPI file for the specified interface.
-     *
-     * @param path    the file path for the SPI file
-     * @param content the implementation class to be written into the SPI file
      */
     private void writeServiceFile(String path, CharSequence content) {
         File file = fileMap.computeIfAbsent(path, this::creatrFile);
@@ -176,9 +152,6 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
 
     /**
      * Creates a file for the SPI file output.
-     *
-     * @param path the file path
-     * @return the file object
      */
     private File creatrFile(String path) {
         try {

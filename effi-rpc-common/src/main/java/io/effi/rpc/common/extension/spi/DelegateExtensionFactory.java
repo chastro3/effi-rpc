@@ -18,7 +18,7 @@ public class DelegateExtensionFactory implements ExtensionFactory {
 
     public void add(ExtensionFactory factory) {
         if (factory != null) {
-            int index = Collections.binarySearch(factories, factory, Comparator.comparingInt(ExtensionFactory::getOrder));
+            int index = Collections.binarySearch(factories, factory, Comparator.comparingInt(ExtensionFactory::order));
             if (index < 0) {
                 index = -index - 1;
             }
@@ -45,7 +45,7 @@ public class DelegateExtensionFactory implements ExtensionFactory {
         }
 
         @Override
-        public int getOrder() {
+        public int order() {
             return Ordered.LOWEST_PRECEDENCE;
         }
     }

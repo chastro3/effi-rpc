@@ -1,12 +1,12 @@
 package io.effi.rpc.common.extension.resoruce;
 
 /**
- * Defines an object that can be cleared to reset its internal state or resources.
+ * Represents a resource that can be cleared.
  */
 public interface Cleanable {
 
     /**
-     * Clears the object's internal state or resources, preparing it for reuse.
+     * Clears the resource.
      */
     void clear();
 }

@@ -1,0 +1,155 @@
+package io.effi.rpc.engine;
+
+import io.effi.rpc.common.constant.Constant;
+import io.effi.rpc.common.constant.KeyConstant;
+import io.effi.rpc.common.exception.EffiRpcException;
+import io.effi.rpc.common.extension.Ordered;
+import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.url.URLType;
+import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.contract.*;
+import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.contract.filter.*;
+import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.metrics.CallerMetrics;
+import io.effi.rpc.metrics.MetricsSupport;
+import io.effi.rpc.engine.builder.CallerBuilder;
+import io.effi.rpc.protocol.NettyChannel;
+import io.effi.rpc.protocol.RequestWrapper;
+import io.effi.rpc.protocol.client.Client;
+
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
+/**
+ * Abstract implementation of {@link Caller}.
+ *
+ * @param <R> the type of the result
+ */
+public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFuture<R>> implements Caller<R> {
+
+    protected EffiRpcModule module;
+
+    protected Locator locator;
+
+    protected ThreadPool threadPool;
+
+    protected CallerModularConfig modularConfig;
+
+    protected AbstractCaller(Config config, CallerBuilder<?, ?> builder) {
+        super(config, builder);
+        this.module = AssertUtil.notNull(builder.module(), "module");
+        this.locator = AssertUtil.notNull(builder.locator(), "locator");
+        this.returnType = builder.returnType();
+        this.threadPool = threadPool(module, Constant.DEFAULT_CLIENT_HYBRID_THREAD_POOL);
+        this.modularConfig = new CallerModularConfig(this.module, builder.clientConfig(), this);
+        this.module.register(this);
+        addFilter(builder.filters().toArray(Filter[]::new));
+        set(KeyConstant.LAST_CALL_INDEX, new AtomicInteger(-1));
+        set(CallerMetrics.GENERIC_KEY, new CallerMetrics());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public CompletableFuture<R> call(Object... args) throws EffiRpcException {
+        return (CompletableFuture<R>) startCall(args, CompletableReplyFuture::new).completableFuture();
+    }
+
+    @Override
+    public CompletableFuture<R> invoke(Object... args) throws EffiRpcException {
+        return call(args);
+    }
+
+    @Override
+    public EffiRpcModule module() {
+        return module;
+    }
+
+    @Override
+    public CallerModularConfig modularConfig() {
+        return modularConfig;
+    }
+
+    @Override
+    public ClientConfig clientConfig() {
+        return modularConfig.clientConfig();
+    }
+
+    @Override
+    public Locator locator() {
+        return locator;
+    }
+
+    @Override
+    public ThreadPool threadPool() {
+        return threadPool;
+    }
+
+    @Override
+    public void addFilter(Filter<?, ?, ?>... filters) {
+        modularConfig.addFilter(filters);
+    }
+
+    @Override
+    public <T extends ReplyFuture> T callWithFuture(T future) throws EffiRpcException {
+        return sendRequest(doCall(future));
+    }
+
+    protected <T extends ReplyFuture> T startCall(Object[] args, Function<InvocationContext<Envelope.Request, Caller<?>>, T> futureCreator) {
+        Envelope.Request request = protocol.createRequest(this, args);
+        InvocationContext<Envelope.Request, Caller<?>> context = new InvocationContext<>(module, request, this, args);
+        return callWithFuture(futureCreator.apply(context));
+    }
+
+    private <T extends ReplyFuture> T doCall(T future) {
+        var context = future.context();
+        MetricsSupport.recordStartTime(context);
+        List<InvokeFilter<?, ?>> invokeFilters = Ordered.sort(modularConfig.invokeFilters());
+        List<ChosenFilter<?, ?>> chosenFilters = Ordered.sort(modularConfig.chosenFilters());
+        List<ReplyFilter<?, ?>> replyFilters = Ordered.sort(modularConfig.replyFilters());
+        // Chain of nested invocations for address resolution and filter execution
+        var rpcContext = context.executor(() -> {
+            var filterContext = context.executor(() -> {
+                InetSocketAddress remoteAddress = locator().locate(context);
+                context.source().url().address(remoteAddress);
+                var chosenContext = context.executor(() -> {
+                    future.whenComplete(replyContext -> {
+                        replyContext = replyContext.executor(replyContext::result);
+                        FilterChain.execute(replyContext, replyFilters);
+                    });
+                    return new Result(context.source().url(), future);
+                });
+                return FilterChain.execute(chosenContext, chosenFilters);
+            });
+            return FilterChain.execute(filterContext, invokeFilters);
+        });
+        rpcContext.execute();
+        return future;
+    }
+
+    private <T extends ReplyFuture> T sendRequest(T future) {
+        var context = future.context();
+        URL requestUrl = context.source().url();
+        URL clientUrl = URL.builder()
+                .type(URLType.CLIENT)
+                .protocol(requestUrl.protocol())
+                .address(requestUrl.address())
+                .params(clientConfig().config().properties())
+                .build();
+        Client client = protocol.openClient(clientUrl, module);
+        NettyChannel channel = client.acquireChannel();
+        RequestWrapper<Caller<?>> requestWrapper = new RequestWrapper<>(context, protocol.clientCodec());
+        if (inIOSerialization()) {
+            channel.send(requestWrapper);
+        } else {
+            threadPool().execute(() -> channel.send(requestWrapper.encode(channel)));
+        }
+        return future;
+    }
+
+}

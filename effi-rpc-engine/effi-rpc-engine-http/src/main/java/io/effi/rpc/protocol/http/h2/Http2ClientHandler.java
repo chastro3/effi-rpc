@@ -1,0 +1,100 @@
+/*
+ * Copyright 2020 The Netty Project
+ *
+ * The Netty Project licenses this file to you under the Apache License, version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at:
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package io.effi.rpc.protocol.http.h2;
+
+import io.effi.rpc.common.url.URL;
+import io.effi.rpc.contract.Caller;
+import io.effi.rpc.contract.Envelope;
+import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.protocol.http.URLBinderChannelHandler;
+import io.effi.rpc.protocol.http.support.HttpRequest;
+import io.effi.rpc.protocol.http.support.HttpResponse;
+import io.effi.rpc.engine.handler.ClientMessageAggregator;
+import io.effi.rpc.protocol.NamedChannelHandler;
+import io.effi.rpc.protocol.NettySupport;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http2.Http2DataFrame;
+import io.netty.handler.codec.http2.Http2HeadersFrame;
+import io.netty.handler.codec.http2.Http2StreamFrame;
+
+import java.util.Collections;
+import java.util.List;
+
+import static io.netty.channel.ChannelHandler.Sharable;
+
+/**
+ * Handles HTTP/2 stream frame responses. This is a useful approach if you specifically want to check
+ * the main HTTP/2 response DATA/HEADERs, but in this example it's used purely to see whether
+ * our request (for a specific stream id) has had a final response (for that same stream id).
+ */
+@Sharable
+public final class Http2ClientHandler extends URLBinderChannelHandler {
+
+    private final List<NamedChannelHandler> handlers;
+
+    public Http2ClientHandler() {
+        this.handlers = Collections.singletonList(
+                new NamedChannelHandler(ClientMessageAggregator.NAME, new ClientMessageAggregator())
+        );
+    }
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        ChannelPipeline pipeline = ctx.pipeline();
+        handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
+    }
+
+    @Override
+    protected URL supported(Object msg) {
+        if (msg instanceof HttpRequest<?> httpRequest
+                && httpRequest.body() instanceof byte[]) {
+            return httpRequest.url();
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (msg instanceof HttpRequest<?>) {
+            HttpRequest<byte[]> request = (HttpRequest<byte[]>) msg;
+            Http2StreamFrame[] frames = H2Support.toHttp2StreamFrames(request);
+            for (Http2StreamFrame frame : frames) {
+                ctx.write(frame, ctx.newPromise());
+            }
+        }
+    }
+
+    @Override
+    protected void readHttpResponse(ChannelHandlerContext ctx, Object msg, InvocationContext<Envelope.Request, Caller<?>> context) throws Exception {
+        Http2ResponseStream responseStream = null;
+        if (msg instanceof Http2HeadersFrame headersFrame) {
+            responseStream = H2Support.acquireResponseStream(ctx, headersFrame.stream());
+            responseStream.parseHeaderFrame(headersFrame);
+        } else if (msg instanceof Http2DataFrame dataFrame) {
+            responseStream = H2Support.acquireResponseStream(ctx, dataFrame.stream());
+            responseStream.parseDataFrame(dataFrame);
+        }
+        if (responseStream != null && responseStream.endStream()) {
+            HttpResponse<ByteBuf> httpResponse = H2Support.fromHttp2ResponseStream(responseStream, context);
+            ctx.fireChannelRead(httpResponse);
+            NettySupport.unbindURL(ctx.channel());
+            H2Support.removeResponseStream(ctx, responseStream);
+        }
+    }
+}

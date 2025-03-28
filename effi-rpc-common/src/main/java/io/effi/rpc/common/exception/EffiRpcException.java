@@ -14,20 +14,13 @@ public class EffiRpcException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    /**
-     * Constructs a new {@code EffiRpcException} with the specified error code, cause, and message arguments.
-     *
-     * @param errorCode the error code representing the error type.
-     * @param e         the underlying cause of the exception (nullable).
-     * @param args      additional arguments to format the error message.
-     */
     EffiRpcException(ErrorCode errorCode, Throwable e, Object... args) {
         super(errorCode.convert(args), e);
         this.errorCode = errorCode;
     }
 
     /**
-     * Creates a new {@code EffiRpcException} with the given error code and optional message arguments.
+     * Creates a new {@link  EffiRpcException} with the given error code and optional message arguments.
      *
      * @param errorCode the error code.
      * @param args      optional arguments to format the error message.
@@ -38,16 +31,12 @@ public class EffiRpcException extends RuntimeException {
     }
 
     /**
-     * Wraps an existing exception into an {@code EffiRpcException}, preserving the root cause.
-     * <p>
-     * If the given exception is already an {@code EffiRpcException}, it will be returned as is.
-     * Otherwise, the method will unwrap common wrapper exceptions (such as {@link InvocationTargetException}
-     * and {@link ExecutionException}) to extract the root cause.
+     * Wraps an existing exception into an {@link EffiRpcException}, preserving the root cause.
      *
      * @param errorCode the error code associated with the new exception.
      * @param wrapped   the exception to wrap (nullable).
      * @param args      optional arguments to format the error message.
-     * @return a new or existing instance of {@code EffiRpcException}.
+     * @return a new or existing instance of {@link EffiRpcException}.
      */
     public static EffiRpcException wrap(ErrorCode errorCode, Throwable wrapped, Object... args) {
         AssertUtil.notNull(errorCode, "error code");
@@ -75,8 +64,6 @@ public class EffiRpcException extends RuntimeException {
 
     /**
      * Returns the associated error code.
-     *
-     * @return the error code.
      */
     public ErrorCode errorCode() {
         return errorCode;

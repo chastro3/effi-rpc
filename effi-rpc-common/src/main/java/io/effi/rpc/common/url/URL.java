@@ -22,7 +22,7 @@ import java.util.Map;
  *
  * <p>The URL class implements the {@link Replicable} interface, allowing for
  * the creation of deep copies of URL instances. It also extends
- * {@link AbstractAttributes} to support attribute management.</p>
+ * {@link AbstractAttributes} to engine attribute management.</p>
  *
  * <p>Example usage:</p>
  * <pre>

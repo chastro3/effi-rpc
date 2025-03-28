@@ -12,8 +12,6 @@ public interface ChainBuilder<T, C extends ChainBuilder<T, C>> extends Builder<T
     /**
      * Returns the current instance of the implementing class, allowing for
      * method chaining in a fluent style.
-     *
-     * @return the current instance of type C, cast from this instance.
      */
     @SuppressWarnings("unchecked")
     default C returnThis() {

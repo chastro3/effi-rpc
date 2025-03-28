@@ -40,21 +40,11 @@ public enum PredefinedErrorCode implements ErrorCode {
         this.message = message;
     }
 
-    /**
-     * Returns the code.
-     *
-     * @return the code
-     */
     @Override
     public String code() {
         return code;
     }
 
-    /**
-     * Returns the message.
-     *
-     * @return the message
-     */
     @Override
     public String message() {
         return message;

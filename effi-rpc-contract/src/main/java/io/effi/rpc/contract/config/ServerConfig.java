@@ -6,7 +6,7 @@ import io.effi.rpc.common.util.StringUtil;
  * Configuration for server.
  *
  * @see NamedConfig
- * @see io.effi.rpc.support.builder.ServerConfigBuilder
+ * @see io.effi.rpc.engine.builder.ServerConfigBuilder
  */
 public interface ServerConfig extends NamedConfig {
 

@@ -125,11 +125,11 @@ public interface Component {
     }
 
     /**
-     * Supported transport mechanisms.
+     * Supported protocol mechanisms.
      */
     interface Transport {
         /**
-         * Netty-based transport.
+         * Netty-based protocol.
          */
         String NETTY = "netty";
     }

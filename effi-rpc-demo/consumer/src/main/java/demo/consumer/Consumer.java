@@ -2,8 +2,8 @@ package demo.consumer;
 
 import demo.consumer.model.ParentObject;
 import io.effi.rpc.contract.module.EffRpcApplication;
-import io.effi.rpc.support.AnnotationRemoteCaller;
-import io.effi.rpc.support.DefaultRegistryConfig;
+import io.effi.rpc.engine.AnnotationRemoteCaller;
+import io.effi.rpc.engine.DefaultRegistryConfig;
 
 import java.util.List;
 import java.util.Map;

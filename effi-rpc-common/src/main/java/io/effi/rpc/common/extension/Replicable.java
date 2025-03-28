@@ -9,8 +9,6 @@ public interface Replicable<T> {
 
     /**
      * Creates a deep copy of the object, duplicating all internal mutable state.
-     *
-     * @return a deep copy of the object
      */
     T replicate();
 }

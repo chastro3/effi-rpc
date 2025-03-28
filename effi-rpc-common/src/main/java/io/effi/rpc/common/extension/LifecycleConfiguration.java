@@ -11,48 +11,36 @@ public interface LifecycleConfiguration<T extends Lifecycle> {
 
     /**
      * Hook to perform actions before the lifecycle object is initialized.
-     *
-     * @param lifecycle the lifecycle object being initialized
      */
     default void preInit(T lifecycle) {
     }
 
     /**
      * Hook to perform actions after the lifecycle object is initialized.
-     *
-     * @param lifecycle the lifecycle object that has been initialized
      */
     default void postInit(T lifecycle) {
     }
 
     /**
      * Hook to perform actions before the lifecycle object is started.
-     *
-     * @param lifecycle the lifecycle object being started
      */
     default void preStart(T lifecycle) {
     }
 
     /**
      * Hook to perform actions after the lifecycle object has started.
-     *
-     * @param lifecycle the lifecycle object that has been started
      */
     default void postStart(T lifecycle) {
     }
 
     /**
      * Hook to perform actions before the lifecycle object is stopped.
-     *
-     * @param lifecycle the lifecycle object being stopped
      */
     default void preStop(T lifecycle) {
     }
 
     /**
      * Hook to perform actions after the lifecycle object has stopped.
-     *
-     * @param lifecycle the lifecycle object that has been stopped
      */
     default void postStop(T lifecycle) {
     }

@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     compileOnly(project(":effi-rpc-common"))
-    testImplementation(project(":effi-rpc-protocol:effi-rpc-protocol-http"))
+    testImplementation(project(":effi-rpc-engine:effi-rpc-engine-http"))
     testImplementation(project(":effi-rpc-registry:effi-rpc-registry-consul"))
     testImplementation(project(":effi-rpc-registry:effi-rpc-registry-nacos"))
     testImplementation(project(":effi-rpc-proxy:effi-rpc-proxy-jdk"))
