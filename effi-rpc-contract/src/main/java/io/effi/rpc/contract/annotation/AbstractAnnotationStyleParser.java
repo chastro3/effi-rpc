@@ -83,7 +83,7 @@ public abstract class AbstractAnnotationStyleParser<REQ extends Envelope.Request
         loop:
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
-            if (CollectionUtil.isNotEmpty(parameterWrappers)) {
+            if (CollectionUtil.isNotEmpty(parameterParsers)) {
                 for (ParameterParser<REQ> parser : parameterParsers) {
                     if (parser.supported(parameter)) {
                         parameterMappers[i] = new ParameterMapper<>(parameter, parser);

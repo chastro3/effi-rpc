@@ -4,8 +4,10 @@ import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.module.ModuleSource;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
@@ -20,32 +22,21 @@ import java.util.concurrent.TimeoutException;
 public interface Caller<R> extends Invoker<CompletableFuture<R>>, ModuleSource {
 
     /**
-     * Gets the client configuration used for the RPC call.
-     *
-     * @return the client configuration
+     * Returns the client configuration used for the RPC call.
      */
     ClientConfig clientConfig();
 
+    List<RegistryConfig> registryConfigs();
+
     /**
-     * Gets the service discovery locator.
-     *
-     * @return the service locator
+     * Returns the locator.
      */
     Locator locator();
 
     /**
-     * Gets the thread pool used by the caller.
-     *
-     * @return the thread pool instance
+     * Returns the thread pool used by the caller.
      */
     ThreadPool threadPool();
-
-    /**
-     * Gets the module configuration for the invocation.
-     *
-     * @return the module config
-     */
-    CallerModularConfig modularConfig();
 
     /**
      * Initiates an asynchronous RPC call with the specified arguments.

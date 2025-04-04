@@ -1,6 +1,6 @@
 package io.effi.rpc.proxy;
 
-import io.effi.rpc.common.extension.spi.Extensible;
+import io.effi.rpc.common.spi.Extensible;
 
 import static io.effi.rpc.common.constant.Component.ProxyFactory.JDK;
 
@@ -11,25 +11,24 @@ import static io.effi.rpc.common.constant.Component.ProxyFactory.JDK;
 public interface ProxyFactory {
 
     /**
-     * Creates a new proxy instance that implements the specified interface
-     * using the provided invocation handler.
+     * Creates a proxy for the specified interface.
      *
-     * @param interfaceClass the interface to be implemented by the proxy
-     * @param handler        the invocation handler for method dispatch
-     * @param <T>            the type of the interface
-     * @return a new proxy object implementing the specified interface
+     * @param interfaceClass the interface to be implemented
+     * @param handler        the invocation handler
+     * @param <T>            the interface type
+     * @return the proxy instance
      */
     <T> T createProxy(Class<T> interfaceClass, InvocationHandler handler);
 
     /**
-     * Creates a new proxy instance around the specified target object
-     * using the provided invocation handler.
+     * Creates a proxy for the given object.
      *
-     * @param target  the object to be proxied
-     * @param handler the invocation handler for method dispatch
-     * @param <T>     the type of the target object
-     * @return a new proxy object wrapping the specified target
+     * @param target  the target object
+     * @param handler the invocation handler
+     * @param <T>     the object type
+     * @return the proxy instance
      */
     <T> T createProxy(T target, InvocationHandler handler);
 }
+
 

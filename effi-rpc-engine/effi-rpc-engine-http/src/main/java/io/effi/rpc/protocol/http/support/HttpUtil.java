@@ -2,7 +2,7 @@ package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.EffiRpcFramework;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.QueryPath;
 import io.effi.rpc.common.url.URL;
@@ -14,7 +14,7 @@ import io.effi.rpc.contract.annotation.Body;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.serialization.Serializer;
-import io.effi.rpc.protocol.NettySupport;
+import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.AsciiString;

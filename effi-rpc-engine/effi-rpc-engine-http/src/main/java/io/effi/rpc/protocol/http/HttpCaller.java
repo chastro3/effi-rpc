@@ -4,12 +4,9 @@ import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.protocol.http.support.HttpHeaders;
-import io.effi.rpc.protocol.http.support.HttpRequest;
-import io.effi.rpc.protocol.http.support.HttpResponse;
-import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.engine.AbstractCaller;
+import io.effi.rpc.protocol.http.support.HttpHeaders;
+import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.netty.handler.codec.http.HttpMethod;
 
 /**
@@ -33,20 +30,8 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
         this.requestHeaders = builder.requestHeaders();
     }
 
-    @Override
-    public Class<? extends Envelope.Request> supportedRequestType() {
-        return HttpRequest.class;
-    }
-
-    @Override
-    public Class<? extends Envelope.Response> supportedResponseType() {
-        return HttpResponse.class;
-    }
-
     /**
      * Returns the version.
-     *
-     * @return the version
      */
     public HttpVersion version() {
         return version;
@@ -54,8 +39,6 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
 
     /**
      * Returns the httpMethod.
-     *
-     * @return the httpMethod
      */
     public HttpMethod httpMethod() {
         return httpMethod;
@@ -63,8 +46,6 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
 
     /**
      * Returns the requestHeaders.
-     *
-     * @return the requestHeaders
      */
     public HttpHeaders requestHeaders() {
         return requestHeaders;

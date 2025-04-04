@@ -1,11 +1,11 @@
 package io.effi.rpc.proxy.cglib;
 
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.proxy.SuperInvoker;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
 
 /**
  * Adapts the CGLIB's {@link MethodInterceptor} to
@@ -29,11 +29,17 @@ public class CGLibMethodInterceptor implements MethodInterceptor {
 
     }
 
-    private SuperInvoker<?> superInvoker(Object obj, MethodProxy proxy, Object[] args) {
+    private Callable<?> superInvoker(Object obj, MethodProxy proxy, Object[] args) {
         if (target instanceof Class<?>) {
             return () -> null;
         }
-        return () -> proxy.invokeSuper(obj, args);
+        return () -> {
+            try {
+                return proxy.invokeSuper(obj, args);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
 }

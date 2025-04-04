@@ -14,7 +14,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
     public <T> T createProxy(Class<T> interfaceClass, InvocationHandler handler) {
         try {
             if (!interfaceClass.isInterface()) {
-                throw new IllegalArgumentException(interfaceClass + "Is Not Interface," + "The Method Only Support Interface");
+                throw new IllegalArgumentException("The method only support interface");
             }
             return doCreateProxy(interfaceClass, wrap(interfaceClass, handler));
         } catch (Exception e) {
@@ -36,6 +36,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
     protected abstract <T> T doCreateProxy(T target, InvocationHandler handler) throws Exception;
 
     private InvocationHandler wrap(Object target, InvocationHandler invocationHandler) {
+        // todo 提供一个Wrapper接口
         return (proxy, method, args, superInvoker) -> {
             if (Object.class.equals(method.getDeclaringClass())) {
                 return invokeObjectMethod(target, method, args);

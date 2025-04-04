@@ -1,6 +1,6 @@
 package io.effi.rpc.common.event;
 
-import io.effi.rpc.common.extension.resoruce.Closeable;
+import io.effi.rpc.common.util.resoruce.Closeable;
 
 /**
  * Dispatches events and manages event listeners.

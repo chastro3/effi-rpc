@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.manager;
 
-import io.effi.rpc.common.extension.collection.LazyList;
+import io.effi.rpc.common.util.collection.LazyList;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
 

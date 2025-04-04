@@ -3,7 +3,7 @@ package io.effi.rpc.protocol.http.h1;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpVersion;
-import io.effi.rpc.protocol.NettySupport;
+import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;

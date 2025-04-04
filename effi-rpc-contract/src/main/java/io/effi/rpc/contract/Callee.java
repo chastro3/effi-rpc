@@ -8,7 +8,6 @@ import io.effi.rpc.contract.parameter.ParameterParser;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Server callee for handling remote service calls.
@@ -48,6 +47,11 @@ public interface Callee<T> extends Invoker<Object> {
     ParameterMapper<ParameterParser<?>>[] parameterMappers();
 
     /**
+     * Retrieves the thread pool associated with the given module.
+     */
+    ThreadPool threadPoolOf(EffiRpcModule module);
+
+    /**
      * Returns a description of this server callee.
      */
     String desc();
@@ -63,11 +67,6 @@ public interface Callee<T> extends Invoker<Object> {
      * Returns the exported modules.
      */
     Collection<EffiRpcModule> exportedModules();
-
-    /**
-     * Returns the exported module invoked configs.
-     */
-    Map<EffiRpcModule, CalleeModularConfig> modularConfigs();
 
     /**
      * Returns the manager key for this callee.

@@ -1,8 +1,8 @@
 package io.effi.rpc.common.url;
 
-import io.effi.rpc.common.extension.AbstractAttributes;
-import io.effi.rpc.common.extension.Replicable;
-import io.effi.rpc.common.extension.collection.LazyList;
+import io.effi.rpc.common.util.AbstractAttributes;
+import io.effi.rpc.common.util.Replicable;
+import io.effi.rpc.common.util.collection.LazyList;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.NetUtil;

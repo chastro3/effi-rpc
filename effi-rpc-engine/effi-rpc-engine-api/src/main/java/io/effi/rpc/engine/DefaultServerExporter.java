@@ -1,26 +1,27 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.collection.LazyList;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.url.URLType;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.ObjectUtil;
+import io.effi.rpc.common.util.collection.LazyList;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.manager.CalleeManager;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.module.ServerExporter;
+import io.effi.rpc.engine.builder.ServerExportBuilder;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
-import io.effi.rpc.protocol.Protocol;
 import io.effi.rpc.registry.RegistryFactory;
 import io.effi.rpc.registry.RegistryService;
-import io.effi.rpc.engine.builder.ServerExportBuilder;
-import io.effi.rpc.protocol.server.Server;
+import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.transport.endpoint.Server;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -142,7 +143,7 @@ public class DefaultServerExporter implements ServerExporter {
      * Opens a new server instance using the provided protocol and configuration.
      */
     protected Server openServer() {
-        Protocol protocol = ExtensionLoader.loadExtension(Protocol.class, exportedUrl.protocol());
+        Protocol protocol = TransportSupport.getProtocol(exportedUrl.protocol());
         URL serverUrl = URL.builder()
                 .type(URLType.SERVER)
                 .protocol(exportedUrl.protocol())
@@ -168,7 +169,7 @@ public class DefaultServerExporter implements ServerExporter {
                 URL registryConfigUrl = registryConfig.url().replicate();
                 registryConfigUrl.addParam(DefaultConfigKeys.APPLICATION.key(), module.application().name());
                 RegistryFactory registryFactory = ExtensionLoader.loadExtension(RegistryFactory.class, registryConfigUrl.protocol());
-                RegistryService registryService = registryFactory.acquire(module.application(), registryConfigUrl);
+                RegistryService registryService = registryFactory.getService(module.application(), registryConfigUrl);
                 registryService.register(exportedUrl);
             }
         }

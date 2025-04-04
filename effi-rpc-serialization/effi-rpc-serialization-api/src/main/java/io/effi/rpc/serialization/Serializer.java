@@ -1,13 +1,13 @@
 package io.effi.rpc.serialization;
 
-import io.effi.rpc.common.extension.spi.Extensible;
+import io.effi.rpc.common.spi.Extensible;
 
 import java.lang.reflect.Type;
 
 import static io.effi.rpc.common.constant.Component.Serialization.KRYO;
 
 /**
- * Serializing and deserializing objects.
+ * Handles object serialization and deserialization.
  */
 @Extensible(KRYO)
 public interface Serializer {

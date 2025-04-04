@@ -2,7 +2,7 @@ package io.effi.rpc.contract;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;

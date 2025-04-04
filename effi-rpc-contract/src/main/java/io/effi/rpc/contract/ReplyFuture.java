@@ -2,7 +2,7 @@ package io.effi.rpc.contract;
 
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
@@ -63,9 +63,9 @@ public abstract class ReplyFuture {
      * @param url the url
      * @return the corresponding ReplyFuture, or null if not found.
      */
-    public static ReplyFuture acquireFuture(URL url) {
+    public static ReplyFuture getFuture(URL url) {
         Long id = url.get(KeyConstant.ATTR_UNIQUE_ID);
-        return id == null ? null : acquireFuture(id);
+        return id == null ? null : getFuture(id);
     }
 
     /**
@@ -74,7 +74,7 @@ public abstract class ReplyFuture {
      * @param id the unique ID.
      * @return the corresponding ReplyFuture, or null if not found.
      */
-    public static ReplyFuture acquireFuture(long id) {
+    public static ReplyFuture getFuture(long id) {
         return FUTURES.get(id);
     }
 

@@ -40,7 +40,8 @@ public class FilterSupport {
      * @throws NullPointerException  if the filter is {@code null}
      */
     @SuppressWarnings("unchecked")
-    public static Type getType(Filter<?, ?, ?> filter) {
+    public static FilterType<?, ?> getType(Filter<?, ?, ?> filter) {
+        if (filter.type() != null) return filter.type();
         Class<?> parameterClass = null;
         try {
             AssertUtil.notNull(filter, "filter");
@@ -54,20 +55,11 @@ public class FilterSupport {
             Method doFilter = filter.getClass().getMethod("doFilter", parameterClass);
             var parameterType = (ParameterizedType) doFilter.getGenericParameterTypes()[0];
             java.lang.reflect.Type[] arguments = parameterType.getActualTypeArguments();
-            return new Type((Class<? extends Envelope>) arguments[0],
+            return FilterType.of((Class<? extends Envelope>) arguments[0],
                     (Class<? extends Invoker<?>>) ((ParameterizedType) arguments[1]).getRawType());
         } catch (NoSuchMethodException ignored) {
             throw new IllegalStateException("Can't find doFilter(" + parameterClass.getName() + ")");
         }
     }
 
-    /**
-     * Hold the envelope and invoker types.
-     *
-     * @param envelopeType the class type of the envelope
-     * @param invokerType  the class type of the invoker
-     */
-    public record Type(Class<? extends Envelope> envelopeType, Class<? extends Invoker<?>> invokerType) {
-
-    }
 }

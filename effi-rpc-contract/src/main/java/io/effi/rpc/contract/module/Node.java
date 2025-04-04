@@ -1,9 +1,9 @@
 package io.effi.rpc.contract.module;
 
-import io.effi.rpc.common.extension.AbstractAttributes;
-import io.effi.rpc.common.extension.Lifecycle;
-import io.effi.rpc.common.extension.LifecycleConfiguration;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.util.AbstractAttributes;
+import io.effi.rpc.common.util.Lifecycle;
+import io.effi.rpc.common.util.LifecycleConfiguration;
+import io.effi.rpc.common.spi.ExtensionLoader;
 
 import java.util.HashMap;
 import java.util.List;

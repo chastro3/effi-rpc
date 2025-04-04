@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.parameter;
 
-import io.effi.rpc.common.extension.Holder;
+import io.effi.rpc.common.util.Holder;
 
 import java.util.HashMap;
 import java.util.Map;

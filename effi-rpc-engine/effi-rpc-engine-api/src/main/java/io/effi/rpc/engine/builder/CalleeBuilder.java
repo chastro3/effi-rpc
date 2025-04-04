@@ -40,7 +40,7 @@ public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder
     }
 
     /**
-     * Exposes the current callee to the specified module(s)
+     * Exposes the current callee to the specified module(s).
      *
      * @param modules the specified module(s)
      */

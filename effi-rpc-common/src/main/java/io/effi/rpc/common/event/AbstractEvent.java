@@ -1,6 +1,6 @@
 package io.effi.rpc.common.event;
 
-import io.effi.rpc.common.extension.AbstractAttributes;
+import io.effi.rpc.common.util.AbstractAttributes;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

@@ -1,6 +1,6 @@
 package io.effi.rpc.common.url;
 
-import io.effi.rpc.common.extension.Builder;
+import io.effi.rpc.common.util.Builder;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.NetUtil;
 
@@ -31,8 +31,7 @@ public class URLBuilder implements Builder<URL> {
 
     private List<String> paths;
 
-    URLBuilder() {
-    }
+    URLBuilder() {}
 
     /**
      * Sets the type of URL being built.
@@ -117,13 +116,6 @@ public class URLBuilder implements Builder<URL> {
         }
     }
 
-    /**
-     * Constructs and returns a new {@link URL} instance based on the
-     * values set in this URLBuilder.
-     *
-     * @return A new URL instance with the configured protocol, address,
-     * paths, and query parameters.
-     */
     @Override
     public URL build() {
         return new URL(type, protocol, address, paths, params);

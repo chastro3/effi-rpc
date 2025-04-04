@@ -1,8 +1,8 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.ChainBuilder;
-import io.effi.rpc.common.extension.TypeToken;
+import io.effi.rpc.common.util.ChainBuilder;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.ConfigSource;
 import io.effi.rpc.common.util.CollectionUtil;
@@ -35,7 +35,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
      * Sets the compression method.
      *
      * @param compression Compression type
-     * @return This builder
      */
     public C compression(String compression) {
         config.set(DefaultConfigKeys.COMPRESSION.key(), compression);
@@ -46,7 +45,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
      * Sets the serialization format.
      *
      * @param serialization Serialization format
-     * @return This builder
      */
     public C serialization(String serialization) {
         config.set(DefaultConfigKeys.SERIALIZATION.key(), serialization);
@@ -57,7 +55,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
      * Sets the query path for the invoker.
      *
      * @param path Query path string
-     * @return This builder
      */
     public C path(String path) {
         config.set(DefaultConfigKeys.PATH.key(), path);
@@ -68,7 +65,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
      * Adds filters to the invoker, avoiding duplicates.
      *
      * @param filters Filters to add
-     * @return This builder
      */
     public C addFilter(Filter<?, ?, ?>... filters) {
         if (CollectionUtil.isNotEmpty(filters)) {
@@ -96,29 +92,13 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
         return config;
     }
 
-    /**
-     * Builds and returns the configured {@link Invoker} instance.
-     *
-     * @return Configured {@link Invoker} instance
-     */
     @Override
     public T build() {
         return build(config());
     }
 
-    /**
-     * Defines the protocol used by the invoker.
-     *
-     * @return Protocol string
-     */
     public abstract String protocol();
 
-    /**
-     * Constructs the invoker instance with the given URL.
-     *
-     * @param config config for the invoker
-     * @return New {@link Invoker} instance
-     */
     protected abstract T build(Config config);
 }
 

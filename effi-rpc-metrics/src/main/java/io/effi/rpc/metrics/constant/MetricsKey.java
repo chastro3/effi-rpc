@@ -1,6 +1,6 @@
 package io.effi.rpc.metrics.constant;
 
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.GenericKey;
 
 /**
  * Metrics Key.

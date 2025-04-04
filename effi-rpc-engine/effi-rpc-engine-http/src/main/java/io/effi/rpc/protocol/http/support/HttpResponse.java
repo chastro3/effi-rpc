@@ -23,8 +23,6 @@ public interface HttpResponse<BODY> extends HttpEnvelope<BODY>, Envelope.Respons
 
     /**
      * Returns the HTTP response status code.
-     *
-     * @return the status code of the HTTP response
      */
     int statusCode();
 

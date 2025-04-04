@@ -7,9 +7,9 @@ import io.effi.rpc.common.event.DisruptorEventDispatcher;
 import io.effi.rpc.common.event.Event;
 import io.effi.rpc.common.event.EventDispatcher;
 import io.effi.rpc.common.executor.RpcThreadPool;
-import io.effi.rpc.common.extension.ScheduledThreadPool;
-import io.effi.rpc.common.extension.Scheduler;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.util.ScheduledThreadPool;
+import io.effi.rpc.common.util.Scheduler;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.url.URLType;
@@ -94,8 +94,8 @@ public class EffRpcApplication extends Node {
      * @param url the URL for locating the application
      * @return the corresponding {@link EffRpcApplication}
      */
-    public static EffRpcApplication acquire(URL url) {
-        return acquire(getName(url));
+    public static EffRpcApplication getInstance(URL url) {
+        return getInstance(getName(url));
     }
 
     /**
@@ -104,7 +104,7 @@ public class EffRpcApplication extends Node {
      * @param name the name of the application
      * @return the corresponding {@link EffRpcApplication}
      */
-    public static EffRpcApplication acquire(String name) {
+    public static EffRpcApplication getInstance(String name) {
         return APPLICATIONS.get(name);
     }
 

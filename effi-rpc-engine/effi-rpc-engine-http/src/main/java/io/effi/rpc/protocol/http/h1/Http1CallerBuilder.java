@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.extension.TypeToken;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.protocol.http.HttpCallerBuilder;

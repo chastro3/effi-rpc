@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.parameter;
 
-import io.effi.rpc.common.extension.spi.Extensible;
+import io.effi.rpc.common.spi.Extensible;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Result;

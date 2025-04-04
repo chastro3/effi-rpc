@@ -1,8 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
-
-import io.effi.rpc.protocol.InitializedConfig;
-import io.effi.rpc.protocol.NettyChannel;
-import io.effi.rpc.protocol.client.NettyClient;
+import io.effi.rpc.transport.netty.InitializedConfig;
+import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.NettyClient;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;

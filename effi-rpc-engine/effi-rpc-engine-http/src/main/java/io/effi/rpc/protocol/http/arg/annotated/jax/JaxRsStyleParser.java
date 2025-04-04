@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.arg.annotated.jax;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.contract.annotation.*;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpUtil;

@@ -1,15 +1,14 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.protocol.Protocol;
 import io.effi.rpc.protocol.http.URLBinderChannelHandler;
 import io.effi.rpc.protocol.http.support.HttpRequest;
-import io.effi.rpc.protocol.NettyChannel;
-import io.effi.rpc.protocol.NettySupport;
+import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -27,7 +26,7 @@ public final class Http1ClientHandler extends URLBinderChannelHandler {
     private final Http1Protocol protocol;
 
     public Http1ClientHandler(URL url) {
-        this.protocol = (Http1Protocol) ExtensionLoader.loadExtension(Protocol.class, url.protocol());
+        this.protocol = (Http1Protocol) TransportSupport.getProtocol(url.protocol());
     }
 
     @Override

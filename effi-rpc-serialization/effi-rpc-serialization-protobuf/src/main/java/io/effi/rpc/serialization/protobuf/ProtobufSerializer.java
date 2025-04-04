@@ -1,7 +1,7 @@
 package io.effi.rpc.serialization.protobuf;
 
 import com.google.protobuf.MessageLite;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
 import java.lang.reflect.Method;

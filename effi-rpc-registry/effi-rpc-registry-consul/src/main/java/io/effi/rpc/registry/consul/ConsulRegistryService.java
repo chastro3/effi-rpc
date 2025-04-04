@@ -5,7 +5,7 @@ import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;

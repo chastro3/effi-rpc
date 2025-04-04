@@ -50,4 +50,8 @@ public enum PredefinedErrorCode implements ErrorCode {
         return message;
     }
 
+    public EffiRpcException fail(Throwable cause, Object... args) {
+        return EffiRpcException.wrap(this, cause, args);
+    }
+
 }

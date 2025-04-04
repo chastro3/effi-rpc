@@ -3,7 +3,7 @@ package io.effi.rpc.engine.faulttolerance;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.CompletableReplyFuture;

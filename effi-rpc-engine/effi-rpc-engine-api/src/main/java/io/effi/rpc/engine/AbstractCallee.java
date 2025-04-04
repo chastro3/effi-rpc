@@ -5,13 +5,13 @@ import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.extension.Ordered;
-import io.effi.rpc.common.extension.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.url.URLType;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.DateUtil;
+import io.effi.rpc.common.util.Ordered;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
@@ -20,13 +20,14 @@ import io.effi.rpc.contract.filter.FilterChain;
 import io.effi.rpc.contract.filter.InvokeFilter;
 import io.effi.rpc.contract.filter.ReplyFilter;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.contract.module.ServerExporter;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
+import io.effi.rpc.engine.builder.CalleeBuilder;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.metrics.CalleeMetrics;
-import io.effi.rpc.engine.builder.CalleeBuilder;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -104,8 +105,15 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
     @Override
     public void export(EffiRpcModule... modules) {
         if (CollectionUtil.isNotEmpty(modules)) {
+            List<String> excludedPorts = getMerged(DefaultConfigKeys.EXCLUDED_PORT);
             for (EffiRpcModule module : modules) {
                 modularConfigMap.put(module, new CalleeModularConfig(module, this));
+                for (ServerExporter serverExporter : module.serverExporterManager().values()) {
+                    URL url = serverExporter.url();
+                    if (protocol().equals(url.protocol()) && !excludedPorts.contains(String.valueOf(url.port()))) {
+                        serverExporter.callee(this);
+                    }
+                }
             }
         }
     }
@@ -113,11 +121,6 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
     @Override
     public Collection<EffiRpcModule> exportedModules() {
         return Collections.unmodifiableCollection(modularConfigMap.keySet());
-    }
-
-    @Override
-    public Map<EffiRpcModule, CalleeModularConfig> modularConfigs() {
-        return Collections.unmodifiableMap(modularConfigMap);
     }
 
     @Override
@@ -181,9 +184,9 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
      * If no specific thread pool is found, the default hybrid server thread pool is used.
      *
      * @param module the module for which the thread pool is retrieved
-     * @return the associated thread pool
      */
-    public ThreadPool threadPool(EffiRpcModule module) {
+    @Override
+    public ThreadPool threadPoolOf(EffiRpcModule module) {
         return threadPool(module, Constant.DEFAULT_SERVER_HYBRID_THREAD_POOL);
     }
 }

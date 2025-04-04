@@ -2,7 +2,7 @@ package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.TypeToken;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;

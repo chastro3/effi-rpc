@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.protocol.http.support.HttpResponse;
-import io.effi.rpc.protocol.NettyChannel;
+import io.effi.rpc.transport.netty.NettyChannel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;

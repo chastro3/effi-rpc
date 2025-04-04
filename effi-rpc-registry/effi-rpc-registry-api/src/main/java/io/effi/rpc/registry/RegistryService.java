@@ -1,43 +1,44 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.common.extension.resoruce.Closeable;
+import io.effi.rpc.common.util.resoruce.Closeable;
 import io.effi.rpc.common.url.URL;
 
 import java.util.List;
 
 /**
- * Handles service registration and discovery within a registry.
+ * Manages service registration and discovery in a registry.
  */
 public interface RegistryService extends Closeable {
 
     /**
-     * Connects to the specified registry.
+     * Connects to the registry.
      *
-     * @param registryUrl the URL of the registry to connect to
+     * @param registryUrl the registry URL
      */
     void connect(URL registryUrl);
 
     /**
-     * Registers the specified URL with the registry.
+     * Registers a service with the registry.
      *
-     * @param exporterUrl the URL to register
+     * @param exporterUrl the service URL to register
      */
     void register(URL exporterUrl);
 
     /**
-     * Deregisters the specified URL from the registry.
+     * Deregisters a service from the registry.
      *
-     * @param exporterUrl the URL to deregister
+     * @param exporterUrl the service URL to deregister
      */
     void deregister(URL exporterUrl);
 
     /**
-     * Discovers services from the registry using the specified URL.
+     * Discovers services in the registry.
      *
-     * @param requestUrl the URL used for service discovery
-     * @return a list of discovered services
+     * @param requestUrl the service discovery URL
+     * @return a list of discovered service URLs
      */
     List<URL> discover(URL requestUrl);
 }
+
 
 

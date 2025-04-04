@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.manager;
 
-import io.effi.rpc.contract.RemoteCaller;
+import io.effi.rpc.contract.RemoteClient;
 import io.effi.rpc.contract.RemoteService;
 
 import java.util.ArrayList;
@@ -13,6 +13,6 @@ public class MonitorManager {
 
     private List<RemoteService<?>> remoteServices = new ArrayList<>();
 
-    private List<RemoteCaller<?>> remoteCallers = new ArrayList<>();
+    private List<RemoteClient<?>> remoteClients = new ArrayList<>();
 
 }

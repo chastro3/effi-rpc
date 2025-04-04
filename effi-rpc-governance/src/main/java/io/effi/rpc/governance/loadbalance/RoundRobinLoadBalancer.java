@@ -1,7 +1,7 @@
 package io.effi.rpc.governance.loadbalance;
 
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.AtomicUtil;
 import io.effi.rpc.contract.Caller;

@@ -1,8 +1,8 @@
 package io.effi.rpc.contract;
 
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.extension.AbstractAttributes;
-import io.effi.rpc.common.extension.StringAccessor;
+import io.effi.rpc.common.util.AbstractAttributes;
+import io.effi.rpc.common.util.StringAccessor;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.url.URLUtil;
 import io.effi.rpc.common.util.StringUtil;

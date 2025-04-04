@@ -11,8 +11,8 @@ import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
-import io.effi.rpc.engine.AbstractClientCodec;
-import io.effi.rpc.protocol.RequestWrapper;
+import io.effi.rpc.transport.RepackagedRequest;
+import io.effi.rpc.transport.codec.AbstractClientCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 
@@ -29,7 +29,7 @@ public class HttpClientCodec extends AbstractClientCodec<HttpRequest<Object>, Ht
     }
 
     @Override
-    protected Envelope.Request encodeRequest(RequestWrapper<Caller<?>> requestWrapper, HttpRequest<Object> request) throws Exception {
+    protected Envelope.Request encodeRequest(RepackagedRequest<Caller<?>> repackagedRequest, HttpRequest<Object> request) throws Exception {
         HttpHeaders headers = request.headers();
         headers.add(HttpHeaderNames.HOST, request.url().host());
         return request.body(HttpUtil.encodeBody(request));

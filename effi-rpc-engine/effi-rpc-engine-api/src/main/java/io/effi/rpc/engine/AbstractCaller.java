@@ -3,22 +3,20 @@ package io.effi.rpc.engine;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.Ordered;
 import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
 import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.common.util.Ordered;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.contract.filter.*;
+import io.effi.rpc.contract.filter.Filter;
+import io.effi.rpc.contract.filter.FilterChain;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.engine.builder.CallerBuilder;
 import io.effi.rpc.metrics.CallerMetrics;
 import io.effi.rpc.metrics.MetricsSupport;
-import io.effi.rpc.engine.builder.CallerBuilder;
-import io.effi.rpc.protocol.NettyChannel;
-import io.effi.rpc.protocol.RequestWrapper;
-import io.effi.rpc.protocol.client.Client;
+import io.effi.rpc.transport.TransportSupport;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -69,12 +67,6 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
     public EffiRpcModule module() {
         return module;
     }
-
-    @Override
-    public CallerModularConfig modularConfig() {
-        return modularConfig;
-    }
-
     @Override
     public ClientConfig clientConfig() {
         return modularConfig.clientConfig();
@@ -91,13 +83,18 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
     }
 
     @Override
+    public List<RegistryConfig> registryConfigs() {
+        return modularConfig.registryConfigs();
+    }
+
+    @Override
     public void addFilter(Filter<?, ?, ?>... filters) {
         modularConfig.addFilter(filters);
     }
 
     @Override
     public <T extends ReplyFuture> T callWithFuture(T future) throws EffiRpcException {
-        return sendRequest(doCall(future));
+        return TransportSupport.sendRequest(protocol, doCall(future));
     }
 
     protected <T extends ReplyFuture> T startCall(Object[] args, Function<InvocationContext<Envelope.Request, Caller<?>>, T> futureCreator) {
@@ -109,9 +106,6 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
     private <T extends ReplyFuture> T doCall(T future) {
         var context = future.context();
         MetricsSupport.recordStartTime(context);
-        List<InvokeFilter<?, ?>> invokeFilters = Ordered.sort(modularConfig.invokeFilters());
-        List<ChosenFilter<?, ?>> chosenFilters = Ordered.sort(modularConfig.chosenFilters());
-        List<ReplyFilter<?, ?>> replyFilters = Ordered.sort(modularConfig.replyFilters());
         // Chain of nested invocations for address resolution and filter execution
         var rpcContext = context.executor(() -> {
             var filterContext = context.executor(() -> {
@@ -120,35 +114,15 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
                 var chosenContext = context.executor(() -> {
                     future.whenComplete(replyContext -> {
                         replyContext = replyContext.executor(replyContext::result);
-                        FilterChain.execute(replyContext, replyFilters);
+                        FilterChain.execute(replyContext, Ordered.sort(modularConfig.replyFilters()));
                     });
                     return new Result(context.source().url(), future);
                 });
-                return FilterChain.execute(chosenContext, chosenFilters);
+                return FilterChain.execute(chosenContext, Ordered.sort(modularConfig.chosenFilters()));
             });
-            return FilterChain.execute(filterContext, invokeFilters);
+            return FilterChain.execute(filterContext, Ordered.sort(modularConfig.invokeFilters()));
         });
         rpcContext.execute();
-        return future;
-    }
-
-    private <T extends ReplyFuture> T sendRequest(T future) {
-        var context = future.context();
-        URL requestUrl = context.source().url();
-        URL clientUrl = URL.builder()
-                .type(URLType.CLIENT)
-                .protocol(requestUrl.protocol())
-                .address(requestUrl.address())
-                .params(clientConfig().config().properties())
-                .build();
-        Client client = protocol.openClient(clientUrl, module);
-        NettyChannel channel = client.acquireChannel();
-        RequestWrapper<Caller<?>> requestWrapper = new RequestWrapper<>(context, protocol.clientCodec());
-        if (inIOSerialization()) {
-            channel.send(requestWrapper);
-        } else {
-            threadPool().execute(() -> channel.send(requestWrapper.encode(channel)));
-        }
         return future;
     }
 

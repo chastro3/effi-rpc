@@ -3,12 +3,9 @@ package io.effi.rpc.protocol.http;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.StringUtil;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.protocol.http.support.HttpHeaders;
-import io.effi.rpc.protocol.http.support.HttpRequest;
-import io.effi.rpc.protocol.http.support.HttpResponse;
-import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.engine.AbstractCallee;
+import io.effi.rpc.protocol.http.support.HttpHeaders;
+import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.netty.handler.codec.http.HttpMethod;
 
 /**
@@ -32,20 +29,8 @@ public abstract class HttpCallee<T> extends AbstractCallee<T> {
         this.responseHeaders = builder.responseHeaders();
     }
 
-    @Override
-    public Class<? extends Envelope.Request> supportedRequestType() {
-        return HttpRequest.class;
-    }
-
-    @Override
-    public Class<? extends Envelope.Response> supportedResponseType() {
-        return HttpResponse.class;
-    }
-
     /**
      * Returns the version.
-     *
-     * @return the version
      */
     public HttpVersion version() {
         return version;
@@ -53,8 +38,6 @@ public abstract class HttpCallee<T> extends AbstractCallee<T> {
 
     /**
      * Returns the httpMethod.
-     *
-     * @return the httpMethod
      */
     public HttpMethod httpMethod() {
         return httpMethod;
@@ -62,8 +45,6 @@ public abstract class HttpCallee<T> extends AbstractCallee<T> {
 
     /**
      * Returns the responseHeaders.
-     *
-     * @return the responseHeaders
      */
     public HttpHeaders responseHeaders() {
         return responseHeaders;

@@ -4,6 +4,7 @@ import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.config.ServerConfig;
+import io.effi.rpc.contract.filter.Filter;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
@@ -75,7 +76,6 @@ public class EffiRpcBootstrap {
      * Registers multiple services.
      *
      * @param services
-     * @return
      */
     public EffiRpcBootstrap services(Object... services) {
         if (CollectionUtil.isNotEmpty(services)) {
@@ -121,10 +121,19 @@ public class EffiRpcBootstrap {
         return this;
     }
 
+    public EffiRpcBootstrap filter(Filter<?, ?, ?>... filters) {
+        return filter(defaultModule(), filters);
+    }
+
+    public EffiRpcBootstrap filter(EffiRpcModule module, Filter<?, ?, ?>... filters) {
+        if (module != null) {
+            module.registerShared(filters);
+        }
+        return this;
+    }
+
     /**
      * Starts the EffiRpc application.
-     *
-     * @return the updated EffiRpcBootstrap instance
      */
     public EffiRpcBootstrap start() {
         application.start();
@@ -133,8 +142,6 @@ public class EffiRpcBootstrap {
 
     /**
      * Stops the EffiRpc application.
-     *
-     * @return the updated EffiRpcBootstrap instance
      */
     public EffiRpcBootstrap stop() {
         application.stop();
@@ -143,8 +150,6 @@ public class EffiRpcBootstrap {
 
     /**
      * Returns the application.
-     *
-     * @return the application
      */
     public EffRpcApplication application() {
         return application;
@@ -152,8 +157,6 @@ public class EffiRpcBootstrap {
 
     /**
      * Returns the defaultModule.
-     *
-     * @return the defaultModule
      */
     public EffiRpcModule defaultModule() {
         return application.defaultModule();

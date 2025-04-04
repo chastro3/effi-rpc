@@ -9,7 +9,7 @@ import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.executor.RpcThreadFactory;
-import io.effi.rpc.common.extension.Holder;
+import io.effi.rpc.common.util.Holder;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.ObjectUtil;
 

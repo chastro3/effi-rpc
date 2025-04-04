@@ -1,6 +1,6 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.URL;
 
 import java.util.HashMap;
@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
- * Register service task.
+ * Represents a task that registers metadata for a given URL.
+ * It processes the URL using registered metadata handlers and executes a provided task.
  */
 public class RegisterTask implements Runnable {
 
@@ -29,8 +30,6 @@ public class RegisterTask implements Runnable {
 
     /**
      * Returns the url.
-     *
-     * @return the url
      */
     public URL url() {
         return url;
@@ -38,8 +37,6 @@ public class RegisterTask implements Runnable {
 
     /**
      * Returns the task.
-     *
-     * @return the task
      */
     public BiConsumer<RegisterTask, Map<String, String>> task() {
         return task;
@@ -47,8 +44,6 @@ public class RegisterTask implements Runnable {
 
     /**
      * Sets the firstRun.
-     *
-     * @param firstRun the firstRun
      */
     public RegisterTask firstRun(boolean firstRun) {
         isFirstRun = firstRun;
@@ -57,8 +52,6 @@ public class RegisterTask implements Runnable {
 
     /**
      * Returns the isFirstRun.
-     *
-     * @return the isFirstRun
      */
     public boolean isFirstRun() {
         return isFirstRun;

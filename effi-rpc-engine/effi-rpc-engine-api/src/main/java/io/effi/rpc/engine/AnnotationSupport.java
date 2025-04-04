@@ -1,7 +1,7 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.Messages;
 import io.effi.rpc.common.util.StringUtil;
@@ -28,22 +28,12 @@ public final class AnnotationSupport {
                 .collect(Collectors.toList());
     }
 
-    public static AnnotationStyleParser annotationStyleParserForType(Config config, String style, Class<?> type) {
-        AnnotationStyleParser annotationStyleParser = null;
-        if (StringUtil.isNotBlank(style)) {
-            annotationStyleParser = ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
-            annotationStyleParser.parseType(type, config);
-        }
-        return annotationStyleParser;
-    }
-
     public static AnnotationStyleParser annotationStyleParserForMethod(Config config,
-                                                                       String typeStyle,
-                                                                       AnnotationStyleParser typeAnnotationStyleParser) {
+                                                                       AnnotationStyleWrapper styleWrapper) {
         String style = config.get(DefaultConfigKeys.STYLE);
-        if (StringUtil.isBlank(style)) return typeAnnotationStyleParser;
-        return Objects.equals(style, typeStyle)
-                ? typeAnnotationStyleParser
+        if (StringUtil.isBlank(style)) return styleWrapper.parser();
+        return Objects.equals(style, styleWrapper.name())
+                ? styleWrapper.parser()
                 : ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
     }
 

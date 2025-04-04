@@ -56,6 +56,7 @@ public class DefaultHttpEnvelope<BODY> implements HttpEnvelope<BODY> {
     @Override
     public <NEW> HttpEnvelope<NEW> body(NEW body) {
         this.body = body;
+        HttpUtil.setContentLength(headers, body);
         return (HttpEnvelope<NEW>) this;
     }
 

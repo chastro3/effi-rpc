@@ -1,6 +1,6 @@
 package io.effi.rpc.serialization.jdk;
 
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
 import java.io.ByteArrayInputStream;

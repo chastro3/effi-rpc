@@ -1,13 +1,13 @@
 package io.effi.rpc.contract;
 
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.Attributes;
-import io.effi.rpc.common.extension.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.ConfigKey;
 import io.effi.rpc.common.url.ConfigSource;
 import io.effi.rpc.common.url.QueryPath;
+import io.effi.rpc.common.util.Attributes;
 import io.effi.rpc.common.util.GenerateUtil;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.filter.Filter;
 import io.effi.rpc.contract.manager.Manager;
 
@@ -55,16 +55,6 @@ public interface Invoker<R> extends ConfigSource, Attributes, Manager.Key {
      * @param filters filters to process requests and responses
      */
     void addFilter(Filter<?, ?, ?>... filters);
-
-    /**
-     * Returns the supported request envelope type.
-     */
-    Class<? extends Envelope.Request> supportedRequestType();
-
-    /**
-     * Returns the supported response envelope type.
-     */
-    Class<? extends Envelope.Response> supportedResponseType();
 
     @Override
     default String managerKey() {

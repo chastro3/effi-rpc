@@ -1,6 +1,6 @@
 package io.effi.rpc.common.event;
 
-import io.effi.rpc.common.extension.Attributes;
+import io.effi.rpc.common.util.Attributes;
 
 /**
  * Represents an event with a source and supports propagation control.

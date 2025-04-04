@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.manager;
 
-import io.effi.rpc.common.extension.StringAccessor;
+import io.effi.rpc.common.util.StringAccessor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

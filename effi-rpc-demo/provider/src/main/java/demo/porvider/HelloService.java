@@ -9,20 +9,7 @@ import jakarta.ws.rs.*;
 
 import java.util.List;
 
-@EffiRpcService(
-        path = "service",
-        value = "hello",
-        protocol = {"http", "h2"},
-        excludedPort = {8080, 8081},
-        modules = {"module1", "module2"},
-        filters = {"filter1", "filter2"},
-        desc = "hello service",
-        serialization = "json",
-        compression = "gzip",
-        serializationThreshold = 1024,
-        deserializationThreshold = 1024,
-        threadPool = "threadPool"
-)
+@EffiRpcService(protocol = "http,h2",style = Component.AnnotationStyle.JAX_RS)
 public class HelloService {
 
     public String hello(String name) {
@@ -31,7 +18,7 @@ public class HelloService {
 
     @GET
     @Path("hello")
-    public String hello(@QueryParam("name") String name, @QueryParam("age") int age) {
+    public String hello(@QueryParam("name") String name, @QueryParam("age") Integer age) {
         return "hello " + name + ", age:" + age;
     }
 

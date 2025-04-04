@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.HttpMethod;
  * @param <BODY>
  */
 public class DefaultHttpResponse<BODY> extends DefaultHttpEnvelope<BODY> implements HttpResponse<BODY> {
+
     private final int statusCode;
 
     public DefaultHttpResponse(HttpVersion version, HttpMethod method, URL url, int statusCode, HttpHeaders headers, BODY body) {

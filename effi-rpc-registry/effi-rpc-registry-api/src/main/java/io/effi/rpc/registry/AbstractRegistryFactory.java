@@ -8,15 +8,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Base class for implementing {@link RegistryFactory}.
- * <p>Manages the lifecycle of {@link RegistryService} instances.</p>
+ * Abstract implementation of {@link RegistryFactory}.
  */
 public abstract class AbstractRegistryFactory implements RegistryFactory {
 
     private final Map<String, RegistryService> registryServices = new ConcurrentHashMap<>();
 
     @Override
-    public RegistryService acquire(EffRpcApplication application, URL url) {
+    public RegistryService getService(EffRpcApplication application, URL url) {
         String key = application.name() + "-" + url.getParam(KeyConstant.NAME, url.authority());
         // Get or create the RegistryService associated with the given key
         RegistryService registryService = registryServices.computeIfAbsent(key, k -> create(application, url));
@@ -38,13 +37,6 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
         registryServices.clear();
     }
 
-    /**
-     * Creates a new instance of {@link RegistryService} based on the provided URL.
-     *
-     * @param application the EffRpcApplication instance
-     * @param url         the URL used to create the RegistryService
-     * @return a new RegistryService instance
-     */
     protected abstract RegistryService create(EffRpcApplication application, URL url);
 }
 

@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.GenericKey;
 
 import static io.effi.rpc.common.constant.Component.Protocol.H2;
 import static io.effi.rpc.common.constant.Component.Protocol.HTTP;

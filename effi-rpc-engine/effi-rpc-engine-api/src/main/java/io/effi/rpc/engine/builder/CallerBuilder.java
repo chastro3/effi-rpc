@@ -1,13 +1,18 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.TypeToken;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.engine.DirectLocator;
+import io.effi.rpc.engine.RegistryLocator;
+
+import java.net.InetSocketAddress;
 
 /**
  * Builder for creating {@link Caller} instances,defining settings for caller.
@@ -44,6 +49,21 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
         this.module = module;
         return returnThis();
     }
+
+    public C directAddress(String address) {
+        config.set(DefaultConfigKeys.ADDRESS.key(), address);
+        return returnThis();
+    }
+
+    public C directAddress(InetSocketAddress address) {
+        return directAddress(NetUtil.toAddress(address));
+    }
+
+    public C remoteApplication(String applicationName) {
+        config.set(DefaultConfigKeys.APPLICATION.key(), applicationName);
+        return returnThis();
+    }
+
 
     /**
      * Sets service locator.
@@ -139,6 +159,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
     @Override
     public T build() {
         checkClientConfig();
+        checkLocator();
         return super.build();
     }
 
@@ -155,6 +176,21 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
                 if (clientConfig != null) {
                     module.clientConfigManager().register(clientConfig);
                     config.set(DefaultConfigKeys.CLIENT_CONFIG.key(), clientConfig.name());
+                }
+            }
+        }
+    }
+
+    private void checkLocator() {
+        if (locator == null) {
+            String address = config.get(DefaultConfigKeys.ADDRESS);
+            if (StringUtil.isNotBlank(address)) {
+                InetSocketAddress socketAddress = NetUtil.toInetSocketAddress(address);
+                locator = DirectLocator.getInstance(socketAddress);
+            } else {
+                String remoteApplication = config.get(DefaultConfigKeys.APPLICATION);
+                if (StringUtil.isNotBlank(remoteApplication)) {
+                    locator = RegistryLocator.getInstance(remoteApplication);
                 }
             }
         }

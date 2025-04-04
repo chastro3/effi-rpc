@@ -3,7 +3,7 @@ package io.effi.rpc.engine;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.event.EventDispatcher;
 import io.effi.rpc.common.executor.RpcThreadPool;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.contract.ThreadPool;
 import io.effi.rpc.contract.module.ApplicationConfiguration;
 import io.effi.rpc.contract.module.EffRpcApplication;
@@ -15,10 +15,10 @@ import io.effi.rpc.metrics.event.CallerMetricsEvent;
 import io.effi.rpc.metrics.event.CallerMetricsEventListener;
 import io.effi.rpc.metrics.filter.CalleeExecuteRecordFilter;
 import io.effi.rpc.metrics.filter.CallerMetricsFilter;
-import io.effi.rpc.protocol.event.IdleEvent;
-import io.effi.rpc.protocol.event.IdleEventListener;
-import io.effi.rpc.protocol.event.RefreshHeartBeatCountEvent;
-import io.effi.rpc.protocol.event.RefreshHeartBeatCountEventListener;
+import io.effi.rpc.transport.heartbeat.IdleEvent;
+import io.effi.rpc.transport.heartbeat.IdleEventListener;
+import io.effi.rpc.transport.heartbeat.RefreshIdleCountEvent;
+import io.effi.rpc.transport.heartbeat.RefreshIdleCountEventListener;
 
 import java.util.concurrent.ExecutorService;
 
@@ -40,7 +40,7 @@ public class InitializedConfiguration {
         public void postInit(EffRpcApplication application) {
             // register default event listeners
             EventDispatcher eventDispatcher = application.eventDispatcher();
-            eventDispatcher.registerListener(RefreshHeartBeatCountEvent.class, new RefreshHeartBeatCountEventListener());
+            eventDispatcher.registerListener(RefreshIdleCountEvent.class, new RefreshIdleCountEventListener());
             eventDispatcher.registerListener(IdleEvent.class, new IdleEventListener());
             eventDispatcher.registerListener(CallerMetricsEvent.class, new CallerMetricsEventListener());
             eventDispatcher.registerListener(CalleeMetricsEvent.class, new CalleeMetricsEventListener());

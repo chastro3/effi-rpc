@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.common.url.URL;
-import io.effi.rpc.protocol.NettyChannel;
-import io.effi.rpc.protocol.NettySupport;
+import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http2.Http2FrameStream;
 

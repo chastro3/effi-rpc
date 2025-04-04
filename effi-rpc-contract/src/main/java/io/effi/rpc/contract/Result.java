@@ -1,7 +1,7 @@
 package io.effi.rpc.contract;
 
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.url.URL;
 
 /**

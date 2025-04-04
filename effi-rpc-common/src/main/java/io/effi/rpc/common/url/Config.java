@@ -87,6 +87,12 @@ public class Config {
         return StringUtil.isBlank(value) ? configKey.defaultValue() : value;
     }
 
+    public List<String> getMerged(ConfigKey configKey) {
+        return configKey.source() == Config.Source.MERGE_FROM_PARENT
+                ? getMerged(configKey.key())
+                : Collections.emptyList();
+    }
+
     /**
      * Retrieves a config value.
      *

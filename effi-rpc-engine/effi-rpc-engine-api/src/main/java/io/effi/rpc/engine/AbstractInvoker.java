@@ -1,21 +1,21 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.AbstractAttributes;
-import io.effi.rpc.common.extension.TypeToken;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.QueryPath;
+import io.effi.rpc.common.util.AbstractAttributes;
 import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.ThreadPool;
 import io.effi.rpc.contract.manager.ThreadPoolManager;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.engine.builder.InvokerBuilder;
 import io.effi.rpc.metrics.CalleeMetrics;
 import io.effi.rpc.metrics.CallerMetrics;
-import io.effi.rpc.protocol.Protocol;
-import io.effi.rpc.engine.builder.InvokerBuilder;
+import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.transport.TransportSupport;
 
 /**
  * Abstract implementation of {@link Invoker}.
@@ -37,7 +37,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
         String path = config.get(DefaultConfigKeys.PATH);
         this.queryPath = path == null ? QueryPath.EMPTY_PATH : QueryPath.valueOf(path.replace(",", "/"));
         this.returnType = builder.returnType();
-        this.protocol = ExtensionLoader.loadExtension(Protocol.class, builder.protocol());
+        this.protocol = TransportSupport.getProtocol(builder.protocol());
     }
 
     @Override
@@ -62,10 +62,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
 
     /**
      * Returns the protocol instance.
-     *
-     * @return the protocol instance
      */
-
     public Protocol protocolInstance() {
         return protocol;
     }

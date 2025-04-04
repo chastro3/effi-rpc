@@ -1,8 +1,8 @@
 package io.effi.rpc.contract.filter;
 
-import io.effi.rpc.common.extension.Attributes;
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.Attributes;
 import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.util.Messages;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
@@ -60,12 +60,12 @@ public class FilterChain {
         return filter.doFilter(filterContext.executor(() -> doExecute(context, filterContext, filters, index + 1)));
     }
 
-    private static class FilterInvocationContext<T extends Envelope.Request, I extends Invoker<?>>
-            extends InvocationContext<T, I> {
+    private static class FilterInvocationContext<R extends Envelope.Request, I extends Invoker<?>>
+            extends InvocationContext<R, I> {
 
-        private final InvocationContext<T, I> context;
+        private final InvocationContext<R, I> context;
 
-        FilterInvocationContext(InvocationContext<T, I> context) {
+        FilterInvocationContext(InvocationContext<R, I> context) {
             super(context.module(), context.source(), context.invoker(), context.args());
             this.context = context;
         }
@@ -101,12 +101,12 @@ public class FilterChain {
         }
     }
 
-    private static class FilterReplyContext<T extends Envelope.Response, I extends Invoker<?>>
-            extends ReplyContext<T, I> {
+    private static class FilterReplyContext<R extends Envelope.Response, I extends Invoker<?>>
+            extends ReplyContext<R, I> {
 
-        private final ReplyContext<T, I> context;
+        private final ReplyContext<R, I> context;
 
-        FilterReplyContext(ReplyContext<T, I> context) {
+        FilterReplyContext(ReplyContext<R, I> context) {
             super(context.invocationContext(), context.source(), context.result());
             this.context = context;
         }

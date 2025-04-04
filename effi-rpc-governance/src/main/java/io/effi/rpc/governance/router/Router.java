@@ -2,8 +2,8 @@ package io.effi.rpc.governance.router;
 
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.extension.GenericKey;
-import io.effi.rpc.common.extension.spi.Extensible;
+import io.effi.rpc.common.util.GenericKey;
+import io.effi.rpc.common.spi.Extensible;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.context.InvocationContext;

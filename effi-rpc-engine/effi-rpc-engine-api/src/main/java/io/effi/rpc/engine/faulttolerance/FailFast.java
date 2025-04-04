@@ -1,7 +1,7 @@
 package io.effi.rpc.engine.faulttolerance;
 
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.contract.CompletableReplyFuture;
 import io.effi.rpc.contract.faulttolerance.AbstractFaultTolerance;
 import io.effi.rpc.contract.faulttolerance.FaultTolerance;

@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.context;
 
-import io.effi.rpc.common.extension.AbstractAttributes;
+import io.effi.rpc.common.util.AbstractAttributes;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.module.ModuleSource;

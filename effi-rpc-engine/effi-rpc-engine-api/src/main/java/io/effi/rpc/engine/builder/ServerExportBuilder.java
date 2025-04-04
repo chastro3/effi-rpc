@@ -3,7 +3,7 @@ package io.effi.rpc.engine.builder;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.constant.SystemKey;
-import io.effi.rpc.common.extension.ChainBuilder;
+import io.effi.rpc.common.util.ChainBuilder;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.ConfigSource;
 import io.effi.rpc.common.util.NetUtil;

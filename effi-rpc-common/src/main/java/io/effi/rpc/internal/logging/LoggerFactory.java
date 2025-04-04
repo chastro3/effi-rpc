@@ -1,5 +1,8 @@
 package io.effi.rpc.internal.logging;
 
+import java.util.List;
+import java.util.concurrent.Callable;
+
 import static io.effi.rpc.common.util.ObjectUtil.simpleClassName;
 
 /**
@@ -8,25 +11,25 @@ import static io.effi.rpc.common.util.ObjectUtil.simpleClassName;
  * an appropriate LoggerAdapter and provides a logger for the specified
  * class or name.
  */
-public class LoggerFactory {
+public final class LoggerFactory {
 
     // Holds the selected LoggerAdapter instance
-    private static final LoggerAdapter LOGGER_ADAPTER;
+    private static final LoggerAdapter CURRENT_ADAPTER;
 
     // Static block initializes the LOGGER_ADAPTER at class loading time
     static {
-        // List of supported LoggerAdapters in the priority order
-        LoggerAdapterCreator[] supportedAdapters = {
+        List<Callable<LoggerAdapter>> supportedAdapters = List.of(
                 Sl4jLoggerAdapter::new,
                 Log4j2LoggerAdapter::new,
                 JclLoggerAdapter::new,
                 JdkLoggerAdapter::new
-        };
-        LOGGER_ADAPTER = getLoggerAdapter(supportedAdapters);
-        if (LOGGER_ADAPTER == null) {
+        );
+        // List of supported LoggerAdapters in the priority order
+        CURRENT_ADAPTER = getLoggerFactory(supportedAdapters);
+        if (CURRENT_ADAPTER == null) {
             System.err.println("No LoggerAdapter found");
         } else {
-            LOGGER_ADAPTER.getLogger(LoggerFactory.class.getName()).info("Using LoggerAdapter: {}", simpleClassName(LOGGER_ADAPTER));
+            CURRENT_ADAPTER.getLogger(LoggerFactory.class.getName()).info("Using LoggerAdapter: {}", simpleClassName(CURRENT_ADAPTER));
         }
     }
 
@@ -47,39 +50,18 @@ public class LoggerFactory {
      * @return the logger instance for the specified name
      */
     public static Logger getLogger(String name) {
-        return LOGGER_ADAPTER.getLogger(name);
+        return CURRENT_ADAPTER.getLogger(name);
     }
 
-    /**
-     * Attempts to create a LoggerAdapter from the list of supported adapters.
-     *
-     * @param supportedAdapters the list of supported LoggerAdapter creators
-     * @return the first valid LoggerAdapter found, or null if none are available
-     */
-    private static LoggerAdapter getLoggerAdapter(LoggerAdapterCreator[] supportedAdapters) {
-        for (LoggerAdapterCreator creator : supportedAdapters) {
+    private static LoggerAdapter getLoggerFactory(List<Callable<LoggerAdapter>> supportedAdapters) {
+        for (Callable<LoggerAdapter> creator : supportedAdapters) {
             try {
                 // Try to create a LoggerAdapter instance
-                return creator.create();
+                return creator.call();
             } catch (Throwable ignored) {
                 // Ignore any exceptions and try the next adapter
             }
         }
         return null;
     }
-
-    /**
-     * Functional interface representing a creator for LoggerAdapter.
-     */
-    @FunctionalInterface
-    private interface LoggerAdapterCreator {
-        /**
-         * Creates a LoggerAdapter instance.
-         *
-         * @return the created LoggerAdapter
-         * @throws Throwable if the creation fails
-         */
-        LoggerAdapter create() throws Throwable;
-    }
-
 }

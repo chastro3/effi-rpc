@@ -1,8 +1,9 @@
 package io.effi.rpc.proxy.bytebuddy;
 
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
+import io.effi.rpc.proxy.ProxyFactory;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;
@@ -11,7 +12,7 @@ import net.bytebuddy.matcher.ElementMatchers;
 import static io.effi.rpc.common.constant.Component.ProxyFactory.BYTEBUDDY;
 
 /**
- * {@link io.effi.rpc.proxy.ProxyFactory} implementation based on bytebuddy.
+ * ByteBuddy implementation of {@link ProxyFactory}.
  */
 @Extension(BYTEBUDDY)
 public class ByteBuddyProxyFactory extends AbstractProxyFactory {

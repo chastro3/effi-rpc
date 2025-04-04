@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.AssertUtil;
@@ -70,7 +70,7 @@ public class RegistryLocator implements Locator {
     }
 
     private URL[] registryConfigs(InvocationContext<?, Caller<?>> context) {
-        List<RegistryConfig> registryConfigs = context.invoker().modularConfig().registryConfigs();
+        List<RegistryConfig> registryConfigs = context.invoker().registryConfigs();
         return registryConfigs.stream().map(config -> config.url().replicate()).toArray(URL[]::new);
     }
 }

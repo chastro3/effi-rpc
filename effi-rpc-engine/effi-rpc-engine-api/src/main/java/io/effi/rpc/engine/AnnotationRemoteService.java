@@ -1,31 +1,29 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
 import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.ReflectionUtil;
 import io.effi.rpc.common.util.StringUtil;
-import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.RemoteService;
 import io.effi.rpc.contract.annotation.AnnotationStyleParser;
 import io.effi.rpc.contract.annotation.EffiRpcCallee;
 import io.effi.rpc.contract.annotation.EffiRpcService;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.module.ServerExporter;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
-import io.effi.rpc.protocol.Protocol;
+import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.transport.TransportSupport;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static io.effi.rpc.engine.AnnotationSupport.annotationStyleParserForMethod;
-import static io.effi.rpc.engine.AnnotationSupport.annotationStyleParserForType;
 
 /**
  * Annotation implementation of {@link RemoteService}.
@@ -36,20 +34,29 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
 
     private final EffiRpcService serviceAnnotation;
 
+    private final AnnotationStyleWrapper styleWrapper;
+
     public AnnotationRemoteService(T service, EffRpcApplication application) {
         this.serviceAnnotation = parseServiceAnnotation(service);
         AssertUtil.notNull(application, "application");
         initialize(serviceAnnotation.value(), service, parseConfig(serviceAnnotation, application));
+        this.styleWrapper = new AnnotationStyleWrapper(config);
+        if (styleWrapper.parser() != null) styleWrapper.parser().parseType(targetType, config);
         parseCallee(application);
     }
 
     /**
      * Returns the serviceAnnotation.
-     *
-     * @return the serviceAnnotation
      */
     public EffiRpcService serviceAnnotation() {
         return serviceAnnotation;
+    }
+
+    /**
+     * Returns the styleWrapper.
+     */
+    public AnnotationStyleWrapper styleWrapper() {
+        return styleWrapper;
     }
 
     private EffiRpcService parseServiceAnnotation(T service) {
@@ -68,42 +75,14 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
     }
 
     private void parseCallee(EffRpcApplication application) {
-        String typeStyle = config.get(DefaultConfigKeys.STYLE);
-        AnnotationStyleParser typeAnnotationStyleParser = annotationStyleParserForType(config, typeStyle, targetType);
         List<Method> methods = AnnotationSupport.filterMethods(targetType.getMethods());
         for (Method method : methods) {
             Config calleeConfig = parseCalleeConfig(method);
-            AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(calleeConfig, typeStyle, typeAnnotationStyleParser);
-            ParameterMapper<ParameterParser<?>>[] parameterMappers;
-            if (methodAnnotationStyleParser != null && methodAnnotationStyleParser.supported(method)) {
-                parameterMappers = methodAnnotationStyleParser.parseCalleeParameterMapper(method);
-                methodAnnotationStyleParser.parseMethod(method, calleeConfig);
-            } else {
-                parameterMappers = ParameterMapper.emptyParsers(method);
-            }
-            String protocolNames = calleeConfig.get(DefaultConfigKeys.PROTOCOL);
-            if (StringUtil.isBlank(protocolNames)) {
-                continue;
-            }
-            String[] protocols = protocolNames.split(",");
-            for (String protocolName : protocols) {
-                Protocol protocol = ExtensionLoader.loadExtension(Protocol.class, protocolName);
-                MethodMapper<T> methodMapper = new MethodMapper<>(this, method, parameterMappers);
-                Callee<T> callee = protocol.createCallee(methodMapper, calleeConfig);
-                List<String> modules = callee.getMerged(DefaultConfigKeys.MODULES);
-                List<String> excludePorts = callee.config().getMerged(DefaultConfigKeys.EXCLUDED_PORT.key());
-                boolean hasMatchedModule = false;
-                if (CollectionUtil.isNotEmpty(modules)) {
-                    for (EffiRpcModule rpcModule : application.modules()) {
-                        if (modules.contains(rpcModule.name())) {
-                            hasMatchedModule = true;
-                            registerCallee(rpcModule, callee, excludePorts);
-                        }
-                    }
-                    if (!hasMatchedModule) {
-                        registerCallee(application.defaultModule(), callee, excludePorts);
-                    }
-                }
+            MethodMapper<T> methodMapper = getMethodMapper(calleeConfig, method);
+            EffiRpcModule[] modules = getModules(calleeConfig, application);
+            List<Protocol> supportedProtocols = getSupportedProtocols(calleeConfig);
+            if(CollectionUtil.isNotEmpty(supportedProtocols)){
+                supportedProtocols.forEach(protocol -> protocol.createCallee(methodMapper, calleeConfig, modules));
             }
         }
     }
@@ -114,14 +93,44 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return calleeConfig.parent(config);
     }
 
-    private void registerCallee(EffiRpcModule module, Callee<?> callee, List<String> excludedPorts) {
-        callee.export(module);
-        for (ServerExporter serverExporter : module.serverExporterManager().values()) {
-            URL url = serverExporter.url();
-            if (callee.protocol().equals(url.protocol()) && !excludedPorts.contains(String.valueOf(url.port()))) {
-                serverExporter.callee(callee);
+    private MethodMapper<T> getMethodMapper(Config config, Method method) {
+        AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, styleWrapper);
+        ParameterMapper<ParameterParser<?>>[] parameterMappers;
+        if (methodAnnotationStyleParser != null && methodAnnotationStyleParser.supported(method)) {
+            parameterMappers = methodAnnotationStyleParser.parseCalleeParameterMapper(method);
+            methodAnnotationStyleParser.parseMethod(method, config);
+        } else {
+            parameterMappers = ParameterMapper.emptyParsers(method);
+        }
+        return new MethodMapper<>(this, method, parameterMappers);
+    }
+
+    private EffiRpcModule[] getModules(Config config, EffRpcApplication application) {
+        ArrayList<EffiRpcModule> result = new ArrayList<>();
+        List<String> modules = config.getMerged(DefaultConfigKeys.MODULES.key());
+        if (CollectionUtil.isNotEmpty(modules)) {
+            for (EffiRpcModule rpcModule : application.modules()) {
+                if (modules.contains(rpcModule.name())) {
+                    result.add(rpcModule);
+                }
             }
         }
+        if (result.isEmpty()) result.add(application.defaultModule());
+        return result.toArray(new EffiRpcModule[0]);
+    }
+
+    private List<Protocol> getSupportedProtocols(Config config) {
+        String protocolNames = config.get(DefaultConfigKeys.PROTOCOL);
+        if (StringUtil.isBlank(protocolNames)) {
+            return Collections.emptyList();
+        }
+        String[] protocols = protocolNames.split(",");
+        List<Protocol> result = new ArrayList<>();
+        for (String protocolName : protocols) {
+            Protocol protocol = TransportSupport.getProtocol(protocolName);
+            result.add(protocol);
+        }
+        return result;
     }
 
 }

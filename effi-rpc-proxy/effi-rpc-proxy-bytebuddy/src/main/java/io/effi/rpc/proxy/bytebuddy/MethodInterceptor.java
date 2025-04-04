@@ -1,7 +1,6 @@
 package io.effi.rpc.proxy.bytebuddy;
 
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.proxy.SuperInvoker;
 import net.bytebuddy.implementation.bind.annotation.*;
 
 import java.lang.reflect.Method;
@@ -19,7 +18,7 @@ public class MethodInterceptor implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args, SuperInvoker<?> superInvoker) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) throws Throwable {
         return invocationHandler.invoke(proxy, method, args, superInvoker);
     }
 

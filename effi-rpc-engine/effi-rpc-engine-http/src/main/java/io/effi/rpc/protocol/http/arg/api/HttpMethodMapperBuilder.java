@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.arg.api;
 
-import io.effi.rpc.common.extension.Builder;
+import io.effi.rpc.common.util.Builder;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.contract.RemoteService;
 import io.effi.rpc.contract.parameter.*;

@@ -2,6 +2,9 @@ package io.effi.rpc.test;
 
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.url.Config;
+import io.effi.rpc.engine.AnnotationRemoteClient;
+import io.effi.rpc.engine.AnnotationRemoteService;
+import io.effi.rpc.engine.ComplexRemoteService;
 import io.effi.rpc.contract.annotation.AnnotationCalleeBuilder;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
@@ -48,7 +51,7 @@ public class ApiTest {
 
     @Test
     public void annotationRemoteCaller() {
-        AnnotationRemoteCaller<HelloClient> remoteCaller = new AnnotationRemoteCaller<>(HelloClient.class, application);
+        AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         System.out.println(remoteCaller);
     }
 

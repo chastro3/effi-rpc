@@ -17,8 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 /**
- * Base class for implementing registry services.
- * <p>Handles service registration and discovery, including health checks.</p>
+ * Abstract implementation of {@link RegistryService}.
  */
 public abstract class AbstractRegistryService implements RegistryService {
 

@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.protocol.InitializedConfig;
-import io.effi.rpc.protocol.client.NettyPoolClient;
+import io.effi.rpc.transport.netty.InitializedConfig;
+import io.effi.rpc.transport.netty.NettyPoolClient;
 
 /**
  * Http Client.

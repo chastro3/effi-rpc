@@ -6,7 +6,7 @@ import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.module.ServerExporter;
 import io.effi.rpc.engine.DefaultServerExporter;
-import io.effi.rpc.protocol.server.Server;
+import io.effi.rpc.transport.endpoint.Server;
 
 import java.lang.management.ManagementFactory;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class DefaultRegistryMetaData {
         long freeMemory = OS_BEAN.getFreeMemorySize();
         long usedMemory = totalMemory - freeMemory;
         memoryUsage = round((double) usedMemory / totalMemory);
-        EffRpcApplication application = EffRpcApplication.acquire(url);
+        EffRpcApplication application = EffRpcApplication.getInstance(url);
         for (EffiRpcModule module : application.modules()) {
             ServerExporter serverExporter = module.serverExporterManager().get(url.uri());
             if (serverExporter != null) {

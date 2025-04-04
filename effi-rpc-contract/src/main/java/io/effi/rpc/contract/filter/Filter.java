@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.filter;
 
-import io.effi.rpc.common.extension.Ordered;
+import io.effi.rpc.common.util.Ordered;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;
@@ -35,6 +35,12 @@ public interface Filter<T extends Envelope, I extends Invoker<?>, C extends Exec
      * @return the result of the filter process
      */
     Result doFilter(C context);
+
+    default FilterType<T, I> type() {
+        return null;
+    }
+
+
 }
 
 

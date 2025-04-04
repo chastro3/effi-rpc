@@ -2,7 +2,7 @@ package demo.consumer;
 
 import demo.consumer.model.ParentObject;
 import io.effi.rpc.contract.module.EffRpcApplication;
-import io.effi.rpc.engine.AnnotationRemoteCaller;
+import io.effi.rpc.engine.AnnotationRemoteClient;
 import io.effi.rpc.engine.DefaultRegistryConfig;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public class Consumer {
         EffRpcApplication application = new EffRpcApplication("consumer");
         application.defaultModule()
                 .registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
-        AnnotationRemoteCaller<HelloClient> remoteCaller = new AnnotationRemoteCaller<>(HelloClient.class, application);
+        AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         HelloClient helloClient = remoteCaller.get();
         List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
         System.out.println(parentObjects);

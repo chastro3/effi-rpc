@@ -6,7 +6,7 @@ import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.ReplyFuture;
 import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.protocol.NettySupport;
+import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -35,7 +35,7 @@ public abstract class URLBinderChannelHandler extends ChannelDuplexHandler {
         if (requestUrl != null) {
             Long id = requestUrl.get(KeyConstant.ATTR_UNIQUE_ID);
             if (id != null) {
-                ReplyFuture future = ReplyFuture.acquireFuture(id);
+                ReplyFuture future = ReplyFuture.getFuture(id);
                 if (future != null) {
                     readHttpResponse(ctx, msg, future.context());
                 }

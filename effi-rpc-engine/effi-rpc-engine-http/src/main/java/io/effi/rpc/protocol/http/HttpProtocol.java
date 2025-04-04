@@ -1,17 +1,17 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.Messages;
 import io.effi.rpc.common.util.ObjectUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Result;
-import io.effi.rpc.engine.AbstractProtocol;
-import io.effi.rpc.protocol.Protocol;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.*;
+import io.effi.rpc.transport.AbstractProtocol;
+import io.effi.rpc.transport.Transporter;
 
 import java.util.Map;
 
@@ -26,27 +26,32 @@ public abstract class HttpProtocol extends AbstractProtocol {
 
     private final HttpVersion version;
 
-    protected HttpProtocol(HttpVersion version) {
-        super(version.protocolName(), new HttpServerCodec(), new HttpClientCodec());
+    protected HttpProtocol(HttpVersion version, Transporter transporter) {
+        super(version.protocolName(), transporter, new HttpServerCodec(), new HttpClientCodec());
         this.version = version;
     }
 
     @Override
-    protected Envelope.Request createRequest(Caller<?> caller, URL requestUrl, Object body) {
+    public Envelope.Request createRequest(Caller<?> caller, Object[] args) {
         if (caller instanceof HttpCaller<?> httpCaller) {
+            HttpArgumentWrapper argumentWrapper = new HttpArgumentWrapper(caller, args);
             DefaultHttpHeaders headers = new DefaultHttpHeaders();
             headers.add(REGULAR_REQUEST_HEADERS);
+            if (CollectionUtil.isNotEmpty(argumentWrapper.headers())) {
+                argumentWrapper.headers().forEach(headers::add);
+            }
             HttpUtil.setContentType(headers, caller.config());
             return HttpRequest.builder()
                     .version(version)
                     .method(httpCaller.httpMethod())
-                    .url(requestUrl)
+                    .url(argumentWrapper.requestUrl())
                     .headers(headers)
-                    .body(body)
+                    .body(argumentWrapper.body())
                     .build();
         }
         throw new IllegalArgumentException(Messages.unSupport("caller", caller.getClass()));
     }
+
 
     @Override
     public Envelope.Response createResponse(Callee<?> callee, Result result) {
@@ -84,8 +89,6 @@ public abstract class HttpProtocol extends AbstractProtocol {
 
     /**
      * Returns http version.
-     *
-     * @return
      */
     public HttpVersion version() {
         return version;

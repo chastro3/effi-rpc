@@ -1,6 +1,6 @@
 package io.effi.rpc.common.constant;
 
-import io.effi.rpc.common.extension.GenericKey;
+import io.effi.rpc.common.util.GenericKey;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,9 +31,9 @@ public interface KeyConstant {
 
     String PATH = "path";
 
-    String KEEP_ALIVE_TIMEOUT = "keepAliveTimeout";
+    String HEART_BEAT_INTERVAL = "heartbeatInterval";
 
-    String SPARE_CLOSE_TIMES = "spareCloseTimes";
+    String IDLE_COUNT_THRESHOLD = "idleCountThreshold";
 
     String HEARTBEAT_LOG_ENABLE = "heartbeatLogEnable";
 
@@ -67,12 +67,14 @@ public interface KeyConstant {
 
     GenericKey<Long> ATTR_UNIQUE_ID = GenericKey.valueOf(UNIQUE_ID);
 
-    GenericKey<AtomicInteger> ALL_IDLE_TIMES = GenericKey.valueOf("allIdleTimes");
+    GenericKey<AtomicInteger> IDLE_COUNT = GenericKey.valueOf("idleCount");
 
     GenericKey<AtomicInteger> WRITE_IDLE_TIMES = GenericKey.valueOf("writeIdleTimes");
 
     GenericKey<AtomicInteger> READER_IDLE_TIMES = GenericKey.valueOf("readeIdleTimes");
 
     GenericKey<AtomicInteger> LAST_CALL_INDEX = GenericKey.valueOf("lastCallIndex");
+
+    String TRANSPORTER = "transporter";
 
 }

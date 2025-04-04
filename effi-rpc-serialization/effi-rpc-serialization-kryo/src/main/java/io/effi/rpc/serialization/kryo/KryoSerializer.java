@@ -3,7 +3,7 @@ package io.effi.rpc.serialization.kryo;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import io.effi.rpc.common.extension.spi.Extension;
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
 import java.lang.reflect.Type;

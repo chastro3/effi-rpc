@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.protocol.InitializedConfig;
-import io.effi.rpc.protocol.server.NettyServer;
+import io.effi.rpc.transport.netty.InitializedConfig;
+import io.effi.rpc.transport.netty.NettyServer;
 
 /**
  * Http2 Server.

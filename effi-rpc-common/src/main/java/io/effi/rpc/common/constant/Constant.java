@@ -7,7 +7,7 @@ import static io.effi.rpc.common.constant.Component.*;
  */
 public interface Constant {
 
-    String EXTENSION_NAME = "io.effi.rpc.common.extension.spi.Extension";
+    String EXTENSION_NAME = "io.effi.rpc.common.spi.Extension";
 
     String DEFAULT_SERVER_HYBRID_THREAD_POOL = "defaultServerHybrid";
 
@@ -29,7 +29,7 @@ public interface Constant {
 
     int DEFAULT_TIMEOUT = 3000;
 
-    int DEFAULT_KEEP_ALIVE_TIMEOUT = 6000;
+    int DEFAULT_HEART_BEAT_INTERVAL = 6000;
 
     int DEFAULT_MAX_UN_CONNECTIONS = 1024;
 
@@ -69,7 +69,7 @@ public interface Constant {
 
     int DEFAULT_SUBSCRIBES = DEFAULT_CPU_THREADS;
 
-    int DEFAULT_SPARE_CLOSE_TIMES = 3;
+    int DEFAULT_IDLE_COUNT_THRESHOLD = 3;
 
     int DEFAULT_CLIENT_MAX_CONNECTIONS = 3;
 

@@ -3,8 +3,8 @@ package io.effi.rpc.governance.discovery;
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.extension.spi.Extension;
-import io.effi.rpc.common.extension.spi.ExtensionLoader;
+import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.Caller;
@@ -36,7 +36,7 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
         URL url = context.source().url();
         EffRpcApplication application = context.module().application();
         for (URL registryUrl : registryConfigs) {
-            var registryService = ExtensionLoader.loadExtension(RegistryFactory.class, registryUrl.protocol()).acquire(application, registryUrl);
+            var registryService = ExtensionLoader.loadExtension(RegistryFactory.class, registryUrl.protocol()).getService(application, registryUrl);
             List<URL> discoverUrls = registryService.discover(url);
             if (CollectionUtil.isNotEmpty(discoverUrls)) {
                 for (URL discoverUrl : discoverUrls) {

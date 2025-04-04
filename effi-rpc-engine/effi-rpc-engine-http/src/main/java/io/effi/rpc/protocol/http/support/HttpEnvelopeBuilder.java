@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.common.extension.ChainBuilder;
+import io.effi.rpc.common.util.ChainBuilder;
 import io.effi.rpc.common.url.URL;
 import io.netty.handler.codec.http.HttpMethod;
 
