@@ -2,11 +2,11 @@ package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.protocol.handler.ServerMessageAggregator;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.transport.netty.NamedChannelHandler;
 import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.ServerMessageAggregator;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;

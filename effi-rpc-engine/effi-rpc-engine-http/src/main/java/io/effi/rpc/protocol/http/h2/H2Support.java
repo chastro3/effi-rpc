@@ -1,8 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.url.URLType;
@@ -12,8 +10,8 @@ import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.protocol.http.HttpCaller;
 import io.effi.rpc.protocol.http.support.*;
-import io.effi.rpc.transport.netty.InitializedConfig;
 import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.NettyEndpointConfig;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -57,12 +55,7 @@ public class H2Support {
             Http2StreamChannel streamChannel = bootstrap.open().get(connectTimeout, TimeUnit.MILLISECONDS);
             return NettyChannel.acquire(streamChannel, endpointUrl, module);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(
-                    PredefinedErrorCode.ACQUIRE_CHANNEL,
-                    e,
-                    endpointUrl.address(),
-                    endpointUrl.protocol()
-            );
+            throw PredefinedErrorCode.ACQUIRE_CHANNEL.fail(e, endpointUrl.address(), endpointUrl.protocol());
         }
     }
 
@@ -73,7 +66,7 @@ public class H2Support {
      * @param streamHandler
      * @return
      */
-    public static ChannelInitializer<SocketChannel> buildClietnChannelInitializer(InitializedConfig config, ChannelHandler streamHandler) {
+    public static ChannelInitializer<SocketChannel> buildClietnChannelInitializer(NettyEndpointConfig config, ChannelHandler streamHandler) {
         return new ChannelInitializer<>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
@@ -89,7 +82,7 @@ public class H2Support {
      * @param streamHandler
      * @return
      */
-    public static ChannelPoolHandler buildChannelPoolHandler(InitializedConfig config, ChannelHandler streamHandler) {
+    public static ChannelPoolHandler buildChannelPoolHandler(NettyEndpointConfig config, ChannelHandler streamHandler) {
         return new AbstractChannelPoolHandler() {
             @Override
             public void channelCreated(Channel ch) throws Exception {
@@ -105,7 +98,7 @@ public class H2Support {
      * @param config
      * @param streamHandler
      */
-    public static void initClientChannel(Channel channel, InitializedConfig config, ChannelHandler streamHandler) {
+    public static void initClientChannel(Channel channel, NettyEndpointConfig config, ChannelHandler streamHandler) {
         NettySupport.initClientChannel(channel, config);
         var streamChannelBootstrap = new Http2StreamChannelBootstrap(channel);
         streamChannelBootstrap.handler(streamHandler);
@@ -287,16 +280,11 @@ public class H2Support {
      * @return
      */
     public static Http2Settings buildHttp2Settings(URL url) {
-        int initialWindows = url.getIntParam(DefaultConfigKeys.INITIAL_WINDOW_SIZE.key(),
-                Constant.DEFAULT_INITIAL_WINDOW_SIZE);
-        int maxConcurrentStreams = url.getIntParam(DefaultConfigKeys.MAX_CONCURRENT_STREAMS.key(),
-                Constant.DEFAULT_MAX_CONCURRENT_STREAMS);
-        int maxFrameSize = url.getIntParam(DefaultConfigKeys.MAX_FRAME_SIZE.key(),
-                Constant.DEFAULT_MAX_FRAME_SIZE);
-        int maxHeaderListSize = url.getIntParam(DefaultConfigKeys.MAX_HEADER_LIST_SIZE.key(),
-                Constant.DEFAULT_MAX_HEADER_LIST_SIZE);
-        int headerTableSize = url.getIntParam(DefaultConfigKeys.HEADER_TABLE_SIZE.key(),
-                Constant.DEFAULT_MAX_HEADER_TABLE_SIZE);
+        int initialWindows = url.getIntParam(DefaultConfigKeys.INITIAL_WINDOW_SIZE);
+        long maxConcurrentStreams = url.getLongParam(DefaultConfigKeys.MAX_CONCURRENT_STREAMS);
+        int maxFrameSize = url.getIntParam(DefaultConfigKeys.MAX_FRAME_SIZE);
+        int maxHeaderListSize = url.getIntParam(DefaultConfigKeys.MAX_HEADER_LIST_SIZE);
+        long headerTableSize = url.getLongParam(DefaultConfigKeys.HEADER_TABLE_SIZE);
         Http2Settings settings = new Http2Settings();
         settings.initialWindowSize(initialWindows);
         settings.maxConcurrentStreams(maxConcurrentStreams);
@@ -304,7 +292,7 @@ public class H2Support {
         settings.maxHeaderListSize(maxHeaderListSize);
         settings.headerTableSize(headerTableSize);
         if (URLType.CLIENT.match(url)) {
-            boolean pushEnabled = url.getBooleanParam(DefaultConfigKeys.PUSH_ENABLED.key(), false);
+            boolean pushEnabled = url.getBooleanParam(DefaultConfigKeys.PUSH_ENABLED);
             settings.pushEnabled(pushEnabled);
         }
         return settings;

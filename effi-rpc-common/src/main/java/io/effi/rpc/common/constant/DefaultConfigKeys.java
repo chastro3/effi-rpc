@@ -3,6 +3,7 @@ package io.effi.rpc.common.constant;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.ConfigKey;
 
+import static io.effi.rpc.common.constant.Constant.*;
 import static io.effi.rpc.common.url.Config.Source.*;
 
 /**
@@ -101,20 +102,20 @@ public enum DefaultConfigKeys implements ConfigKey {
     CLIENT_MAX_RECEIVE_SIZE("clientMaxReceiveSize", SELF),
     SERVER_MAX_RECEIVE_SIZE("serverMaxReceiveSize", SELF),
     CONNECT_TIMEOUT("connectTimeout", SELF),
-    KEEP_ALIVE_TIMEOUT("keepAliveTimeout", SELF),
-    SPARE_CLOSE_TIMES("spareCloseTimes", SELF),
-    KEEP_ALIVE("keepAlive", SELF),
-    MAX_UN_CONNECTIONS("maxUnConnections", SELF),
-    MAX_THREADS("maxThreads", SELF),
+    IDLE_COUNT_THRESHOLD("idleCountThreshold", SELF, 6),
+    IDLE_TRIGGER_INTERVAL("idleTriggerInterval", SELF, 5),
+    KEEP_ALIVE("keepAlive", SELF, true),
+    MAX_UN_CONNECTIONS("maxUnConnections", SELF, DEFAULT_MAX_UN_CONNECTIONS),
+    MAX_THREADS("maxThreads", SELF, DEFAULT_MAX_CPU_THREADS),
 
     /* -------------------------http2 config----------------------- */
 
-    HEADER_TABLE_SIZE("headerTableSize", SELF),
-    PUSH_ENABLED("pushEnabled", SELF),
-    MAX_CONCURRENT_STREAMS("maxConcurrentStreams", SELF),
-    INITIAL_WINDOW_SIZE("initialWindowSize", SELF),
-    MAX_FRAME_SIZE("maxFrameSize", SELF),
-    MAX_HEADER_LIST_SIZE("maxHeaderListSize", SELF),
+    HEADER_TABLE_SIZE("headerTableSize", SELF, DEFAULT_MAX_HEADER_TABLE_SIZE),
+    PUSH_ENABLED("pushEnabled", SELF, false),
+    MAX_CONCURRENT_STREAMS("maxConcurrentStreams", SELF, DEFAULT_MAX_CONCURRENT_STREAMS),
+    INITIAL_WINDOW_SIZE("initialWindowSize", SELF, DEFAULT_INITIAL_WINDOW_SIZE),
+    MAX_FRAME_SIZE("maxFrameSize", SELF, DEFAULT_MAX_FRAME_SIZE),
+    MAX_HEADER_LIST_SIZE("maxHeaderListSize", SELF, DEFAULT_MAX_HEADER_LIST_SIZE),
 
     /* -------------------------registry config----------------------- */
     HEALTH_CHECK_INTERVAL("healthCheckInterval", NULL_OR_FROM_PARENT),
@@ -134,10 +135,10 @@ public enum DefaultConfigKeys implements ConfigKey {
         this(key, source, null);
     }
 
-    DefaultConfigKeys(String key, Config.Source source, String defaultValue) {
+    DefaultConfigKeys(String key, Config.Source source, Object defaultValue) {
         this.key = key;
         this.source = source;
-        this.defaultValue = defaultValue;
+        this.defaultValue = defaultValue == null ? null : String.valueOf(defaultValue);
     }
 
     @Override

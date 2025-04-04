@@ -1,6 +1,5 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.transport.endpoint.AbstractServer;
@@ -13,16 +12,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
-import java.io.IOException;
-import java.net.BindException;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * Netty implementation of {@link Client}.
+ * Netty implementation of {@link io.effi.rpc.transport.endpoint.Server}.
  */
 public class NettyServer extends AbstractServer {
 
-    protected InitializedConfig config;
+    protected NettyEndpointConfig config;
 
     protected Channel channel;
 
@@ -32,7 +29,7 @@ public class NettyServer extends AbstractServer {
 
     private NioEventLoopGroup workerGroup;
 
-    public NettyServer(InitializedConfig config) {
+    public NettyServer(NettyEndpointConfig config) {
         super(config.url(), config.module());
         this.config = AssertUtil.notNull(config, "config");
         bind();
@@ -40,8 +37,8 @@ public class NettyServer extends AbstractServer {
 
     @Override
     protected void doInit() {
-        int workThreads = url().getIntParam(DefaultConfigKeys.MAX_THREADS.key(), Constant.DEFAULT_MAX_CPU_THREADS);
-        int maxUnConnections = url().getIntParam(DefaultConfigKeys.MAX_UN_CONNECTIONS.key(), Constant.DEFAULT_MAX_UN_CONNECTIONS);
+        int workThreads = url().getIntParam(DefaultConfigKeys.MAX_THREADS);
+        int maxUnConnections = url().getIntParam(DefaultConfigKeys.MAX_UN_CONNECTIONS);
         ChannelManageHandler channelManageHandler = new ChannelManageHandler(this.activeChannels, this);
         bootstrap = new ServerBootstrap();
         bossGroup = new NioEventLoopGroup(1, buildThreadFactory("server-boss"));
@@ -50,32 +47,26 @@ public class NettyServer extends AbstractServer {
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, maxUnConnections)
                 //.option(ChannelOption.TCP_FASTOPEN_CONNECT, true)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
+                .childOption(ChannelOption.SO_KEEPALIVE, url().getBooleanParam(DefaultConfigKeys.KEEP_ALIVE))
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childHandler(NettySupport.buildServerChannelInitializer(config, channelManageHandler));
     }
 
     @Override
-    protected void doBind() throws BindException {
-        ChannelFuture future = bootstrap.bind(port());
-        future.syncUninterruptibly();
+    protected void doBind() throws Throwable {
+        ChannelFuture future = bootstrap.bind(port()).syncUninterruptibly();
         if (!future.isSuccess()) {
-            BindException bindException = new BindException();
-            bindException.initCause(future.cause());
-            throw bindException;
+            throw future.cause();
         }
         channel = future.channel();
+
     }
 
     @Override
-    protected void doClose() throws IOException {
-        try {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
-        } catch (Throwable e) {
-            throw new IOException(e);
-        }
+    protected void doClose() throws Throwable {
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
     }
 
     @Override

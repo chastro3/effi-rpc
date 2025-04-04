@@ -6,7 +6,6 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.NetUtil;
@@ -45,10 +44,7 @@ public class NacosRegistryService extends AbstractRegistryService {
             namingService = NamingFactory.createNamingService(url.address());
             isActive();
         } catch (NacosException e) {
-            throw EffiRpcException.wrap(
-                    PredefinedErrorCode.CONNECT, e,
-                    url.address(), url.protocol()
-            );
+            throw PredefinedErrorCode.CONNECT.fail(e, url.address(), url.protocol());
         }
     }
 
@@ -72,10 +68,7 @@ public class NacosRegistryService extends AbstractRegistryService {
             try {
                 namingService.registerInstance(serviceName, instance);
             } catch (NacosException e) {
-                throw EffiRpcException.wrap(
-                        PredefinedErrorCode.REGISTRY_REGISTER, e,
-                        serviceName, registryUrl.address()
-                );
+                throw PredefinedErrorCode.REGISTRY_REGISTER.fail(e, serviceName, registryUrl.address());
             }
 
         };

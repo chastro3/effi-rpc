@@ -14,7 +14,7 @@ public enum PredefinedErrorCode implements ErrorCode {
     BIND("0008", "Failed to bind server to '{}' using protocol '{}'"),
     CONNECT("0009", "Failed to connect to '{}' using protocol '{}'"),
     CLOSE("0010", "Failed to close to '{}' using protocol '{}'"),
-    TIMEOUT("0011", "\"Failed to call remote service: Timeout after '{}' milliseconds"),
+    TIMEOUT("0011", "Failed to call remote service: Timeout after '{}' milliseconds"),
     NOT_FOUND_CALLEE("0011", "Callee not found for '{}'"),
     READ_CERT_RESOURCE("0012", "Failed to read certificate resource"),
     SSL("0013", "SSL error while processing {}"),

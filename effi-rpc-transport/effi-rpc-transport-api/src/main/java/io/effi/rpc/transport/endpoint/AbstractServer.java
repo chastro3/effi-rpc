@@ -1,17 +1,16 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
-
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static io.effi.rpc.common.exception.PredefinedErrorCode.BIND;
 
 /**
  * Abstract implementation of {@link Server}.
@@ -38,8 +37,8 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
         }
         try {
             doBind();
-        } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.BIND, e, url().address(), url().protocol());
+        } catch (Throwable e) {
+            throw BIND.fail(e, url().address(), url().protocol());
         }
     }
 
@@ -49,13 +48,13 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
             try {
                 channel.close();
             } catch (Throwable e) {
-                throw EffiRpcException.wrap(PredefinedErrorCode.CLOSE, e);
+                throw PredefinedErrorCode.CLOSE.fail(e, channel, url.protocol());
             }
         }
         try {
             doClose();
-        } catch (IOException e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.CLOSE, e);
+        } catch (Throwable e) {
+            throw PredefinedErrorCode.CLOSE.fail(e, this, url.protocol());
         }
     }
 
@@ -74,10 +73,15 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
         return null;
     }
 
+    @Override
+    public String toString() {
+        return String.format("url=%s, active=%s", url(), isActive());
+    }
+
     protected abstract void doInit();
 
-    protected abstract void doBind() throws Exception;
+    protected abstract void doBind() throws Throwable;
 
-    protected abstract void doClose() throws IOException;
+    protected abstract void doClose() throws Throwable;
 
 }

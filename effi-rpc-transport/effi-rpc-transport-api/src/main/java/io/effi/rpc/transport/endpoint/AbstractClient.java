@@ -2,13 +2,9 @@ package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
-
-import static io.effi.rpc.common.util.ObjectUtil.simpleClassName;
 
 /**
  * Abstract implementation of {@link Client}.
@@ -37,13 +33,13 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
         try {
             doConnect();
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.CONNECT, e, url().address(), url().protocol());
+            throw PredefinedErrorCode.CONNECT.fail(e, url().address(), url().protocol());
         }
     }
 
     @Override
     public String toString() {
-        return simpleClassName(this) + " connect to " + NetUtil.toAddress(socketAddress());
+        return String.format("url=%s, active=%b", url(), isActive());
     }
 
     protected abstract void doInit();

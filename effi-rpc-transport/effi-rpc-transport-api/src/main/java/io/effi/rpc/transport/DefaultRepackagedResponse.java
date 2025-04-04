@@ -6,6 +6,11 @@ import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.context.ReplyContext;
 import io.effi.rpc.transport.endpoint.Channel;
 
+/**
+ * Default implementation of {@link RepackagedResponse}.
+ *
+ * @param <I> the type of the invoker
+ */
 public class DefaultRepackagedResponse<I extends Invoker<?>>
         extends DefaultRepackagedEnvelope<Envelope.Response, I, ReplyContext<Envelope.Response, I>>
         implements RepackagedResponse<I> {

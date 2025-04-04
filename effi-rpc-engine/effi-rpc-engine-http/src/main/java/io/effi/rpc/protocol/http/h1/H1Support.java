@@ -10,10 +10,6 @@ import io.netty.handler.codec.http.*;
 
 import static io.netty.handler.codec.http.DefaultHttpHeadersFactory.trailersFactory;
 
-/**
- * @Author WenBo Zhou
- * @Date 2024/11/22 14:27
- */
 public class H1Support {
 
     /**

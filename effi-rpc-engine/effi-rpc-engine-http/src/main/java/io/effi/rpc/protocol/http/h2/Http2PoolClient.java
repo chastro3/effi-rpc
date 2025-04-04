@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.transport.netty.InitializedConfig;
 import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.NettyEndpointConfig;
 import io.effi.rpc.transport.netty.NettyPoolClient;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPoolHandler;
@@ -12,7 +12,7 @@ import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
  */
 public class Http2PoolClient extends NettyPoolClient {
 
-    public Http2PoolClient(InitializedConfig config) {
+    public Http2PoolClient(NettyEndpointConfig config) {
         super(config);
     }
 

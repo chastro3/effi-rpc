@@ -132,16 +132,10 @@ public class DefaultServerExporter implements ServerExporter {
         return exportedUrl.authority();
     }
 
-    /**
-     * Returns the server instance.
-     */
     public Server server() {
         return server;
     }
 
-    /**
-     * Opens a new server instance using the provided protocol and configuration.
-     */
     protected Server openServer() {
         Protocol protocol = TransportSupport.getProtocol(exportedUrl.protocol());
         URL serverUrl = URL.builder()
@@ -153,9 +147,6 @@ public class DefaultServerExporter implements ServerExporter {
         return protocol.openServer(serverUrl, module);
     }
 
-    /**
-     * Registers the server with the specified registries.
-     */
     protected void doRegister() {
         List<RegistryConfig> registryConfigs = new ArrayList<>(this.registryConfigs);
         List<RegistryConfig> sharedRegistryConfigs = module.registryConfigManager().sharedValues();

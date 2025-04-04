@@ -4,7 +4,7 @@ import io.effi.rpc.common.event.AbstractEvent;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * HeartBeatEvent.
+ * Represents an event triggered when a channel becomes idle.
  */
 public class IdleEvent extends AbstractEvent<Channel> {
 

@@ -7,6 +7,8 @@ import io.effi.rpc.engine.DefaultRegistryConfig;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Consumer {
 
@@ -16,8 +18,13 @@ public class Consumer {
                 .registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
         AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         HelloClient helloClient = remoteCaller.get();
-        List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
-        System.out.println(parentObjects);
+        ExecutorService executorService = Executors.newFixedThreadPool(200);
+        for (int i = 0; i < 1000; i++) {
+            executorService.execute(() -> {
+                List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
+                System.out.println(parentObjects);
+            });
+        }
         helloClient.helloListAsync("哈哈哈222哈", "xxxx", ParentObject.getObjList("client list"))
                 .thenAccept(System.out::println);
 //        EffiRpcModule module = application.newModule();

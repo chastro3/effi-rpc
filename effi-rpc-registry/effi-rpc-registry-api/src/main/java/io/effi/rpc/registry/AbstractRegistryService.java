@@ -1,7 +1,6 @@
 package io.effi.rpc.registry;
 
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.AssertUtil;
@@ -49,9 +48,7 @@ public abstract class AbstractRegistryService implements RegistryService {
                 RegisterTask registerTask = new RegisterTask(url, task);
                 logger.info("Registered service(s) for '{}' in registry at '{}'", serviceName, registryUrl.address());
             } catch (Exception e) {
-                throw EffiRpcException.wrap(PredefinedErrorCode.REGISTRY_REGISTER, e,
-                        serviceName(url), registryUrl.address()
-                );
+                throw PredefinedErrorCode.REGISTRY_REGISTER.fail(e, serviceName(url), registryUrl.address());
             }
 //            EffiRpcBootstrap.staringInstance()
 //                    .moduleCentral().scheduler().addPeriodic(registerTask, 5, 5, TimeUnit.SECONDS);
@@ -76,10 +73,7 @@ public abstract class AbstractRegistryService implements RegistryService {
                         urls = doDiscover(serviceName, url);
                         logger.info("Discovered {} service(s) for '{}' in registry at '{}'", urls.size(), serviceName, registryUrl.address());
                     } catch (Throwable e) {
-                        throw EffiRpcException.wrap(
-                                PredefinedErrorCode.REGISTRY_DISCOVER, e,
-                                serviceName, registryUrl.address()
-                        );
+                        throw PredefinedErrorCode.REGISTRY_DISCOVER.fail(e, serviceName, registryUrl.address());
                     }
                     serverUrls = urls.stream().map(URL::toString).toList();
                     // Subscribe to services if needed
@@ -88,10 +82,7 @@ public abstract class AbstractRegistryService implements RegistryService {
                             doSubscribe(serviceName, url);
                             logger.info("Subscribed service(s) for '{}' in registry at '{}'", serviceName, registryUrl.address());
                         } catch (Throwable e) {
-                            throw EffiRpcException.wrap(
-                                    PredefinedErrorCode.REGISTRY_SUBSCRIBE, e,
-                                    serviceName, registryUrl.address()
-                            );
+                            throw PredefinedErrorCode.REGISTRY_SUBSCRIBE.fail(e, serviceName, registryUrl.address());
                         }
                     }
                     discoverHealthServices.put(serviceName, serverUrls);
@@ -113,9 +104,7 @@ public abstract class AbstractRegistryService implements RegistryService {
             doDeregister(serviceName, exporterUrl);
             logger.info("Deregistered service(s) for '{}' in registry at '{}'", serviceName, registryUrl.address());
         } catch (Throwable e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.REGISTRY_DEREGISTER, e,
-                    serviceName, registryUrl.address()
-            );
+            throw PredefinedErrorCode.REGISTRY_DEREGISTER.fail(e, serviceName, registryUrl.address());
         }
     }
 
@@ -127,7 +116,7 @@ public abstract class AbstractRegistryService implements RegistryService {
         try {
             doClose();
         } catch (Throwable e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.CLOSE, e, this);
+            throw PredefinedErrorCode.CLOSE.fail(e, registryUrl.address(), registryUrl.protocol());
         }
     }
 

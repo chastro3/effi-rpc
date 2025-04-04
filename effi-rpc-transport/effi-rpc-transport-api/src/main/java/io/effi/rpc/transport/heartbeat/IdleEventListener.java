@@ -1,12 +1,11 @@
 package io.effi.rpc.transport.heartbeat;
 
-import io.effi.rpc.common.constant.Constant;
+import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.constant.SystemKey;
 import io.effi.rpc.common.event.EventListener;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.StringUtil;
-import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.Channel;
@@ -14,7 +13,8 @@ import io.effi.rpc.transport.endpoint.Channel;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Close idle connections according to core {@link ClientConfig#spareCloseTimes} to reduce resource waste.
+ * Listens for {@link IdleEvent} and handles idle timeout logic.
+ * If the idle count exceeds the threshold, the associated channel is closed.
  */
 public class IdleEventListener implements EventListener<IdleEvent> {
 
@@ -25,7 +25,7 @@ public class IdleEventListener implements EventListener<IdleEvent> {
         Channel channel = event.source();
         URL url = channel.url();
         AtomicInteger ideCount = channel.get(KeyConstant.IDLE_COUNT);
-        int idleCountThreshold = url.getIntParam(KeyConstant.IDLE_COUNT_THRESHOLD, Constant.DEFAULT_IDLE_COUNT_THRESHOLD);
+        int idleCountThreshold = url.getIntParam(DefaultConfigKeys.IDLE_COUNT_THRESHOLD);
         if (ideCount != null) {
             String enablePrintLog = System.getProperty(SystemKey.PRINT_HEARTBEAT_LOG);
             if (!StringUtil.isBlank(enablePrintLog)

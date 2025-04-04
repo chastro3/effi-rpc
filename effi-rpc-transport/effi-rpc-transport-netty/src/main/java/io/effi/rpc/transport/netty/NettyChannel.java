@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Netty implementation of {@link io.effi.rpc.protocol.endpoint.Channel}.
+ * Netty implementation of {@link io.effi.rpc.transport.endpoint.Channel}.
  */
 public final class NettyChannel extends AbstractChannel {
 

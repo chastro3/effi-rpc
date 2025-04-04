@@ -44,7 +44,7 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
         this.module = AssertUtil.notNull(builder.module(), "module");
         this.locator = AssertUtil.notNull(builder.locator(), "locator");
         this.returnType = builder.returnType();
-        this.threadPool = threadPool(module, Constant.DEFAULT_CLIENT_HYBRID_THREAD_POOL);
+        this.threadPool = getThreadPool(module, Constant.DEFAULT_CLIENT_HYBRID_THREAD_POOL);
         this.modularConfig = new CallerModularConfig(this.module, builder.clientConfig(), this);
         this.module.register(this);
         addFilter(builder.filters().toArray(Filter[]::new));

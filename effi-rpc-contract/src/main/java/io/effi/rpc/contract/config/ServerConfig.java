@@ -11,9 +11,7 @@ import io.effi.rpc.common.util.StringUtil;
 public interface ServerConfig extends NamedConfig {
 
     /**
-     * The protocol of client.
-     *
-     * @return the protocol of client.
+     * The protocol of server.
      */
     String protocol();
 

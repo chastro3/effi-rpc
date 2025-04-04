@@ -1,6 +1,5 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.util.ReflectionUtil;
 import io.effi.rpc.contract.Callee;
@@ -13,9 +12,9 @@ import io.effi.rpc.metrics.CalleeMetrics;
 import io.effi.rpc.metrics.MetricsSupport;
 import io.effi.rpc.metrics.constant.MetricsKey;
 import io.effi.rpc.metrics.event.CalleeMetricsEvent;
+import io.effi.rpc.transport.DefaultRepackagedRequest;
 import io.effi.rpc.transport.RepackagedRequest;
 import io.effi.rpc.transport.RepackagedResponse;
-import io.effi.rpc.transport.DefaultRepackagedRequest;
 import io.effi.rpc.transport.endpoint.Channel;
 
 import java.lang.reflect.Parameter;
@@ -41,7 +40,7 @@ public abstract class AbstractServerCodec<RESP extends Envelope.Response, REQ ex
         try {
             return encodeResponse(repackagedResponse, response);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.ENCODE, e, Envelope.Response.class, response.getClass());
+            throw PredefinedErrorCode.ENCODE.fail(e, Envelope.Response.class, repackagedResponse.getClass());
         } finally {
             MetricsSupport.recordSerializeEndTime(context);
             Callee<?> callee = replyContext.invoker();
@@ -74,7 +73,7 @@ public abstract class AbstractServerCodec<RESP extends Envelope.Response, REQ ex
             context.set(MetricsKey.DESERIALIZE_START_TIME, startTime);
             return new DefaultRepackagedRequest<>(context, channel);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.ENCODE, e, request.getClass(), DefaultRepackagedRequest.class);
+            throw PredefinedErrorCode.ENCODE.fail(e, DefaultRepackagedRequest.class, request.getClass());
         }
     }
 

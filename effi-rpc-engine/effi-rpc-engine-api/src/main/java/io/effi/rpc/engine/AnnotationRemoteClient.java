@@ -67,16 +67,10 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
         return proxy;
     }
 
-    /**
-     * Returns the clientAnnotation.
-     */
     public EffiRpcClient clientAnnotation() {
         return clientAnnotation;
     }
 
-    /**
-     * Returns the styleWrapper.
-     */
     public AnnotationStyleWrapper styleWrapper() {
         return styleWrapper;
     }

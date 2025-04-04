@@ -1,7 +1,9 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.constant.Constant;
+import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.transport.endpoint.AbstractClient;
+import io.effi.rpc.transport.endpoint.Client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -23,13 +25,13 @@ public class NettyClient extends AbstractClient {
 
     protected static final NioEventLoopGroup NIO_EVENT_LOOP_GROUP = new NioEventLoopGroup(Constant.DEFAULT_IO_THREADS, new DefaultThreadFactory("netty-client-worker", false));
 
-    protected InitializedConfig config;
+    protected NettyEndpointConfig config;
 
     protected Bootstrap bootstrap;
 
     protected Channel channel;
 
-    public NettyClient(InitializedConfig config) {
+    public NettyClient(NettyEndpointConfig config) {
         super(config.url(), config.module());
         this.config = config;
         connect();
@@ -50,7 +52,7 @@ public class NettyClient extends AbstractClient {
                 .channel(NioSocketChannel.class)
                 .remoteAddress(socketAddress())
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
-                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.SO_KEEPALIVE, url().getBooleanParam(DefaultConfigKeys.KEEP_ALIVE))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         configHandler();

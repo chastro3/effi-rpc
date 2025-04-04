@@ -21,9 +21,6 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
 
     /**
      * Sets the registry URL and extracts type and address.
-     *
-     * @param url Registry URL
-     * @return This builder
      */
     public C url(String url) {
         URL urlObj = URL.valueOf(url);
@@ -35,9 +32,6 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
 
     /**
      * Sets the connection timeout.
-     *
-     * @param connectTimeout Connection timeout in milliseconds
-     * @return This builder
      */
     public C connectTimeout(int connectTimeout) {
         config.set(DefaultConfigKeys.CONNECT_TIMEOUT.key(), String.valueOf(connectTimeout));
@@ -46,9 +40,6 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
 
     /**
      * Sets the number of retry attempts.
-     *
-     * @param retries Number of retries
-     * @return This builder
      */
     public C retries(int retries) {
         config.set(DefaultConfigKeys.RETRIES.key(), String.valueOf(retries));
@@ -57,9 +48,6 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
 
     /**
      * Sets the health check interval.
-     *
-     * @param healthCheckInterval Health check interval in milliseconds
-     * @return This builder
      */
     public C healthCheckInterval(int healthCheckInterval) {
         config.set(DefaultConfigKeys.HEALTH_CHECK_INTERVAL.key(), String.valueOf(healthCheckInterval));
@@ -79,12 +67,6 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
         return build(url);
     }
 
-    /**
-     * Creates a new {@link RegistryConfig} instance with the specified URL.
-     *
-     * @param url Configuration URL
-     * @return New {@link RegistryConfig} instance
-     */
     protected abstract T build(URL url);
 }
 

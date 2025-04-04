@@ -17,7 +17,7 @@ public interface NettyTransporter extends Transporter {
      * @param config the initialized client configuration
      * @return the connected client
      */
-    Client connect(InitializedConfig config);
+    Client connect(NettyEndpointConfig config);
 
     /**
      * Binds a server with the given configuration.
@@ -25,7 +25,7 @@ public interface NettyTransporter extends Transporter {
      * @param config the initialized server configuration
      * @return the bound server
      */
-    Server bind(InitializedConfig config);
+    Server bind(NettyEndpointConfig config);
 
     /**
      * Initializes the client configuration based on the given URL and module.
@@ -34,7 +34,7 @@ public interface NettyTransporter extends Transporter {
      * @param module  the associated module
      * @return the initialized client configuration
      */
-    InitializedConfig initClientConfig(URL url, EffiRpcModule module);
+    NettyEndpointConfig initClientConfig(URL url, EffiRpcModule module);
 
     /**
      * Initializes the server configuration based on the given URL and module.
@@ -43,7 +43,7 @@ public interface NettyTransporter extends Transporter {
      * @param module  the associated module
      * @return the initialized server configuration
      */
-    InitializedConfig initServerConfig(URL url, EffiRpcModule module);
+    NettyEndpointConfig initServerConfig(URL url, EffiRpcModule module);
 
     @Override
     default Client connect(URL url, EffiRpcModule module) {

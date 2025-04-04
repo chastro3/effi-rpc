@@ -95,9 +95,6 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
         return desc;
     }
 
-    /**
-     * Returns the methodMapper.
-     */
     public MethodMapper<T> methodMapper() {
         return methodMapper;
     }
@@ -173,20 +170,14 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
         try {
             return remoteService().invokeCallee(this, args);
         } catch (Exception e) {
-            EffiRpcException exception = EffiRpcException.wrap(PredefinedErrorCode.INVOKE_SERVICE, toString());
+            EffiRpcException exception = PredefinedErrorCode.INVOKE_SERVICE.fail(e, toString());
             logger.error(exception.getMessage());
             throw exception;
         }
     }
 
-    /**
-     * Retrieves the thread pool associated with the given module.
-     * If no specific thread pool is found, the default hybrid server thread pool is used.
-     *
-     * @param module the module for which the thread pool is retrieved
-     */
     @Override
     public ThreadPool threadPoolOf(EffiRpcModule module) {
-        return threadPool(module, Constant.DEFAULT_SERVER_HYBRID_THREAD_POOL);
+        return getThreadPool(module, Constant.DEFAULT_SERVER_HYBRID_THREAD_POOL);
     }
 }

@@ -7,7 +7,7 @@ import io.effi.rpc.transport.endpoint.Channel;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The count is refreshed when the current channel information is transmitted.
+ * Listens for {@link RefreshIdleCountEvent} and resets the idle count for the associated channel.
  */
 public class RefreshIdleCountEventListener implements EventListener<RefreshIdleCountEvent> {
 
@@ -21,5 +21,4 @@ public class RefreshIdleCountEventListener implements EventListener<RefreshIdleC
             ideCount.set(0);
         }
     }
-
 }

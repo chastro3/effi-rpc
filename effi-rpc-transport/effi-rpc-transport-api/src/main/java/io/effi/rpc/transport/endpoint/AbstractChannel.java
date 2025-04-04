@@ -4,10 +4,13 @@ import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.util.AbstractAttributes;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.transport.RepackagedEnvelope;
 import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.transport.RepackagedEnvelope;
 import io.effi.rpc.transport.TransportSupport;
 
+/**
+ * Abstract implementation of {@link Channel}.
+ */
 public abstract class AbstractChannel extends AbstractAttributes implements Channel {
 
     private final URL endpointUrl;
@@ -51,10 +54,7 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
 
     @Override
     public String toString() {
-        return String.format(
-                "Channel[local=%s, remote=%s, active=%b]",
-                localAddress(), remoteAddress(), isActive()
-        );
+        return String.format("local=%s, remote=%s, active=%b", localAddress(), remoteAddress(), isActive());
     }
 
     protected abstract void doSend(Object message);

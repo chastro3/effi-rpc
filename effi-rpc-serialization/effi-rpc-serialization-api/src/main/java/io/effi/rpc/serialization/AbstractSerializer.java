@@ -1,6 +1,5 @@
 package io.effi.rpc.serialization;
 
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 
 import java.lang.reflect.Type;
@@ -18,7 +17,7 @@ public abstract class AbstractSerializer implements Serializer {
         try {
             return doSerialize(input);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.SERIALIZE, e, input.getClass());
+            throw PredefinedErrorCode.SERIALIZE.fail(e, input.getClass());
         }
     }
 
@@ -31,7 +30,7 @@ public abstract class AbstractSerializer implements Serializer {
         try {
             return (T) doDeserialize(bytes, type);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.DESERIALIZE, e, type);
+            throw PredefinedErrorCode.DESERIALIZE.fail(e, type);
         }
     }
 

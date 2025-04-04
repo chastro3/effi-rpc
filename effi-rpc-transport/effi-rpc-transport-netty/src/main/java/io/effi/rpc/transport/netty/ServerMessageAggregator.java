@@ -1,4 +1,4 @@
-package io.effi.rpc.protocol.handler;
+package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.util.Messages;
@@ -7,7 +7,6 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.RepackagedResponse;
 import io.effi.rpc.transport.TransportSupport;
-import io.effi.rpc.transport.netty.NettyChannel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -39,7 +38,7 @@ public class ServerMessageAggregator extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof Envelope.Request request) {
             NettyChannel channel = NettyChannel.acquire(ctx.channel());
-            TransportSupport.receiveRequest(request, channel);
+            TransportSupport.handleRequest(request, channel);
         } else {
             logger.warn(Messages.onlySupport(Envelope.Request.class));
         }

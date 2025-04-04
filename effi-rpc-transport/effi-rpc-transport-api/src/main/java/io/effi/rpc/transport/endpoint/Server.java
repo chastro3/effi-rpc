@@ -1,7 +1,5 @@
 package io.effi.rpc.transport.endpoint;
 
-
-
 import java.net.InetSocketAddress;
 import java.util.Collection;
 

@@ -41,34 +41,19 @@ public abstract class ExecutorContext<T extends Envelope, I extends Invoker<?>, 
         return module;
     }
 
-    /**
-     * Returns the executor.
-     */
     public Supplier<Result> executor() {
         return executor;
     }
 
-    /**
-     * Returns the source of the invocation.
-     */
     @SuppressWarnings("unchecked")
     public T source() {
         return (T) source;
     }
 
-    /**
-     * Returns the invoker used for the invocation.
-     */
     public I invoker() {
         return invoker;
     }
 
-    /**
-     * Sets the executor for the invocation.
-     *
-     * @param executor the executor supplier
-     * @return the current invocation context
-     */
     @SuppressWarnings("unchecked")
     public C executor(Supplier<Result> executor) {
         this.executor = executor;
@@ -77,8 +62,6 @@ public abstract class ExecutorContext<T extends Envelope, I extends Invoker<?>, 
 
     /**
      * Executes the invocation and returns the result.
-     *
-     * @return the result of the execution
      */
     public Result execute() {
         if (executor == null) return new Result(source.url(), null);
@@ -87,8 +70,6 @@ public abstract class ExecutorContext<T extends Envelope, I extends Invoker<?>, 
 
     /**
      * Checks if the context is server-side.
-     *
-     * @return true if server-side, false otherwise
      */
     public boolean isServerSide() {
         return invoker instanceof Callee<?>;
@@ -96,8 +77,6 @@ public abstract class ExecutorContext<T extends Envelope, I extends Invoker<?>, 
 
     /**
      * Checks if the context is client-side.
-     *
-     * @return true if client-side, false otherwise
      */
     public boolean isClientSide() {
         return invoker instanceof Caller<?>;

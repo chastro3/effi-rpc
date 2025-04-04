@@ -3,10 +3,9 @@ package io.effi.rpc.registry.consul;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.common.util.VertxUtil;
@@ -41,10 +40,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
             VertxUtil.await(consulClient.agentInfo());
             return true;
         } catch (Throwable e) {
-            throw EffiRpcException.wrap(
-                    PredefinedErrorCode.CONNECT, e,
-                    registryUrl.address(), registryUrl.protocol()
-            );
+            throw PredefinedErrorCode.CONNECT.fail(e, registryUrl.address(), registryUrl.protocol());
         }
     }
 
@@ -61,10 +57,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
             // try to connect consul
             isActive();
         } catch (Throwable e) {
-            throw EffiRpcException.wrap(
-                    PredefinedErrorCode.CONNECT, e,
-                    url.address(), url.protocol()
-            );
+            throw PredefinedErrorCode.CONNECT.fail(e, url.address(), url.protocol());
         }
     }
 
@@ -92,10 +85,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
                 VertxUtil.await(consulClient.registerService(opts));
                 if (registerTask.isFirstRun()) registerTask.firstRun(false);
             } catch (Throwable e) {
-                throw EffiRpcException.wrap(
-                        PredefinedErrorCode.REGISTRY_REGISTER, e,
-                        serviceName, registryUrl.address()
-                );
+                throw PredefinedErrorCode.REGISTRY_REGISTER.fail(e, serviceName, registryUrl.address());
             }
         };
     }

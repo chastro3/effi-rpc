@@ -1,6 +1,5 @@
 package io.effi.rpc.proxy;
 
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 
 import static io.effi.rpc.common.util.ReflectionUtil.invokeObjectMethod;
@@ -18,7 +17,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
             }
             return doCreateProxy(interfaceClass, wrap(interfaceClass, handler));
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.PROXY_CREATE, e, interfaceClass.getName());
+            throw PredefinedErrorCode.PROXY_CREATE.fail(e, interfaceClass.getName());
         }
     }
 
@@ -27,7 +26,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
         try {
             return doCreateProxy(target, wrap(target, handler));
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.PROXY_CREATE, e, target.getClass().getName());
+            throw PredefinedErrorCode.PROXY_CREATE.fail(e, target.getClass().getName());
         }
     }
 

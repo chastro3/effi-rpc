@@ -70,9 +70,9 @@ public interface Caller<R> extends Invoker<CompletableFuture<R>>, ModuleSource {
         } catch (CompletionException e) {
             if (e.getCause() instanceof TimeoutException) {
                 String timeout = get(DefaultConfigKeys.TIMEOUT);
-                throw EffiRpcException.wrap(PredefinedErrorCode.TIMEOUT, e, timeout);
+                throw PredefinedErrorCode.TIMEOUT.fail(e, timeout);
             }
-            throw EffiRpcException.wrap(PredefinedErrorCode.CALL_CALLER, e.getCause(), toString());
+            throw PredefinedErrorCode.CALL_CALLER.fail(e.getCause(), toString());
         }
     }
 }

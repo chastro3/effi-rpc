@@ -1,7 +1,6 @@
 package io.effi.rpc.governance.discovery;
 
 import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.common.spi.ExtensionLoader;
@@ -48,7 +47,7 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
             }
         }
         if (availableServiceUrls.isEmpty()) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.NOT_FOUND_SERVICE, url);
+            throw PredefinedErrorCode.NOT_FOUND_SERVICE.fail(null, url);
         }
         return availableServiceUrls;
     }

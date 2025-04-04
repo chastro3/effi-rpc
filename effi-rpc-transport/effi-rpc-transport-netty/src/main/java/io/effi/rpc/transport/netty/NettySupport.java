@@ -1,7 +1,6 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.constant.HandlerNames;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.common.url.URLType;
@@ -111,32 +110,32 @@ public class NettySupport {
     }
 
     /**
-     * Builds client channel initializer.
-     *
-     * @param config
-     * @return
-     */
-    public static ChannelInitializer<SocketChannel> buildClientChannelInitializer(InitializedConfig config) {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(SocketChannel ch) throws Exception {
-                initClientChannel(ch, config);
-            }
-        };
-    }
-
-    /**
      * Builds server channel initializer.
      *
      * @param config
      * @param channelManager
      * @return
      */
-    public static ChannelInitializer<SocketChannel> buildServerChannelInitializer(InitializedConfig config, ChannelManageHandler channelManager) {
+    public static ChannelInitializer<SocketChannel> buildServerChannelInitializer(NettyEndpointConfig config, ChannelManageHandler channelManager) {
         return new ChannelInitializer<>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 initServerChannel(ch, config, channelManager);
+            }
+        };
+    }
+
+    /**
+     * Builds client channel initializer.
+     *
+     * @param config
+     * @return
+     */
+    public static ChannelInitializer<SocketChannel> buildClientChannelInitializer(NettyEndpointConfig config) {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(SocketChannel ch) throws Exception {
+                initClientChannel(ch, config);
             }
         };
     }
@@ -147,7 +146,7 @@ public class NettySupport {
      * @param config
      * @return
      */
-    public static ChannelPoolHandler buildChannelPoolHandler(InitializedConfig config) {
+    public static ChannelPoolHandler buildChannelPoolHandler(NettyEndpointConfig config) {
         return new AbstractChannelPoolHandler() {
             @Override
             public void channelCreated(Channel ch) throws Exception {
@@ -192,7 +191,7 @@ public class NettySupport {
      * @param channel
      * @param config
      */
-    public static void initClientChannel(Channel channel, InitializedConfig config) {
+    public static void initClientChannel(Channel channel, NettyEndpointConfig config) {
         ChannelPipeline pipeline = channel.pipeline();
         SslContext sslContext = config.sslContext();
         if (sslContext != null) {
@@ -212,7 +211,7 @@ public class NettySupport {
      * @param config
      * @param channelManager
      */
-    public static void initServerChannel(Channel channel, InitializedConfig config, ChannelManageHandler channelManager) {
+    public static void initServerChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
         ChannelPipeline pipeline = channel.pipeline();
         SslContext sslContext = config.sslContext();
         if (sslContext != null) {

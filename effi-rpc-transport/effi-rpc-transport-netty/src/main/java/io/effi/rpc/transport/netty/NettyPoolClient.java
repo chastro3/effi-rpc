@@ -2,8 +2,8 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
+import io.effi.rpc.transport.endpoint.Client;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.FixedChannelPool;
@@ -20,7 +20,7 @@ public class NettyPoolClient extends NettyClient {
 
     protected FixedChannelPool channelPool;
 
-    public NettyPoolClient(InitializedConfig config) {
+    public NettyPoolClient(NettyEndpointConfig config) {
         super(config);
     }
 
@@ -28,7 +28,7 @@ public class NettyPoolClient extends NettyClient {
     protected void configHandler() {
         // Acquire a ChannelPoolHandler for managing channels in the pool
         // Set up the fixed channel pool with a maximum number of connections
-        int maxConnections = url().getIntParam(DefaultConfigKeys.MAX_UN_CONNECTIONS.key(), Constant.DEFAULT_CLIENT_MAX_CONNECTIONS);
+        int maxConnections = url().getIntParam(DefaultConfigKeys.MAX_CONNECTIONS.key(), Constant.DEFAULT_CLIENT_MAX_CONNECTIONS);
         channelPool = new FixedChannelPool(bootstrap, buildChannelPoolHandler(), maxConnections);
     }
 
@@ -51,7 +51,7 @@ public class NettyPoolClient extends NettyClient {
         }
         Throwable cause = future.cause();
         cause = cause != null ? cause : new TimeoutException("Connect to " + url().address() + " timeout");
-        throw EffiRpcException.wrap(PredefinedErrorCode.ACQUIRE_CHANNEL, cause, url().address(), url().protocol());
+        throw PredefinedErrorCode.ACQUIRE_CHANNEL.fail(cause, url().address(), url().protocol());
     }
 
     @Override

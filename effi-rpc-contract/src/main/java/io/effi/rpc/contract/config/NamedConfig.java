@@ -10,8 +10,6 @@ public interface NamedConfig extends ConfigSource, Manager.Key {
 
     /**
      * Returns the unique name of this configuration.
-     *
-     * @return the unique name
      */
     String name();
 

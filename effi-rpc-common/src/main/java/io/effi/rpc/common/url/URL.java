@@ -1,12 +1,7 @@
 package io.effi.rpc.common.url;
 
-import io.effi.rpc.common.util.AbstractAttributes;
-import io.effi.rpc.common.util.Replicable;
+import io.effi.rpc.common.util.*;
 import io.effi.rpc.common.util.collection.LazyList;
-import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.NetUtil;
-import io.effi.rpc.common.util.StringUtil;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -227,20 +222,21 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     /**
      * Retrieves the value of a query parameter by its key.
-     *
-     * @param key the parameter key
-     * @return the parameter value, or null if not found
+     */
+    public String getParam(ConfigKey configKey) {
+        return params.get(configKey);
+    }
+
+    /**
+     * Retrieves the value of a query parameter by its key.
      */
     public String getParam(String key) {
         return params.get(key);
     }
 
     /**
-     * Retrieves the value of a query parameter by its key, returning a default value if not found.
-     *
-     * @param key          the parameter key
-     * @param defaultValue the default value to return if not found
-     * @return the parameter value, or the default value if not found
+     * Retrieves the value of a query parameter by its key,
+     * returning a default value if not found.
      */
     public String getParam(String key, String defaultValue) {
         return params.get(key, defaultValue);
@@ -248,20 +244,21 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     /**
      * Retrieves a boolean value for a query parameter.
-     *
-     * @param key the parameter key
-     * @return the boolean value, or false if the parameter is not found or not a valid boolean
+     */
+    public boolean getBooleanParam(ConfigKey configKey) {
+        return Boolean.parseBoolean(getParam(configKey));
+    }
+
+    /**
+     * Retrieves a boolean value for a query parameter.
      */
     public boolean getBooleanParam(String key) {
         return Boolean.parseBoolean(getParam(key));
     }
 
     /**
-     * Retrieves a boolean value for a query parameter, returning a default value if not found.
-     *
-     * @param key          the parameter key
-     * @param defaultValue the default value to return if not found
-     * @return the boolean value, or the default value if not found
+     * Retrieves a boolean value for a query parameter,
+     * returning a default value if not found.
      */
     public boolean getBooleanParam(String key, boolean defaultValue) {
         String value = getParam(key);
@@ -270,21 +267,21 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     /**
      * Retrieves an integer value for a query parameter.
-     *
-     * @param key the parameter key
-     * @return the integer value
-     * @throws NumberFormatException if the value is not a valid integer
+     */
+    public int getIntParam(ConfigKey configKey) {
+        return Integer.parseInt(getParam(configKey));
+    }
+
+    /**
+     * Retrieves an integer value for a query parameter.
      */
     public int getIntParam(String key) {
         return Integer.parseInt(getParam(key));
     }
 
     /**
-     * Retrieves an integer value for a query parameter, returning a default value if not found.
-     *
-     * @param key          the parameter key
-     * @param defaultValue the default value to return if not found
-     * @return the integer value, or the default value if not found
+     * Retrieves an integer value for a query parameter,
+     * returning a default value if not found.
      */
     public int getIntParam(String key, int defaultValue) {
         String value = getParam(key);
@@ -293,21 +290,21 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     /**
      * Retrieves a long value for a query parameter.
-     *
-     * @param key the parameter key
-     * @return the long value
-     * @throws NumberFormatException if the value is not a valid long
+     */
+    public long getLongParam(ConfigKey configKey) {
+        return Long.parseLong(getParam(configKey));
+    }
+
+    /**
+     * Retrieves a long value for a query parameter.
      */
     public long getLongParam(String key) {
         return Long.parseLong(getParam(key));
     }
 
     /**
-     * Retrieves a long value for a query parameter, returning a default value if not found.
-     *
-     * @param key          the parameter key
-     * @param defaultValue the default value to return if not found
-     * @return the long value, or the default value if not found
+     * Retrieves a long value for a query parameter,
+     * returning a default value if not found.
      */
     public long getLongParam(String key, long defaultValue) {
         String value = getParam(key);
@@ -316,130 +313,62 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     /**
      * Removes a query parameter by its key.
-     *
-     * @param key the parameter key
-     * @return the current URL instance
      */
     public URL removeParam(String key) {
         params.remove(key);
         return this;
     }
 
-    /**
-     * Returns the URL type.
-     *
-     * @return
-     */
     public URLType type() {
         return type;
     }
 
-    /**
-     * Returns the protocol.
-     *
-     * @return
-     */
     public String protocol() {
         return protocol;
     }
 
-    /**
-     * Returns the address.
-     *
-     * @return
-     */
     public String address() {
         return address;
     }
 
-    /**
-     * Returns the host.
-     *
-     * @return
-     */
     public String host() {
         return host;
     }
 
-    /**
-     * Returns the port.
-     *
-     * @return
-     */
     public int port() {
         return port;
     }
 
-    /**
-     * Returns the list of path segments.
-     *
-     * @return
-     */
     public List<String> paths() {
         return Collections.unmodifiableList(paths);
     }
 
-    /**
-     * Returns the map of query parameters.
-     *
-     * @return
-     */
     public Config params() {
         return params;
     }
 
-    /**
-     * Constructs the authority string of the URL.
-     *
-     * @return the authority string in the format protocol://address
-     */
     public String authority() {
         return protocol + "://" + address;
     }
 
-    /**
-     * Constructs the complete URI string of the URL.
-     *
-     * @return the complete URI string
-     */
     public String uri() {
         return authority() + path();
     }
 
-    /**
-     * Constructs the path string from the list of path segments.
-     *
-     * @return the constructed path string
-     */
     public String path() {
         return URLUtil.toPath(paths);
     }
 
-    /**
-     * Constructs the query path string from the URL's parameters.
-     *
-     * @return the query path string in the format /path?param=value
-     */
     public String queryPath() {
         String queryParam = URLUtil.toQueryParam(params.properties());
         return path() + (StringUtil.isBlank(queryParam) ? "" : ("?" + queryParam));
     }
 
-    /**
-     * Returns a string representation of the URL in the format protocol://address/path?param=value.
-     *
-     * @return the string representation of the URL
-     */
     @Override
     public String toString() {
         return authority() + queryPath();
     }
 
-    /**
-     * Creates a deep copy of the URL instance.
-     *
-     * @return a new URL instance that is a copy of the current instance
-     */
     @Override
     public URL replicate() {
 //        url.accessor.putAll(this.accessor);

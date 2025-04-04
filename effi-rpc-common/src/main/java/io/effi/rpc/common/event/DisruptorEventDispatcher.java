@@ -6,11 +6,10 @@ import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.executor.RpcThreadFactory;
-import io.effi.rpc.common.util.Holder;
 import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.util.Holder;
 import io.effi.rpc.common.util.ObjectUtil;
 
 /**
@@ -110,8 +109,7 @@ public class DisruptorEventDispatcher extends AbstractEventDispatcher {
                                 ((EventListener<E>) listener).onEvent(event);
                                 logger.trace("{} handle <{}>", ObjectUtil.simpleClassName(listener), ObjectUtil.simpleClassName(event));
                             } catch (Exception e) {
-                                throw EffiRpcException.wrap(
-                                        PredefinedErrorCode.HANDLE_EVENT,
+                                throw PredefinedErrorCode.HANDLE_EVENT.fail(e,
                                         ObjectUtil.simpleClassName(listener),
                                         ObjectUtil.simpleClassName(event)
                                 );

@@ -20,16 +20,10 @@ public class AnnotationStyleWrapper {
         }
     }
 
-    /**
-     * Returns the name.
-     */
     public String name() {
         return name;
     }
 
-    /**
-     * Returns the parser.
-     */
     public AnnotationStyleParser parser() {
         return parser;
     }

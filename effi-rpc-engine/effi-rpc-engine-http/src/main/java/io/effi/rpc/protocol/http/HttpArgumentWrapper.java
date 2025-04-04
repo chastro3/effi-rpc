@@ -15,7 +15,7 @@ public class HttpArgumentWrapper {
 
     private Map<String, String> headers;
 
-    private URL requestUrl;
+    private final URL requestUrl;
 
     private Object body;
 

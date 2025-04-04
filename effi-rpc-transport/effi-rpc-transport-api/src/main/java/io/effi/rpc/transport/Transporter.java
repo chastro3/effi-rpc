@@ -7,7 +7,7 @@ import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
 
 /**
- * Creates network clients and servers.
+ * Creates clients and servers.
  */
 @Extensible
 public interface Transporter {

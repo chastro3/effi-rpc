@@ -1,11 +1,11 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.util.ChainBuilder;
-import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.url.ConfigSource;
+import io.effi.rpc.common.util.ChainBuilder;
 import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.filter.Filter;
 
@@ -32,9 +32,7 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
     }
 
     /**
-     * Sets the compression method.
-     *
-     * @param compression Compression type
+     * Sets the compression type.
      */
     public C compression(String compression) {
         config.set(DefaultConfigKeys.COMPRESSION.key(), compression);
@@ -42,9 +40,7 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
     }
 
     /**
-     * Sets the serialization format.
-     *
-     * @param serialization Serialization format
+     * Sets the serialization type.
      */
     public C serialization(String serialization) {
         config.set(DefaultConfigKeys.SERIALIZATION.key(), serialization);
@@ -53,8 +49,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
 
     /**
      * Sets the query path for the invoker.
-     *
-     * @param path Query path string
      */
     public C path(String path) {
         config.set(DefaultConfigKeys.PATH.key(), path);
@@ -63,8 +57,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
 
     /**
      * Adds filters to the invoker, avoiding duplicates.
-     *
-     * @param filters Filters to add
      */
     public C addFilter(Filter<?, ?, ?>... filters) {
         if (CollectionUtil.isNotEmpty(filters)) {

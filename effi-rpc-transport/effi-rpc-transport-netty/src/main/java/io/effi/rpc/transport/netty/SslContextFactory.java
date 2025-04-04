@@ -2,7 +2,6 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.util.collection.LazyMap;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
@@ -40,7 +39,7 @@ public class SslContextFactory {
             CLIENT_CERT_BYTES = NettySupport.getSslBytes(KeyConstant.CLIENT_CERT_PATH, Constant.INTERNAL_CERTS_PATH + "client-cert.pem");
             CLIENT_KEY_BYTES = NettySupport.getSslBytes(KeyConstant.CLIENT_KEY_PATH, Constant.INTERNAL_CERTS_PATH + "client-pkcs8-key.pem");
         } catch (IOException e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.READ_CERT_RESOURCE, e);
+            throw PredefinedErrorCode.READ_CERT_RESOURCE.fail(e);
         }
     }
 
@@ -71,7 +70,7 @@ public class SslContextFactory {
                                         supportedProtocols)
                         ).build();
             } catch (SSLException e) {
-                throw EffiRpcException.wrap(PredefinedErrorCode.SSL, e);
+                throw PredefinedErrorCode.SSL.fail(e);
             }
         });
     }
@@ -99,7 +98,7 @@ public class SslContextFactory {
                                 supportedProtocols))
                         .build();
             } catch (SSLException e) {
-                throw EffiRpcException.wrap(PredefinedErrorCode.SSL, e);
+                throw PredefinedErrorCode.SSL.fail(e);
             }
         });
 

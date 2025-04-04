@@ -1,4 +1,4 @@
-package io.effi.rpc.common.constant;
+package io.effi.rpc.transport.netty;
 
 /**
  * Holds constants for handler names used in network communication.

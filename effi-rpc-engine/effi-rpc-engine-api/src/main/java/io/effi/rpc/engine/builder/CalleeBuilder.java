@@ -30,9 +30,6 @@ public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder
 
     /**
      * Sets callee description.
-     *
-     * @param desc
-     * @return
      */
     public C desc(String desc) {
         config.set(DefaultConfigKeys.DESC.key(), desc);
@@ -41,8 +38,6 @@ public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder
 
     /**
      * Exposes the current callee to the specified module(s).
-     *
-     * @param modules the specified module(s)
      */
     public C export(EffiRpcModule... modules) {
         CollectionUtil.addUnique(this.modules, modules);

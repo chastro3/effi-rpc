@@ -45,16 +45,10 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         parseCallee(application);
     }
 
-    /**
-     * Returns the serviceAnnotation.
-     */
     public EffiRpcService serviceAnnotation() {
         return serviceAnnotation;
     }
 
-    /**
-     * Returns the styleWrapper.
-     */
     public AnnotationStyleWrapper styleWrapper() {
         return styleWrapper;
     }

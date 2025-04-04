@@ -14,9 +14,6 @@ public abstract class ClientConfigBuilder<T extends ClientConfig, C extends Clie
 
     /**
      * Enables or disables SSL.
-     *
-     * @param ssl True to enable SSL
-     * @return This builder
      */
     public C ssl(boolean ssl) {
         config.set(DefaultConfigKeys.SSL.key(), String.valueOf(ssl));
@@ -25,9 +22,6 @@ public abstract class ClientConfigBuilder<T extends ClientConfig, C extends Clie
 
     /**
      * Sets the maximum allowed connections.
-     *
-     * @param maxConnections Maximum number of connections
-     * @return This builder
      */
     public C maxConnections(int maxConnections) {
         config.set(DefaultConfigKeys.MAX_CONNECTIONS.key(), String.valueOf(maxConnections));
@@ -36,9 +30,6 @@ public abstract class ClientConfigBuilder<T extends ClientConfig, C extends Clie
 
     /**
      * Sets the maximum size for received messages.
-     *
-     * @param maxMessageSize Maximum message size
-     * @return This builder
      */
     public C maxMessageSize(int maxMessageSize) {
         config.set(DefaultConfigKeys.CLIENT_MAX_RECEIVE_SIZE.key(), String.valueOf(maxMessageSize));
@@ -47,9 +38,6 @@ public abstract class ClientConfigBuilder<T extends ClientConfig, C extends Clie
 
     /**
      * Sets the connection timeout.
-     *
-     * @param connectTimeout Timeout in milliseconds
-     * @return This builder
      */
     public C connectTimeout(int connectTimeout) {
         config.set(DefaultConfigKeys.CONNECT_TIMEOUT.key(), String.valueOf(connectTimeout));
@@ -57,32 +45,23 @@ public abstract class ClientConfigBuilder<T extends ClientConfig, C extends Clie
     }
 
     /**
-     * Sets the timeout for keep-alive connections.
-     *
-     * @param keepAliveTimeout Keep-alive timeout in milliseconds
-     * @return This builder
+     * Sets the idle count threshold for closing connections.
      */
-    public C keepAliveTimeout(int keepAliveTimeout) {
-        config.set(DefaultConfigKeys.KEEP_ALIVE_TIMEOUT.key(), String.valueOf(keepAliveTimeout));
+    public C idleCountThreshold(int ideCountThreshold) {
+        config.set(DefaultConfigKeys.IDLE_COUNT_THRESHOLD.key(), String.valueOf(ideCountThreshold));
         return returnThis();
     }
 
     /**
-     * Sets the idle times before closing spare connections.
-     *
-     * @param spareCloseTimes Number of idle times
-     * @return This builder
+     * Sets the interval for triggering idle connections.
      */
-    public C spareCloseTimes(int spareCloseTimes) {
-        config.set(DefaultConfigKeys.SPARE_CLOSE_TIMES.key(), String.valueOf(spareCloseTimes));
+    public C idleTriggerInterval(int idleTriggerInterval) {
+        config.set(DefaultConfigKeys.IDLE_TRIGGER_INTERVAL.key(), String.valueOf(idleTriggerInterval));
         return returnThis();
     }
 
     /**
      * Enables or disables keep-alive.
-     *
-     * @param keepAlive True to enable keep-alive
-     * @return This builder
      */
     public C keepAlive(boolean keepAlive) {
         config.set(DefaultConfigKeys.KEEP_ALIVE.key(), String.valueOf(keepAlive));

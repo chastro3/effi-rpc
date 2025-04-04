@@ -31,14 +31,6 @@ public interface KeyConstant {
 
     String PATH = "path";
 
-    String HEART_BEAT_INTERVAL = "heartbeatInterval";
-
-    String IDLE_COUNT_THRESHOLD = "idleCountThreshold";
-
-    String HEARTBEAT_LOG_ENABLE = "heartbeatLogEnable";
-
-    String SO_BACKLOG = "soBacklog";
-
     String REQUEST_CONTEXT = "requestContext";
 
     String RESPONSE_CONTEXT = "responseContext";
@@ -68,10 +60,6 @@ public interface KeyConstant {
     GenericKey<Long> ATTR_UNIQUE_ID = GenericKey.valueOf(UNIQUE_ID);
 
     GenericKey<AtomicInteger> IDLE_COUNT = GenericKey.valueOf("idleCount");
-
-    GenericKey<AtomicInteger> WRITE_IDLE_TIMES = GenericKey.valueOf("writeIdleTimes");
-
-    GenericKey<AtomicInteger> READER_IDLE_TIMES = GenericKey.valueOf("readeIdleTimes");
 
     GenericKey<AtomicInteger> LAST_CALL_INDEX = GenericKey.valueOf("lastCallIndex");
 

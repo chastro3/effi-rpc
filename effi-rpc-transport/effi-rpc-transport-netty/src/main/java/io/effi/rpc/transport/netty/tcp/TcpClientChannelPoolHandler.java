@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty.tcp;
 
 import io.effi.rpc.common.url.URL;
-import io.effi.rpc.transport.netty.InitializedConfig;
+import io.effi.rpc.transport.netty.NettyEndpointConfig;
 import io.effi.rpc.transport.netty.NettyIdleStateHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
@@ -12,9 +12,9 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
  */
 public class TcpClientChannelPoolHandler extends AbstractChannelPoolHandler {
 
-    private final InitializedConfig config;
+    private final NettyEndpointConfig config;
 
-    public TcpClientChannelPoolHandler(InitializedConfig config) {
+    public TcpClientChannelPoolHandler(NettyEndpointConfig config) {
         this.config = config;
     }
 

@@ -8,13 +8,30 @@ import io.effi.rpc.transport.RepackagedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Encodes client {@link RepackagedRequest} and decode server {@link RepackagedResponse}.
+ * Client-side codec for encoding and decoding requests and responses.
  */
 public interface ClientCodec {
 
+    /**
+     * Encodes to request from repackaged request.
+     *
+     * @param repackagedRequest the repackaged request
+     * @return the encoded request
+     */
     Envelope.Request encode(RepackagedRequest<Caller<?>> repackagedRequest);
 
+    /**
+     * Decodes to repackaged response from response.
+     *
+     * @param channel  the channel
+     * @param response the response
+     * @param future   the future
+     * @return the decoded repackaged response
+     */
     RepackagedResponse<Caller<?>> decode(Channel channel, Envelope.Response response, ReplyFuture future);
-
 }
+
+
+
+
 

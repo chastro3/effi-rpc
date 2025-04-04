@@ -14,9 +14,6 @@ public abstract class ServerConfigBuilder<T extends ServerConfig, C extends Serv
 
     /**
      * Enables or disables SSL for the server.
-     *
-     * @param ssl Whether SSL is enabled
-     * @return This builder
      */
     public C ssl(boolean ssl) {
         config.set(DefaultConfigKeys.SSL.key(), String.valueOf(ssl));
@@ -25,9 +22,6 @@ public abstract class ServerConfigBuilder<T extends ServerConfig, C extends Serv
 
     /**
      * Sets the maximum number of threads for the server.
-     *
-     * @param maxThreads Maximum number of threads
-     * @return This builder
      */
     public C maxThreads(int maxThreads) {
         config.set(DefaultConfigKeys.MAX_THREADS.key(), String.valueOf(maxThreads));
@@ -36,9 +30,6 @@ public abstract class ServerConfigBuilder<T extends ServerConfig, C extends Serv
 
     /**
      * Sets the maximum number of unconnected clients.
-     *
-     * @param maxUnConnections Maximum number of unconnected clients
-     * @return This builder
      */
     public C maxUnConnections(int maxUnConnections) {
         config.set(DefaultConfigKeys.MAX_UN_CONNECTIONS.key(), String.valueOf(maxUnConnections));
@@ -47,9 +38,6 @@ public abstract class ServerConfigBuilder<T extends ServerConfig, C extends Serv
 
     /**
      * Sets the maximum message size the server can receive.
-     *
-     * @param maxMessageSize Maximum message size
-     * @return This builder
      */
     public C maxMessageSize(int maxMessageSize) {
         config.set(DefaultConfigKeys.SERVER_MAX_RECEIVE_SIZE.key(), String.valueOf(maxMessageSize));
@@ -57,13 +45,18 @@ public abstract class ServerConfigBuilder<T extends ServerConfig, C extends Serv
     }
 
     /**
-     * Sets the keep-alive timeout for the server.
-     *
-     * @param keepAliveTimeout Keep-alive timeout in milliseconds
-     * @return This builder
+     * Sets the idle count threshold for closing connections.
      */
-    public C keepAliveTimeout(int keepAliveTimeout) {
-        config.set(DefaultConfigKeys.KEEP_ALIVE_TIMEOUT.key(), String.valueOf(keepAliveTimeout));
+    public C idleCountThreshold(int ideCountThreshold) {
+        config.set(DefaultConfigKeys.IDLE_COUNT_THRESHOLD.key(), String.valueOf(ideCountThreshold));
+        return returnThis();
+    }
+
+    /**
+     * Sets the interval for triggering idle connections.
+     */
+    public C idleTriggerInterval(int idleTriggerInterval) {
+        config.set(DefaultConfigKeys.IDLE_TRIGGER_INTERVAL.key(), String.valueOf(idleTriggerInterval));
         return returnThis();
     }
 }

@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.netty.tcp;
 
-import io.effi.rpc.common.constant.HandlerNames;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.transport.netty.InitializedConfig;
+import io.effi.rpc.transport.netty.HandlerNames;
+import io.effi.rpc.transport.netty.NettyEndpointConfig;
 import io.effi.rpc.transport.netty.NettyIdleStateHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -14,11 +14,11 @@ import io.netty.channel.socket.SocketChannel;
  */
 public class TcpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    private final InitializedConfig config;
+    private final NettyEndpointConfig config;
 
     private final boolean isServer;
 
-    public TcpChannelInitializer(InitializedConfig config, boolean isServer) {
+    public TcpChannelInitializer(NettyEndpointConfig config, boolean isServer) {
         this.config = config;
         this.isServer = isServer;
     }

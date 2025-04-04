@@ -1,6 +1,5 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.Caller;
@@ -11,9 +10,9 @@ import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
 import io.effi.rpc.contract.parameter.ReplyParser;
 import io.effi.rpc.metrics.MetricsSupport;
+import io.effi.rpc.transport.DefaultRepackagedResponse;
 import io.effi.rpc.transport.RepackagedRequest;
 import io.effi.rpc.transport.RepackagedResponse;
-import io.effi.rpc.transport.DefaultRepackagedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
@@ -37,8 +36,7 @@ public abstract class AbstractClientCodec<REQ extends Envelope.Request, RESP ext
         try {
             return encodeRequest(repackagedRequest, request);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.ENCODE, e, Envelope.Request.class,
-                    request.getClass());
+            throw PredefinedErrorCode.ENCODE.fail(e, Envelope.Request.class, repackagedRequest.getClass());
         } finally {
             MetricsSupport.recordSerializeEndTime(repackagedRequest.context());
         }
@@ -58,7 +56,7 @@ public abstract class AbstractClientCodec<REQ extends Envelope.Request, RESP ext
             var replyContext = new ReplyContext<>(context, response, result);
             return new DefaultRepackagedResponse<>(replyContext, channel);
         } catch (Exception e) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.DECODE, e, response.getClass(), DefaultRepackagedResponse.class);
+            throw PredefinedErrorCode.DECODE.fail(e, DefaultRepackagedResponse.class, response.getClass());
         } finally {
             if (context != null) MetricsSupport.recordDeserializeEndTime(context);
         }

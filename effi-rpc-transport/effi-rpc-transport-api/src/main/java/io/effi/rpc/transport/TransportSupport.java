@@ -81,25 +81,25 @@ public class TransportSupport {
         return future;
     }
 
-    public static void receiveRequest(Envelope.Request request, Channel channel) {
+    public static void handleRequest(Envelope.Request request, Channel channel) {
         Callee<?> callee = channel.module()
                 .serverExporterManager()
                 .acquireCallee(request.url());
         // todo send to client
         if (callee == null) {
-            throw EffiRpcException.wrap(PredefinedErrorCode.NOT_FOUND_CALLEE, request.url().uri());
+            throw PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().uri());
         }
         callee.threadPoolOf(channel.module()).execute(() -> {
             ServerCodec serverCodec = channel.protocol().serverCodec();
-            RepackagedRequest<Callee<?>> marshalingRequest = serverCodec.decode(channel, request, callee);
-            var replyContext = callee.invokeWithContext(marshalingRequest.context());
-            if (marshalingRequest.request().needReply()) {
+            RepackagedRequest<Callee<?>> repackagedRequest = serverCodec.decode(channel, request, callee);
+            var replyContext = callee.invokeWithContext(repackagedRequest.context());
+            if (repackagedRequest.request().needReply()) {
                 channel.send(new DefaultRepackagedResponse<>(replyContext, channel));
             }
         });
     }
 
-    public static void receiveResponse(Envelope.Response response, Channel channel) {
+    public static void handleResponse(Envelope.Response response, Channel channel) {
         ReplyFuture future = ReplyFuture.getFuture(response.url());
         Protocol protocol = channel.protocol();
         if (future != null) {
@@ -108,18 +108,16 @@ public class TransportSupport {
             ThreadPool threadPool = caller.threadPool();
             try {
                 if (inIODeserialization(caller)) {
-                    RepackagedResponse<Caller<?>> codableResponse = clientCodec.decode(channel, response, future);
-                    threadPool.execute(() -> future.complete(codableResponse.context()));
+                    RepackagedResponse<Caller<?>> repackagedResponse = clientCodec.decode(channel, response, future);
+                    threadPool.execute(() -> future.complete(repackagedResponse.context()));
                 } else {
                     threadPool.execute(() -> {
-                        RepackagedResponse<Caller<?>> codableResponse = clientCodec.decode(channel, response, future);
-                        future.complete(codableResponse.context());
+                        RepackagedResponse<Caller<?>> repackagedResponse = clientCodec.decode(channel, response, future);
+                        future.complete(repackagedResponse.context());
                     });
                 }
             } catch (Exception e) {
-                EffiRpcException exception = EffiRpcException.wrap(
-                        PredefinedErrorCode.CHANNEL_READ,
-                        e, channel.url().address());
+                EffiRpcException exception = PredefinedErrorCode.CHANNEL_READ.fail(e, channel.url().address());
                 threadPool.execute(() -> future.complete(exception));
             }
         }

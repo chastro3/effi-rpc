@@ -12,8 +12,6 @@ public interface ClientConfig extends NamedConfig {
 
     /**
      * The protocol of client.
-     *
-     * @return the protocol of client.
      */
     String protocol();
 

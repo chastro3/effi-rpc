@@ -27,9 +27,6 @@ public abstract class AbstractNamedConfig implements NamedConfig {
         config.set(KeyConstant.PROTOCOL, protocol);
     }
 
-    /**
-     * Returns the protocol.
-     */
     public String protocol() {
         return protocol;
     }

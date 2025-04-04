@@ -4,7 +4,7 @@ import io.effi.rpc.common.event.AbstractEvent;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Represents an event for refreshing the heartbeat count.
+ * Represents an event triggered to refresh the idle count for a channel.
  */
 public class RefreshIdleCountEvent extends AbstractEvent<Channel> {
 

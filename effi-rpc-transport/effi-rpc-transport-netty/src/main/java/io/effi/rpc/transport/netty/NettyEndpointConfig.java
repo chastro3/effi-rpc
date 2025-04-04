@@ -15,8 +15,8 @@ import java.util.function.Supplier;
  * @param initializedHandlers
  * @param sslContext
  */
-public record InitializedConfig(URL url, EffiRpcModule module,
-                                Supplier<List<NamedChannelHandler>> initializedHandlers,
-                                SslContext sslContext) {
+public record NettyEndpointConfig(URL url, EffiRpcModule module,
+                                  SslContext sslContext,
+                                  Supplier<List<NamedChannelHandler>> initializedHandlers) {
 
 }

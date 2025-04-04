@@ -65,23 +65,14 @@ public class CallerModularConfig extends InvokerModularConfig<Caller<?>> {
         }
     }
 
-    /**
-     * Returns the chosenFilters.
-     */
     public List<ChosenFilter<?, ?>> chosenFilters() {
         return chosenFilters;
     }
 
-    /**
-     * Returns the registryConfigs.
-     */
     public List<RegistryConfig> registryConfigs() {
         return registryConfigs;
     }
 
-    /**
-     * Returns the clientConfig.
-     */
     public ClientConfig clientConfig() {
         return clientConfig;
     }

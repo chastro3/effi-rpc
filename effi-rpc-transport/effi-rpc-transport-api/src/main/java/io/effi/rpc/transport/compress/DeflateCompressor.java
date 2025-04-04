@@ -1,5 +1,6 @@
 package io.effi.rpc.transport.compress;
 
+import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.common.util.FileUtil;
 
 import java.io.ByteArrayInputStream;
@@ -8,9 +9,12 @@ import java.io.IOException;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
+import static io.effi.rpc.common.constant.Component.Compression.DEFLATE;
+
 /**
  * Deflate implementation of {@link Compressor}.
  */
+@Extension(DEFLATE)
 public class DeflateCompressor extends AbstractCompressor {
 
     @Override

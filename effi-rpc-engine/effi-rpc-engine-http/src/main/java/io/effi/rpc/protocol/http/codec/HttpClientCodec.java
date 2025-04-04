@@ -1,6 +1,5 @@
 package io.effi.rpc.protocol.http.codec;
 
-import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.url.URL;
 import io.effi.rpc.contract.Caller;
@@ -42,6 +41,6 @@ public class HttpClientCodec extends AbstractClientCodec<HttpRequest<Object>, Ht
         URL url = response.url();
         return response.isSuccess()
                 ? new Result(url, replyValue)
-                : new Result(url, EffiRpcException.wrap(PredefinedErrorCode.INVOKE_SERVICE, String.valueOf(replyValue)));
+                : new Result(url, PredefinedErrorCode.INVOKE_SERVICE.fail(null, String.valueOf(replyValue)));
     }
 }

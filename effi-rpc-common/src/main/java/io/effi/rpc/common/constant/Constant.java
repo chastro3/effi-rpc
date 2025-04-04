@@ -9,9 +9,9 @@ public interface Constant {
 
     String EXTENSION_NAME = "io.effi.rpc.common.spi.Extension";
 
-    String DEFAULT_SERVER_HYBRID_THREAD_POOL = "defaultServerHybrid";
+    String DEFAULT_SERVER_HYBRID_THREAD_POOL = "default-server-hybrid";
 
-    String DEFAULT_CLIENT_HYBRID_THREAD_POOL = "defaultServerHybrid";
+    String DEFAULT_CLIENT_HYBRID_THREAD_POOL = "default-server-hybrid";
 
     int DEFAULT_IO_THREADS = Math.min(Runtime.getRuntime().availableProcessors() + 1, 32);
 
@@ -33,15 +33,15 @@ public interface Constant {
 
     int DEFAULT_MAX_UN_CONNECTIONS = 1024;
 
-    int DEFAULT_MAX_CONCURRENT_STREAMS = 100;
+    long DEFAULT_MAX_CONCURRENT_STREAMS = 1000L;
 
     int DEFAULT_INITIAL_WINDOW_SIZE = 65535;
 
-    int DEFAULT_MAX_HEADER_TABLE_SIZE = 16 * 1024;
+    long DEFAULT_MAX_HEADER_TABLE_SIZE = 4096L;
 
     int DEFAULT_MAX_HEADER_LIST_SIZE = 8192;
 
-    int DEFAULT_MAX_FRAME_SIZE = 16 * 1024;
+    int DEFAULT_MAX_FRAME_SIZE = 16384;
 
     int DEFAULT_SESSION_TIMEOUT = 60 * 1000;
 

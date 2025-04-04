@@ -1,10 +1,10 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.config.ClientConfig;
@@ -29,36 +29,37 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     protected ClientConfig clientConfig;
 
-    /**
-     * Constructs a builder with a specified return type.
-     *
-     * @param returnType
-     */
     protected CallerBuilder(TypeToken<?> returnType, Config config) {
         super(config);
         this.returnType = returnType;
     }
 
     /**
-     * Sets the communication module.
-     *
-     * @param module module instance to use
-     * @return This builder
+     * Sets the module.
      */
     public C module(EffiRpcModule module) {
         this.module = module;
         return returnThis();
     }
 
+    /**
+     * Sets direct address.
+     */
     public C directAddress(String address) {
         config.set(DefaultConfigKeys.ADDRESS.key(), address);
         return returnThis();
     }
 
+    /**
+     * Sets direct address.
+     */
     public C directAddress(InetSocketAddress address) {
         return directAddress(NetUtil.toAddress(address));
     }
 
+    /**
+     * Sets remote application.
+     */
     public C remoteApplication(String applicationName) {
         config.set(DefaultConfigKeys.APPLICATION.key(), applicationName);
         return returnThis();
@@ -67,9 +68,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Sets service locator.
-     *
-     * @param locator Locator instance to use
-     * @return This builder
      */
     public C locator(Locator locator) {
         this.locator = locator;
@@ -78,9 +76,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Sets client configuration.
-     *
-     * @param clientConfig Client configuration to apply
-     * @return This builder
      */
     public C clientConfig(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
@@ -89,9 +84,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Sets retry attempts.
-     *
-     * @param retries Number of retries
-     * @return This builder
      */
     public C retries(int retries) {
         config.set(DefaultConfigKeys.RETRIES.key(), String.valueOf(retries));
@@ -100,9 +92,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Sets load balancing strategy.
-     *
-     * @param loadBalance Load balancing strategy
-     * @return This builder
      */
     public C loadBalance(String loadBalance) {
         config.set(DefaultConfigKeys.LOAD_BALANCE.key(), loadBalance);
@@ -111,9 +100,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Sets fault tolerance strategy.
-     *
-     * @param faultTolerance Fault tolerance method
-     * @return This builder
      */
     public C faultTolerance(String faultTolerance) {
         config.set(DefaultConfigKeys.FAULT_TOLERANCE.key(), faultTolerance);
@@ -122,9 +108,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Sets call timeout.
-     *
-     * @param timeout Timeout in milliseconds
-     * @return This builder
      */
     public C timeout(int timeout) {
         config.set(DefaultConfigKeys.TIMEOUT.key(), String.valueOf(timeout));
@@ -133,8 +116,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Returns the locator.
-     *
-     * @return the locator
      */
     public Locator locator() {
         return locator;
@@ -142,8 +123,6 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     /**
      * Returns the module.
-     *
-     * @return the module
      */
     public EffiRpcModule module() {
         return module;
