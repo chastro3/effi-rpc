@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.Messages;
 import io.effi.rpc.contract.Caller;
@@ -79,11 +79,14 @@ public class CallerModularConfig extends InvokerModularConfig<Caller<?>> {
 
     private void addConfiguredClientConfig() {
         String clientConfigName = invoker.get(DefaultConfigKeys.CLIENT_CONFIG);
-        clientConfig = module.clientConfigManager().get(clientConfigName);
+        ClientConfig clientConfig = module.clientConfigManager().get(clientConfigName);
+        if (clientConfig != null) {
+            this.clientConfig = clientConfig;
+        }
     }
 
     private void addConfiguredRegistryConfigs() {
-        List<String> registryConfigNames = invoker.getMerged(DefaultConfigKeys.REGISTRIES);
+        List<String> registryConfigNames = invoker.getCascaded(DefaultConfigKeys.REGISTRIES);
         RegistryConfigManager registryConfigManager = module.registryConfigManager();
         for (RegistryConfig registryConfig : registryConfigManager.sharedValues()) {
             CollectionUtil.addUnique(registryConfigs, registryConfig);

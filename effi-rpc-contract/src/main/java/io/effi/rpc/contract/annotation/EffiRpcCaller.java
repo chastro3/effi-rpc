@@ -1,5 +1,7 @@
 package io.effi.rpc.contract.annotation;
 
+import io.effi.rpc.common.config.DefaultConfigKeys;
+
 import java.lang.annotation.*;
 
 /**
@@ -13,126 +15,126 @@ public @interface EffiRpcCaller {
     /**
      * Request path.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#PATH
+     * @see DefaultConfigKeys#PATH
      */
     String path() default "";
 
     /**
      * Annotation style.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#STYLE
+     * @see DefaultConfigKeys#STYLE
      */
     String style() default "";
 
     /**
      * Protocol type.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#PROTOCOL
+     * @see DefaultConfigKeys#PROTOCOL
      */
     String protocol() default "";
 
     /**
      * Application name.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#APPLICATION
+     * @see DefaultConfigKeys#APPLICATION
      */
     String application() default "";
 
     /**
      * Client configuration.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#CLIENT_CONFIG
+     * @see DefaultConfigKeys#CLIENT_CONFIG
      */
     String clientConfig() default "";
 
     /**
      * Server address.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#ADDRESS
+     * @see DefaultConfigKeys#ADDRESS
      */
     String address() default "";
 
     /**
      * List of filters.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#FILTERS
+     * @see DefaultConfigKeys#FILTERS
      */
     String[] filters() default {};
 
     /**
      * List of registries.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#REGISTRIES
+     * @see DefaultConfigKeys#REGISTRIES
      */
     String[] registries() default {};
 
     /**
      * Serialization type.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#SERIALIZATION
+     * @see DefaultConfigKeys#SERIALIZATION
      */
     String serialization() default "";
 
     /**
      * Compression type.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#COMPRESSION
+     * @see DefaultConfigKeys#COMPRESSION
      */
     String compression() default "";
 
     /**
      * Module name.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#MODULE
+     * @see DefaultConfigKeys#MODULE
      */
     String module() default "";
 
     /**
      * Timeout in milliseconds.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#TIMEOUT
+     * @see DefaultConfigKeys#TIMEOUT
      */
     int timeout() default -1;
 
     /**
      * Retry count.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#RETRIES
+     * @see DefaultConfigKeys#RETRIES
      */
     int retries() default -1;
 
     /**
      * Load balancing strategy.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#LOAD_BALANCE
+     * @see DefaultConfigKeys#LOAD_BALANCE
      */
     String loadBalance() default "";
 
     /**
      * Fault tolerance policy.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#FAULT_TOLERANCE
+     * @see DefaultConfigKeys#FAULT_TOLERANCE
      */
     String faultTolerance() default "";
 
     /**
      * Deserialization threshold.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#SERIALIZATION_THRESHOLD
+     * @see DefaultConfigKeys#SERIALIZATION_THRESHOLD
      */
     long serializationThreshold() default -1;
 
     /**
      * Deserialization threshold.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#DESERIALIZATION_THRESHOLD
+     * @see DefaultConfigKeys#DESERIALIZATION_THRESHOLD
      */
     long deserializationThreshold() default -1;
 
     /**
      * Thread pool name.
      *
-     * @see io.effi.rpc.common.constant.DefaultConfigKeys#THREAD_POOL
+     * @see DefaultConfigKeys#THREAD_POOL
      */
     String threadPool() default "";
 }

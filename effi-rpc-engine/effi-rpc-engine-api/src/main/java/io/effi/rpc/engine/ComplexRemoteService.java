@@ -1,8 +1,9 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.util.*;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.reflect.MethodAccess;
+import io.effi.rpc.common.util.*;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.RemoteService;
 
@@ -28,10 +29,10 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     }
 
     public ComplexRemoteService(String name, T target) {
-        this(name, target, new Config());
+        this(name, target, null);
     }
 
-    public ComplexRemoteService(String name, T target, Config config) {
+    public ComplexRemoteService(String name, T target, LinkedConfig config) {
         initialize(name, target, config);
     }
 
@@ -40,13 +41,13 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     }
 
     @SuppressWarnings("unchecked")
-    protected void initialize(String name, T target, Config config) {
+    protected void initialize(String name, T target, LinkedConfig config) {
         this.target = AssertUtil.notNull(target, "target");
         this.targetType = (Class<T>) ReflectionUtil.getTargetClass(target.getClass());
         if (StringUtil.isBlank(name)) name = ObjectUtil.lowercaseName(this.targetType);
         this.name = name;
         this.methodAccess = MethodAccess.get(this.targetType);
-        this.config = config;
+        this.config = config == null ? new NodeConfig(this) : config;
     }
 
     @Override

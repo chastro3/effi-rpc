@@ -1,7 +1,7 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLSource;
+import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.config.URLSource;
 
 /**
  * Represents a message envelope containing a request URL and body.
@@ -10,8 +10,6 @@ public interface Envelope extends URLSource {
 
     /**
      * Checks if this is an instance (not serialized).
-     *
-     * @return true if an instance, false if serialized
      */
     boolean isInstance();
 

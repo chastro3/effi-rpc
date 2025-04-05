@@ -6,7 +6,7 @@ import io.effi.rpc.contract.module.EffiRpcModule;
 /**
  * Manage the registration and retrieval of {@link ClientConfig} instances.
  */
-public class ClientConfigManager extends AbstractManager<ClientConfig> {
+public class ClientConfigManager extends AbstractComponentManager<ClientConfig> {
 
     public ClientConfigManager(EffiRpcModule module) {
         super(module);

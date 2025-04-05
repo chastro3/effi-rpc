@@ -1,21 +1,14 @@
 package io.effi.rpc.contract.module;
 
+import io.effi.rpc.common.config.*;
 import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.EffiRpcFramework;
 import io.effi.rpc.common.event.DisruptorEventDispatcher;
 import io.effi.rpc.common.event.Event;
 import io.effi.rpc.common.event.EventDispatcher;
 import io.effi.rpc.common.executor.RpcThreadPool;
-import io.effi.rpc.common.util.ScheduledThreadPool;
-import io.effi.rpc.common.util.Scheduler;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
-import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.common.util.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,9 +34,9 @@ public class EffRpcApplication extends Node {
 
     private final EventDispatcher eventDispatcher;
 
-    private final Config providerConfig = new Config();
+    private final Config providerConfig = new FlatConfig(this);
 
-    private final Config consumerConfig = new Config();
+    private final Config consumerConfig = new FlatConfig(this);
 
     private final EffiRpcModule defaultModule;
 
@@ -89,7 +82,7 @@ public class EffRpcApplication extends Node {
     }
 
     /**
-     * Acquires an {@link EffRpcApplication} by URL.
+     * Gets an {@link EffRpcApplication} by URL.
      *
      * @param url the URL for locating the application
      * @return the corresponding {@link EffRpcApplication}
@@ -99,7 +92,7 @@ public class EffRpcApplication extends Node {
     }
 
     /**
-     * Acquires an {@link EffRpcApplication} by name.
+     * Gets an {@link EffRpcApplication} by name.
      *
      * @param name the name of the application
      * @return the corresponding {@link EffRpcApplication}

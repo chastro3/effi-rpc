@@ -1,8 +1,8 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.config.RegistryConfig;
 
 /**
@@ -26,7 +26,7 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
         URL urlObj = URL.valueOf(url);
         protocol = urlObj.protocol();
         address = urlObj.address();
-        config.set(urlObj.params().properties());
+        config.set(urlObj.params().items());
         return returnThis();
     }
 
@@ -59,7 +59,7 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
         URL url = URL.builder()
                 .protocol(protocol)
                 .address(address)
-                .params(config().properties())
+                .params(config().items())
                 .build();
         if (name == null) {
             name = url.uri();

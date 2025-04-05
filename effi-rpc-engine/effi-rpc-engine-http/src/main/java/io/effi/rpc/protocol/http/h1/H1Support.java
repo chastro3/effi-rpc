@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.transport.netty.NettySupport;
@@ -14,10 +14,6 @@ public class H1Support {
 
     /**
      * Converts from netty's full http request.
-     *
-     * @param endpointUrl
-     * @param request
-     * @return
      */
     public static io.effi.rpc.protocol.http.support.HttpRequest<ByteBuf> fromFullHttpRequest(URL endpointUrl, FullHttpRequest request) {
         return io.effi.rpc.protocol.http.support.HttpRequest.builder()
@@ -31,10 +27,6 @@ public class H1Support {
 
     /**
      * Converts from netty's full http response.
-     *
-     * @param response
-     * @param requestUrl
-     * @return
      */
     public static HttpResponse<ByteBuf> fromFullHttpResponse(FullHttpResponse response, URL requestUrl) {
         return HttpResponse.builder()
@@ -49,9 +41,6 @@ public class H1Support {
 
     /**
      * Converts to netty's full http request.
-     *
-     * @param request
-     * @return
      */
     public static FullHttpRequest toFullHttpRequest(io.effi.rpc.protocol.http.support.HttpRequest<byte[]> request) {
         URL requestUrl = request.url();
@@ -67,9 +56,6 @@ public class H1Support {
 
     /**
      * Converts to netty's full http response.
-     *
-     * @param response
-     * @return
      */
     public static FullHttpResponse toFullHttpResponse(HttpResponse<byte[]> response) {
         return new DefaultFullHttpResponse(
@@ -83,9 +69,6 @@ public class H1Support {
 
     /**
      * Converts from netty's http headers.
-     *
-     * @param headers
-     * @return
      */
     public static io.effi.rpc.protocol.http.support.HttpHeaders fromHttpHeaders(HttpHeaders headers) {
         var httpHeaders = new io.effi.rpc.protocol.http.support.DefaultHttpHeaders();
@@ -95,9 +78,6 @@ public class H1Support {
 
     /**
      * Converts to netty's http headers.
-     *
-     * @param headers
-     * @return
      */
     public static HttpHeaders toHttpHeaders(io.effi.rpc.protocol.http.support.HttpHeaders headers) {
         var httpHeaders = new io.netty.handler.codec.http.DefaultHttpHeaders();

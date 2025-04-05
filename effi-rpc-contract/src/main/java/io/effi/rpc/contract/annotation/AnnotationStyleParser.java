@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.annotation;
 
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.spi.Extensible;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
 
@@ -19,7 +19,7 @@ public interface AnnotationStyleParser {
      * @param type the class to be parsed
      * @param config the configuration
      */
-    void parseType(Class<?> type, Config config);
+    void parseType(Class<?> type, LinkedConfig config);
 
     /**
      * Parses annotations on the method.
@@ -28,7 +28,7 @@ public interface AnnotationStyleParser {
      * @param config the configuration
      * @return updated configuration
      */
-    Config parseMethod(Method method, Config config);
+    LinkedConfig parseMethod(Method method, LinkedConfig config);
 
     /**
      * Parses the caller's parameter mapping.

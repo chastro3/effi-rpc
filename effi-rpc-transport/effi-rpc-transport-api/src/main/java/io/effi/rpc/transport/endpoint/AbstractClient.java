@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 /**
@@ -39,7 +39,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
 
     @Override
     public String toString() {
-        return String.format("url=%s, active=%b", url(), isActive());
+        return String.format("config=%s, active=%b", url(), isActive());
     }
 
     protected abstract void doInit();

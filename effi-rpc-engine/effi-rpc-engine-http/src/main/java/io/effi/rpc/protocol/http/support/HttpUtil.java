@@ -1,12 +1,8 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.*;
 import io.effi.rpc.common.constant.EffiRpcFramework;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.QueryPath;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.Callee;
@@ -73,7 +69,7 @@ public final class HttpUtil {
         return decodeBody(contentType, bodyBytes, type);
     }
 
-    public static String acquirePath(URL requestUrl, String pathVarKey, Callee<?> callee) {
+    public static String findPathForVar(URL requestUrl, String pathVarKey, Callee<?> callee) {
         if (requestUrl == null || StringUtil.isBlank(pathVarKey)) {
             return null;
         }
@@ -92,8 +88,8 @@ public final class HttpUtil {
         return null;
     }
 
-    public static String acquireParam(URL requestUrl, String paramVarKey) {
-        Map<String, String> requestParams = requestUrl.params().properties();
+    public static String findParamForVar(URL requestUrl, String paramVarKey) {
+        Map<String, String> requestParams = requestUrl.params().items();
         for (String paramKey : requestParams.keySet()) {
             if (Objects.equals(paramKey, paramVarKey)) {
                 return requestParams.get(paramKey);
@@ -199,7 +195,7 @@ public final class HttpUtil {
     }
 
     /**
-     * Converts the given url protocol to a standard scheme.
+     * Converts the given config protocol to a standard scheme.
      *
      * @param url the URL to convert
      * @return the standard scheme as a String

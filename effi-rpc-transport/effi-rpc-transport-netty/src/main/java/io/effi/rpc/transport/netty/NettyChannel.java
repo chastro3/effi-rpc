@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -20,7 +20,7 @@ public final class NettyChannel extends AbstractChannel {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyChannel.class);
 
-    private static final ConcurrentMap<Channel, NettyChannel> CHANNEL_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Channel, NettyChannel> CHANNELS = new ConcurrentHashMap<>();
 
     private final Channel channel;
 
@@ -29,8 +29,8 @@ public final class NettyChannel extends AbstractChannel {
         this.channel = channel;
     }
 
-    public static NettyChannel acquire(Channel channel, URL endpointUrl, EffiRpcModule module) {
-        return CHANNEL_MAP.computeIfAbsent(channel, k -> new NettyChannel(channel, endpointUrl, module));
+    public static NettyChannel getOrCreate(Channel channel, URL endpointUrl, EffiRpcModule module) {
+        return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpointUrl, module));
     }
 
     /**
@@ -39,8 +39,8 @@ public final class NettyChannel extends AbstractChannel {
      * @param channel
      * @return
      */
-    public static NettyChannel acquire(Channel channel) {
-        return CHANNEL_MAP.get(channel);
+    public static NettyChannel get(Channel channel) {
+        return CHANNELS.get(channel);
     }
 
     /**
@@ -52,7 +52,7 @@ public final class NettyChannel extends AbstractChannel {
      */
     public static void save(Channel channel, URL endpointUrl, EffiRpcModule module) {
         if (channel != null && endpointUrl != null) {
-            acquire(channel, endpointUrl, module);
+            getOrCreate(channel, endpointUrl, module);
         }
     }
 
@@ -61,7 +61,7 @@ public final class NettyChannel extends AbstractChannel {
             if (channel.isActive()) {
                 channel.close();
             }
-            CHANNEL_MAP.remove(channel);
+            CHANNELS.remove(channel);
         }
     }
     @Override
@@ -79,7 +79,7 @@ public final class NettyChannel extends AbstractChannel {
         ChannelFuture channelFuture = channel.close();
         channelFuture.addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
-                if (CHANNEL_MAP.containsKey(channel) && CHANNEL_MAP.remove(channel, this)) {
+                if (CHANNELS.containsKey(channel) && CHANNELS.remove(channel, this)) {
                     clear();
                     logger.debug("{} closed", this);
                 }

@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty.tcp;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.netty.HandlerNames;
 import io.effi.rpc.transport.netty.NettyEndpointConfig;

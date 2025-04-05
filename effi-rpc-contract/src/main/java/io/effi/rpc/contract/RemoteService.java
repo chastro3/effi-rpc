@@ -12,22 +12,16 @@ public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
 
     /**
      * Returns the target instance of the remote service.
-     *
-     * @return the target instance
      */
     T target();
 
     /**
      * Returns the class type of the remote service.
-     *
-     * @return the class object representing the remote service type
      */
     Class<T> targetType();
 
     /**
      * Returns the name of the remote service.
-     *
-     * @return the service name
      */
     String name();
 

@@ -1,8 +1,8 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.QueryPath;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.QueryPath;
 import io.effi.rpc.common.util.AbstractAttributes;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.TypeToken;
@@ -21,7 +21,7 @@ import io.effi.rpc.transport.TransportSupport;
  */
 public abstract class AbstractInvoker<R> extends AbstractAttributes implements Invoker<R> {
 
-    protected Config config;
+    protected LinkedConfig config;
 
     protected QueryPath queryPath;
 
@@ -29,7 +29,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
 
     protected Protocol protocol;
 
-    protected AbstractInvoker(Config config, InvokerBuilder<?, ?> builder) {
+    protected AbstractInvoker(LinkedConfig config, InvokerBuilder<?, ?> builder) {
         this.config = AssertUtil.notNull(config, "config");
         String path = config.get(DefaultConfigKeys.PATH);
         this.queryPath = path == null ? QueryPath.EMPTY_PATH : QueryPath.valueOf(path.replace(",", "/"));
@@ -38,7 +38,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
     }
 
     @Override
-    public Config config() {
+    public LinkedConfig config() {
         return config;
     }
 
@@ -61,15 +61,15 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
         return protocol;
     }
 
+    @Override
+    public String toString() {
+        return queryPath.toString();
+    }
+
     protected ThreadPool getThreadPool(EffiRpcModule module, String defaultThreadPoolName) {
         String threadPoolName = this.get(DefaultConfigKeys.THREAD_POOL);
         ThreadPoolManager threadPoolManager = module.threadPoolManager();
         ThreadPool threadPool = threadPoolManager.get(threadPoolName);
         return threadPool != null ? threadPool : threadPoolManager.get(defaultThreadPoolName);
-    }
-
-    @Override
-    public String toString() {
-        return queryPath.toString();
     }
 }

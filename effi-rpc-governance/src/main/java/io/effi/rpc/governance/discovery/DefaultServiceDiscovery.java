@@ -4,9 +4,10 @@ import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.spi.Extension;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.Caller;
+import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.internal.logging.Logger;
@@ -27,7 +28,7 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
     private static final Logger logger = LoggerFactory.getLogger(DefaultServiceDiscovery.class);
 
     @Override
-    public List<URL> discover(InvocationContext<?, Caller<?>> context, URL... registryConfigs) {
+    public List<URL> discover(InvocationContext<Envelope.Request, Caller<?>> context, URL... registryConfigs) {
         if (CollectionUtil.isEmpty(registryConfigs)) {
             logger.warn("Registry config(s) is empty");
         }

@@ -1,7 +1,8 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.ReflectionUtil;
@@ -62,16 +63,16 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return targetClass.getAnnotation(EffiRpcService.class);
     }
 
-    private Config parseConfig(EffiRpcService effiRpcService, EffRpcApplication application) {
-        Config config = AnnotationSupport.toConfig(effiRpcService);
-        config.parent(application.providerConfig());
+    private LinkedConfig parseConfig(EffiRpcService effiRpcService, EffRpcApplication application) {
+        NodeConfig config = new NodeConfig(this, application.providerConfig());
+        AnnotationSupport.fillConfig(effiRpcService, config);
         return config;
     }
 
     private void parseCallee(EffRpcApplication application) {
         List<Method> methods = AnnotationSupport.filterMethods(targetType.getMethods());
         for (Method method : methods) {
-            Config calleeConfig = parseCalleeConfig(method);
+            NodeConfig calleeConfig = parseCalleeConfig(method);
             MethodMapper<T> methodMapper = getMethodMapper(calleeConfig, method);
             EffiRpcModule[] modules = getModules(calleeConfig, application);
             List<Protocol> supportedProtocols = getSupportedProtocols(calleeConfig);
@@ -81,13 +82,14 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         }
     }
 
-    private Config parseCalleeConfig(Method method) {
+    private NodeConfig parseCalleeConfig(Method method) {
+        NodeConfig config = new NodeConfig(null, config());
         EffiRpcCallee effiRpcCallee = method.getAnnotation(EffiRpcCallee.class);
-        Config calleeConfig = AnnotationSupport.toConfig(effiRpcCallee);
-        return calleeConfig.parent(config);
+        AnnotationSupport.fillConfig(effiRpcCallee, config);
+        return config;
     }
 
-    private MethodMapper<T> getMethodMapper(Config config, Method method) {
+    private MethodMapper<T> getMethodMapper(NodeConfig config, Method method) {
         AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, styleWrapper);
         ParameterMapper<ParameterParser<?>>[] parameterMappers;
         if (methodAnnotationStyleParser != null && methodAnnotationStyleParser.supported(method)) {
@@ -99,9 +101,9 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return new MethodMapper<>(this, method, parameterMappers);
     }
 
-    private EffiRpcModule[] getModules(Config config, EffRpcApplication application) {
+    private EffiRpcModule[] getModules(NodeConfig config, EffRpcApplication application) {
         ArrayList<EffiRpcModule> result = new ArrayList<>();
-        List<String> modules = config.getMerged(DefaultConfigKeys.MODULES.key());
+        List<String> modules = config.getCascaded(DefaultConfigKeys.MODULES.key());
         if (CollectionUtil.isNotEmpty(modules)) {
             for (EffiRpcModule rpcModule : application.modules()) {
                 if (modules.contains(rpcModule.name())) {
@@ -113,7 +115,7 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return result.toArray(new EffiRpcModule[0]);
     }
 
-    private List<Protocol> getSupportedProtocols(Config config) {
+    private List<Protocol> getSupportedProtocols(NodeConfig config) {
         String protocolNames = config.get(DefaultConfigKeys.PROTOCOL);
         if (StringUtil.isBlank(protocolNames)) {
             return Collections.emptyList();

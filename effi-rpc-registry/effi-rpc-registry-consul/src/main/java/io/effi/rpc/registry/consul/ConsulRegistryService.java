@@ -1,10 +1,10 @@
 package io.effi.rpc.registry.consul;
 
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.GenericKey;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
@@ -72,8 +72,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
                     .setPort(url.port())
                     .setMeta(metaData);
             if (enableHealthCheck) {
-                int healthCheckInterval = url.getIntParam(DefaultConfigKeys.HEALTH_CHECK_INTERVAL.key(),
-                        Constant.DEFAULT_HEALTH_CHECK_INTERVAL);
+                int healthCheckInterval = url.getIntParam(DefaultConfigKeys.HEALTH_CHECK_INTERVAL);
                 CheckOptions checkOpts = new CheckOptions()
                         .setTcp(url.address())
                         .setId(serviceId)

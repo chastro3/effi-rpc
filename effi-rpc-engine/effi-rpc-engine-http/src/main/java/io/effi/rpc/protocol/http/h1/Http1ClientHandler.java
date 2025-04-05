@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
@@ -53,9 +53,9 @@ public final class Http1ClientHandler extends URLBinderChannelHandler {
             ctx.fireChannelRead(msg);
             Channel channel = ctx.channel();
             NettySupport.unbindURL(channel);
-            NettyChannel nettyChannel = NettyChannel.acquire(channel);
+            NettyChannel nettyChannel = NettyChannel.get(channel);
             if (nettyChannel != null) {
-                Http1Client http1Client = protocol.acquireClient(context.invoker().clientConfig());
+                Http1Client http1Client = protocol.getClient(context.invoker().clientConfig());
                 if (http1Client != null) {
                     http1Client.release(channel);
                 }

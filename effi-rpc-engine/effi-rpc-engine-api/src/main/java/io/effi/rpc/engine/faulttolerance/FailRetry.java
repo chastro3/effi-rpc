@@ -1,10 +1,9 @@
 package io.effi.rpc.engine.faulttolerance;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.CompletableReplyFuture;
 import io.effi.rpc.contract.faulttolerance.AbstractFaultTolerance;
@@ -30,7 +29,7 @@ public class FailRetry extends AbstractFaultTolerance {
         var context = future.context();
         Caller<?> caller = context.invoker();
         Config config = caller.config();
-        int retries = config.getInt(DefaultConfigKeys.RETRIES.key(), Constant.DEFAULT_RETRIES);
+        int retries = Integer.parseInt(config.get(DefaultConfigKeys.RETRIES));
         int errorCount = future.errorCount().get();
         // Retry the operation if the error count is less than or equal to the retries
         if (errorCount <= retries) {

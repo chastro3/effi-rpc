@@ -1,4 +1,4 @@
-package io.effi.rpc.common.url;
+package io.effi.rpc.common.config;
 
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;

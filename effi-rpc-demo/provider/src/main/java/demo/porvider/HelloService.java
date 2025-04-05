@@ -9,7 +9,7 @@ import jakarta.ws.rs.*;
 
 import java.util.List;
 
-@EffiRpcService(protocol = "http,h2",style = Component.AnnotationStyle.JAX_RS)
+@EffiRpcService(protocol = "http,h2",style = Component.AnnotationStyle.JAX_RS,path = "service")
 public class HelloService {
 
     public String hello(String name) {
@@ -23,7 +23,7 @@ public class HelloService {
     }
 
     @POST
-    @Path("http-helloList")
+    @Path("helloList")
     @EffiRpcCallee(path = "helloList", style = Component.AnnotationStyle.JAX_RS)
     public List<ParentObject> helloList(@QueryParam("name") String name,
                                         @HeaderParam("content-type") String contentType,

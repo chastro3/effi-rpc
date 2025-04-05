@@ -10,9 +10,6 @@ import java.io.InputStreamReader;
  */
 public final class EffiRpcFramework {
 
-    /**
-     * Cached framework version.
-     */
     private static final String FRAMEWORK_VERSION;
 
     private static volatile boolean HAS_REGISTERED_SHUTDOWN_HOOK = false;
@@ -37,8 +34,6 @@ public final class EffiRpcFramework {
 
     /**
      * Gets the current version of the Effi-RPC framework.
-     *
-     * @return the version string.
      */
     public static String version() {
         return FRAMEWORK_VERSION;

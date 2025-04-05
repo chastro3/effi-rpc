@@ -1,11 +1,11 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
+import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.config.URLType;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.metrics.CalleeMetrics;
@@ -73,10 +73,10 @@ public class TransportSupport {
                 .type(URLType.CLIENT)
                 .protocol(requestUrl.protocol())
                 .address(requestUrl.address())
-                .params(caller.clientConfig().config().properties())
+                .params(caller.clientConfig().config().items())
                 .build();
         Client client = protocol.openClient(clientUrl, context.module());
-        Channel channel = client.acquireChannel();
+        Channel channel = client.getChannel();
         channel.send(new DefaultRepackagedRequest<>(context, channel));
         return future;
     }
@@ -84,7 +84,7 @@ public class TransportSupport {
     public static void handleRequest(Envelope.Request request, Channel channel) {
         Callee<?> callee = channel.module()
                 .serverExporterManager()
-                .acquireCallee(request.url());
+                .getCallee(request.url());
         // todo send to client
         if (callee == null) {
             throw PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().uri());

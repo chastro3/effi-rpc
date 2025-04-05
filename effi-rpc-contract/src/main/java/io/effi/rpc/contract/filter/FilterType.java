@@ -6,6 +6,13 @@ import io.effi.rpc.contract.Invoker;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Represents a combination of {@link Envelope} and {@link Invoker} types
+ * to determine which {@link Filter} is supported.
+ *
+ * @param <T> the type of the {@link Envelope}
+ * @param <I> the type of the {@link Invoker}
+ */
 public class FilterType<T extends Envelope, I extends Invoker<?>> {
 
     private static final Map<String, FilterType<?, ?>> CACHE = new ConcurrentHashMap<>();

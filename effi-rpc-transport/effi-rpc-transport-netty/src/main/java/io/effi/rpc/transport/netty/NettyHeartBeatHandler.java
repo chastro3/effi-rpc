@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.heartbeat.IdleEvent;
 import io.effi.rpc.transport.heartbeat.RefreshIdleCountEvent;
@@ -45,13 +45,13 @@ public class NettyHeartBeatHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         super.channelRead(ctx, msg);
-        NettyChannel nettyChannel = NettyChannel.acquire(ctx.channel(), endpointUrl, module);
+        NettyChannel nettyChannel = NettyChannel.getOrCreate(ctx.channel(), endpointUrl, module);
         module.application().publishEvent(new RefreshIdleCountEvent(nettyChannel));
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        NettyChannel nettyChannel = NettyChannel.acquire(ctx.channel());
+        NettyChannel nettyChannel = NettyChannel.get(ctx.channel());
         if (evt instanceof IdleStateEvent event && event.state() == IdleState.ALL_IDLE) {
             Optional.ofNullable(nettyChannel.get(KeyConstant.IDLE_COUNT))
                     .ifPresent(AtomicInteger::incrementAndGet);

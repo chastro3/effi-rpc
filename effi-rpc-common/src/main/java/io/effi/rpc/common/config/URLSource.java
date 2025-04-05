@@ -1,4 +1,4 @@
-package io.effi.rpc.common.url;
+package io.effi.rpc.common.config;
 
 /**
  * Provides access to a {@link URL} instance.

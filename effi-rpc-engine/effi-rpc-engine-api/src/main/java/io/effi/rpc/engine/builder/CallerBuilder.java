@@ -1,12 +1,14 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Locator;
+import io.effi.rpc.contract.RemoteClient;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.engine.DirectLocator;
@@ -29,9 +31,9 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     protected ClientConfig clientConfig;
 
-    protected CallerBuilder(TypeToken<?> returnType, Config config) {
+    protected CallerBuilder(TypeToken<?> returnType, LinkedConfig config) {
         super(config);
-        this.returnType = returnType;
+        this.returnType = AssertUtil.notNull(returnType, "returnType");
     }
 
     /**
@@ -61,10 +63,17 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
      * Sets remote application.
      */
     public C remoteApplication(String applicationName) {
-        config.set(DefaultConfigKeys.APPLICATION.key(), applicationName);
+        config.set(DefaultConfigKeys.APPLICATION, applicationName);
         return returnThis();
     }
 
+    /**
+     * Sets container.
+     */
+    public C container(RemoteClient<?> client) {
+        this.container = client;
+        return returnThis();
+    }
 
     /**
      * Sets service locator.
@@ -86,7 +95,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
      * Sets retry attempts.
      */
     public C retries(int retries) {
-        config.set(DefaultConfigKeys.RETRIES.key(), String.valueOf(retries));
+        config.set(DefaultConfigKeys.RETRIES, String.valueOf(retries));
         return returnThis();
     }
 
@@ -94,7 +103,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
      * Sets load balancing strategy.
      */
     public C loadBalance(String loadBalance) {
-        config.set(DefaultConfigKeys.LOAD_BALANCE.key(), loadBalance);
+        config.set(DefaultConfigKeys.LOAD_BALANCE, loadBalance);
         return returnThis();
     }
 
@@ -102,7 +111,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
      * Sets fault tolerance strategy.
      */
     public C faultTolerance(String faultTolerance) {
-        config.set(DefaultConfigKeys.FAULT_TOLERANCE.key(), faultTolerance);
+        config.set(DefaultConfigKeys.FAULT_TOLERANCE, faultTolerance);
         return returnThis();
     }
 
@@ -110,7 +119,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
      * Sets call timeout.
      */
     public C timeout(int timeout) {
-        config.set(DefaultConfigKeys.TIMEOUT.key(), String.valueOf(timeout));
+        config.set(DefaultConfigKeys.TIMEOUT, String.valueOf(timeout));
         return returnThis();
     }
 

@@ -59,4 +59,12 @@ public final class ObjectUtil {
         return new String(chars);
     }
 
+    public static String objectToString(Object o) {
+        if (o == null) {
+            return "null";
+        } else {
+            return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
+        }
+    }
+
 }

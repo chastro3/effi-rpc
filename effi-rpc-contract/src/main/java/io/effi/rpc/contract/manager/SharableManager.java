@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @param <T> the type of values managed by this class
  */
-public class SharableManager<T> extends AbstractManager<T> {
+public class SharableManager<T> extends AbstractComponentManager<T> {
 
     protected List<T> sharedValues = new LazyList<>(ArrayList::new);
 

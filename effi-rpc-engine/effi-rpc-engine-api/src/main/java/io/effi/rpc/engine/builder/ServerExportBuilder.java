@@ -1,11 +1,12 @@
 package io.effi.rpc.engine.builder;
 
+import io.effi.rpc.common.config.Config;
+import io.effi.rpc.common.config.ConfigSource;
+import io.effi.rpc.common.config.FlatConfig;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.constant.SystemKey;
 import io.effi.rpc.common.util.ChainBuilder;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.ConfigSource;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.config.ServerConfig;
@@ -129,7 +130,7 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
 
     @Override
     public Config config() {
-        Config config = new Config();
+        Config config = new FlatConfig();
         config.set(KeyConstant.WEIGHT, String.valueOf(weight));
         return config;
     }

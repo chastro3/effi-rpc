@@ -1,9 +1,9 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.config.URLType;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.ObjectUtil;
@@ -142,7 +142,7 @@ public class DefaultServerExporter implements ServerExporter {
                 .type(URLType.SERVER)
                 .protocol(exportedUrl.protocol())
                 .address(exportedAddress)
-                .params(serverConfig.config().properties())
+                .params(serverConfig.config().items())
                 .build();
         return protocol.openServer(serverUrl, module);
     }
@@ -171,6 +171,11 @@ public class DefaultServerExporter implements ServerExporter {
         return exportedUrl;
     }
 
+    @Override
+    public String toString() {
+        return exportedUrl.toString();
+    }
+
     /**
      * Builder class for constructing {@link DefaultServerExporter} instances.
      */
@@ -185,7 +190,7 @@ public class DefaultServerExporter implements ServerExporter {
                     .type(URLType.SERVER)
                     .protocol(serverConfig.protocol())
                     .address(exportedAddress)
-                    .params(config().properties())
+                    .params(config().items())
                     .build();
             exportedUrl.addParam(DefaultConfigKeys.APPLICATION.key(), module.application().name());
             exportedUrl.addParam(DefaultConfigKeys.MODULE.key(), module.name());

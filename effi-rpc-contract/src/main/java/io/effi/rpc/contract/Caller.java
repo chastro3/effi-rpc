@@ -1,6 +1,6 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.contract.config.ClientConfig;
@@ -22,10 +22,13 @@ import java.util.concurrent.TimeoutException;
 public interface Caller<R> extends Invoker<CompletableFuture<R>>, ModuleSource {
 
     /**
-     * Returns the client configuration used for the RPC call.
+     * Returns the client configuration.
      */
     ClientConfig clientConfig();
 
+    /**
+     * Returns the registry configurations.
+     */
     List<RegistryConfig> registryConfigs();
 
     /**
@@ -50,9 +53,9 @@ public interface Caller<R> extends Invoker<CompletableFuture<R>>, ModuleSource {
     /**
      * Initiates a call using the provided future (without recreating the context).
      *
-     * @param future a future object for the call result
+     * @param future the future
      * @param <T>    a subtype of {@link ReplyFuture}
-     * @return the provided future object containing the result
+     * @return the provided future
      * @throws EffiRpcException if an error occurs during the call
      */
     <T extends ReplyFuture> T callWithFuture(T future) throws EffiRpcException;
@@ -69,7 +72,7 @@ public interface Caller<R> extends Invoker<CompletableFuture<R>>, ModuleSource {
             return call(args).join();
         } catch (CompletionException e) {
             if (e.getCause() instanceof TimeoutException) {
-                String timeout = get(DefaultConfigKeys.TIMEOUT);
+                String timeout = config().get(DefaultConfigKeys.TIMEOUT);
                 throw PredefinedErrorCode.TIMEOUT.fail(e, timeout);
             }
             throw PredefinedErrorCode.CALL_CALLER.fail(e.getCause(), toString());

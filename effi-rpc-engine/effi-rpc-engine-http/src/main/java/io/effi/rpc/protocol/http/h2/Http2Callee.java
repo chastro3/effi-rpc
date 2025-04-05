@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpCallee;
@@ -12,7 +12,7 @@ import io.effi.rpc.protocol.http.HttpCallee;
  */
 public class Http2Callee<T> extends HttpCallee<T> {
 
-    Http2Callee(Config config, Http2CalleeBuilder<T> builder) {
+    Http2Callee(LinkedConfig config, Http2CalleeBuilder<T> builder) {
         super(config, builder);
     }
 
@@ -25,7 +25,7 @@ public class Http2Callee<T> extends HttpCallee<T> {
      * @param <T>
      * @return a new {@link Http2CalleeBuilder} instance
      */
-    public static <T> Http2CalleeBuilder<T> builder(MethodMapper<T> methodMapper, Config config) {
+    public static <T> Http2CalleeBuilder<T> builder(MethodMapper<T> methodMapper, LinkedConfig config) {
         return new Http2CalleeBuilder<>(methodMapper, config);
     }
 

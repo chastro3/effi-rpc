@@ -1,13 +1,10 @@
 package io.effi.rpc.engine;
 
+import io.effi.rpc.common.config.*;
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.DateUtil;
 import io.effi.rpc.common.util.Ordered;
@@ -57,17 +54,16 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
     protected String desc;
 
     @SuppressWarnings("unchecked")
-    protected AbstractCallee(Config config, CalleeBuilder<?, ?> builder) {
+    protected AbstractCallee(LinkedConfig config, CalleeBuilder<?, ?> builder) {
         super(config, builder);
         this.methodMapper = (MethodMapper<T>) builder.methodMapper();
-        this.desc = config.get(DefaultConfigKeys.DESC);
+        this.desc = config.get(DefaultConfigKeys.CALLEE_DESC);
         this.returnType = new TypeToken<>(method().getGenericReturnType()) {};
         this.methodIndex = remoteService().getCalleeIndex(this);
         export(builder.modules().toArray(EffiRpcModule[]::new));
         addFilter(builder.filters().toArray(Filter[]::new));
         set(CalleeMetrics.GENERIC_KEY, new CalleeMetrics());
         remoteService().addCallee(this);
-        config.parent(remoteService().config());
     }
 
     @Override
@@ -102,10 +98,10 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
     @Override
     public void export(EffiRpcModule... modules) {
         if (CollectionUtil.isNotEmpty(modules)) {
-            List<String> excludedPorts = getMerged(DefaultConfigKeys.EXCLUDED_PORT);
+            List<String> excludedPorts = getCascaded(DefaultConfigKeys.EXCLUDED_PORT);
             for (EffiRpcModule module : modules) {
                 modularConfigMap.put(module, new CalleeModularConfig(module, this));
-                for (ServerExporter serverExporter : module.serverExporterManager().values()) {
+                for (ServerExporter serverExporter : module.serverExporterManager().components()) {
                     URL url = serverExporter.url();
                     if (protocol().equals(url.protocol()) && !excludedPorts.contains(String.valueOf(url.port()))) {
                         serverExporter.callee(this);

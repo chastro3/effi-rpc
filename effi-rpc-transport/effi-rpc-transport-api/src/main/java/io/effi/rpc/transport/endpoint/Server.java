@@ -4,7 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 
 /**
- * Server for handling incoming connections and communication.
+ * Server for handling incoming connections and managing channels.
  */
 public interface Server extends Endpoint {
 
@@ -15,8 +15,6 @@ public interface Server extends Endpoint {
 
     /**
      * Returns all active channels.
-     *
-     * @return a collection of active {@link Channel} instances
      */
     Collection<Channel> channels();
 
@@ -26,7 +24,7 @@ public interface Server extends Endpoint {
      * @param remoteAddress the remote client address
      * @return the associated {@link Channel}, or {@code null} if not found
      */
-    Channel acquireChannel(InetSocketAddress remoteAddress);
+    Channel findChannel(InetSocketAddress remoteAddress);
 }
 
 

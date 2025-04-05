@@ -1,9 +1,9 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
+import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.config.URLType;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
@@ -42,29 +42,19 @@ public class H2Support {
     private static final String RESPONSE_STREAM_PREFIX = "response-stream-";
 
     /**
-     * Creates http2 stream channel.
-     *
-     * @param bootstrap
-     * @param endpointUrl
-     * @param module
-     * @param connectTimeout
-     * @return
+     * Gets or creates http2 stream channel.
      */
-    public static NettyChannel acquireStreamChannel(Http2StreamChannelBootstrap bootstrap, URL endpointUrl, EffiRpcModule module, int connectTimeout) {
+    public static NettyChannel getOrCreateStreamChannel(Http2StreamChannelBootstrap bootstrap, URL endpointUrl, EffiRpcModule module, int connectTimeout) {
         try {
             Http2StreamChannel streamChannel = bootstrap.open().get(connectTimeout, TimeUnit.MILLISECONDS);
-            return NettyChannel.acquire(streamChannel, endpointUrl, module);
+            return NettyChannel.getOrCreate(streamChannel, endpointUrl, module);
         } catch (Exception e) {
-            throw PredefinedErrorCode.ACQUIRE_CHANNEL.fail(e, endpointUrl.address(), endpointUrl.protocol());
+            throw PredefinedErrorCode.GET_CHANNEL.fail(e, endpointUrl.address(), endpointUrl.protocol());
         }
     }
 
     /**
      * Builds http2 client channel initializer.
-     *
-     * @param config
-     * @param streamHandler
-     * @return
      */
     public static ChannelInitializer<SocketChannel> buildClietnChannelInitializer(NettyEndpointConfig config, ChannelHandler streamHandler) {
         return new ChannelInitializer<>() {
@@ -77,10 +67,6 @@ public class H2Support {
 
     /**
      * Builds http2 channel pool handler.
-     *
-     * @param config
-     * @param streamHandler
-     * @return
      */
     public static ChannelPoolHandler buildChannelPoolHandler(NettyEndpointConfig config, ChannelHandler streamHandler) {
         return new AbstractChannelPoolHandler() {
@@ -93,10 +79,6 @@ public class H2Support {
 
     /**
      * Initializes http2 client channel.
-     *
-     * @param channel
-     * @param config
-     * @param streamHandler
      */
     public static void initClientChannel(Channel channel, NettyEndpointConfig config, ChannelHandler streamHandler) {
         NettySupport.initClientChannel(channel, config);
@@ -106,35 +88,24 @@ public class H2Support {
     }
 
     /**
-     * Acquires http2 request stream from channel,Create if it doesn't exist.
-     *
-     * @param ctx
-     * @param stream
-     * @return
+     * Gets or creates http2 request stream from channel,Create if it doesn't exist.
      */
-    public static Http2RequestStream acquireRequestStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
+    public static Http2RequestStream getOrCreateRequestStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
         String streamKey = REQUEST_STREAM_PREFIX + stream.id();
-        NettyChannel nettyChannel = NettyChannel.acquire(ctx.channel());
-        return acquireStream(streamKey, ctx, () -> new Http2RequestStream(nettyChannel, stream));
+        NettyChannel nettyChannel = NettyChannel.get(ctx.channel());
+        return getOrCreateStream(streamKey, ctx, () -> new Http2RequestStream(nettyChannel, stream));
     }
 
     /**
-     * Acquires http2 response stream from channel,Create if it doesn't exist.
-     *
-     * @param ctx
-     * @param stream
-     * @return
+     * Gets or creates http2 response stream from channel,Create if it doesn't exist.
      */
-    public static Http2ResponseStream acquireResponseStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
+    public static Http2ResponseStream getOrCreateResponseStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
         String streamKey = RESPONSE_STREAM_PREFIX + stream.id();
-        return acquireStream(streamKey, ctx, () -> new Http2ResponseStream(stream));
+        return getOrCreateStream(streamKey, ctx, () -> new Http2ResponseStream(stream));
     }
 
     /**
      * Removes http2 request stream from channel.
-     *
-     * @param ctx
-     * @param requestStream
      */
     public static void removeRequestStream(ChannelHandlerContext ctx, Http2RequestStream requestStream) {
         removeStream(ctx, REQUEST_STREAM_PREFIX + requestStream.stream().id());
@@ -142,9 +113,6 @@ public class H2Support {
 
     /**
      * Removes http2 response stream from channel.
-     *
-     * @param ctx
-     * @param responseStream
      */
     public static void removeResponseStream(ChannelHandlerContext ctx, Http2ResponseStream responseStream) {
         removeStream(ctx, RESPONSE_STREAM_PREFIX + responseStream.stream().id());
@@ -152,10 +120,6 @@ public class H2Support {
 
     /**
      * Converts http2 headers and data to http2 stream frames.
-     *
-     * @param headers
-     * @param data
-     * @return
      */
     public static Http2StreamFrame[] toHttp2StreamFrames(Http2Headers headers, ByteBuf data) {
         boolean headersEndStream = !data.isReadable();
@@ -166,9 +130,6 @@ public class H2Support {
 
     /**
      * Converts to netty's http2 stream frames.
-     *
-     * @param request
-     * @return
      */
     public static Http2StreamFrame[] toHttp2StreamFrames(HttpRequest<byte[]> request) {
         URL url = request.url();
@@ -184,9 +145,6 @@ public class H2Support {
 
     /**
      * Converts to netty's http2 stream frames.
-     *
-     * @param response
-     * @return
      */
     public static Http2StreamFrame[] toHttp2StreamFrames(HttpResponse<byte[]> response) {
         // build http2 headers
@@ -199,10 +157,6 @@ public class H2Support {
 
     /**
      * Converts from netty's http2 stream.
-     *
-     * @param responseStream
-     * @param context
-     * @return
      */
     public static HttpResponse<ByteBuf> fromHttp2ResponseStream(Http2ResponseStream responseStream, InvocationContext<Envelope.Request, Caller<?>> context) {
         HttpCaller<?> httpCaller = (HttpCaller<?>) context.invoker();
@@ -218,9 +172,6 @@ public class H2Support {
 
     /**
      * Converts from netty's http2 stream.
-     *
-     * @param requestStream
-     * @return
      */
     public static HttpRequest<ByteBuf> fromHtt2RequestStream(Http2RequestStream requestStream) {
         return HttpRequest.builder()
@@ -234,9 +185,6 @@ public class H2Support {
 
     /**
      * Converts to netty's http2 headers.
-     *
-     * @param headers
-     * @return
      */
     public static Http2Headers toHttp2Headers(HttpHeaders headers) {
         DefaultHttp2Headers httpHeaders = new DefaultHttp2Headers();
@@ -246,9 +194,6 @@ public class H2Support {
 
     /**
      * Converts from netty's http2 headers.
-     *
-     * @param headers
-     * @return
      */
     public static HttpHeaders fromHttp2Headers(Http2Headers headers) {
         DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
@@ -256,28 +201,8 @@ public class H2Support {
         return httpHeaders;
     }
 
-    private static <T extends Http2MessageStream> T acquireStream(String streamKey, ChannelHandlerContext ctx, Supplier<T> creator) {
-        AttributeKey<T> streamAttributeKey = AttributeKey.valueOf(streamKey);
-        Attribute<T> streamAttribute = ctx.channel().attr(streamAttributeKey);
-        T nettyHttp2Stream = streamAttribute.get();
-        if (nettyHttp2Stream == null) {
-            nettyHttp2Stream = creator.get();
-            streamAttribute.set(nettyHttp2Stream);
-        }
-        return nettyHttp2Stream;
-    }
-
-    private static void removeStream(ChannelHandlerContext ctx, String streamKey) {
-        AttributeKey<Http2MessageStream> streamAttributeKey = AttributeKey.valueOf(streamKey);
-        Attribute<Http2MessageStream> streamMessageAttribute = ctx.channel().attr(streamAttributeKey);
-        streamMessageAttribute.set(null);
-    }
-
     /**
      * Builds http2 settings.
-     *
-     * @param url
-     * @return
      */
     public static Http2Settings buildHttp2Settings(URL url) {
         int initialWindows = url.getIntParam(DefaultConfigKeys.INITIAL_WINDOW_SIZE);
@@ -296,6 +221,23 @@ public class H2Support {
             settings.pushEnabled(pushEnabled);
         }
         return settings;
+    }
+
+    private static <T extends Http2MessageStream> T getOrCreateStream(String streamKey, ChannelHandlerContext ctx, Supplier<T> creator) {
+        AttributeKey<T> streamAttributeKey = AttributeKey.valueOf(streamKey);
+        Attribute<T> streamAttribute = ctx.channel().attr(streamAttributeKey);
+        T nettyHttp2Stream = streamAttribute.get();
+        if (nettyHttp2Stream == null) {
+            nettyHttp2Stream = creator.get();
+            streamAttribute.set(nettyHttp2Stream);
+        }
+        return nettyHttp2Stream;
+    }
+
+    private static void removeStream(ChannelHandlerContext ctx, String streamKey) {
+        AttributeKey<Http2MessageStream> streamAttributeKey = AttributeKey.valueOf(streamKey);
+        Attribute<Http2MessageStream> streamMessageAttribute = ctx.channel().attr(streamAttributeKey);
+        streamMessageAttribute.set(null);
     }
 
 }

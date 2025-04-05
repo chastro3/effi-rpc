@@ -1,9 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-
-
 /**
- * Client that can connect to a remote endpoint and acquire channel(s).
+ * Client for connecting to a remote endpoint and get channel.
  */
 public interface Client extends Endpoint {
 
@@ -13,9 +11,9 @@ public interface Client extends Endpoint {
     void connect();
 
     /**
-     * Acquires a {@link Channel} associated with this client.
+     * Gets a {@link Channel} associated with this client.
      */
-    Channel acquireChannel();
+    Channel getChannel();
 
 }
 

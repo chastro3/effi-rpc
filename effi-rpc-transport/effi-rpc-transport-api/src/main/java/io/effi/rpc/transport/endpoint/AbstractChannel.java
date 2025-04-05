@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.AbstractAttributes;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;

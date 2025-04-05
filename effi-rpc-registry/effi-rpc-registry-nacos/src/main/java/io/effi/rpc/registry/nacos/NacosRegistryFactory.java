@@ -2,7 +2,7 @@ package io.effi.rpc.registry.nacos;
 
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.registry.AbstractRegistryFactory;
 import io.effi.rpc.registry.RegistryService;

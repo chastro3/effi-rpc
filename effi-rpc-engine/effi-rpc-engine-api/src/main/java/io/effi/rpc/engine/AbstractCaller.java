@@ -1,9 +1,9 @@
 package io.effi.rpc.engine;
 
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.Ordered;
 import io.effi.rpc.contract.*;
@@ -39,7 +39,7 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
 
     protected CallerModularConfig modularConfig;
 
-    protected AbstractCaller(Config config, CallerBuilder<?, ?> builder) {
+    protected AbstractCaller(LinkedConfig config, CallerBuilder<?, ?> builder) {
         super(config, builder);
         this.module = AssertUtil.notNull(builder.module(), "module");
         this.locator = AssertUtil.notNull(builder.locator(), "locator");

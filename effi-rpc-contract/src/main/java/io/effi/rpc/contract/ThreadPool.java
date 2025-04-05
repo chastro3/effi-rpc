@@ -2,7 +2,7 @@ package io.effi.rpc.contract;
 
 import io.effi.rpc.common.util.resoruce.Closeable;
 import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.contract.manager.Manager;
+import io.effi.rpc.contract.manager.ComponentManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
  * A named thread pool that wraps an {@link ExecutorService}, providing
  * lifecycle management and execution capabilities.
  */
-public class ThreadPool implements Closeable, Manager.Key, Executor {
+public class ThreadPool implements Closeable, ComponentManager.Key, Executor {
 
     private final String name;
 

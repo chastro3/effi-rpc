@@ -1,15 +1,15 @@
 package io.effi.rpc.protocol.http;
 
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.parameter.MethodMapper;
+import io.effi.rpc.engine.builder.CalleeBuilder;
 import io.effi.rpc.protocol.http.support.DefaultHttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpVersion;
-import io.effi.rpc.engine.builder.CalleeBuilder;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
@@ -27,7 +27,7 @@ public abstract class HttpCalleeBuilder<T extends HttpCallee<?>, C extends HttpC
 
     protected volatile HttpHeaders responseHeaders;
 
-    protected HttpCalleeBuilder(MethodMapper<?> methodMapper, Config config) {
+    protected HttpCalleeBuilder(MethodMapper<?> methodMapper, LinkedConfig config) {
         super(methodMapper, config);
         if (StringUtil.isBlank(config.get(DefaultConfigKeys.SERIALIZATION))) {
             serialization(Component.Serialization.JSON);
@@ -52,7 +52,7 @@ public abstract class HttpCalleeBuilder<T extends HttpCallee<?>, C extends HttpC
      * @return This builder instance for fluent chaining.
      */
     public C method(HttpMethod method) {
-        config.set(DefaultConfigKeys.HTTP_METHOD.key(), method.name());
+        config.set(DefaultConfigKeys.HTTP_METHOD, method.name());
         return returnThis();
     }
 

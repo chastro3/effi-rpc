@@ -17,7 +17,7 @@ public class Provider {
                 .start();
         System.out.println(bootstrap);
 
-//        EffRpcApplication application = EffRpcApplication.builder().name("provider").build();
+//        EffRpcApplication application = new EffRpcApplication("provider");
 //        EffiRpcModule module = application.newModule();
 //        module.registerShared(DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").build());
 //        DefaultServerExporter exporter1 = DefaultServerExporter.builder()
@@ -25,19 +25,20 @@ public class Provider {
 //                .module(module)
 //                .serverConfig(Http2ServerConfig.defaultConfig())
 //                .build();
-//        ComplexRemoteService<HelloService> remoteService = ComplexRemoteService.defaultBuild(null, new HelloService(), null);
-//        Http2Callee<HelloService> hello = new AnnotatedCalleeBuilder<>(remoteService, "hello", String.class, int.class)
-//                .useStyle(Component.RestParser.JAX_RS)
+//        ComplexRemoteService<HelloService> remoteService = new ComplexRemoteService<>(new HelloService());
+//        Http2Callee<HelloService> hello = new AnnotationCalleeBuilder<>(remoteService, "hello", String.class, Integer.class)
+//                .useStyle(Component.AnnotationStyle.JAX_RS)
 //                .build(Http2CalleeBuilder::new);
-//        hello.config().set(KeyConstant.SERIALIZATION, JSON);
-//        Http2Callee<HelloService> helloList = new AnnotatedCalleeBuilder<>(remoteService, "helloList", String.class, String.class, List.class)
-//                .useStyle(Component.RestParser.JAX_RS)
+//        hello.config().set(DefaultConfigKeys.SERIALIZATION.key(), JSON);
+//        Http2Callee<HelloService> helloList = new AnnotationCalleeBuilder<>(remoteService, "helloList", String.class, String.class, List.class)
+//                .useStyle(Component.AnnotationStyle.JAX_RS)
 //                .build(Http2CalleeBuilder::new);
-//        helloList.config().set(KeyConstant.SERIALIZATION, JSON);
+//        helloList.config().set(DefaultConfigKeys.SERIALIZATION.key(), JSON);
+//        helloList.export(module);
 //        exporter1.callee(hello).callee(helloList);
 //        application.start();
 //
-//        EffRpcApplication application1 = EffRpcApplication.builder().name("provider1").build();
+//        EffRpcApplication application1 = new EffRpcApplication("provider1");
 //        EffiRpcModule effiRpcModule1 = application1.newModule();
 //        effiRpcModule1.registerShared(DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").build());
 //        DefaultServerExporter exporter11 = DefaultServerExporter.builder()

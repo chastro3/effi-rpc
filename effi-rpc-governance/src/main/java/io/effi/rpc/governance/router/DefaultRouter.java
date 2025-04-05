@@ -3,7 +3,7 @@ package io.effi.rpc.governance.router;
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.config.RouterConfig;
@@ -33,7 +33,7 @@ public class DefaultRouter implements Router {
         }
         // filter by router rule
         EffiRpcModule module = context.module();
-        Collection<RouterConfig> routerConfigs = module.routerConfigManager().values();
+        Collection<RouterConfig> routerConfigs = module.routerConfigManager().components();
         LinkedList<URL> result = new LinkedList<>();
         boolean hadConfig = false;
         for (RouterConfig routerConfig : routerConfigs) {

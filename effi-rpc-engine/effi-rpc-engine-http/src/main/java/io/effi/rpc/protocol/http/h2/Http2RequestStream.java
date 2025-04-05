@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.transport.netty.NettyChannel;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.handler.codec.http.HttpMethod;
@@ -31,7 +31,7 @@ public class Http2RequestStream extends Http2MessageStream {
     }
 
     /**
-     * Returns the current request url.
+     * Returns the current request config.
      *
      * @return
      */

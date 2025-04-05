@@ -36,8 +36,8 @@ public interface Callee<T> extends Invoker<Object> {
     /**
      * Invokes the current call using the specified invocation context.
      *
-     * @param context the invocation context containing the request and callee information
-     * @return the reply context resulting from the invocation
+     * @param context the invocation context
+     * @return the reply context
      */
     ReplyContext<Envelope.Response, Callee<?>> invokeWithContext(InvocationContext<Envelope.Request, Callee<?>> context);
 
@@ -52,14 +52,14 @@ public interface Callee<T> extends Invoker<Object> {
     ThreadPool threadPoolOf(EffiRpcModule module);
 
     /**
-     * Returns a description of this server callee.
+     * Returns a description of this callee.
      */
     String desc();
 
     /**
      * Exposes the current callee to the specified module(s).
      *
-     * @param modules the modules to which the callee will be exposed
+     * @param modules the modules
      */
     void export(EffiRpcModule... modules);
 
@@ -68,12 +68,6 @@ public interface Callee<T> extends Invoker<Object> {
      */
     Collection<EffiRpcModule> exportedModules();
 
-    /**
-     * Returns the manager key for this callee.
-     * If the query path is not available, returns an empty string.
-     *
-     * @return the manager key derived from the query path
-     */
     @Override
     default String managerKey() {
         return queryPath() == null ? "" : queryPath().path();

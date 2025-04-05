@@ -2,7 +2,7 @@ package io.effi.rpc.contract;
 
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 
 /**
  * Represent the result of an invocation,
@@ -34,16 +34,16 @@ public class Result {
     }
 
     /**
-     * Returns the url.
+     * Returns the config.
      */
     public URL url() {
         return url;
     }
 
     /**
-     * Sets the url.
+     * Sets the config.
      *
-     * @param url url
+     * @param url config
      */
     public Result url(URL url) {
         this.url = url;

@@ -1,12 +1,12 @@
 package io.effi.rpc.contract.config;
 
-import io.effi.rpc.common.url.ConfigSource;
-import io.effi.rpc.contract.manager.Manager;
+import io.effi.rpc.common.config.ConfigSource;
+import io.effi.rpc.contract.manager.ComponentManager;
 
 /**
  * Configuration with a unique name.
  */
-public interface NamedConfig extends ConfigSource, Manager.Key {
+public interface NamedConfig extends ConfigSource, ComponentManager.Key {
 
     /**
      * Returns the unique name of this configuration.

@@ -1,4 +1,4 @@
-package io.effi.rpc.common.url;
+package io.effi.rpc.common.config;
 
 import io.effi.rpc.common.util.*;
 import io.effi.rpc.common.util.collection.LazyList;
@@ -21,16 +21,16 @@ import java.util.Map;
  *
  * <p>Example usage:</p>
  * <pre>
- * URL url = URL.valueOf("http://www.example.com/path/to/resource?param1=value1");
- * url.addParam("param2", "value2");
- * String fullUrl = url.uri();
+ * URL config = URL.valueOf("http://www.example.com/path/to/resource?param1=value1");
+ * config.addParam("param2", "value2");
+ * String fullUrl = config.uri();
  * </pre>
  */
 public class URL extends AbstractAttributes implements Replicable<URL> {
 
     private final List<String> paths = new LazyList<>(ArrayList::new);
 
-    private final Config params = new Config();
+    private final Config params = new FlatConfig(this);
 
     protected URLType type = URLType.DEFAULT;
 
@@ -239,7 +239,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
      * returning a default value if not found.
      */
     public String getParam(String key, String defaultValue) {
-        return params.get(key, defaultValue);
+        return params.getOrDefault(key, defaultValue);
     }
 
     /**
@@ -360,7 +360,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     public String queryPath() {
-        String queryParam = URLUtil.toQueryParam(params.properties());
+        String queryParam = URLUtil.toQueryParam(params.items());
         return path() + (StringUtil.isBlank(queryParam) ? "" : ("?" + queryParam));
     }
 
@@ -371,12 +371,12 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     @Override
     public URL replicate() {
-//        url.accessor.putAll(this.accessor);
+//        config.accessor.putAll(this.accessor);
         return builder()
                 .type(type)
                 .protocol(protocol)
                 .address(address)
-                .params(params.properties())
+                .params(params.items())
                 .paths(paths)
                 .build();
     }

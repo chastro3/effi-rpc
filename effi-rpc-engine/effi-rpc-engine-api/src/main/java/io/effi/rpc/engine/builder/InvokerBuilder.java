@@ -1,12 +1,15 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.ConfigSource;
+import io.effi.rpc.common.config.ConfigSource;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.ChainBuilder;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Invoker;
+import io.effi.rpc.contract.InvokerContainer;
 import io.effi.rpc.contract.filter.Filter;
 
 import java.util.ArrayList;
@@ -21,21 +24,23 @@ import java.util.List;
 public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuilder<T, C>>
         implements ChainBuilder<T, C>, ConfigSource {
 
-    protected Config config;
+    protected LinkedConfig config;
+
+    protected InvokerContainer<?> container;
 
     protected List<Filter<?, ?, ?>> filters = new ArrayList<>();
 
     protected TypeToken<?> returnType;
 
-    protected InvokerBuilder(Config config) {
-        this.config = config == null ? new Config() : config;
+    protected InvokerBuilder(LinkedConfig config) {
+        this.config = AssertUtil.notNull(config, "config");
     }
 
     /**
      * Sets the compression type.
      */
     public C compression(String compression) {
-        config.set(DefaultConfigKeys.COMPRESSION.key(), compression);
+        config.set(DefaultConfigKeys.COMPRESSION, compression);
         return returnThis();
     }
 
@@ -43,7 +48,7 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
      * Sets the serialization type.
      */
     public C serialization(String serialization) {
-        config.set(DefaultConfigKeys.SERIALIZATION.key(), serialization);
+        config.set(DefaultConfigKeys.SERIALIZATION, serialization);
         return returnThis();
     }
 
@@ -51,7 +56,7 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
      * Sets the query path for the invoker.
      */
     public C path(String path) {
-        config.set(DefaultConfigKeys.PATH.key(), path);
+        config.set(DefaultConfigKeys.PATH, path);
         return returnThis();
     }
 
@@ -65,32 +70,45 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
         return returnThis();
     }
 
-    /**
-     * Returns the returnType.
-     */
+    public InvokerContainer<?> container() {
+        return container;
+    }
+
     public TypeToken<?> returnType() {
         return returnType;
     }
 
-    /**
-     * Returns the filters.
-     */
     public List<Filter<?, ?, ?>> filters() {
         return filters;
     }
 
     @Override
-    public Config config() {
+    public LinkedConfig config() {
         return config;
     }
 
     @Override
     public T build() {
-        return build(config());
+        NodeConfig nodeConfig = getNodeConfig(config);
+        T instance = build(nodeConfig);
+        nodeConfig.setOwner(instance);
+        return instance;
+    }
+
+    protected NodeConfig getNodeConfig(LinkedConfig config) {
+        if (config instanceof NodeConfig nodeConfig) {
+            return nodeConfig;
+        } else {
+            InvokerContainer<?> container = container();
+            LinkedConfig parentConfig = container == null ? null : container.config();
+            NodeConfig nodeConfig = new NodeConfig(null, parentConfig);
+            nodeConfig.set(config.items());
+            return nodeConfig;
+        }
     }
 
     public abstract String protocol();
 
-    protected abstract T build(Config config);
+    protected abstract T build(LinkedConfig config);
 }
 

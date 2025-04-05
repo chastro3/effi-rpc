@@ -2,7 +2,7 @@ package io.effi.rpc.registry;
 
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
@@ -52,7 +52,7 @@ public abstract class AbstractRegistryService implements RegistryService {
             }
 //            EffiRpcBootstrap.staringInstance()
 //                    .moduleCentral().scheduler().addPeriodic(registerTask, 5, 5, TimeUnit.SECONDS);
-//            logger.info("The <{}>{} service register is executed every 5s", url.protocol(), url.address());
+//            logger.info("The <{}>{} service register is executed every 5s", config.protocol(), config.address());
             registeredUrls.put(url.authority(), url);
         }
     }

@@ -2,9 +2,10 @@ package io.effi.rpc.governance.loadbalance;
 
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.AtomicUtil;
 import io.effi.rpc.contract.Caller;
+import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
 
 import java.util.List;
@@ -22,7 +23,7 @@ import static io.effi.rpc.common.constant.Component.LoadBalance.ROUND_ROBIN;
 public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
 
     @Override
-    protected URL doChoose(InvocationContext<?, Caller<?>> context, List<URL> urls) {
+    protected URL doChoose(InvocationContext<Envelope.Request, Caller<?>> context, List<URL> urls) {
         AtomicInteger lastIndex = context.invoker().get(KeyConstant.LAST_CALL_INDEX);
         int current = AtomicUtil.updateAtomicInteger(lastIndex, old -> (old + 1) % urls.size());
         return urls.get(current);

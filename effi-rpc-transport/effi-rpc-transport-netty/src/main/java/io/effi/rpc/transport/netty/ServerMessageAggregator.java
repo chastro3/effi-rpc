@@ -37,7 +37,7 @@ public class ServerMessageAggregator extends ChannelDuplexHandler {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof Envelope.Request request) {
-            NettyChannel channel = NettyChannel.acquire(ctx.channel());
+            NettyChannel channel = NettyChannel.get(ctx.channel());
             TransportSupport.handleRequest(request, channel);
         } else {
             logger.warn(Messages.onlySupport(Envelope.Request.class));

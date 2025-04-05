@@ -33,8 +33,8 @@ public class Http2Client extends NettyClient {
     }
 
     @Override
-    public NettyChannel acquireChannel() {
-        return H2Support.acquireStreamChannel(streamChannelBootstrap, url(), module(), connectTimeout);
+    public NettyChannel getChannel() {
+        return H2Support.getOrCreateStreamChannel(streamChannelBootstrap, url(), module(), connectTimeout);
     }
 
 }

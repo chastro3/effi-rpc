@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.Messages;
@@ -100,7 +100,7 @@ public abstract class InvokerModularConfig<T extends Invoker<?>> {
      * Adds filters based on the invoker's configuration.
      */
     protected void addConfiguredFilters() {
-        List<String> filterNames = invoker.getMerged(DefaultConfigKeys.FILTERS);
+        List<String> filterNames = invoker.config().getCascaded(DefaultConfigKeys.FILTERS);
         FilterManager filterManager = module.filterManager();
         for (Filter<?, ?, ?> filter : filterManager.sharedValues()) {
             addFilter(filter);

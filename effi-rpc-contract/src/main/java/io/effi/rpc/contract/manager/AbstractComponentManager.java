@@ -7,32 +7,32 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Abstract implementation of {@link Manager}.
+ * Abstract implementation of {@link ComponentManager}.
  *
  * @param <T> the type of values managed
  */
-public abstract class AbstractManager<T> implements Manager<T> {
+public abstract class AbstractComponentManager<T> implements ComponentManager<T> {
 
     protected final EffiRpcModule module;
 
-    protected final Map<String, T> map = new HashMap<>();
+    protected final Map<String, T> components = new HashMap<>();
 
-    protected AbstractManager(EffiRpcModule module) {
+    protected AbstractComponentManager(EffiRpcModule module) {
         this.module = module;
     }
 
     @Override
     public void register(String key, T value) {
-        map.put(key, value);
+        components.put(key, value);
     }
 
     @Override
     public void remove(String key) {
-        map.remove(key);
+        components.remove(key);
     }
 
     public T get(String key) {
-        return map.get(key);
+        return components.get(key);
     }
 
     @Override
@@ -41,13 +41,17 @@ public abstract class AbstractManager<T> implements Manager<T> {
     }
 
     @Override
-    public Collection<T> values() {
-        return map.values();
+    public Collection<T> components() {
+        return components.values();
     }
 
     @Override
     public void clear() {
-        map.clear();
+        components.clear();
     }
 
+    @Override
+    public String toString() {
+        return "components=" + components.size();
+    }
 }

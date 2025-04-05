@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.codec;
 
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Result;

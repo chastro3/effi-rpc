@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.transport.endpoint.Client;
 import io.netty.channel.Channel;
@@ -42,16 +42,16 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public io.effi.rpc.transport.endpoint.Channel acquireChannel() {
+    public io.effi.rpc.transport.endpoint.Channel getChannel() {
         Future<Channel> future = channelPool.acquire();
         boolean success = future.awaitUninterruptibly(connectTimeout, TimeUnit.MILLISECONDS);
         // Check the outcome of acquiring a channel
         if (success && future.isSuccess()) {
-            return NettyChannel.acquire(future.getNow(), url(), module());
+            return NettyChannel.getOrCreate(future.getNow(), url(), module());
         }
         Throwable cause = future.cause();
         cause = cause != null ? cause : new TimeoutException("Connect to " + url().address() + " timeout");
-        throw PredefinedErrorCode.ACQUIRE_CHANNEL.fail(cause, url().address(), url().protocol());
+        throw PredefinedErrorCode.GET_CHANNEL.fail(cause, url().address(), url().protocol());
     }
 
     @Override

@@ -1,9 +1,10 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.util.Builder;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.common.util.Builder;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.RemoteService;
 import io.effi.rpc.contract.parameter.MethodMapper;
@@ -26,14 +27,6 @@ public class AnnotationCalleeBuilder<S> {
 
     private String style;
 
-    /**
-     * Constructs an AnnotatedCalleeBuilder with the given remote service and method details.
-     *
-     * @param remoteService  the remote service instance
-     * @param methodName     the name of the method to be invoked
-     * @param parameterTypes the parameter types of the method
-     * @throws IllegalArgumentException if the method cannot be found in the remote service
-     */
     public AnnotationCalleeBuilder(RemoteService<S> remoteService, String methodName, Class<?>... parameterTypes) {
         this.remoteService = AssertUtil.notNull(remoteService, "remoteService");
         try {
@@ -45,9 +38,6 @@ public class AnnotationCalleeBuilder<S> {
 
     /**
      * Sets the style for method annotation parsing.
-     *
-     * @param style the style to be used for annotation parsing
-     * @return the current AnnotatedCalleeBuilder instance for chaining
      */
     public AnnotationCalleeBuilder<S> useStyle(String style) {
         this.style = style;
@@ -62,12 +52,12 @@ public class AnnotationCalleeBuilder<S> {
      * @return the constructed Callee instance
      * @throws IllegalArgumentException if the style is not set or is invalid
      */
-    public <T extends Callee<S>> T build(BiFunction<MethodMapper<S>, Config, Builder<T>> builder) {
+    public <T extends Callee<S>> T build(BiFunction<MethodMapper<S>, LinkedConfig, Builder<T>> builder) {
         AssertUtil.notBlank(style, "style");
         AnnotationStyleParser methodParser = ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
         ParameterMapper<ParameterParser<?>>[] parameterMappers = methodParser.parseCalleeParameterMapper(method);
         MethodMapper<S> methodMapper = new MethodMapper<>(remoteService, method, parameterMappers);
-        Config config = methodParser.parseMethod(method, new Config());
+        LinkedConfig config = methodParser.parseMethod(method, new NodeConfig());
         return builder.apply(methodMapper, config).build();
     }
 }

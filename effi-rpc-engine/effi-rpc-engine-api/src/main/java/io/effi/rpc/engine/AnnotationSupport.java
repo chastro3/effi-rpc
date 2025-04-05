@@ -1,8 +1,8 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.Messages;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.annotation.*;
@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -37,8 +37,8 @@ public final class AnnotationSupport {
                 : ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
     }
 
-    public static Config toConfig(EffiRpcCaller caller) {
-        return buildConfig(caller, config -> {
+    public static Config fillConfig(EffiRpcCaller caller, Config config) {
+        return fillConfig(caller, config, () -> {
             fillConfig(config, DefaultConfigKeys.PATH, caller::path);
             fillConfig(config, DefaultConfigKeys.STYLE, caller::style);
             fillConfig(config, DefaultConfigKeys.PROTOCOL, caller::protocol);
@@ -60,8 +60,8 @@ public final class AnnotationSupport {
         });
     }
 
-    public static Config toConfig(EffiRpcClient client) {
-        return buildConfig(client, config -> {
+    public static Config fillConfig(EffiRpcClient client, Config config) {
+        return fillConfig(client, config, () -> {
             fillConfig(config, DefaultConfigKeys.PROXY, client::proxy);
             fillConfig(config, DefaultConfigKeys.PATH, client::path);
             fillConfig(config, DefaultConfigKeys.STYLE, client::style);
@@ -84,15 +84,15 @@ public final class AnnotationSupport {
         });
     }
 
-    public static Config toConfig(EffiRpcCallee callee) {
-        return buildConfig(callee, config -> {
+    public static Config fillConfig(EffiRpcCallee callee, Config config) {
+        return fillConfig(callee, config, () -> {
             fillConfig(config, DefaultConfigKeys.PATH, callee::path);
             fillConfig(config, DefaultConfigKeys.STYLE, callee::style);
             fillConfig(config, DefaultConfigKeys.PROTOCOL, callee::protocol);
             fillConfig(config, DefaultConfigKeys.EXCLUDED_PORT, callee::excludedPort);
             fillConfig(config, DefaultConfigKeys.MODULES, callee::modules);
             fillConfig(config, DefaultConfigKeys.FILTERS, callee::filters);
-            fillConfig(config, DefaultConfigKeys.DESC, callee::desc);
+            fillConfig(config, DefaultConfigKeys.CALLEE_DESC, callee::desc);
             fillConfig(config, DefaultConfigKeys.SERIALIZATION, callee::serialization);
             fillConfig(config, DefaultConfigKeys.COMPRESSION, callee::compression);
             fillConfig(config, DefaultConfigKeys.THREAD_POOL, callee::threadPool);
@@ -101,15 +101,15 @@ public final class AnnotationSupport {
         });
     }
 
-    public static Config toConfig(EffiRpcService service) {
-        return buildConfig(service, config -> {
+    public static void fillConfig(EffiRpcService service, Config config) {
+        fillConfig(service, config, () -> {
             fillConfig(config, DefaultConfigKeys.PATH, service::path);
             fillConfig(config, DefaultConfigKeys.STYLE, service::style);
             fillConfig(config, DefaultConfigKeys.PROTOCOL, service::protocol);
             fillConfig(config, DefaultConfigKeys.EXCLUDED_PORT, service::excludedPort);
             fillConfig(config, DefaultConfigKeys.MODULES, service::modules);
             fillConfig(config, DefaultConfigKeys.FILTERS, service::filters);
-            fillConfig(config, DefaultConfigKeys.DESC, service::desc);
+            fillConfig(config, DefaultConfigKeys.CALLEE_DESC, service::desc);
             fillConfig(config, DefaultConfigKeys.SERIALIZATION, service::serialization);
             fillConfig(config, DefaultConfigKeys.COMPRESSION, service::compression);
             fillConfig(config, DefaultConfigKeys.THREAD_POOL, service::threadPool);
@@ -118,11 +118,9 @@ public final class AnnotationSupport {
         });
     }
 
-    private static <T> Config buildConfig(T source, Consumer<Config> configFiller) {
-        Config config = new Config();
-        if (source != null) {
-            configFiller.accept(config);
-        }
+    private static <T> Config fillConfig(T source, Config config, Runnable run) {
+        Optional.ofNullable(source)
+                .ifPresent(val -> run.run());
         return config;
     }
 

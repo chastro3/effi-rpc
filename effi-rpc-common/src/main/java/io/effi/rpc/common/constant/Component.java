@@ -177,32 +177,6 @@ public interface Component {
     }
 
     /**
-     * Message envelope types.
-     */
-    interface Envelope {
-
-        /**
-         * Request message.
-         */
-        String REQUEST = "request";
-
-        /**
-         * Response message.
-         */
-        String RESPONSE = "response";
-
-        /**
-         * Heartbeat message.
-         */
-        String HEARTBEAT = "heartbeat";
-
-        /**
-         * Error message.
-         */
-        String ERROR = "error";
-    }
-
-    /**
      * Supported compression algorithms.
      */
     interface Compression {

@@ -8,6 +8,12 @@ import io.effi.rpc.contract.parameter.ParameterParser;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
+/**
+ * Parses method parameters annotated with a specific annotation from the given request.
+ *
+ * @param <T>   the type of annotation to support
+ * @param <REQ> the request type from which parameters are parsed
+ */
 public class AnnotationParameterParser<T extends Annotation, REQ extends Envelope.Request> implements ParameterParser<REQ> {
 
     protected final Class<T> type;

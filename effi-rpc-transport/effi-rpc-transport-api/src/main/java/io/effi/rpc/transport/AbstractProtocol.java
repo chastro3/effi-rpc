@@ -2,7 +2,7 @@ package io.effi.rpc.transport;
 
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;

@@ -20,7 +20,7 @@ public enum PredefinedErrorCode implements ErrorCode {
     SSL("0013", "SSL error while processing {}"),
     INVOKE_SERVICE("0014", "Failed to invoke service: '{}'"),
     CALL_CALLER("0015", "Failed to call caller: '{}'"),
-    ACQUIRE_CHANNEL("0016", "Failed to acquire connection to {} over {} channel"),
+    GET_CHANNEL("0016", "Failed to get connection to {} over {} channel"),
     HANDLE_EVENT("0017", "Failed to handle event in '{}' for event of type '{}'"),
     NOT_FOUND_SERVICE("0018", "Service(s) not found for '{}'"),
     REGISTRY_REGISTER("0019", "Failed to register service(s) for '{}' in registry at '{}'"),

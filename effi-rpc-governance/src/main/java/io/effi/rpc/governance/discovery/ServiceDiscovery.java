@@ -1,8 +1,9 @@
 package io.effi.rpc.governance.discovery;
 
 import io.effi.rpc.common.spi.Extensible;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.Caller;
+import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public interface ServiceDiscovery {
      * @param registryConfigs the configurations for accessing the service registry
      * @return a list of URLs representing the available services
      */
-    List<URL> discover(InvocationContext<?, Caller<?>> context, URL... registryConfigs);
+    List<URL> discover(InvocationContext<Envelope.Request, Caller<?>> context, URL... registryConfigs);
 }
 
 

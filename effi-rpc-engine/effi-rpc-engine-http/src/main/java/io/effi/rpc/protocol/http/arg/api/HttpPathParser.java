@@ -24,6 +24,6 @@ public class HttpPathParser implements ParameterParser<HttpRequest<ByteBuf>> {
 
     @Override
     public Object parse(HttpRequest<ByteBuf> request, Parameter parameter, Callee<?> callee) {
-        return HttpUtil.acquirePath(request.url(), pathVar.get().get(), callee);
+        return HttpUtil.findPathForVar(request.url(), pathVar.get().get(), callee);
     }
 }

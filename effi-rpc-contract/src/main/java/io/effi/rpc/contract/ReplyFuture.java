@@ -3,7 +3,7 @@ package io.effi.rpc.contract;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
 
@@ -60,7 +60,7 @@ public abstract class ReplyFuture {
     /**
      * Retrieves a ReplyFuture by specified URL.
      *
-     * @param url the url
+     * @param url the config
      * @return the corresponding ReplyFuture, or null if not found.
      */
     public static ReplyFuture getFuture(URL url) {
@@ -171,8 +171,6 @@ public abstract class ReplyFuture {
 
     /**
      * Checks if the future is completed.
-     *
-     * @return true if completed, otherwise false.
      */
     public boolean completed() {
         return false;

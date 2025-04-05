@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.InvokerContainer;
 
@@ -18,7 +18,7 @@ public abstract class AbstractInvokerContainer<I extends Invoker<?>> implements 
 
     protected Map<String, I> invokers = new HashMap<>();
 
-    protected Config config;
+    protected LinkedConfig config;
 
     @Override
     public void addInvoker(String key, I invoker) {
@@ -31,7 +31,7 @@ public abstract class AbstractInvokerContainer<I extends Invoker<?>> implements 
     }
 
     @Override
-    public Config config() {
+    public LinkedConfig config() {
         return config;
     }
 

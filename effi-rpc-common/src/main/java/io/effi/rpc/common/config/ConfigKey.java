@@ -1,4 +1,4 @@
-package io.effi.rpc.common.url;
+package io.effi.rpc.common.config;
 
 /**
  * Represents a key in a configuration.
@@ -13,7 +13,7 @@ public interface ConfigKey {
     /**
      * Returns the source strategy for retrieving the configuration value.
      */
-    Config.Source source();
+    LinkedConfig.Source source();
 
     /**
      * Returns the default value for this key if no value is found.
@@ -21,4 +21,3 @@ public interface ConfigKey {
     String defaultValue();
 
 }
-

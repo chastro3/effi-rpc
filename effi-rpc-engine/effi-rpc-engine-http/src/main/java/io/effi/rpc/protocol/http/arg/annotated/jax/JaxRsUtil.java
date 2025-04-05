@@ -46,7 +46,7 @@ public class JaxRsUtil {
      * @return the value of the path parameter or the default value if not present
      */
     public static Object getPathOrDefault(HttpRequest<ByteBuf> request, PathParam pathParam, AnnotatedElement element, Callee<?> callee) {
-        return getParameterOfDefault(element, () -> HttpUtil.acquirePath(request.url(), pathParam.value(), callee));
+        return getParameterOfDefault(element, () -> HttpUtil.findPathForVar(request.url(), pathParam.value(), callee));
     }
 
     /**
@@ -59,7 +59,7 @@ public class JaxRsUtil {
      * @return the value of the query parameter or the default value if not present
      */
     public static Object getParamOrDefault(HttpRequest<ByteBuf> request, QueryParam queryParam, AnnotatedElement element, Callee<?> callee) {
-        return getParameterOfDefault(element, () -> HttpUtil.acquireParam(request.url(), queryParam.value()));
+        return getParameterOfDefault(element, () -> HttpUtil.findParamForVar(request.url(), queryParam.value()));
     }
 
     /**

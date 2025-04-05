@@ -57,7 +57,7 @@ public class EffiRpcModule extends Node {
         if (StringUtil.isBlank(name)) {
             logger.warn("Module name is blank");
         }
-        for (ServerExporter serverExporter : serverExporterManager.values()) {
+        for (ServerExporter serverExporter : serverExporterManager.components()) {
             serverExporter.export();
         }
         return super.doStart();
@@ -208,5 +208,4 @@ public class EffiRpcModule extends Node {
     public String toString() {
         return "'" + name + "' Module";
     }
-
 }

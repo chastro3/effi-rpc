@@ -6,7 +6,7 @@ import io.effi.rpc.contract.module.EffiRpcModule;
 /**
  * Manage the registration and retrieval of {@link Caller} instances.
  */
-public class CallerManager extends AbstractManager<Caller<?>> {
+public class CallerManager extends AbstractComponentManager<Caller<?>> {
 
     public CallerManager(EffiRpcModule module) {
         super(module);

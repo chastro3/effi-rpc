@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.engine.builder.ServerConfigBuilder;
 
 import static io.effi.rpc.common.constant.Component.Protocol.H2;

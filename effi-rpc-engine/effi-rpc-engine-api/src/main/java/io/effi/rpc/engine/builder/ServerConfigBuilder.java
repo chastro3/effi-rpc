@@ -1,6 +1,6 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.contract.config.ServerConfig;
 
 /**

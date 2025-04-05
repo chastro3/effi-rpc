@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.util.TypeToken;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.protocol.http.HttpCallerBuilder;
 import io.effi.rpc.protocol.http.support.HttpVersion;
@@ -16,7 +16,7 @@ import static io.effi.rpc.common.constant.Component.Protocol.H2;
 
 public class Http2CallerBuilder<T> extends HttpCallerBuilder<Http2Caller<T>, Http2CallerBuilder<T>> {
 
-    public Http2CallerBuilder(TypeToken<T> returnType, Config config) {
+    public Http2CallerBuilder(TypeToken<T> returnType, LinkedConfig config) {
         super(returnType, config);
         version(HttpVersion.HTTP_2_0);
     }
@@ -27,7 +27,7 @@ public class Http2CallerBuilder<T> extends HttpCallerBuilder<Http2Caller<T>, Htt
     }
 
     @Override
-    protected Http2Caller<T> build(Config config) {
+    protected Http2Caller<T> build(LinkedConfig config) {
         return new Http2Caller<>(config, this);
     }
 

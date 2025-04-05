@@ -49,7 +49,7 @@ public class SslContextFactory {
      * @param supportedProtocols
      * @return
      */
-    public static SslContext acquireForServer(String... supportedProtocols) {
+    public static SslContext getForServer(String... supportedProtocols) {
         return SERVER_SSL_CONTEXT.computeIfAbsent(sslContextKey(supportedProtocols), key -> {
             SslProvider provider = SslProvider.isAlpnSupported(SslProvider.OPENSSL) ? SslProvider.OPENSSL : SslProvider.JDK;
             //SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -81,7 +81,7 @@ public class SslContextFactory {
      * @param supportedProtocols
      * @return
      */
-    public static SslContext acquireForClient(String... supportedProtocols) {
+    public static SslContext getForClient(String... supportedProtocols) {
         return CLIENT_SSL_CONTEXT.computeIfAbsent(sslContextKey(supportedProtocols), key -> {
             SslProvider provider = SslProvider.isAlpnSupported(SslProvider.OPENSSL) ? SslProvider.OPENSSL : SslProvider.JDK;
             try {

@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.url.URL;
-import io.effi.rpc.common.url.URLType;
+import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.config.URLType;
 import io.effi.rpc.common.util.StringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -29,9 +29,6 @@ public class NettySupport {
 
     /**
      * Checks if the given URL config is pooled client.
-     *
-     * @param url
-     * @return
      */
     public static boolean isPooledClient(URL url) {
         int maxConnections = url.getIntParam(DefaultConfigKeys.MAX_CONNECTIONS.key(), 1);
@@ -41,9 +38,6 @@ public class NettySupport {
 
     /**
      * Converts ByteBuf to byte array.
-     *
-     * @param buf
-     * @return
      */
     public static byte[] getBytes(ByteBuf buf) {
         return io.netty.buffer.ByteBufUtil.getBytes(buf, buf.readerIndex(), buf.readableBytes(), false);
@@ -51,11 +45,6 @@ public class NettySupport {
 
     /**
      * Gets ssl bytes.
-     *
-     * @param systemDir
-     * @param defaultPath
-     * @return
-     * @throws IOException
      */
     public static byte[] getSslBytes(String systemDir, String defaultPath) throws IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -86,9 +75,6 @@ public class NettySupport {
 
     /**
      * Converts byte array to InputStream.
-     *
-     * @param bytes
-     * @return
      */
     public static InputStream readBytes(byte[] bytes) {
         if (bytes == null) {
@@ -98,23 +84,15 @@ public class NettySupport {
     }
 
     /**
-     * Acquires ssl context.
-     *
-     * @param url
-     * @param creator
-     * @return
+     * Gets or creates ssl context.
      */
-    public static SslContext acquireSslContext(URL url, Supplier<SslContext> creator) {
+    public static SslContext getOrCreateSslContext(URL url, Supplier<SslContext> creator) {
         boolean sslEnabled = url.getBooleanParam(DefaultConfigKeys.SSL.key(), false);
         return sslEnabled ? creator.get() : null;
     }
 
     /**
      * Builds server channel initializer.
-     *
-     * @param config
-     * @param channelManager
-     * @return
      */
     public static ChannelInitializer<SocketChannel> buildServerChannelInitializer(NettyEndpointConfig config, ChannelManageHandler channelManager) {
         return new ChannelInitializer<>() {
@@ -127,9 +105,6 @@ public class NettySupport {
 
     /**
      * Builds client channel initializer.
-     *
-     * @param config
-     * @return
      */
     public static ChannelInitializer<SocketChannel> buildClientChannelInitializer(NettyEndpointConfig config) {
         return new ChannelInitializer<>() {
@@ -142,9 +117,6 @@ public class NettySupport {
 
     /**
      * Builds channel pool handler.
-     *
-     * @param config
-     * @return
      */
     public static ChannelPoolHandler buildChannelPoolHandler(NettyEndpointConfig config) {
         return new AbstractChannelPoolHandler() {
@@ -156,19 +128,14 @@ public class NettySupport {
     }
 
     /**
-     * Binds url to current channel.
-     *
-     * @param url
-     * @param channel
+     * Binds config to current channel.
      */
     public static void bindURL(URL url, Channel channel) {
         channel.attr(REQUEST_URL).set(url);
     }
 
     /**
-     * Removes url from current channel.
-     *
-     * @param channel
+     * Removes config from current channel.
      */
     public static void unbindURL(Channel channel) {
         Attribute<URL> attr = channel.attr(REQUEST_URL);
@@ -176,20 +143,14 @@ public class NettySupport {
     }
 
     /**
-     * Acquires url from current channel.
-     *
-     * @param channel
-     * @return
+     * Gets config from current channel.
      */
-    public static URL acquireBoundChannel(Channel channel) {
+    public static URL getBoundChannel(Channel channel) {
         return channel.attr(REQUEST_URL).get();
     }
 
     /**
      * Initializes client channel.
-     *
-     * @param channel
-     * @param config
      */
     public static void initClientChannel(Channel channel, NettyEndpointConfig config) {
         ChannelPipeline pipeline = channel.pipeline();
@@ -206,10 +167,6 @@ public class NettySupport {
 
     /**
      * Initializes server channel.
-     *
-     * @param channel
-     * @param config
-     * @param channelManager
      */
     public static void initServerChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
         ChannelPipeline pipeline = channel.pipeline();
@@ -226,11 +183,7 @@ public class NettySupport {
     }
 
     /**
-     * Builds request url.
-     *
-     * @param serverUrl
-     * @param path
-     * @return
+     * Builds request config.
      */
     public static URL buildRequestUrl(URL serverUrl, String path) {
         URL requestUrl = URL.builder()

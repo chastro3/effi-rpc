@@ -1,7 +1,8 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.ConfigSource;
+import io.effi.rpc.common.config.Config;
+import io.effi.rpc.common.config.ConfigSource;
+import io.effi.rpc.common.config.FlatConfig;
 import io.effi.rpc.common.util.ChainBuilder;
 
 public abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
@@ -11,10 +12,10 @@ public abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
 
     protected String protocol;
 
-    protected Config config;
+    protected FlatConfig config;
 
     protected NamedConfigBuilder() {
-        config = new Config();
+        config = new FlatConfig();
     }
 
     /**
@@ -40,7 +41,9 @@ public abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
 
     @Override
     public T build() {
-        return build(config());
+        T instance = build(config());
+        config.setOwner(instance);
+        return instance;
     }
 
     protected abstract T build(Config config);

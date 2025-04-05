@@ -10,7 +10,7 @@ import java.util.Collection;
  *
  * @param <T> the type of values managed
  */
-public interface Manager<T> extends ModuleSource, Cleanable {
+public interface ComponentManager<T> extends ModuleSource, Cleanable {
 
     /**
      * Registers a value with a specific key.
@@ -36,11 +36,9 @@ public interface Manager<T> extends ModuleSource, Cleanable {
     T get(String key);
 
     /**
-     * Returns all values managed by this {@link Manager}.
-     *
-     * @return a collection of values
+     * Returns all components managed by this {@link ComponentManager}.
      */
-    Collection<T> values();
+    Collection<T> components();
 
     /**
      * Registers a value if it implements the {@link Key} interface.
@@ -49,13 +47,13 @@ public interface Manager<T> extends ModuleSource, Cleanable {
      * @param value the value to register
      */
     default void register(T value) {
-        if (value instanceof Manager.Key managerValue) {
+        if (value instanceof ComponentManager.Key managerValue) {
             register(managerValue.managerKey(), value);
         }
     }
 
     /**
-     * A key that can be associated with a value in the {@link Manager}.
+     * A key that can be associated with a value in the {@link ComponentManager}.
      * Implementations should provide the key as a string.
      */
     interface Key {

@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.util.TypeToken;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.protocol.http.HttpCaller;
 
@@ -12,7 +12,7 @@ import io.effi.rpc.protocol.http.HttpCaller;
  */
 public class Http2Caller<R> extends HttpCaller<R> {
 
-    Http2Caller(Config config, Http2CallerBuilder<R> builder) {
+    Http2Caller(LinkedConfig config, Http2CallerBuilder<R> builder) {
         super(config, builder);
     }
 
@@ -25,7 +25,7 @@ public class Http2Caller<R> extends HttpCaller<R> {
      * @param <R>
      * @return
      */
-    public static <R> Http2CallerBuilder<R> builder(TypeToken<R> returnType, Config config) {
+    public static <R> Http2CallerBuilder<R> builder(TypeToken<R> returnType, LinkedConfig config) {
         return new Http2CallerBuilder<>(returnType, config);
     }
 }

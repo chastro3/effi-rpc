@@ -7,13 +7,13 @@ import org.intellij.lang.annotations.Language;
 /**
  * RouterConfig Manager.
  */
-public class RouterConfigManager extends AbstractManager<RouterConfig> {
+public class RouterConfigManager extends AbstractComponentManager<RouterConfig> {
     public RouterConfigManager(EffiRpcModule module) {
         super(module);
     }
 
     /**
-     * Register a new router config bye call url regex and target url regex.
+     * Register a new router config bye call config regex and target config regex.
      *
      * @param urlRegex
      * @param targetRegex

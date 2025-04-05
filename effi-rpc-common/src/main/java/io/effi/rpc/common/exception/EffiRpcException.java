@@ -19,25 +19,10 @@ public class EffiRpcException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    /**
-     * Creates a new {@link  EffiRpcException} with the given error code and optional message arguments.
-     *
-     * @param errorCode the error code.
-     * @param args      optional arguments to format the error message.
-     * @return a new instance of {@code EffiRpcException}.
-     */
     public static EffiRpcException wrap(ErrorCode errorCode, Object... args) {
         return wrap(errorCode, null, args);
     }
 
-    /**
-     * Wraps an existing exception into an {@link EffiRpcException}, preserving the root cause.
-     *
-     * @param errorCode the error code associated with the new exception.
-     * @param wrapped   the exception to wrap (nullable).
-     * @param args      optional arguments to format the error message.
-     * @return a new or existing instance of {@link EffiRpcException}.
-     */
     public static EffiRpcException wrap(ErrorCode errorCode, Throwable wrapped, Object... args) {
         AssertUtil.notNull(errorCode, "error code");
         if (wrapped == null) {
@@ -62,9 +47,6 @@ public class EffiRpcException extends RuntimeException {
         }
     }
 
-    /**
-     * Returns the associated error code.
-     */
     public ErrorCode errorCode() {
         return errorCode;
     }

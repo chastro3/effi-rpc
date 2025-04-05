@@ -1,11 +1,11 @@
 package io.effi.rpc.contract.module;
 
-import io.effi.rpc.common.url.URLSource;
+import io.effi.rpc.common.config.URLSource;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.manager.CalleeManager;
-import io.effi.rpc.contract.manager.Manager;
+import io.effi.rpc.contract.manager.ComponentManager;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Exposes the service through a specified {@link EffiRpcModule}.
  */
-public interface ServerExporter extends URLSource, ModuleSource, Manager.Key {
+public interface ServerExporter extends URLSource, ModuleSource, ComponentManager.Key {
 
     /**
      * Returns the server configuration associated with this exporter.

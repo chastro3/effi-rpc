@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
@@ -64,7 +64,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
     }
 
     @Override
-    public Channel acquireChannel(InetSocketAddress remoteAddress) {
+    public Channel findChannel(InetSocketAddress remoteAddress) {
         for (Channel channel : channels()) {
             if (NetUtil.isSameAddress(channel.remoteAddress(), remoteAddress)) {
                 return channel;
@@ -75,7 +75,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
 
     @Override
     public String toString() {
-        return String.format("url=%s, active=%s", url(), isActive());
+        return String.format("config=%s, active=%s", url(), isActive());
     }
 
     protected abstract void doInit();

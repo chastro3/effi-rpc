@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
@@ -38,7 +38,7 @@ public class ChannelManageHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
         String remoteAddress = NetUtil.toAddress((InetSocketAddress) channel.remoteAddress());
-        activeChannels.put(remoteAddress, NettyChannel.acquire(channel, serverUrl, module));
+        activeChannels.put(remoteAddress, NettyChannel.getOrCreate(channel, serverUrl, module));
         super.channelActive(ctx);
     }
 

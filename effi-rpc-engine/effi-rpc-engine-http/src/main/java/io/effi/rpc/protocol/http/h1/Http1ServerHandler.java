@@ -17,7 +17,7 @@ public final class Http1ServerHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest fullHttpRequest) {
-            NettyChannel nettyChannel = NettyChannel.acquire(ctx.channel());
+            NettyChannel nettyChannel = NettyChannel.get(ctx.channel());
             msg = H1Support.fromFullHttpRequest(nettyChannel.url(), fullHttpRequest);
         }
         super.channelRead(ctx, msg);

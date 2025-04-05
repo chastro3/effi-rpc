@@ -1,13 +1,13 @@
 package io.effi.rpc.common.spi;
 
+import io.effi.rpc.common.config.Config;
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.util.resoruce.Cleanable;
-import io.effi.rpc.common.util.resoruce.Closeable;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.ClassUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.common.util.resoruce.Cleanable;
+import io.effi.rpc.common.util.resoruce.Closeable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -112,7 +112,7 @@ public final class ExtensionLoader<S> implements Cleanable {
         String key = extensionLoader.key;
         String name = StringUtil.isBlank(key)
                 ? extensionLoader.defaultExtension
-                : config.get(key, extensionLoader.defaultExtension);
+                : config.getOrDefault(key, extensionLoader.defaultExtension);
         return extensionLoader.getExtension(name);
 
     }

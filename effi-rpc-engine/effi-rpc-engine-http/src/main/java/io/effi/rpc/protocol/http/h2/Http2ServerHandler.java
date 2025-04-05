@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
@@ -78,10 +78,10 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Http2RequestStream requestStream = null;
         if (msg instanceof Http2HeadersFrame headersFrame) {
-            requestStream = H2Support.acquireRequestStream(ctx, headersFrame.stream());
+            requestStream = H2Support.getOrCreateRequestStream(ctx, headersFrame.stream());
             requestStream.parseHeaderFrame(headersFrame);
         } else if (msg instanceof Http2DataFrame dataFrame) {
-            requestStream = H2Support.acquireRequestStream(ctx, dataFrame.stream());
+            requestStream = H2Support.getOrCreateRequestStream(ctx, dataFrame.stream());
             requestStream.parseDataFrame(dataFrame);
         } else {
             super.channelRead(ctx, msg);

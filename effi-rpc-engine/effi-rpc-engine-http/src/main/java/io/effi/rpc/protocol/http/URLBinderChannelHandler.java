@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.ReplyFuture;
@@ -12,7 +12,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
 /**
- * Bind request url to current channel.
+ * Bind request config to current channel.
  */
 public abstract class URLBinderChannelHandler extends ChannelDuplexHandler {
 
@@ -21,7 +21,7 @@ public abstract class URLBinderChannelHandler extends ChannelDuplexHandler {
         URL requestUrl;
         if ((requestUrl = supported(msg)) != null) {
             writeHttpRequest(ctx, msg, promise);
-            // bind request url to current channel
+            // bind request config to current channel
             NettySupport.bindURL(requestUrl, ctx.channel());
         } else {
             super.write(ctx, msg, promise);
@@ -31,7 +31,7 @@ public abstract class URLBinderChannelHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        URL requestUrl = NettySupport.acquireBoundChannel(ctx.channel());
+        URL requestUrl = NettySupport.getBoundChannel(ctx.channel());
         if (requestUrl != null) {
             Long id = requestUrl.get(KeyConstant.ATTR_UNIQUE_ID);
             if (id != null) {

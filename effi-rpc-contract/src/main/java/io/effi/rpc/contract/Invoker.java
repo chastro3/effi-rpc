@@ -1,18 +1,13 @@
 package io.effi.rpc.contract;
 
+import io.effi.rpc.common.config.LinkedConfigSource;
+import io.effi.rpc.common.config.QueryPath;
 import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.common.url.ConfigKey;
-import io.effi.rpc.common.url.ConfigSource;
-import io.effi.rpc.common.url.QueryPath;
 import io.effi.rpc.common.util.Attributes;
 import io.effi.rpc.common.util.GenerateUtil;
 import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.filter.Filter;
-import io.effi.rpc.contract.manager.Manager;
-
-import java.util.Collections;
-import java.util.List;
+import io.effi.rpc.contract.manager.ComponentManager;
 
 /**
  * Wrapper for client and server invocation.
@@ -23,7 +18,7 @@ import java.util.List;
  *
  * @param <R> the return type of the invocation
  */
-public interface Invoker<R> extends ConfigSource, Attributes, Manager.Key {
+public interface Invoker<R> extends Attributes, ComponentManager.Key, LinkedConfigSource {
 
     /**
      * Returns the invocation protocol.
@@ -59,16 +54,6 @@ public interface Invoker<R> extends ConfigSource, Attributes, Manager.Key {
     @Override
     default String managerKey() {
         return GenerateUtil.generateInvokerKey(protocol(), queryPath().path());
-    }
-
-    default String get(ConfigKey configKey) {
-        return config().get(configKey);
-    }
-
-    default List<String> getMerged(ConfigKey configKey) {
-        return configKey.source() == Config.Source.MERGE_FROM_PARENT
-                ? config().getMerged(configKey.key())
-                : Collections.emptyList();
     }
 }
 

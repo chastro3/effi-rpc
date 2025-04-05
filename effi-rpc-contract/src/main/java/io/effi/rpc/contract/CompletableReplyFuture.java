@@ -1,6 +1,6 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
+import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.util.StringUtil;
@@ -45,7 +45,8 @@ public class CompletableReplyFuture extends ReplyFuture {
 
     @Override
     protected void doCompleteExceptionally(EffiRpcException e) {
-        FaultTolerance faultTolerance = ExtensionLoader.loadExtension(FaultTolerance.class, context.invoker().config());
+        String name = context.invoker().get(DefaultConfigKeys.FAULT_TOLERANCE);
+        FaultTolerance faultTolerance = ExtensionLoader.loadExtension(FaultTolerance.class, name);
         try {
             faultTolerance.operation(this, e);
         } catch (EffiRpcException finalE) {

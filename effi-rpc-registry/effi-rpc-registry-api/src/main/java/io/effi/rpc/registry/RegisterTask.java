@@ -1,7 +1,7 @@
 package io.effi.rpc.registry;
 
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +29,7 @@ public class RegisterTask implements Runnable {
     }
 
     /**
-     * Returns the url.
+     * Returns the config.
      */
     public URL url() {
         return url;

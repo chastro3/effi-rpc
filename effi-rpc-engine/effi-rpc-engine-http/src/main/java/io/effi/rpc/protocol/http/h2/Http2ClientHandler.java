@@ -14,7 +14,7 @@
  */
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
@@ -84,10 +84,10 @@ public final class Http2ClientHandler extends URLBinderChannelHandler {
     protected void readHttpResponse(ChannelHandlerContext ctx, Object msg, InvocationContext<Envelope.Request, Caller<?>> context) throws Exception {
         Http2ResponseStream responseStream = null;
         if (msg instanceof Http2HeadersFrame headersFrame) {
-            responseStream = H2Support.acquireResponseStream(ctx, headersFrame.stream());
+            responseStream = H2Support.getOrCreateResponseStream(ctx, headersFrame.stream());
             responseStream.parseHeaderFrame(headersFrame);
         } else if (msg instanceof Http2DataFrame dataFrame) {
-            responseStream = H2Support.acquireResponseStream(ctx, dataFrame.stream());
+            responseStream = H2Support.getOrCreateResponseStream(ctx, dataFrame.stream());
             responseStream.parseDataFrame(dataFrame);
         }
         if (responseStream != null && responseStream.endStream()) {

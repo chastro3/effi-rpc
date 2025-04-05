@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.URL;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -30,8 +30,8 @@ public class Http1Transporter implements NettyTransporter {
     @Override
     public NettyEndpointConfig initClientConfig(URL url, EffiRpcModule module) {
         int maxReceiveSize = url.getIntParam(DefaultConfigKeys.CLIENT_MAX_RECEIVE_SIZE.key(), Constant.DEFAULT_MAX_MESSAGE_SIZE);
-        SslContext sslContext = NettySupport.acquireSslContext(url, () ->
-                SslContextFactory.acquireForClient(ApplicationProtocolNames.HTTP_1_1));
+        SslContext sslContext = NettySupport.getOrCreateSslContext(url, () ->
+                SslContextFactory.getForClient(ApplicationProtocolNames.HTTP_1_1));
         return new NettyEndpointConfig(url, module, sslContext, () -> List.of(
                 new NamedChannelHandler("httpClientCodec", new HttpClientCodec()),
                 new NamedChannelHandler("aggregator", new HttpObjectAggregator(maxReceiveSize)),
@@ -43,8 +43,8 @@ public class Http1Transporter implements NettyTransporter {
     @Override
     public NettyEndpointConfig initServerConfig(URL url, EffiRpcModule module) {
         int maxReceiveSize = url.getIntParam(DefaultConfigKeys.SERVER_MAX_RECEIVE_SIZE.key(), Constant.DEFAULT_MAX_MESSAGE_SIZE);
-        SslContext sslContext = NettySupport.acquireSslContext(url, () ->
-                SslContextFactory.acquireForServer(ApplicationProtocolNames.HTTP_1_1));
+        SslContext sslContext = NettySupport.getOrCreateSslContext(url, () ->
+                SslContextFactory.getForServer(ApplicationProtocolNames.HTTP_1_1));
         return new NettyEndpointConfig(url, module, sslContext, () -> List.of(
                 new NamedChannelHandler("httpServerCodec", new HttpServerCodec()),
                 new NamedChannelHandler("aggregator", new HttpObjectAggregator(maxReceiveSize)),

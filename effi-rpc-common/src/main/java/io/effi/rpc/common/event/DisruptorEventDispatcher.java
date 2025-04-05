@@ -4,11 +4,10 @@ import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.ExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
+import io.effi.rpc.common.config.Config;
 import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.executor.RpcThreadFactory;
-import io.effi.rpc.common.url.Config;
 import io.effi.rpc.common.util.Holder;
 import io.effi.rpc.common.util.ObjectUtil;
 
@@ -55,10 +54,11 @@ public class DisruptorEventDispatcher extends AbstractEventDispatcher {
     private RingBuffer<EventHolder<?>> buildRingBuffer() {
         int bufferSize = Constant.DEFAULT_BUFFER_SIZE;
         int subscribes = Constant.DEFAULT_SUBSCRIBES;
-        if (config != null) {
-            bufferSize = config.getInt(KeyConstant.BUFFER_SIZE, Constant.DEFAULT_BUFFER_SIZE);
-            subscribes = config.getInt(KeyConstant.SUBSCRIBES, Constant.DEFAULT_SUBSCRIBES);
-        }
+        // todo 优化配置
+//        if (config != null) {
+//            bufferSize = config.get(KeyConstant.BUFFER_SIZE, Constant.DEFAULT_BUFFER_SIZE);
+//            subscribes = config.get(KeyConstant.SUBSCRIBES, Constant.DEFAULT_SUBSCRIBES);
+//        }
         Disruptor<EventHolder<?>> disruptor = new Disruptor<>(EventHolder::new, bufferSize, new RpcThreadFactory("disruptor-event-handler"));
         RingBuffer<EventHolder<?>> ringBuffer = disruptor.getRingBuffer();
         DisruptorEventHandler<?>[] handlers = new DisruptorEventHandler<?>[subscribes];

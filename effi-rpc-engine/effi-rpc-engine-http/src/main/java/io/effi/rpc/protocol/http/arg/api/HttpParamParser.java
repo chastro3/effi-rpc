@@ -24,6 +24,6 @@ public class HttpParamParser implements ParameterParser<HttpRequest<ByteBuf>> {
 
     @Override
     public Object parse(HttpRequest<ByteBuf> request, Parameter parameter, Callee<?> callee) {
-        return HttpUtil.acquireParam(request.url(), paramVar.get().get());
+        return HttpUtil.findParamForVar(request.url(), paramVar.get().get());
     }
 }

@@ -1,10 +1,7 @@
 package io.effi.rpc.test;
 
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.url.Config;
-import io.effi.rpc.engine.AnnotationRemoteClient;
-import io.effi.rpc.engine.AnnotationRemoteService;
-import io.effi.rpc.engine.ComplexRemoteService;
 import io.effi.rpc.contract.annotation.AnnotationCalleeBuilder;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
@@ -57,17 +54,17 @@ public class ApiTest {
 
     @Test
     public void configTest() {
-        Config node1 = new Config();
-        Config node2 = new Config();
-        Config node3 = new Config();
-        node3.parent(node2);
-        node2.parent(node1);
+        NodeConfig node1 = new NodeConfig(null);
+        NodeConfig node2 = new NodeConfig(null);
+        NodeConfig node3 = new NodeConfig(null);
+        node3.setParent(node2);
+        node2.setParent(node1);
         node1.set("path", "/1");
         node2.set("path", "/2");
         node3.set("path", "/3");
-        System.out.println(node3.getOrFromParent("path"));
-        System.out.println(node3.getOnlyFromParent("path"));
-        System.out.println(Arrays.toString(node3.getMerged("path").stream().toArray()));
+        System.out.println(node3.getSelfPreferred("path"));
+        System.out.println(node3.getParentPreferred("path"));
+        System.out.println(Arrays.toString(node3.getCascaded("path").stream().toArray()));
 
     }
 

@@ -6,7 +6,6 @@ allprojects {
     // resolve Gradle console Chinese character encoding issues
     tasks.withType<JavaExec> { systemProperties["sun.stdout.encoding"] = "utf-8" }
     tasks.named("clean") { doLast { delete(fileTree(projectDir).include("**/*.iml")) } }
-
 }
 
 subprojects {

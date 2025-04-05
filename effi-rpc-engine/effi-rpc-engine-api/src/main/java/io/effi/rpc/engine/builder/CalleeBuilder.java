@@ -1,7 +1,8 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.constant.DefaultConfigKeys;
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.module.EffiRpcModule;
@@ -23,16 +24,17 @@ public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder
 
     protected List<EffiRpcModule> modules = new ArrayList<>();
 
-    protected CalleeBuilder(MethodMapper<?> methodMapper, Config config) {
+    protected CalleeBuilder(MethodMapper<?> methodMapper, LinkedConfig config) {
         super(config);
-        this.methodMapper = methodMapper;
+        this.methodMapper = AssertUtil.notNull(methodMapper, "methodMapper");
+        this.container = methodMapper.remoteService();
     }
 
     /**
      * Sets callee description.
      */
     public C desc(String desc) {
-        config.set(DefaultConfigKeys.DESC.key(), desc);
+        config.set(DefaultConfigKeys.CALLEE_DESC, desc);
         return returnThis();
     }
 
@@ -44,16 +46,10 @@ public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder
         return returnThis();
     }
 
-    /**
-     * Returns the modules.
-     */
     public List<EffiRpcModule> modules() {
         return modules;
     }
 
-    /**
-     * Returns the methodMapper.
-     */
     public MethodMapper<?> methodMapper() {
         return methodMapper;
     }

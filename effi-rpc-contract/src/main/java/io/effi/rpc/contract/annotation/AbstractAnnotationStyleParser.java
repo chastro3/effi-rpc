@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.url.Config;
+import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.parameter.ParameterMapper;
@@ -34,7 +34,7 @@ public abstract class AbstractAnnotationStyleParser<REQ extends Envelope.Request
     }
 
     @Override
-    public void parseType(Class<?> type, Config config) {
+    public void parseType(Class<?> type, LinkedConfig config) {
         if (CollectionUtil.isNotEmpty(typeAnnotationConfigParsers)) {
             for (AnnotationConfigParser<Class<?>, ?> parser : typeAnnotationConfigParsers) {
                 parser.parse(type, config);
@@ -43,7 +43,7 @@ public abstract class AbstractAnnotationStyleParser<REQ extends Envelope.Request
     }
 
     @Override
-    public Config parseMethod(Method method, Config config) {
+    public LinkedConfig parseMethod(Method method, LinkedConfig config) {
         if (CollectionUtil.isNotEmpty(methodAnnotationConfigParsers)) {
             for (AnnotationConfigParser<Method, ?> parser : methodAnnotationConfigParsers) {
                 parser.parse(method, config);
