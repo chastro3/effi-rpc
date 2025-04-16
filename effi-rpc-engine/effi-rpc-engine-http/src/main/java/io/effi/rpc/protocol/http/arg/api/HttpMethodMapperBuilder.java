@@ -75,7 +75,7 @@ public class HttpMethodMapperBuilder<T> implements Builder<MethodMapper<T>> {
     }
 
     private Method validMethod() {
-        Class<T> targetType = service.targetType();
+        Class<T> targetType = service.serviceType();
         Class<?>[] parameterTypes = argMapping.stream().map(Mapping::argType).toArray(Class[]::new);
         try {
             return targetType.getMethod(methodName, parameterTypes);

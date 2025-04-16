@@ -21,9 +21,9 @@ import java.util.Map;
  *
  * <p>Example usage:</p>
  * <pre>
- * URL config = URL.valueOf("http://www.example.com/path/to/resource?param1=value1");
- * config.addParam("param2", "value2");
- * String fullUrl = config.uri();
+ * URL url = URL.valueOf("http://www.example.com/path/to/resource?param1=value1");
+ * url.addParam("param2", "value2");
+ * String fullUrl = url.uri();
  * </pre>
  */
 public class URL extends AbstractAttributes implements Replicable<URL> {
@@ -104,20 +104,12 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
                 .build();
     }
 
-    /**
-     * Creates a new URLBuilder instance for constructing a URL.
-     *
-     * @return a new URLBuilder
-     */
     public static URLBuilder builder() {
         return new URLBuilder();
     }
 
     /**
      * Sets the protocol for the URL.
-     *
-     * @param protocol
-     * @return
      */
     public URL protocol(String protocol) {
         this.protocol = protocol;
@@ -126,9 +118,6 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
 
     /**
      * Sets the address and extracts the host and port if valid.
-     *
-     * @param address the address to set
-     * @return the current URL instance
      */
     public URL address(String address) {
         InetSocketAddress socketAddress = NetUtil.validateAddress(address);

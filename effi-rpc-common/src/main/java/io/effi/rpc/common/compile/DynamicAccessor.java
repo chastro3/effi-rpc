@@ -1,0 +1,48 @@
+package io.effi.rpc.common.compile;
+
+import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.common.util.ReflectionUtil;
+
+import java.util.Arrays;
+
+public abstract class DynamicAccessor {
+
+    public static final String SUFFIX = "$DynamicAccessor";
+
+    public static final String INTERNAL_NAME = DynamicAccessor.class.getName().replace('.', '/');
+
+    protected String[] methodNames;
+
+    protected Class<?>[][] parameterTypes;
+
+    protected DynamicAccessor(Class<?> type, String[] methodNames, Class<?>[][] parameterTypes) {
+        this.methodNames = methodNames;
+        this.parameterTypes = parameterTypes;
+    }
+
+    public static DynamicAccessor get(Class<?> type) {
+        RuntimeClassLoader cl = RuntimeClassLoader.get(type);
+        Class<?> c;
+        try {
+            c = cl.loadClass(type.getName() + SUFFIX);
+        } catch (ClassNotFoundException e) {
+            GeneratedInfo generatedInfo = DynamicAccessorGenerator.fromClass(type);
+            c = cl.define(generatedInfo.pkg() + "." + generatedInfo.name(), generatedInfo.data());
+        }
+        return (DynamicAccessor) ReflectionUtil.newInstance(c);
+    }
+
+    public Object invoke(Object target, int index, Object... args) {
+        throw new IllegalArgumentException("No methods found in class");
+    }
+
+    public int getMethodIndex(String methodName, Class<?>... paramTypes) {
+        if (CollectionUtil.isNotEmpty(methodNames)) {
+            if (CollectionUtil.isEmpty(paramTypes)) paramTypes = null;
+            for (int i = 0, n = methodNames.length; i < n; i++)
+                if (methodNames[i].equals(methodName) && Arrays.equals(paramTypes, parameterTypes[i])) return i;
+        }
+        throw new IllegalArgumentException("Unable to find public method: " + methodName + " " + Arrays.toString(paramTypes));
+    }
+
+}

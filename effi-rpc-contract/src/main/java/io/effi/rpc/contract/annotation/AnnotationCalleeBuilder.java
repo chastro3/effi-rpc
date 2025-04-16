@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.common.config.HierarchicalNodeConfig;
 import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.Builder;
@@ -30,9 +30,9 @@ public class AnnotationCalleeBuilder<S> {
     public AnnotationCalleeBuilder(RemoteService<S> remoteService, String methodName, Class<?>... parameterTypes) {
         this.remoteService = AssertUtil.notNull(remoteService, "remoteService");
         try {
-            this.method = remoteService.targetType().getMethod(methodName, parameterTypes); // Get method by name and types
+            this.method = remoteService.serviceType().getMethod(methodName, parameterTypes); // Get method by name and types
         } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException("Can't find method: " + methodName + " in " + remoteService.targetType());
+            throw new IllegalArgumentException("Can't find method: " + methodName + " in " + remoteService.serviceType());
         }
     }
 
@@ -52,12 +52,12 @@ public class AnnotationCalleeBuilder<S> {
      * @return the constructed Callee instance
      * @throws IllegalArgumentException if the style is not set or is invalid
      */
-    public <T extends Callee<S>> T build(BiFunction<MethodMapper<S>, LinkedConfig, Builder<T>> builder) {
+    public <T extends Callee<S>> T build(BiFunction<MethodMapper<S>, NodeConfig, Builder<T>> builder) {
         AssertUtil.notBlank(style, "style");
         AnnotationStyleParser methodParser = ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
         ParameterMapper<ParameterParser<?>>[] parameterMappers = methodParser.parseCalleeParameterMapper(method);
         MethodMapper<S> methodMapper = new MethodMapper<>(remoteService, method, parameterMappers);
-        LinkedConfig config = methodParser.parseMethod(method, new NodeConfig());
+        NodeConfig config = methodParser.parseMethod(method, new HierarchicalNodeConfig());
         return builder.apply(methodMapper, config).build();
     }
 }

@@ -69,7 +69,7 @@ public interface Callee<T> extends Invoker<Object> {
     Collection<EffiRpcModule> exportedModules();
 
     @Override
-    default String managerKey() {
+    default String repositoryKey() {
         return queryPath() == null ? "" : queryPath().path();
     }
 }

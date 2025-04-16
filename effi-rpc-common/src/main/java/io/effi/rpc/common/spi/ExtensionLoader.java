@@ -29,11 +29,13 @@ public final class ExtensionLoader<S> implements Cleanable {
     // SPI prefix path for extension resources
     private static final String PREFIX = Constant.SPI_FIX_PATH;
 
+    private static final Map<String, Object> FAST_EXTENSION_CACHE = new ConcurrentHashMap<>();
+
     // Cache to store loaded ExtensionLoader instances keyed by their type name
-    private static final Map<String, ExtensionLoader<?>> LOADED_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
 
     // Map storing loaded listeners for each extension type
-    private static final Map<Class<?>, Set<LoadedListener<?>>> LISTENERMAP = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Set<LoadedListener<?>>> LISTENERS = new ConcurrentHashMap<>();
 
     // ExtensionFactory for get extension instances
     private static final DelegateExtensionFactory EXTENSION_FACTORY = new DelegateExtensionFactory();
@@ -96,7 +98,7 @@ public final class ExtensionLoader<S> implements Cleanable {
         AssertUtil.condition(type.isInterface(), "Extension type (" + type + ") cannot be an interface");
         AssertUtil.condition(type.isAnnotationPresent(Extensible.class),
                 "Failed to load extension type (" + type + "): missing @Extensible annotation");
-        return (ExtensionLoader<S>) LOADED_MAP.computeIfAbsent(type.getTypeName(), k -> new ExtensionLoader<>(type));
+        return (ExtensionLoader<S>) LOADERS.computeIfAbsent(type.getTypeName(), k -> new ExtensionLoader<>(type));
     }
 
     /**
@@ -125,8 +127,10 @@ public final class ExtensionLoader<S> implements Cleanable {
      * @param <S>           the type of the extension
      * @return the loaded extension instance
      */
+    @SuppressWarnings("unchecked")
     public static <S> S loadExtension(Class<S> type, String extensionName) {
-        return load(type).getExtension(extensionName);
+        return (S) FAST_EXTENSION_CACHE.computeIfAbsent(fastExtensionCacheKey(type, extensionName),
+                k -> load(type).getExtension(extensionName));
     }
 
     /**
@@ -162,7 +166,7 @@ public final class ExtensionLoader<S> implements Cleanable {
     @SafeVarargs
     public static <S> void addListener(Class<S> interfaceType, LoadedListener<S>... loadedListeners) {
         if (CollectionUtil.isNotEmpty(loadedListeners)) {
-            Set<LoadedListener<?>> loadedListenerSet = LISTENERMAP.computeIfAbsent(interfaceType, k -> new HashSet<>());
+            Set<LoadedListener<?>> loadedListenerSet = LISTENERS.computeIfAbsent(interfaceType, k -> new HashSet<>());
             Collections.addAll(loadedListenerSet, loadedListeners);
         }
     }
@@ -171,9 +175,13 @@ public final class ExtensionLoader<S> implements Cleanable {
      * Clears all loaded extension instances and listeners.
      */
     public static void clearLoader() {
-        LISTENERMAP.clear();
-        LOADED_MAP.values().forEach(ExtensionLoader::clear);
-        LOADED_MAP.clear();
+        LISTENERS.clear();
+        LOADERS.values().forEach(ExtensionLoader::clear);
+        LOADERS.clear();
+    }
+
+    private static String fastExtensionCacheKey(Class<?> type, String name) {
+        return type.getName() + '@' + name;
     }
 
     /**
@@ -245,8 +253,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Retrieves the default extension.
-     *
-     * @return the default extension instance
      */
     public S getDefault() {
         return getExtension(defaultExtension);
@@ -254,8 +260,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Retrieves all loaded extensions.
-     *
-     * @return a list of all loaded extension instances
      */
     public List<S> getExtensions() {
         ArrayList<S> list = new ArrayList<>();
@@ -309,8 +313,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
         /**
          * Checks whether the extension condition is met.
-         *
-         * @return
          */
         public boolean isConditionMet() {
             String[] classes = extension.onClass();
@@ -329,8 +331,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
         /**
          * Retrieves the extension instance, creating it if necessary.
-         *
-         * @return the extension instance
          */
         public S instance() {
             if (extension.scope() == Scope.SINGLETON) {
@@ -351,7 +351,7 @@ public final class ExtensionLoader<S> implements Cleanable {
         private S newInstance() {
             S instance = EXTENSION_FACTORY.getExtension(type, values);
             // Trigger all listeners for this type
-            LISTENERMAP.getOrDefault(type, Collections.emptySet())
+            LISTENERS.getOrDefault(type, Collections.emptySet())
                     .forEach(listener -> ((LoadedListener<S>) listener).onLoaded(instance));
             return instance;
         }

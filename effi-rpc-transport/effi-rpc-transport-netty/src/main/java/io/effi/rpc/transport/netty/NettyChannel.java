@@ -1,13 +1,13 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.AbstractChannel;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http2.Http2StreamChannel;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,33 +27,16 @@ public final class NettyChannel extends AbstractChannel {
     private NettyChannel(Channel channel, URL endpointUrl, EffiRpcModule module) {
         super(endpointUrl, module);
         this.channel = channel;
+        registerCloseCallBack();
     }
 
     public static NettyChannel getOrCreate(Channel channel, URL endpointUrl, EffiRpcModule module) {
+        AssertUtil.notNull(channel, "channel");
         return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpointUrl, module));
     }
 
-    /**
-     * Acquires a Channel instance from the given netty channel.
-     *
-     * @param channel
-     * @return
-     */
     public static NettyChannel get(Channel channel) {
         return CHANNELS.get(channel);
-    }
-
-    /**
-     * Saves the given channel and endpointUrl into the channel map.
-     *
-     * @param channel
-     * @param endpointUrl
-     * @param module
-     */
-    public static void save(Channel channel, URL endpointUrl, EffiRpcModule module) {
-        if (channel != null && endpointUrl != null) {
-            getOrCreate(channel, endpointUrl, module);
-        }
     }
 
     public static void remove(Channel channel) {
@@ -76,17 +59,7 @@ public final class NettyChannel extends AbstractChannel {
 
     @Override
     public void close() {
-        ChannelFuture channelFuture = channel.close();
-        channelFuture.addListener((ChannelFutureListener) future -> {
-            if (future.isSuccess()) {
-                if (CHANNELS.containsKey(channel) && CHANNELS.remove(channel, this)) {
-                    clear();
-                    logger.debug("{} closed", this);
-                }
-            } else {
-                logger.error(this + " closure failed", future.cause());
-            }
-        });
+        channel.close();
     }
 
     @Override
@@ -103,4 +76,18 @@ public final class NettyChannel extends AbstractChannel {
         return channel;
     }
 
+    private void registerCloseCallBack() {
+        channel.closeFuture().addListener(future -> {
+                    if (future.isSuccess()) {
+                        if (CHANNELS.containsKey(channel) && CHANNELS.remove(channel, this)) {
+                            clear();
+                            if (!(channel instanceof Http2StreamChannel))
+                                logger.debug("channel {} closed", this);
+                        }
+                    } else {
+                        logger.error(this + " closure failed", future.cause());
+                    }
+                }
+        );
+    }
 }

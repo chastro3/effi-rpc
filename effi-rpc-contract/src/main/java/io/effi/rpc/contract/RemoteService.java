@@ -11,14 +11,14 @@ package io.effi.rpc.contract;
 public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
 
     /**
-     * Returns the target instance of the remote service.
+     * Returns the wrapped service.
      */
-    T target();
+    T service();
 
     /**
-     * Returns the class type of the remote service.
+     * Returns the class type of the service.
      */
-    Class<T> targetType();
+    Class<T> serviceType();
 
     /**
      * Returns the name of the remote service.

@@ -2,6 +2,7 @@ package io.effi.rpc.contract;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
 import io.effi.rpc.common.exception.EffiRpcException;
+import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.context.InvocationContext;
@@ -9,7 +10,9 @@ import io.effi.rpc.contract.context.ReplyContext;
 import io.effi.rpc.contract.faulttolerance.FaultTolerance;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -51,6 +54,18 @@ public class CompletableReplyFuture extends ReplyFuture {
             faultTolerance.operation(this, e);
         } catch (EffiRpcException finalE) {
             completableFuture().completeExceptionally(finalE);
+        }
+    }
+
+    public Object get() {
+        try {
+            return completableFuture.join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof TimeoutException) {
+                String timeout = context().invoker().get(DefaultConfigKeys.TIMEOUT);
+                throw PredefinedErrorCode.TIMEOUT.fail(e, timeout, id());
+            }
+            throw PredefinedErrorCode.CALL_CALLER.fail(e.getCause(), toString());
         }
     }
 

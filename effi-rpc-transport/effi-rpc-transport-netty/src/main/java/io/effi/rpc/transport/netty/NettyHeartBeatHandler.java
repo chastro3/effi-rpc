@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.heartbeat.IdleEvent;
 import io.effi.rpc.transport.heartbeat.RefreshIdleCountEvent;
@@ -31,21 +31,9 @@ public class NettyHeartBeatHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        NettyChannel.save(ctx.channel(), endpointUrl, module);
-        super.channelActive(ctx);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);
-        NettyChannel.remove(ctx.channel());
-    }
-
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         super.channelRead(ctx, msg);
-        NettyChannel nettyChannel = NettyChannel.getOrCreate(ctx.channel(), endpointUrl, module);
+        NettyChannel nettyChannel = NettyChannel.get(ctx.channel());
         module.application().publishEvent(new RefreshIdleCountEvent(nettyChannel));
     }
 

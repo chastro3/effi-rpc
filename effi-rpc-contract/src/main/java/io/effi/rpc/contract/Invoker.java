@@ -1,13 +1,13 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.LinkedConfigSource;
+import io.effi.rpc.common.config.NodeConfigSource;
 import io.effi.rpc.common.config.QueryPath;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.util.Attributes;
 import io.effi.rpc.common.util.GenerateUtil;
 import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.filter.Filter;
-import io.effi.rpc.contract.manager.ComponentManager;
+import io.effi.rpc.contract.repository.ComponentRepository;
 
 /**
  * Wrapper for client and server invocation.
@@ -18,7 +18,7 @@ import io.effi.rpc.contract.manager.ComponentManager;
  *
  * @param <R> the return type of the invocation
  */
-public interface Invoker<R> extends Attributes, ComponentManager.Key, LinkedConfigSource {
+public interface Invoker<R> extends Attributes, ComponentRepository.Key, NodeConfigSource {
 
     /**
      * Returns the invocation protocol.
@@ -52,7 +52,7 @@ public interface Invoker<R> extends Attributes, ComponentManager.Key, LinkedConf
     void addFilter(Filter<?, ?, ?>... filters);
 
     @Override
-    default String managerKey() {
+    default String repositoryKey() {
         return GenerateUtil.generateInvokerKey(protocol(), queryPath().path());
     }
 }

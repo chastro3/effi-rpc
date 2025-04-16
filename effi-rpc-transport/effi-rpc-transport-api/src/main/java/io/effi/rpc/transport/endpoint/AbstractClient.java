@@ -33,7 +33,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
         try {
             doConnect();
         } catch (Exception e) {
-            throw PredefinedErrorCode.CONNECT.fail(e, url().address(), url().protocol());
+            throw PredefinedErrorCode.CONNECT.fail(e, url().authority());
         }
     }
 

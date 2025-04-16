@@ -1,6 +1,6 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.LinkedConfigSource;
+import io.effi.rpc.common.config.NodeConfigSource;
 
 import java.util.Collection;
 
@@ -9,7 +9,7 @@ import java.util.Collection;
  *
  * @param <I> the type of invoker managed
  */
-public interface InvokerContainer<I extends Invoker<?>> extends LinkedConfigSource {
+public interface InvokerContainer<I extends Invoker<?>> extends NodeConfigSource {
 
     /**
      * Adds an invoker to the container with a specified key.

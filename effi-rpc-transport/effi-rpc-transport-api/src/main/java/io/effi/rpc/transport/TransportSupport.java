@@ -1,11 +1,11 @@
 package io.effi.rpc.transport;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.config.URLType;
 import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.config.URLType;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.metrics.CalleeMetrics;
@@ -15,16 +15,10 @@ import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class TransportSupport {
-
-    private static final Map<String, Protocol> PROTOCOLS = new ConcurrentHashMap<>(8);
-
     public static Protocol getProtocol(String name) {
         AssertUtil.notBlank(name, "name");
-        return PROTOCOLS.computeIfAbsent(name, key -> ExtensionLoader.loadExtension(Protocol.class, name));
+        return ExtensionLoader.loadExtension(Protocol.class, name);
     }
 
     public static boolean inIOSerialization(Invoker<?> invoker) {
@@ -83,7 +77,7 @@ public class TransportSupport {
 
     public static void handleRequest(Envelope.Request request, Channel channel) {
         Callee<?> callee = channel.module()
-                .serverExporterManager()
+                .serverExporterRepository()
                 .getCallee(request.url());
         // todo send to client
         if (callee == null) {

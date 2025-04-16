@@ -26,7 +26,7 @@ import static io.effi.rpc.common.exception.PredefinedErrorCode.CHANNEL_WRITE;
 @Sharable
 public class ClientMessageAggregator extends ChannelDuplexHandler {
 
-    public static final String NAME = "clientFullMessageAggregator";
+    public static final String NAME = "clientMessageAggregator";
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageAggregator.class);
 
@@ -48,10 +48,10 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof RepackagedRequest<?> marshalingRequest) {
+        if (msg instanceof RepackagedRequest<?> repackagedRequest) {
             // todo 优化
-            registerFailedListener(promise, marshalingRequest.channel(), ReplyFuture.getFuture(marshalingRequest.request().url()));
-            super.write(ctx, marshalingRequest.encode().request(), promise);
+            registerFailedListener(promise, repackagedRequest.channel(), ReplyFuture.getFuture(repackagedRequest.request().url()));
+            super.write(ctx, repackagedRequest.encode().request(), promise);
         } else {
             logger.warn(Messages.onlySupport(DefaultRepackagedRequest.class));
         }
@@ -64,9 +64,7 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
             if (!future.isSuccess()) {
                 if (replyFuture != null) {
                     EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());
-                    replyFuture.context().invoker()
-                            .threadPool()
-                            .execute(() -> replyFuture.complete(exception));
+                    replyFuture.context().invoker().threadPool().execute(() -> replyFuture.complete(exception));
                 }
             }
         });

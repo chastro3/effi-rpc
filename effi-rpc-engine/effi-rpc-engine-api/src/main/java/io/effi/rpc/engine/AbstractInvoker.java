@@ -1,14 +1,14 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.config.QueryPath;
 import io.effi.rpc.common.util.AbstractAttributes;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.ThreadPool;
-import io.effi.rpc.contract.manager.ThreadPoolManager;
+import io.effi.rpc.contract.repository.ThreadPoolRepository;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.engine.builder.InvokerBuilder;
 import io.effi.rpc.transport.Protocol;
@@ -21,7 +21,7 @@ import io.effi.rpc.transport.TransportSupport;
  */
 public abstract class AbstractInvoker<R> extends AbstractAttributes implements Invoker<R> {
 
-    protected LinkedConfig config;
+    protected NodeConfig config;
 
     protected QueryPath queryPath;
 
@@ -29,7 +29,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
 
     protected Protocol protocol;
 
-    protected AbstractInvoker(LinkedConfig config, InvokerBuilder<?, ?> builder) {
+    protected AbstractInvoker(NodeConfig config, InvokerBuilder<?, ?> builder) {
         this.config = AssertUtil.notNull(config, "config");
         String path = config.get(DefaultConfigKeys.PATH);
         this.queryPath = path == null ? QueryPath.EMPTY_PATH : QueryPath.valueOf(path.replace(",", "/"));
@@ -38,7 +38,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
     }
 
     @Override
-    public LinkedConfig config() {
+    public NodeConfig config() {
         return config;
     }
 
@@ -68,7 +68,7 @@ public abstract class AbstractInvoker<R> extends AbstractAttributes implements I
 
     protected ThreadPool getThreadPool(EffiRpcModule module, String defaultThreadPoolName) {
         String threadPoolName = this.get(DefaultConfigKeys.THREAD_POOL);
-        ThreadPoolManager threadPoolManager = module.threadPoolManager();
+        ThreadPoolRepository threadPoolManager = module.threadPoolRepository();
         ThreadPool threadPool = threadPoolManager.get(threadPoolName);
         return threadPool != null ? threadPool : threadPoolManager.get(defaultThreadPoolName);
     }

@@ -160,4 +160,18 @@ public class CalleeMetrics {
         this.minResponseTime = minResponseTime;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "CalleeMetrics{" +
+                "requestCount=" + requestCount +
+                ", successCount=" + successCount +
+                ", failureCount=" + failureCount +
+                ", averageResponseTime=" + averageResponseTime +
+                ", averageSerializationTime=" + averageSerializationTime +
+                ", averageDeserializationTime=" + averageDeserializationTime +
+                ", maxResponseTime=" + maxResponseTime +
+                ", minResponseTime=" + minResponseTime +
+                '}';
+    }
 }

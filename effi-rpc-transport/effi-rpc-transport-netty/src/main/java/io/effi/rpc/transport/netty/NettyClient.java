@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.transport.endpoint.AbstractClient;
 import io.effi.rpc.transport.endpoint.Client;
 import io.netty.bootstrap.Bootstrap;
@@ -95,7 +95,7 @@ public class NettyClient extends AbstractClient {
 
     @Override
     public io.effi.rpc.transport.endpoint.Channel getChannel() {
-        return NettyChannel.getOrCreate(channel, url(), module());
+        return NettyChannel.get(channel);
     }
 }
 

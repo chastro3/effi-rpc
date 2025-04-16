@@ -45,8 +45,6 @@ public abstract class TypeToken<T> {
 
     /**
      * Returns the captured type.
-     *
-     * @return The captured type
      */
     public Type type() {
         return type;
@@ -54,8 +52,6 @@ public abstract class TypeToken<T> {
 
     /**
      * Returns the raw class type of the captured type.
-     *
-     * @return The raw class type
      */
     public Class<? super T> rawType() {
         return rawType;

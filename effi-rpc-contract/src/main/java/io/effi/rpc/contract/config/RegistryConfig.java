@@ -8,7 +8,7 @@ package io.effi.rpc.contract.config;
  */
 public interface RegistryConfig extends NamedURLConfig {
     @Override
-    default String managerKey() {
+    default String repositoryKey() {
         return name();
     }
 }

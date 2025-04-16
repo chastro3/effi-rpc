@@ -1,8 +1,9 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.HierarchicalNodeConfig;
 import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.common.exception.EffiRpcException;
 import io.effi.rpc.common.spi.ExtensionLoader;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
@@ -11,13 +12,12 @@ import io.effi.rpc.common.util.TypeToken;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.RemoteClient;
 import io.effi.rpc.contract.RpcType;
-import io.effi.rpc.contract.annotation.AnnotationParameterWrapper;
-import io.effi.rpc.contract.annotation.AnnotationStyleParser;
-import io.effi.rpc.contract.annotation.EffiRpcCaller;
-import io.effi.rpc.contract.annotation.EffiRpcClient;
+import io.effi.rpc.contract.annotation.*;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.ParameterMapper;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.proxy.InvocationHandler;
 import io.effi.rpc.proxy.ProxyFactory;
 import io.effi.rpc.transport.Protocol;
@@ -34,12 +34,15 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 import static io.effi.rpc.engine.AnnotationSupport.annotationStyleParserForMethod;
+import static io.effi.rpc.engine.AnnotationSupport.checkAnnotationStyle;
 
 public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?>> implements RemoteClient<T>, InvocationHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(AnnotationRemoteClient.class);
+
     private final EffiRpcClient clientAnnotation;
 
-    private final AnnotationStyleWrapper styleWrapper;
+    private final AnnotationStyle annotationStyle;
 
     private final Class<T> targetType;
 
@@ -48,12 +51,11 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
     private Map<Method, MethodCaller> methodCallerMap;
 
     public AnnotationRemoteClient(Class<T> targetType, EffRpcApplication application) {
-        this.clientAnnotation = parseClientAnnotation(targetType);
         AssertUtil.notNull(application, "application");
+        this.clientAnnotation = checkClientAnnotation(targetType);
         this.targetType = targetType;
         this.config = parseConfig(clientAnnotation, application);
-        this.styleWrapper = new AnnotationStyleWrapper(config);
-        if (styleWrapper.parser() != null) styleWrapper.parser().parseType(targetType, config);
+        this.annotationStyle = checkAnnotationStyle(targetType, config);
         parseCaller(application);
         this.proxy = createProxy();
     }
@@ -72,58 +74,52 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
         return clientAnnotation;
     }
 
-    public AnnotationStyleWrapper styleWrapper() {
-        return styleWrapper;
+    public AnnotationStyle annotationStyle() {
+        return annotationStyle;
     }
 
-    private EffiRpcClient parseClientAnnotation(Class<T> targetType) {
+    private EffiRpcClient checkClientAnnotation(Class<T> targetType) {
         AssertUtil.notNull(targetType, "targetType");
-        if (!targetType.isInterface()) {
-            throw new IllegalArgumentException("AnnotatedRemoteCaller can not be build because targetType is not interface");
-        }
-        if (!targetType.isAnnotationPresent(EffiRpcClient.class)) {
-            throw new IllegalArgumentException("AnnotatedRemoteCaller can not be build because without @EffiRpcClient");
-        }
-        return targetType.getAnnotation(EffiRpcClient.class);
+        AssertUtil.condition(targetType.isInterface(), "the target type must be an interface");
+        EffiRpcClient clientAnnotation = targetType.getAnnotation(EffiRpcClient.class);
+        return AssertUtil.notNull(clientAnnotation, "the target is missing @EffiRpcClient");
     }
 
-    private LinkedConfig parseConfig(EffiRpcClient effiRpcClient, EffRpcApplication application) {
-        NodeConfig config = new NodeConfig(this, application.consumerConfig());
-        AnnotationSupport.fillConfig(effiRpcClient, config);
-        return config;
+    private NodeConfig parseConfig(EffiRpcClient effiRpcClient, EffRpcApplication application) {
+        HierarchicalNodeConfig config = new HierarchicalNodeConfig(this, application.consumerConfig());
+        return AnnotationSupport.fillConfig(effiRpcClient, config);
     }
 
-    private NodeConfig parseCallerConfig(Method method) {
-        NodeConfig config = new NodeConfig(null, config());
-        EffiRpcCaller effiRpcCaller = method.getAnnotation(EffiRpcCaller.class);
-        AnnotationSupport.fillConfig(effiRpcCaller, config);
-        return config;
+    private HierarchicalNodeConfig parseCallerConfig(Method method) {
+        HierarchicalNodeConfig config = new HierarchicalNodeConfig(null, config());
+        EffiRpcCaller rpcCaller = method.getAnnotation(EffiRpcCaller.class);
+        return AnnotationSupport.fillConfig(rpcCaller, config);
     }
 
     private void parseCaller(EffRpcApplication application) {
         List<Method> methods = AnnotationSupport.filterMethods(targetType.getMethods());
         methodCallerMap = new HashMap<>(methods.size());
         for (Method method : methods) {
-            NodeConfig callerConfig = parseCallerConfig(method);
+            HierarchicalNodeConfig callerConfig = parseCallerConfig(method);
             EffiRpcModule module = getModule(callerConfig, application);
             Protocol protocol = getProtocol(callerConfig);
             if (protocol != null) {
                 ReturnTypeWrapper returnTypeWrapper = getReturnType(method);
                 var parameterMappers = getParameterMappers(callerConfig, method);
                 Caller<?> caller = protocol.createCaller(returnTypeWrapper.typeToken(), callerConfig, module);
-                addInvoker(caller.managerKey(), caller);
+                addInvoker(caller.repositoryKey(), caller);
                 methodCallerMap.put(method, new MethodCaller(caller, returnTypeWrapper.rpcType(), parameterMappers));
             }
         }
     }
 
-    private EffiRpcModule getModule(NodeConfig config, EffRpcApplication application) {
+    private EffiRpcModule getModule(HierarchicalNodeConfig config, EffRpcApplication application) {
         String moduleName = config.get(DefaultConfigKeys.MODULE);
         EffiRpcModule module = application.getModule(moduleName);
         return module == null ? application.defaultModule() : module;
     }
 
-    private Protocol getProtocol(NodeConfig config) {
+    private Protocol getProtocol(HierarchicalNodeConfig config) {
         String protocolName = config.get(DefaultConfigKeys.PROTOCOL);
         if (StringUtil.isBlank(protocolName)) {
             return null;
@@ -146,8 +142,8 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
         return new ReturnTypeWrapper(TypeToken.get(returnType), rpcType);
     }
 
-    private ParameterMapper<AnnotationParameterWrapper<?>>[] getParameterMappers(NodeConfig config, Method method) {
-        AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, styleWrapper);
+    private ParameterMapper<AnnotationParameterWrapper<?>>[] getParameterMappers(HierarchicalNodeConfig config, Method method) {
+        AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, annotationStyle);
         ParameterMapper<AnnotationParameterWrapper<?>>[] parameterMappers;
         if (methodAnnotationStyleParser != null && methodAnnotationStyleParser.supported(method)) {
             parameterMappers = methodAnnotationStyleParser.parseCallerParameterMapper(method);
@@ -167,15 +163,20 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
     @Override
     public Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) throws Throwable {
         MethodCaller methodCaller = methodCallerMap.get(method);
-        if (methodCaller != null) {
-            Caller<?> caller = methodCaller.caller();
-            args = wrapArgs(methodCaller.parameterMappers(), args, caller);
-            RpcType rpcType = methodCaller.rpcType;
-            if (rpcType == RpcType.SYNC) {
-                return caller.blockingCall(args);
-            } else if (rpcType == RpcType.ASYNC) {
-                return caller.call(args);
+        try {
+            if (methodCaller != null) {
+                Caller<?> caller = methodCaller.caller();
+                args = wrapArgs(methodCaller.parameterMappers(), args, caller);
+                RpcType rpcType = methodCaller.rpcType;
+                if (rpcType == RpcType.SYNC) {
+                    return caller.blockingCall(args);
+                } else if (rpcType == RpcType.ASYNC) {
+                    return caller.call(args);
+                }
             }
+        } catch (EffiRpcException e) {
+            logger.error(e);
+            throw e;
         }
         return null;
     }
@@ -196,11 +197,8 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
         return null;
     }
 
-    private record MethodCaller(Caller<?> caller,
-                                RpcType rpcType,
-                                ParameterMapper<AnnotationParameterWrapper<?>>[] parameterMappers) {
-
-    }
+    private record MethodCaller(Caller<?> caller, RpcType rpcType,
+                                ParameterMapper<AnnotationParameterWrapper<?>>[] parameterMappers) {}
 
     private record ReturnTypeWrapper(TypeToken<?> typeToken, RpcType rpcType) {}
 }

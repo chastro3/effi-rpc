@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
  */
 public final class EffiRpcFramework {
 
+    public static final String GROUP_ID = "io.github.taikonaut3";
+
     private static final String FRAMEWORK_VERSION;
 
     private static volatile boolean HAS_REGISTERED_SHUTDOWN_HOOK = false;

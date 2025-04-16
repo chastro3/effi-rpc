@@ -31,9 +31,6 @@ public class RpcThreadPool extends ThreadPoolExecutor {
 
     /**
      * The default I/O thread pool.
-     *
-     * @param namePrefix
-     * @return
      */
     public static ExecutorService defaultIOExecutor(String namePrefix) {
         return new RpcThreadPool(Constant.DEFAULT_IO_THREADS, Constant.DEFAULT_MAX_IO_THREADS, namePrefix);
@@ -41,19 +38,11 @@ public class RpcThreadPool extends ThreadPoolExecutor {
 
     /**
      * The default CPU thread pool.
-     *
-     * @param namePrefix
-     * @return
      */
     public static ExecutorService defaultCPUExecutor(String namePrefix) {
         return new RpcThreadPool(Constant.DEFAULT_CPU_THREADS, Constant.DEFAULT_MAX_CPU_THREADS, namePrefix);
     }
 
-    /**
-     * Get all thread pool.
-     *
-     * @return
-     */
     public static Set<ThreadPoolExecutor> executors() {
         return EXECUTORS;
     }

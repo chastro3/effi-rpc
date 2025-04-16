@@ -40,7 +40,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
             VertxUtil.await(consulClient.agentInfo());
             return true;
         } catch (Throwable e) {
-            throw PredefinedErrorCode.CONNECT.fail(e, registryUrl.address(), registryUrl.protocol());
+            throw PredefinedErrorCode.CONNECT.fail(e, registryUrl.authority());
         }
     }
 
@@ -57,7 +57,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
             // try to connect consul
             isActive();
         } catch (Throwable e) {
-            throw PredefinedErrorCode.CONNECT.fail(e, url.address(), url.protocol());
+            throw PredefinedErrorCode.CONNECT.fail(e, url.authority());
         }
     }
 

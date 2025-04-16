@@ -7,7 +7,7 @@ import io.effi.rpc.common.util.Messages;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.filter.*;
-import io.effi.rpc.contract.manager.FilterManager;
+import io.effi.rpc.contract.repository.FilterRepository;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.TransportSupport;
 
@@ -101,8 +101,8 @@ public abstract class InvokerModularConfig<T extends Invoker<?>> {
      */
     protected void addConfiguredFilters() {
         List<String> filterNames = invoker.config().getCascaded(DefaultConfigKeys.FILTERS);
-        FilterManager filterManager = module.filterManager();
-        for (Filter<?, ?, ?> filter : filterManager.sharedValues()) {
+        FilterRepository filterManager = module.filterRepository();
+        for (Filter<?, ?, ?> filter : filterManager.sharedComponents()) {
             addFilter(filter);
         }
         for (String filterName : filterNames) {

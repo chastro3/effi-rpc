@@ -93,6 +93,7 @@ public class EffiRpcBootstrap {
      * @return the updated EffiRpcBootstrap instance
      */
     public EffiRpcBootstrap service(Object service) {
+        System.out.println("创建service");
         new AnnotationRemoteService<>(service, application);
         return this;
     }
@@ -122,6 +123,7 @@ public class EffiRpcBootstrap {
     }
 
     public EffiRpcBootstrap filter(Filter<?, ?, ?>... filters) {
+        System.out.println("注册filter...");
         return filter(defaultModule(), filters);
     }
 

@@ -29,7 +29,7 @@ public @interface EffiRpcClient {
     /**
      * Annotation style.
      *
-     * @see DefaultConfigKeys#STYLE
+     * @see DefaultConfigKeys#ANNOTATION_STYLE
      */
     String style() default "";
 

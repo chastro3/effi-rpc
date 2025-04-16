@@ -56,7 +56,7 @@ public class FilterChain {
             return context.execute();
         }
         Filter<?, ?, C> filter = (Filter<?, ?, C>) filters.get(index);
-        logger.debug("Invoking Filter :" + filter.getClass());
+        //logger.debug("Invoking Filter :" + filter.getClass());
         return filter.doFilter(filterContext.executor(() -> doExecute(context, filterContext, filters, index + 1)));
     }
 

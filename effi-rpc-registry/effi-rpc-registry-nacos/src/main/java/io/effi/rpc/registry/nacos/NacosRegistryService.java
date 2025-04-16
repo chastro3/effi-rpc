@@ -44,7 +44,7 @@ public class NacosRegistryService extends AbstractRegistryService {
             namingService = NamingFactory.createNamingService(url.address());
             isActive();
         } catch (NacosException e) {
-            throw PredefinedErrorCode.CONNECT.fail(e, url.address(), url.protocol());
+            throw PredefinedErrorCode.CONNECT.fail(e, url.authority());
         }
     }
 

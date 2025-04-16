@@ -1,0 +1,20 @@
+{
+  "condition": {
+    "typeReachable": "io.effi.rpc.common.config.Config"
+  },
+  "name": {
+    "name": "io.effi.rpc.common.config.FlatConfig"
+  },
+  "methods": [
+    {
+      "name": "<init>",
+      "parameterTypes": []
+    },
+    {
+      "name": "hello",
+      "parameterTypes": [
+        "java.lang.String"
+      ]
+    }
+  ]
+}

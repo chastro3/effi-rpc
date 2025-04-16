@@ -2,8 +2,9 @@ package io.effi.rpc.engine;
 
 import io.effi.rpc.common.config.Config;
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.spi.ExtensionLoader;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.Messages;
+import io.effi.rpc.common.util.ReflectionUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.annotation.*;
 
@@ -11,7 +12,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -20,115 +20,120 @@ import java.util.stream.Collectors;
  */
 public final class AnnotationSupport {
 
+    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, NodeConfig config) {
+        AnnotationStyle annotationStyle = AnnotationStyle.getInstance(config);
+        AnnotationStyleParser parser = annotationStyle.parser();
+        if (parser != null)
+            parser.parseType(targetType, config);
+        return annotationStyle;
+    }
+
     public static List<Method> filterMethods(Method[] methods) {
         return Arrays.stream(methods)
                 .filter(method ->
                         !method.isAnnotationPresent(UnParse.class)
-                                && !Object.class.equals(method.getDeclaringClass()))
+                                && !ReflectionUtil.isObjectMethod(method))
                 .collect(Collectors.toList());
     }
 
     public static AnnotationStyleParser annotationStyleParserForMethod(Config config,
-                                                                       AnnotationStyleWrapper styleWrapper) {
-        String style = config.get(DefaultConfigKeys.STYLE);
-        if (StringUtil.isBlank(style)) return styleWrapper.parser();
-        return Objects.equals(style, styleWrapper.name())
-                ? styleWrapper.parser()
-                : ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
+                                                                       AnnotationStyle annotationStyle) {
+        String style = config.get(DefaultConfigKeys.ANNOTATION_STYLE);
+        if (StringUtil.isBlank(style)) return annotationStyle.parser();
+        return Objects.equals(style, annotationStyle.name())
+                ? annotationStyle.parser()
+                : AnnotationStyle.getInstance(style).parser();
     }
 
-    public static Config fillConfig(EffiRpcCaller caller, Config config) {
-        return fillConfig(caller, config, () -> {
-            fillConfig(config, DefaultConfigKeys.PATH, caller::path);
-            fillConfig(config, DefaultConfigKeys.STYLE, caller::style);
-            fillConfig(config, DefaultConfigKeys.PROTOCOL, caller::protocol);
-            fillConfig(config, DefaultConfigKeys.APPLICATION, caller::application);
-            fillConfig(config, DefaultConfigKeys.CLIENT_CONFIG, caller::clientConfig);
-            fillConfig(config, DefaultConfigKeys.ADDRESS, caller::address);
-            fillConfig(config, DefaultConfigKeys.FILTERS, caller::filters);
-            fillConfig(config, DefaultConfigKeys.REGISTRIES, caller::registries);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION, caller::serialization);
-            fillConfig(config, DefaultConfigKeys.COMPRESSION, caller::compression);
-            fillConfig(config, DefaultConfigKeys.MODULE, caller::module);
-            fillConfig(config, DefaultConfigKeys.LOAD_BALANCE, caller::loadBalance);
-            fillConfig(config, DefaultConfigKeys.FAULT_TOLERANCE, caller::faultTolerance);
-            fillConfig(config, DefaultConfigKeys.THREAD_POOL, caller::threadPool);
-            fillConfig(config, DefaultConfigKeys.TIMEOUT, caller::timeout);
-            fillConfig(config, DefaultConfigKeys.RETRIES, caller::retries);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, caller::serializationThreshold);
-            fillConfig(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, caller::deserializationThreshold);
-        });
-    }
-
-    public static Config fillConfig(EffiRpcClient client, Config config) {
-        return fillConfig(client, config, () -> {
-            fillConfig(config, DefaultConfigKeys.PROXY, client::proxy);
-            fillConfig(config, DefaultConfigKeys.PATH, client::path);
-            fillConfig(config, DefaultConfigKeys.STYLE, client::style);
-            fillConfig(config, DefaultConfigKeys.PROTOCOL, client::protocol);
-            fillConfig(config, DefaultConfigKeys.APPLICATION, client::application);
-            fillConfig(config, DefaultConfigKeys.CLIENT_CONFIG, client::clientConfig);
-            fillConfig(config, DefaultConfigKeys.ADDRESS, client::address);
-            fillConfig(config, DefaultConfigKeys.FILTERS, client::filters);
-            fillConfig(config, DefaultConfigKeys.REGISTRIES, client::registries);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION, client::serialization);
-            fillConfig(config, DefaultConfigKeys.COMPRESSION, client::compression);
-            fillConfig(config, DefaultConfigKeys.MODULE, client::module);
-            fillConfig(config, DefaultConfigKeys.LOAD_BALANCE, client::loadBalance);
-            fillConfig(config, DefaultConfigKeys.FAULT_TOLERANCE, client::faultTolerance);
-            fillConfig(config, DefaultConfigKeys.THREAD_POOL, client::threadPool);
-            fillConfig(config, DefaultConfigKeys.TIMEOUT, client::timeout);
-            fillConfig(config, DefaultConfigKeys.RETRIES, client::retries);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, client::serializationThreshold);
-            fillConfig(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, client::deserializationThreshold);
-        });
-    }
-
-    public static Config fillConfig(EffiRpcCallee callee, Config config) {
-        return fillConfig(callee, config, () -> {
-            fillConfig(config, DefaultConfigKeys.PATH, callee::path);
-            fillConfig(config, DefaultConfigKeys.STYLE, callee::style);
-            fillConfig(config, DefaultConfigKeys.PROTOCOL, callee::protocol);
-            fillConfig(config, DefaultConfigKeys.EXCLUDED_PORT, callee::excludedPort);
-            fillConfig(config, DefaultConfigKeys.MODULES, callee::modules);
-            fillConfig(config, DefaultConfigKeys.FILTERS, callee::filters);
-            fillConfig(config, DefaultConfigKeys.CALLEE_DESC, callee::desc);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION, callee::serialization);
-            fillConfig(config, DefaultConfigKeys.COMPRESSION, callee::compression);
-            fillConfig(config, DefaultConfigKeys.THREAD_POOL, callee::threadPool);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, callee::serializationThreshold);
-            fillConfig(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, callee::deserializationThreshold);
-        });
-    }
-
-    public static void fillConfig(EffiRpcService service, Config config) {
-        fillConfig(service, config, () -> {
-            fillConfig(config, DefaultConfigKeys.PATH, service::path);
-            fillConfig(config, DefaultConfigKeys.STYLE, service::style);
-            fillConfig(config, DefaultConfigKeys.PROTOCOL, service::protocol);
-            fillConfig(config, DefaultConfigKeys.EXCLUDED_PORT, service::excludedPort);
-            fillConfig(config, DefaultConfigKeys.MODULES, service::modules);
-            fillConfig(config, DefaultConfigKeys.FILTERS, service::filters);
-            fillConfig(config, DefaultConfigKeys.CALLEE_DESC, service::desc);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION, service::serialization);
-            fillConfig(config, DefaultConfigKeys.COMPRESSION, service::compression);
-            fillConfig(config, DefaultConfigKeys.THREAD_POOL, service::threadPool);
-            fillConfig(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, service::serializationThreshold);
-            fillConfig(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, service::deserializationThreshold);
-        });
-    }
-
-    private static <T> Config fillConfig(T source, Config config, Runnable run) {
-        Optional.ofNullable(source)
-                .ifPresent(val -> run.run());
+    public static <C extends Config> C fillConfig(EffiRpcCaller caller, C config) {
+        if (caller != null && config != null) {
+            fillKV(config, DefaultConfigKeys.PATH, caller::path);
+            fillKV(config, DefaultConfigKeys.ANNOTATION_STYLE, caller::style);
+            fillKV(config, DefaultConfigKeys.PROTOCOL, caller::protocol);
+            fillKV(config, DefaultConfigKeys.APPLICATION, caller::application);
+            fillKV(config, DefaultConfigKeys.CLIENT_CONFIG, caller::clientConfig);
+            fillKV(config, DefaultConfigKeys.ADDRESS, caller::address);
+            fillKV(config, DefaultConfigKeys.FILTERS, caller::filters);
+            fillKV(config, DefaultConfigKeys.REGISTRIES, caller::registries);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION, caller::serialization);
+            fillKV(config, DefaultConfigKeys.COMPRESSION, caller::compression);
+            fillKV(config, DefaultConfigKeys.MODULE, caller::module);
+            fillKV(config, DefaultConfigKeys.LOAD_BALANCE, caller::loadBalance);
+            fillKV(config, DefaultConfigKeys.FAULT_TOLERANCE, caller::faultTolerance);
+            fillKV(config, DefaultConfigKeys.THREAD_POOL, caller::threadPool);
+            fillKV(config, DefaultConfigKeys.TIMEOUT, caller::timeout);
+            fillKV(config, DefaultConfigKeys.RETRIES, caller::retries);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, caller::serializationThreshold);
+            fillKV(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, caller::deserializationThreshold);
+        }
         return config;
     }
 
-    private static <T> void fillConfig(Config config, DefaultConfigKeys key, Supplier<T> supplier) {
+    public static <C extends Config> C fillConfig(EffiRpcClient client, C config) {
+        if (client != null && config != null) {
+            fillKV(config, DefaultConfigKeys.PROXY, client::proxy);
+            fillKV(config, DefaultConfigKeys.PATH, client::path);
+            fillKV(config, DefaultConfigKeys.ANNOTATION_STYLE, client::style);
+            fillKV(config, DefaultConfigKeys.PROTOCOL, client::protocol);
+            fillKV(config, DefaultConfigKeys.APPLICATION, client::application);
+            fillKV(config, DefaultConfigKeys.CLIENT_CONFIG, client::clientConfig);
+            fillKV(config, DefaultConfigKeys.ADDRESS, client::address);
+            fillKV(config, DefaultConfigKeys.FILTERS, client::filters);
+            fillKV(config, DefaultConfigKeys.REGISTRIES, client::registries);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION, client::serialization);
+            fillKV(config, DefaultConfigKeys.COMPRESSION, client::compression);
+            fillKV(config, DefaultConfigKeys.MODULE, client::module);
+            fillKV(config, DefaultConfigKeys.LOAD_BALANCE, client::loadBalance);
+            fillKV(config, DefaultConfigKeys.FAULT_TOLERANCE, client::faultTolerance);
+            fillKV(config, DefaultConfigKeys.THREAD_POOL, client::threadPool);
+            fillKV(config, DefaultConfigKeys.TIMEOUT, client::timeout);
+            fillKV(config, DefaultConfigKeys.RETRIES, client::retries);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, client::serializationThreshold);
+            fillKV(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, client::deserializationThreshold);
+        }
+        return config;
+    }
+
+    public static <C extends Config> C fillConfig(EffiRpcCallee callee, C config) {
+        if (callee != null && config != null) {
+            fillKV(config, DefaultConfigKeys.PATH, callee::path);
+            fillKV(config, DefaultConfigKeys.ANNOTATION_STYLE, callee::style);
+            fillKV(config, DefaultConfigKeys.PROTOCOL, callee::protocol);
+            fillKV(config, DefaultConfigKeys.EXCLUDED_PORT, callee::excludedPort);
+            fillKV(config, DefaultConfigKeys.MODULES, callee::modules);
+            fillKV(config, DefaultConfigKeys.FILTERS, callee::filters);
+            fillKV(config, DefaultConfigKeys.CALLEE_DESC, callee::desc);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION, callee::serialization);
+            fillKV(config, DefaultConfigKeys.COMPRESSION, callee::compression);
+            fillKV(config, DefaultConfigKeys.THREAD_POOL, callee::threadPool);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, callee::serializationThreshold);
+            fillKV(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, callee::deserializationThreshold);
+        }
+        return config;
+    }
+
+    public static <C extends Config> C fillConfig(EffiRpcService service, C config) {
+        if (service != null && config != null) {
+            fillKV(config, DefaultConfigKeys.PATH, service::path);
+            fillKV(config, DefaultConfigKeys.ANNOTATION_STYLE, service::style);
+            fillKV(config, DefaultConfigKeys.PROTOCOL, service::protocol);
+            fillKV(config, DefaultConfigKeys.EXCLUDED_PORT, service::excludedPort);
+            fillKV(config, DefaultConfigKeys.MODULES, service::modules);
+            fillKV(config, DefaultConfigKeys.FILTERS, service::filters);
+            fillKV(config, DefaultConfigKeys.CALLEE_DESC, service::desc);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION, service::serialization);
+            fillKV(config, DefaultConfigKeys.COMPRESSION, service::compression);
+            fillKV(config, DefaultConfigKeys.THREAD_POOL, service::threadPool);
+            fillKV(config, DefaultConfigKeys.SERIALIZATION_THRESHOLD, service::serializationThreshold);
+            fillKV(config, DefaultConfigKeys.DESERIALIZATION_THRESHOLD, service::deserializationThreshold);
+        }
+        return config;
+    }
+
+    private static <T> void fillKV(Config config, DefaultConfigKeys key, Supplier<T> supplier) {
         T value = supplier.get();
         switch (value) {
             case null -> {
-
             }
             case String strValue -> {
                 if (StringUtil.isNotBlank(strValue)) {

@@ -4,6 +4,7 @@ import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Result;
 import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.contract.filter.FilterType;
 import io.effi.rpc.contract.filter.InvokeFilter;
 import io.effi.rpc.metrics.MetricsSupport;
 
@@ -18,5 +19,10 @@ public class CalleeExecuteRecordFilter implements InvokeFilter<Envelope.Request,
         Result result = context.execute();
         MetricsSupport.recordEndTime(context);
         return result;
+    }
+
+    @Override
+    public FilterType<Envelope.Request, Callee<?>> type() {
+        return FilterType.of(Envelope.Request.class, Callee.class);
     }
 }

@@ -1,7 +1,7 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
@@ -11,6 +11,7 @@ import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.RemoteClient;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.engine.DefaultClientConfig;
 import io.effi.rpc.engine.DirectLocator;
 import io.effi.rpc.engine.RegistryLocator;
 
@@ -31,7 +32,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
 
     protected ClientConfig clientConfig;
 
-    protected CallerBuilder(TypeToken<?> returnType, LinkedConfig config) {
+    protected CallerBuilder(TypeToken<?> returnType, NodeConfig config) {
         super(config);
         this.returnType = AssertUtil.notNull(returnType, "returnType");
     }
@@ -157,13 +158,15 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
         if (clientConfig == null && module != null) {
             String name = config.get(DefaultConfigKeys.CLIENT_CONFIG);
             if (StringUtil.isNotBlank(name)) {
-                clientConfig = module.clientConfigManager().get(name);
+                clientConfig = module.clientConfigRepository().get(name);
             }
             if (clientConfig == null) {
                 clientConfig = defaultConfig();
                 if (clientConfig != null) {
-                    module.clientConfigManager().register(clientConfig);
+                    module.clientConfigRepository().register(clientConfig);
                     config.set(DefaultConfigKeys.CLIENT_CONFIG.key(), clientConfig.name());
+                } else {
+                    clientConfig = DefaultClientConfig.builder().protocol(protocol()).build();
                 }
             }
         }

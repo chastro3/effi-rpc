@@ -11,9 +11,9 @@ import io.effi.rpc.common.util.collection.LazyList;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.config.ServerConfig;
-import io.effi.rpc.contract.manager.CalleeManager;
+import io.effi.rpc.contract.repository.CalleeRepository;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.module.ServerExporter;
+import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.engine.builder.ServerExportBuilder;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -37,7 +37,7 @@ public class DefaultServerExporter implements ServerExporter {
 
     protected final EffiRpcModule module;
 
-    protected final CalleeManager calleeManager;
+    protected final CalleeRepository calleeManager;
 
     protected final List<RegistryConfig> registryConfigs = new LazyList<>(ArrayList::new);
 
@@ -54,8 +54,8 @@ public class DefaultServerExporter implements ServerExporter {
         this.serverConfig = serverConfig;
         this.exportedAddress = exportedAddress;
         this.module = module;
-        this.calleeManager = new CalleeManager(module);
-        module.serverExporterManager().register(this);
+        this.calleeManager = new CalleeRepository(module);
+        module.serverExporterRepository().register(this);
     }
 
     /**
@@ -103,7 +103,7 @@ public class DefaultServerExporter implements ServerExporter {
     }
 
     @Override
-    public CalleeManager calleeManager() {
+    public CalleeRepository calleeRepository() {
         return calleeManager;
     }
 
@@ -128,7 +128,7 @@ public class DefaultServerExporter implements ServerExporter {
     }
 
     @Override
-    public String managerKey() {
+    public String repositoryKey() {
         return exportedUrl.authority();
     }
 
@@ -149,7 +149,7 @@ public class DefaultServerExporter implements ServerExporter {
 
     protected void doRegister() {
         List<RegistryConfig> registryConfigs = new ArrayList<>(this.registryConfigs);
-        List<RegistryConfig> sharedRegistryConfigs = module.registryConfigManager().sharedValues();
+        List<RegistryConfig> sharedRegistryConfigs = module.registryConfigRepository().sharedComponents();
         for (RegistryConfig sharedRegistryConfig : sharedRegistryConfigs) {
             CollectionUtil.addUnique(registryConfigs, sharedRegistryConfig);
         }

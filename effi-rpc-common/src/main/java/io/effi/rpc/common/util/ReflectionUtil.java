@@ -10,8 +10,43 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public final class ReflectionUtil {
 
+    private static final Set<String> OBJECT_METHOD_SIGNATURES = Set.of(
+            "toString()", "hashCode()", "equals(java.lang.Object)", "getClass()",
+            "notify()", "notifyAll()", "wait()", "wait(long)", "wait(long,int)"
+    );
+
+    private static final Set<String> OBJECT_METHOD_NAMES = Set.of(
+            "toString", "hashCode", "equals", "getClass", "notify", "notifyAll", "wait"
+    );
+
     // stores some commonly used annotation instances
     private static final Map<Class<? extends Annotation>, Annotation> DEFAULT_ANNOTATION_MAP = new LinkedHashMap<>();
+
+    public static boolean isObjectMethod(Method method) {
+        String methodName = method.getName();
+        if (!OBJECT_METHOD_NAMES.contains(methodName)) {
+            return false;
+        }
+        String signature = buildMethodSignature(method);
+        return OBJECT_METHOD_SIGNATURES.contains(signature);
+    }
+
+    public static String buildMethodSignature(Method method) {
+        return buildMethodSignature(method.getName(), method.getParameterTypes());
+    }
+
+    public static String buildMethodSignature(String name, Class<?>[] paramTypes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(name).append("(");
+
+        for (int i = 0; i < paramTypes.length; i++) {
+            if (i > 0) sb.append(",");
+            Class<?> paramType = paramTypes[i];
+            sb.append(paramType.getName());
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
     /**
      * Based on the method's Parameter object, the incoming Object is converted to a target type.

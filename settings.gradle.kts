@@ -49,3 +49,4 @@ include("effi-rpc-transport:effi-rpc-transport-api")
 findProject(":effi-rpc-transport:effi-rpc-transport-api")?.name = "effi-rpc-transport-api"
 include("effi-rpc-transport:effi-rpc-transport-netty")
 findProject(":effi-rpc-transport:effi-rpc-transport-netty")?.name = "effi-rpc-transport-netty"
+include("effi-rpc-processor")

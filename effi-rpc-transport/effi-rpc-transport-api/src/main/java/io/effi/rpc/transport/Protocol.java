@@ -1,6 +1,6 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.spi.Extensible;
 import io.effi.rpc.common.util.TypeToken;
@@ -75,7 +75,7 @@ public interface Protocol extends Cleanable {
      * @param modules      optional modules
      * @return the created callee instance
      */
-    <T> Callee<T> createCallee(MethodMapper<T> methodMapper, LinkedConfig config, EffiRpcModule... modules);
+    <T> Callee<T> createCallee(MethodMapper<T> methodMapper, NodeConfig config, EffiRpcModule... modules);
 
     /**
      * Creates a caller instance with the specified return type and configuration.
@@ -85,7 +85,7 @@ public interface Protocol extends Cleanable {
      * @param module     the associated module
      * @return the created caller instance
      */
-    <T> Caller<T> createCaller(TypeToken<T> returnType, LinkedConfig config, EffiRpcModule module);
+    <T> Caller<T> createCaller(TypeToken<T> returnType, NodeConfig config, EffiRpcModule module);
 
     /**
      * Returns the supported request envelope type.

@@ -1,0 +1,30 @@
+[
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.protocol.http.h1.Http1ClientHandler",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.protocol.http.h1.Http1ServerHandler",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.protocol.http.h2.Http2ClientHandler",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.protocol.http.h2.Http2ServerHandler",
+    "queryAllPublicMethods": true
+  }
+]

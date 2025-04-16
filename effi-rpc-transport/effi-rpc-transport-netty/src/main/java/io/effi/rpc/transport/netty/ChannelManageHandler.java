@@ -38,7 +38,7 @@ public class ChannelManageHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
         String remoteAddress = NetUtil.toAddress((InetSocketAddress) channel.remoteAddress());
-        activeChannels.put(remoteAddress, NettyChannel.getOrCreate(channel, serverUrl, module));
+        activeChannels.put(remoteAddress, NettyChannel.get(channel));
         super.channelActive(ctx);
     }
 

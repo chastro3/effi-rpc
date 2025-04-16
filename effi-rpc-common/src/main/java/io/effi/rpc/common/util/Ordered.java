@@ -44,9 +44,6 @@ public interface Ordered {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns the order value of this object.
-     */
     default int order() {
         return DEFAULT;
     }

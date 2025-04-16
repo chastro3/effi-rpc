@@ -3,11 +3,12 @@ package io.effi.rpc.contract.module;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.Caller;
+import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.contract.ThreadPool;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.filter.Filter;
-import io.effi.rpc.contract.manager.*;
+import io.effi.rpc.contract.repository.*;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import org.intellij.lang.annotations.Language;
@@ -19,19 +20,19 @@ public class EffiRpcModule extends Node {
 
     private static final Logger logger = LoggerFactory.getLogger(EffiRpcModule.class);
 
-    private CallerManager callerManager;
+    private CallerRepository callerRepository;
 
-    private ClientConfigManager clientConfigManager;
+    private ClientConfigRepository clientConfigRepository;
 
-    private RegistryConfigManager registryConfigManager;
+    private RegistryConfigRepository registryConfigRepository;
 
-    private ServerExporterManager serverExporterManager;
+    private ServerExporterRepository serverExporterRepository;
 
-    private FilterManager filterManager;
+    private FilterRepository filterRepository;
 
-    private RouterConfigManager routerConfigManager;
+    private RouterConfigRepository routerConfigRepository;
 
-    private ThreadPoolManager threadPoolManager;
+    private ThreadPoolRepository threadPoolRepository;
 
     private MonitorManager monitorManager;
 
@@ -41,13 +42,13 @@ public class EffiRpcModule extends Node {
 
     @Override
     protected boolean doInit() {
-        this.callerManager = new CallerManager(this);
-        this.clientConfigManager = new ClientConfigManager(this);
-        this.registryConfigManager = new RegistryConfigManager(this);
-        this.serverExporterManager = new ServerExporterManager(this);
-        this.filterManager = new FilterManager(this);
-        this.routerConfigManager = new RouterConfigManager(this);
-        this.threadPoolManager = new ThreadPoolManager(this);
+        this.callerRepository = new CallerRepository(this);
+        this.clientConfigRepository = new ClientConfigRepository(this);
+        this.registryConfigRepository = new RegistryConfigRepository(this);
+        this.serverExporterRepository = new ServerExporterRepository(this);
+        this.filterRepository = new FilterRepository(this);
+        this.routerConfigRepository = new RouterConfigRepository(this);
+        this.threadPoolRepository = new ThreadPoolRepository(this);
         this.monitorManager = new MonitorManager();
         return super.doInit();
     }
@@ -55,9 +56,9 @@ public class EffiRpcModule extends Node {
     @Override
     protected boolean doStart() {
         if (StringUtil.isBlank(name)) {
-            logger.warn("Module name is blank");
+            logger.warn("module name is blank");
         }
-        for (ServerExporter serverExporter : serverExporterManager.components()) {
+        for (ServerExporter serverExporter : serverExporterRepository.components()) {
             serverExporter.export();
         }
         return super.doStart();
@@ -65,89 +66,62 @@ public class EffiRpcModule extends Node {
 
     @Override
     protected boolean doStop() {
+        this.callerRepository.clear();
+        this.clientConfigRepository.clear();
+        this.registryConfigRepository.clear();
+        this.serverExporterRepository.clear();
+        this.filterRepository.clear();
+        this.routerConfigRepository.clear();
+        this.threadPoolRepository.clear();
         logger.info("{} is stopped", name);
         return super.doStop();
     }
 
-    /**
-     * Returns the application.
-     */
     public EffRpcApplication application() {
         return (EffRpcApplication) parent();
     }
 
-    /**
-     * Returns the callerManager.
-     */
-    public CallerManager callerManager() {
-        return callerManager;
+    public CallerRepository callerRepository() {
+        return callerRepository;
     }
 
-    /**
-     * Returns the clientConfigManager.
-     */
-    public ClientConfigManager clientConfigManager() {
-        return clientConfigManager;
+    public ClientConfigRepository clientConfigRepository() {
+        return clientConfigRepository;
     }
 
-    /**
-     * Returns the registryConfigManager.
-     */
-    public RegistryConfigManager registryConfigManager() {
-        return registryConfigManager;
+    public RegistryConfigRepository registryConfigRepository() {
+        return registryConfigRepository;
     }
 
-    /**
-     * Returns the serverExporterManager.
-     */
-    public ServerExporterManager serverExporterManager() {
-        return serverExporterManager;
+    public ServerExporterRepository serverExporterRepository() {
+        return serverExporterRepository;
     }
 
-    /**
-     * Returns the filterManager.
-     */
-    public FilterManager filterManager() {
-        return filterManager;
+    public FilterRepository filterRepository() {
+        return filterRepository;
     }
 
-    /**
-     * Returns the routerConfigManager.
-     */
-    public RouterConfigManager routerConfigManager() {
-        return routerConfigManager;
+    public RouterConfigRepository routerConfigRepository() {
+        return routerConfigRepository;
     }
 
-    /**
-     * Returns the threadPoolManager.
-     */
-    public ThreadPoolManager threadPoolManager() {
-        return threadPoolManager;
+    public ThreadPoolRepository threadPoolRepository() {
+        return threadPoolRepository;
     }
 
-    /**
-     * Returns the monitorManager.
-     */
     public MonitorManager monitorManager() {
         return monitorManager;
     }
 
-    /**
-     * Registers a router.
-     *
-     * @param urlRegex
-     * @param targetRegex
-     * @return
-     */
     public EffiRpcModule router(@Language("RegExp") String urlRegex, @Language("RegExp") String targetRegex) {
-        routerConfigManager().register(urlRegex, targetRegex);
+        routerConfigRepository().register(urlRegex, targetRegex);
         return this;
     }
 
     public EffiRpcModule register(Caller<?>... callers) {
         if (CollectionUtil.isNotEmpty(callers)) {
             for (Caller<?> caller : callers) {
-                callerManager().register(caller);
+                callerRepository().register(caller);
             }
         }
         return this;
@@ -156,7 +130,7 @@ public class EffiRpcModule extends Node {
     public EffiRpcModule register(ClientConfig... clientConfigs) {
         if (CollectionUtil.isNotEmpty(clientConfigs)) {
             for (ClientConfig clientConfig : clientConfigs) {
-                clientConfigManager().register(clientConfig);
+                clientConfigRepository().register(clientConfig);
             }
         }
         return this;
@@ -165,7 +139,7 @@ public class EffiRpcModule extends Node {
     public EffiRpcModule register(ServerExporter... serverExporters) {
         if (CollectionUtil.isNotEmpty(serverExporters)) {
             for (ServerExporter serverExporter : serverExporters) {
-                serverExporterManager().register(serverExporter);
+                serverExporterRepository().register(serverExporter);
             }
         }
         return this;
@@ -174,33 +148,33 @@ public class EffiRpcModule extends Node {
     public EffiRpcModule register(RegistryConfig... registryConfigs) {
         if (CollectionUtil.isNotEmpty(registryConfigs)) {
             for (RegistryConfig registryConfig : registryConfigs) {
-                registryConfigManager().register(registryConfig);
+                registryConfigRepository().register(registryConfig);
             }
         }
         return this;
     }
 
     public EffiRpcModule register(String name, Filter<?, ?, ?> filter) {
-        filterManager().register(name, filter);
+        filterRepository().register(name, filter);
         return this;
     }
 
     public EffiRpcModule register(ThreadPool... threadPools) {
         if (CollectionUtil.isNotEmpty(threadPools)) {
             for (ThreadPool threadPool : threadPools) {
-                threadPoolManager().register(threadPool);
+                threadPoolRepository().register(threadPool);
             }
         }
         return this;
     }
 
     public EffiRpcModule registerShared(RegistryConfig... registryConfigs) {
-        registryConfigManager().registerShared(registryConfigs);
+        registryConfigRepository().registerShared(registryConfigs);
         return this;
     }
 
     public EffiRpcModule registerShared(Filter<?, ?, ?>... filters) {
-        filterManager().registerShared(filters);
+        filterRepository().registerShared(filters);
         return this;
     }
 

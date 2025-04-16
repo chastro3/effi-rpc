@@ -35,9 +35,6 @@ public class URLBuilder implements Builder<URL> {
 
     /**
      * Sets the type of URL being built.
-     *
-     * @param type
-     * @return
      */
     public URLBuilder type(URLType type) {
         this.type = type;
@@ -46,9 +43,6 @@ public class URLBuilder implements Builder<URL> {
 
     /**
      * Sets the protocol for the URL being built.
-     *
-     * @param protocol The protocol to set (e.g., "http", "https","custom").
-     * @return This URLBuilder instance for method chaining.
      */
     public URLBuilder protocol(String protocol) {
         this.protocol = protocol;
@@ -61,9 +55,6 @@ public class URLBuilder implements Builder<URL> {
 
     /**
      * Sets the address for the URL being built.
-     *
-     * @param address The address to set (e.g., "www.example.com").
-     * @return This URLBuilder instance for method chaining.
      */
     public URLBuilder address(String address) {
         this.address = address;
@@ -77,7 +68,6 @@ public class URLBuilder implements Builder<URL> {
      * URL being built.
      *
      * @param path The query path string to process.
-     * @return This URLBuilder instance for method chaining.
      */
     public URLBuilder path(String path) {
         QueryPath queryPath = QueryPath.valueOf(path);
@@ -88,9 +78,6 @@ public class URLBuilder implements Builder<URL> {
 
     /**
      * Sets multiple query parameters for the URL being built.
-     *
-     * @param params A map of query parameters to add.
-     * @return This URLBuilder instance for method chaining.
      */
     public URLBuilder params(Map<String, String> params) {
         addParams(params);
@@ -103,7 +90,6 @@ public class URLBuilder implements Builder<URL> {
      * and reducing the need for parsing.
      *
      * @param paths A list of path segments to set.
-     * @return This URLBuilder instance for method chaining.
      */
     public URLBuilder paths(List<String> paths) {
         this.paths = paths;

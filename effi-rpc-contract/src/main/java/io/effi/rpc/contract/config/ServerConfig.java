@@ -16,7 +16,7 @@ public interface ServerConfig extends NamedConfig {
     String protocol();
 
     @Override
-    default String managerKey() {
+    default String repositoryKey() {
         return StringUtil.isBlankOrDefault(name(), protocol());
     }
 

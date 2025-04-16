@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
@@ -27,7 +27,7 @@ public abstract class HttpCallerBuilder<T extends HttpCaller<?>, C extends HttpC
 
     protected volatile HttpHeaders requestHeaders;
 
-    protected HttpCallerBuilder(TypeToken<?> returnType, LinkedConfig config) {
+    protected HttpCallerBuilder(TypeToken<?> returnType, NodeConfig config) {
         super(returnType, config);
         if (StringUtil.isBlank(config.get(DefaultConfigKeys.SERIALIZATION))) {
             serialization(Component.Serialization.JSON);

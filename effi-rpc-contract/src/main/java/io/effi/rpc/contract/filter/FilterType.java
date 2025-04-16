@@ -22,9 +22,9 @@ public class FilterType<T extends Envelope, I extends Invoker<?>> {
     private final Class<I> invokerType;
 
     @SuppressWarnings("unchecked")
-    public static <T extends Envelope, I extends Invoker<?>> FilterType<T, I> of(Class<T> envelopeType, Class<I> invokerType) {
+    public static <T extends Envelope, I extends Invoker<?>> FilterType<T, I> of(Class<?> envelopeType, Class<?> invokerType) {
         String key = envelopeType.getName() + ":" + invokerType.getName();
-        return (FilterType<T, I>) CACHE.computeIfAbsent(key, k -> new FilterType<>(envelopeType, invokerType));
+        return (FilterType<T, I>) CACHE.computeIfAbsent(key, k -> new FilterType<>((Class<T>) envelopeType, (Class<I>) invokerType));
     }
 
     FilterType(Class<T> envelopeType, Class<I> invokerType) {

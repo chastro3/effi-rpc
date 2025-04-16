@@ -2,6 +2,7 @@ package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.AbstractAttributes;
+import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.Protocol;
@@ -13,15 +14,15 @@ import io.effi.rpc.transport.TransportSupport;
  */
 public abstract class AbstractChannel extends AbstractAttributes implements Channel {
 
-    private final URL endpointUrl;
+    protected final URL endpointUrl;
 
-    private final EffiRpcModule module;
+    protected final EffiRpcModule module;
 
-    private final Protocol protocol;
+    protected final Protocol protocol;
 
     protected AbstractChannel(URL endpointUrl, EffiRpcModule module) {
-        this.endpointUrl = endpointUrl;
-        this.module = module;
+        this.endpointUrl = AssertUtil.notNull(endpointUrl, "endpointUrl");
+        this.module = AssertUtil.notNull(module, "module");
         this.protocol = TransportSupport.getProtocol(endpointUrl.protocol());
     }
 
@@ -34,7 +35,6 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
                     : repackagedEnvelope.encode();
             if (isActive()) doSend(repackagedEnvelope);
         }
-
     }
 
     @Override

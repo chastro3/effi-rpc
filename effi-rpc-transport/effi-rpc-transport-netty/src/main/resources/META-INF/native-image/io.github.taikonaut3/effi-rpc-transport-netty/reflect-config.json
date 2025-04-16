@@ -1,0 +1,37 @@
+[
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.transport.netty.ChannelManageHandler",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.transport.netty.NettyHeartBeatHandler",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.transport.netty.ClientMessageAggregator",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.transport.netty.NettyIdleStateHandler",
+    "queryAllPublicMethods": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.effi.rpc.transport.netty.NettyTransporter"
+    },
+    "name": "io.effi.rpc.transport.netty.ServerMessageAggregator",
+    "queryAllPublicMethods": true
+  }
+]

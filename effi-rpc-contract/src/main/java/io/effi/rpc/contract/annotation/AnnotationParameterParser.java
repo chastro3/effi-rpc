@@ -41,6 +41,6 @@ public class AnnotationParameterParser<T extends Annotation, REQ extends Envelop
 
     @Override
     public String toString() {
-        return "AnnotationParameterParser{type=" + type.getName() + "}";
+        return "type=" + type.getName();
     }
 }

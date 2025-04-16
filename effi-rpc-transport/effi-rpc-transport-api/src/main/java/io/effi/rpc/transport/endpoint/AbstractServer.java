@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.config.URL;
+import io.effi.rpc.common.exception.PredefinedErrorCode;
 import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
@@ -9,8 +9,6 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static io.effi.rpc.common.exception.PredefinedErrorCode.BIND;
 
 /**
  * Abstract implementation of {@link Server}.
@@ -38,7 +36,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
         try {
             doBind();
         } catch (Throwable e) {
-            throw BIND.fail(e, url().address(), url().protocol());
+            throw PredefinedErrorCode.BIND.fail(e, url().authority());
         }
     }
 
@@ -48,13 +46,13 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
             try {
                 channel.close();
             } catch (Throwable e) {
-                throw PredefinedErrorCode.CLOSE.fail(e, channel, url.protocol());
+                throw PredefinedErrorCode.CLOSE_CHANNEL.fail(e, channel.remoteAddress());
             }
         }
         try {
             doClose();
         } catch (Throwable e) {
-            throw PredefinedErrorCode.CLOSE.fail(e, this, url.protocol());
+            throw PredefinedErrorCode.CLOSE_SERVER.fail(e, url.authority());
         }
     }
 

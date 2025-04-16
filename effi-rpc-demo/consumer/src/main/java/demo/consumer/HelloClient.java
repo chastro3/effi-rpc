@@ -13,7 +13,12 @@ import jakarta.ws.rs.QueryParam;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-@EffiRpcClient(application = "provider", protocol = "h2", clientConfig = "hello-client",path = "service")
+@EffiRpcClient(
+        application = "provider",
+        protocol = "http",
+        clientConfig = "hello-client",
+        path = "service"
+)
 public interface HelloClient {
 
     @POST

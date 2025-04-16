@@ -41,7 +41,7 @@ public class AnnotationParameterWrapper<T extends Annotation> {
 
     @Override
     public String toString() {
-        return "AnnotationParameterWrapper{type=" + type.getName() + "}";
+        return "type=" + type.getName();
     }
 
 }

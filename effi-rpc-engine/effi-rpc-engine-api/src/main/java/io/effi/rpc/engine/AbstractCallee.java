@@ -17,7 +17,7 @@ import io.effi.rpc.contract.filter.FilterChain;
 import io.effi.rpc.contract.filter.InvokeFilter;
 import io.effi.rpc.contract.filter.ReplyFilter;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.module.ServerExporter;
+import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
@@ -54,7 +54,7 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
     protected String desc;
 
     @SuppressWarnings("unchecked")
-    protected AbstractCallee(LinkedConfig config, CalleeBuilder<?, ?> builder) {
+    protected AbstractCallee(NodeConfig config, CalleeBuilder<?, ?> builder) {
         super(config, builder);
         this.methodMapper = (MethodMapper<T>) builder.methodMapper();
         this.desc = config.get(DefaultConfigKeys.CALLEE_DESC);
@@ -101,7 +101,7 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
             List<String> excludedPorts = getCascaded(DefaultConfigKeys.EXCLUDED_PORT);
             for (EffiRpcModule module : modules) {
                 modularConfigMap.put(module, new CalleeModularConfig(module, this));
-                for (ServerExporter serverExporter : module.serverExporterManager().components()) {
+                for (ServerExporter serverExporter : module.serverExporterRepository().components()) {
                     URL url = serverExporter.url();
                     if (protocol().equals(url.protocol()) && !excludedPorts.contains(String.valueOf(url.port()))) {
                         serverExporter.callee(this);

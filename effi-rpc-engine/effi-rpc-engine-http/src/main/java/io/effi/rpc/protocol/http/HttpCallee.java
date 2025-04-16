@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.engine.AbstractCallee;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
@@ -21,7 +21,7 @@ public abstract class HttpCallee<T> extends AbstractCallee<T> {
 
     protected HttpHeaders responseHeaders;
 
-    protected HttpCallee(LinkedConfig config, HttpCalleeBuilder<?, ?> builder) {
+    protected HttpCallee(NodeConfig config, HttpCalleeBuilder<?, ?> builder) {
         super(config, builder);
         this.version = builder.version();
         String method = config.get(DefaultConfigKeys.HTTP_METHOD);

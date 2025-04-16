@@ -18,7 +18,6 @@ public interface EventDispatcher extends Closeable {
 
     /**
      * Removes an event listener for the specified event type.
-     * If the listener is not registered, this has no effect.
      *
      * @param eventType the class object representing the event type
      * @param listener  the event listener to remove
@@ -28,7 +27,6 @@ public interface EventDispatcher extends Closeable {
 
     /**
      * Dispatches the event to all registered listeners for its type.
-     * The order of listener notification is undefined.
      *
      * @param event the event to dispatch
      * @param <E>   the type of the event

@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.common.util.StringUtil;
@@ -27,7 +27,7 @@ public abstract class HttpCalleeBuilder<T extends HttpCallee<?>, C extends HttpC
 
     protected volatile HttpHeaders responseHeaders;
 
-    protected HttpCalleeBuilder(MethodMapper<?> methodMapper, LinkedConfig config) {
+    protected HttpCalleeBuilder(MethodMapper<?> methodMapper, NodeConfig config) {
         super(methodMapper, config);
         if (StringUtil.isBlank(config.get(DefaultConfigKeys.SERIALIZATION))) {
             serialization(Component.Serialization.JSON);

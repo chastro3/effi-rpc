@@ -2,8 +2,8 @@ package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.config.ConfigSource;
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.common.config.HierarchicalNodeConfig;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.ChainBuilder;
 import io.effi.rpc.common.util.CollectionUtil;
@@ -24,7 +24,7 @@ import java.util.List;
 public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuilder<T, C>>
         implements ChainBuilder<T, C>, ConfigSource {
 
-    protected LinkedConfig config;
+    protected NodeConfig config;
 
     protected InvokerContainer<?> container;
 
@@ -32,7 +32,7 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
 
     protected TypeToken<?> returnType;
 
-    protected InvokerBuilder(LinkedConfig config) {
+    protected InvokerBuilder(NodeConfig config) {
         this.config = AssertUtil.notNull(config, "config");
     }
 
@@ -83,25 +83,25 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
     }
 
     @Override
-    public LinkedConfig config() {
+    public NodeConfig config() {
         return config;
     }
 
     @Override
     public T build() {
-        NodeConfig nodeConfig = getNodeConfig(config);
+        HierarchicalNodeConfig nodeConfig = getNodeConfig(config);
         T instance = build(nodeConfig);
         nodeConfig.setOwner(instance);
         return instance;
     }
 
-    protected NodeConfig getNodeConfig(LinkedConfig config) {
-        if (config instanceof NodeConfig nodeConfig) {
+    protected HierarchicalNodeConfig getNodeConfig(NodeConfig config) {
+        if (config instanceof HierarchicalNodeConfig nodeConfig) {
             return nodeConfig;
         } else {
             InvokerContainer<?> container = container();
-            LinkedConfig parentConfig = container == null ? null : container.config();
-            NodeConfig nodeConfig = new NodeConfig(null, parentConfig);
+            NodeConfig parentConfig = container == null ? null : container.config();
+            HierarchicalNodeConfig nodeConfig = new HierarchicalNodeConfig(null, parentConfig);
             nodeConfig.set(config.items());
             return nodeConfig;
         }
@@ -109,6 +109,6 @@ public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuil
 
     public abstract String protocol();
 
-    protected abstract T build(LinkedConfig config);
+    protected abstract T build(NodeConfig config);
 }
 

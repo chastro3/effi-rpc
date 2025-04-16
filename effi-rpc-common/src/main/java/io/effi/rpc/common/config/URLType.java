@@ -40,9 +40,6 @@ public enum URLType {
 
     /**
      * Checks if the given URL is of the current URL type.
-     *
-     * @param url the {@link URL} to validate
-     * @return true if the config's type matches this enum type; false otherwise
      */
     public boolean match(URL url) {
         return url.type() == this;

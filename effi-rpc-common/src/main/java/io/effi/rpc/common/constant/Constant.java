@@ -27,7 +27,7 @@ public interface Constant {
 
     String UNKNOWN_ADDRESS = "unknown";
 
-    int DEFAULT_TIMEOUT = 3000;
+    int DEFAULT_TIMEOUT = 4000;
 
     int DEFAULT_HEART_BEAT_INTERVAL = 6000;
 
@@ -35,7 +35,7 @@ public interface Constant {
 
     long DEFAULT_MAX_CONCURRENT_STREAMS = 1000L;
 
-    int DEFAULT_INITIAL_WINDOW_SIZE = 65535;
+    int DEFAULT_INITIAL_WINDOW_SIZE = 65535 * 20;
 
     long DEFAULT_MAX_HEADER_TABLE_SIZE = 4096L;
 
@@ -93,7 +93,9 @@ public interface Constant {
 
     String DEFAULT_TRANSPORTER = Transport.NETTY;
 
-    String SPI_FIX_PATH = "META-INF/services/";
+    String SPI_FIX_PATH = "META-INF/effi-rpc/services/";
+
+    String NATIVE_IMAGE_PREFIX = "META-INF/native-image/";
 
     String INTERNAL_CERTS_PATH = "META-INF/effi-rpc/internal/certs/";
 

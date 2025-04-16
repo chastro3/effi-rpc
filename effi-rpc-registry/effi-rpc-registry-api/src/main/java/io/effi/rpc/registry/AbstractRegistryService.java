@@ -116,7 +116,7 @@ public abstract class AbstractRegistryService implements RegistryService {
         try {
             doClose();
         } catch (Throwable e) {
-            throw PredefinedErrorCode.CLOSE.fail(e, registryUrl.address(), registryUrl.protocol());
+            throw PredefinedErrorCode.CLOSE_CHANNEL.fail(e, registryUrl.authority());
         }
     }
 

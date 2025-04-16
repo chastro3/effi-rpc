@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.exception.EffiRpcException;
@@ -39,7 +39,7 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
 
     protected CallerModularConfig modularConfig;
 
-    protected AbstractCaller(LinkedConfig config, CallerBuilder<?, ?> builder) {
+    protected AbstractCaller(NodeConfig config, CallerBuilder<?, ?> builder) {
         super(config, builder);
         this.module = AssertUtil.notNull(builder.module(), "module");
         this.locator = AssertUtil.notNull(builder.locator(), "locator");
@@ -56,6 +56,12 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
     @Override
     public CompletableFuture<R> call(Object... args) throws EffiRpcException {
         return (CompletableFuture<R>) startCall(args, CompletableReplyFuture::new).completableFuture();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public R blockingCall(Object... args) throws EffiRpcException {
+        return (R) startCall(args, CompletableReplyFuture::new).get();
     }
 
     @Override

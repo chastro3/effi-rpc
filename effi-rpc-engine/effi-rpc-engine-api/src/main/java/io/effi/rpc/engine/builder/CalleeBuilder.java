@@ -1,7 +1,7 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
 import io.effi.rpc.contract.Callee;
@@ -24,7 +24,7 @@ public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder
 
     protected List<EffiRpcModule> modules = new ArrayList<>();
 
-    protected CalleeBuilder(MethodMapper<?> methodMapper, LinkedConfig config) {
+    protected CalleeBuilder(MethodMapper<?> methodMapper, NodeConfig config) {
         super(config);
         this.methodMapper = AssertUtil.notNull(methodMapper, "methodMapper");
         this.container = methodMapper.remoteService();

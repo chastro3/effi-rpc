@@ -11,7 +11,7 @@ import io.effi.rpc.common.util.NetUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.module.ServerExporter;
+import io.effi.rpc.contract.ServerExporter;
 
 import java.net.InetSocketAddress;
 

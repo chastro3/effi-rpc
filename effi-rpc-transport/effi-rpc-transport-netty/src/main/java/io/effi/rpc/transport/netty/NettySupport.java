@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.config.URLType;
+import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.util.StringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -15,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 
 import java.io.*;
 import java.util.List;
@@ -31,7 +32,7 @@ public class NettySupport {
      * Checks if the given URL config is pooled client.
      */
     public static boolean isPooledClient(URL url) {
-        int maxConnections = url.getIntParam(DefaultConfigKeys.MAX_CONNECTIONS.key(), 1);
+        int maxConnections = url.getIntParam(DefaultConfigKeys.MAX_CONNECTIONS);
         return maxConnections > 1;
 
     }
@@ -40,7 +41,11 @@ public class NettySupport {
      * Converts ByteBuf to byte array.
      */
     public static byte[] getBytes(ByteBuf buf) {
-        return io.netty.buffer.ByteBufUtil.getBytes(buf, buf.readerIndex(), buf.readableBytes(), false);
+        try {
+            return io.netty.buffer.ByteBufUtil.getBytes(buf, buf.readerIndex(), buf.readableBytes(), false);
+        } finally {
+            ReferenceCountUtil.release(buf);
+        }
     }
 
     /**
@@ -153,28 +158,24 @@ public class NettySupport {
      * Initializes client channel.
      */
     public static void initClientChannel(Channel channel, NettyEndpointConfig config) {
-        ChannelPipeline pipeline = channel.pipeline();
-        SslContext sslContext = config.sslContext();
-        if (sslContext != null) {
-            pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
-        }
-        NettyIdleStateHandler idleStateHandler = new NettyIdleStateHandler(config.url(), config.module());
-        pipeline.addLast(HandlerNames.IDLE_STATE, idleStateHandler);
-        pipeline.addLast(HandlerNames.HEARTBEAT, idleStateHandler.heartBeatHandler());
-        List<NamedChannelHandler> handlers = config.initializedHandlers().get();
-        handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
+        initChannel(channel, config, null);
     }
 
     /**
      * Initializes server channel.
      */
     public static void initServerChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
+        initChannel(channel, config, channelManager);
+    }
+
+    private static void initChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
         ChannelPipeline pipeline = channel.pipeline();
+        NettyChannel.getOrCreate(channel, config.url(), config.module());
         SslContext sslContext = config.sslContext();
-        if (sslContext != null) {
+        if (sslContext != null)
             pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
-        }
-        pipeline.addLast(ChannelManageHandler.NAME, channelManager);
+        if (channelManager != null)
+            pipeline.addLast(ChannelManageHandler.NAME, channelManager);
         NettyIdleStateHandler idleStateHandler = new NettyIdleStateHandler(config.url(), config.module());
         pipeline.addLast(HandlerNames.IDLE_STATE, idleStateHandler);
         pipeline.addLast(HandlerNames.HEARTBEAT, idleStateHandler.heartBeatHandler());

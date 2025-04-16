@@ -8,7 +8,7 @@ import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.filter.*;
-import io.effi.rpc.contract.manager.RegistryConfigManager;
+import io.effi.rpc.contract.repository.RegistryConfigRepository;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public class CallerModularConfig extends InvokerModularConfig<Caller<?>> {
 
     private void addConfiguredClientConfig() {
         String clientConfigName = invoker.get(DefaultConfigKeys.CLIENT_CONFIG);
-        ClientConfig clientConfig = module.clientConfigManager().get(clientConfigName);
+        ClientConfig clientConfig = module.clientConfigRepository().get(clientConfigName);
         if (clientConfig != null) {
             this.clientConfig = clientConfig;
         }
@@ -87,8 +87,8 @@ public class CallerModularConfig extends InvokerModularConfig<Caller<?>> {
 
     private void addConfiguredRegistryConfigs() {
         List<String> registryConfigNames = invoker.getCascaded(DefaultConfigKeys.REGISTRIES);
-        RegistryConfigManager registryConfigManager = module.registryConfigManager();
-        for (RegistryConfig registryConfig : registryConfigManager.sharedValues()) {
+        RegistryConfigRepository registryConfigManager = module.registryConfigRepository();
+        for (RegistryConfig registryConfig : registryConfigManager.sharedComponents()) {
             CollectionUtil.addUnique(registryConfigs, registryConfig);
         }
         for (String registryConfigName : registryConfigNames) {

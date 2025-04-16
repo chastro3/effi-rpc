@@ -45,18 +45,7 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         ChannelPipeline pipeline = ctx.pipeline();
         handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        NettyChannel.save(ctx.channel(), serverUrl, module);
-        super.channelActive(ctx);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);
-        NettyChannel.remove(ctx.channel());
+        NettyChannel.getOrCreate(ctx.channel(), serverUrl, module);
     }
 
     @SuppressWarnings("unchecked")

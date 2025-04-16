@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.engine.AbstractCaller;
@@ -22,7 +22,7 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
 
     protected HttpHeaders requestHeaders;
 
-    protected HttpCaller(LinkedConfig config, HttpCallerBuilder<?, ?> builder) {
+    protected HttpCaller(NodeConfig config, HttpCallerBuilder<?, ?> builder) {
         super(config, builder);
         this.version = builder.version();
         String method = config.get(DefaultConfigKeys.HTTP_METHOD);

@@ -33,7 +33,7 @@ public class DefaultRouter implements Router {
         }
         // filter by router rule
         EffiRpcModule module = context.module();
-        Collection<RouterConfig> routerConfigs = module.routerConfigManager().components();
+        Collection<RouterConfig> routerConfigs = module.routerConfigRepository().components();
         LinkedList<URL> result = new LinkedList<>();
         boolean hadConfig = false;
         for (RouterConfig routerConfig : routerConfigs) {

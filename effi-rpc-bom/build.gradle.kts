@@ -21,7 +21,7 @@ val disruptorVersion = "4.0.0"
 val lz4Version = "1.8.0"
 val snappyVersion = "1.1.10.5"
 val jakartaWsRsVersion = "3.1.0"
-val nettyVersion = "4.1.113.Final"
+val nettyVersion = "4.1.119.Final"
 
 javaPlatform {
     allowDependencies()

@@ -1,10 +1,10 @@
 package io.effi.rpc.transport.heartbeat;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.constant.KeyConstant;
 import io.effi.rpc.common.constant.SystemKey;
 import io.effi.rpc.common.event.EventListener;
-import io.effi.rpc.common.config.URL;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -35,7 +35,6 @@ public class IdleEventListener implements EventListener<IdleEvent> {
             if (ideCount.get() >= idleCountThreshold) {
                 channel.close();
             }
-
         }
     }
 }

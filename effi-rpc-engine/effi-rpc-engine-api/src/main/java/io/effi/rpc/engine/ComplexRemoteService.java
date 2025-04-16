@@ -1,8 +1,8 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.config.LinkedConfig;
 import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.reflect.MethodAccess;
+import io.effi.rpc.common.config.HierarchicalNodeConfig;
+import io.effi.rpc.common.compile.DynamicAccessor;
 import io.effi.rpc.common.util.*;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.RemoteService;
@@ -16,38 +16,36 @@ import java.lang.reflect.Method;
  */
 public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>> implements RemoteService<T> {
 
-    protected Class<T> targetType;
+    protected Class<T> serviceType;
 
-    protected T target;
+    protected T service;
 
-    protected MethodAccess methodAccess;
+    protected DynamicAccessor methodAccess;
 
     protected String name;
 
-    public ComplexRemoteService(T target) {
-        this(null, target);
+    public ComplexRemoteService(T service) {
+        this(null, service);
     }
 
-    public ComplexRemoteService(String name, T target) {
-        this(name, target, null);
+    public ComplexRemoteService(String name, T service) {
+        this(name, service, null, null);
     }
 
-    public ComplexRemoteService(String name, T target, LinkedConfig config) {
-        initialize(name, target, config);
+    public ComplexRemoteService(String name, T service, Class<T> serviceType, NodeConfig config) {
+        initialize(name, service, serviceType, config);
     }
 
     protected ComplexRemoteService() {
 
     }
 
-    @SuppressWarnings("unchecked")
-    protected void initialize(String name, T target, LinkedConfig config) {
-        this.target = AssertUtil.notNull(target, "target");
-        this.targetType = (Class<T>) ReflectionUtil.getTargetClass(target.getClass());
-        if (StringUtil.isBlank(name)) name = ObjectUtil.lowercaseName(this.targetType);
-        this.name = name;
-        this.methodAccess = MethodAccess.get(this.targetType);
-        this.config = config == null ? new NodeConfig(this) : config;
+    protected void initialize(String name, T service, Class<T> serviceType, NodeConfig config) {
+        this.service = AssertUtil.notNull(service, "service");
+        this.serviceType = checkServiceType(service, serviceType);
+        this.name = checkName(name,this.serviceType);
+        this.methodAccess = DynamicAccessor.get(this.serviceType);
+        this.config = checkConfig(config);
     }
 
     @Override
@@ -57,13 +55,13 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     }
 
     @Override
-    public T target() {
-        return target;
+    public T service() {
+        return service;
     }
 
     @Override
-    public Class<T> targetType() {
-        return targetType;
+    public Class<T> serviceType() {
+        return serviceType;
     }
 
     @Override
@@ -74,7 +72,7 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     @SuppressWarnings("unchecked")
     @Override
     public <R> R invokeCallee(Callee<T> callee, Object... args) {
-        return (R) methodAccess.invoke(target, callee.methodIndex(), args);
+        return (R) methodAccess.invoke(service, callee.methodIndex(), args);
     }
 
     @Override
@@ -88,11 +86,30 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     @Override
     public int getCalleeIndex(Callee<?> callee) {
         Method method = callee.method();
-        return methodAccess.getIndex(method.getName(), method.getParameterTypes());
+        return methodAccess.getMethodIndex(method.getName(), method.getParameterTypes());
     }
 
     @Override
     public String toString() {
-        return "CombineRemoteService{target=" + target + ", name=" + name + "}";
+        return "CombineRemoteService{target=" + service + ", name=" + name + "}";
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Class<T> checkServiceType(T service, Class<T> serviceType) {
+        if (serviceType == null)
+            serviceType = (Class<T>) ReflectionUtil.getTargetClass(service.getClass());
+        return serviceType;
+    }
+
+    protected String checkName(String name,Class<T> serviceType) {
+        if (StringUtil.isBlank(name))
+            name = ObjectUtil.lowercaseName(serviceType);
+        return name;
+    }
+
+    protected NodeConfig checkConfig(NodeConfig config) {
+        if (config == null)
+            config = new HierarchicalNodeConfig(this);
+        return config;
     }
 }

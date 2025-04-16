@@ -1,13 +1,13 @@
 package io.effi.rpc.engine;
 
 import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.LinkedConfig;
+import io.effi.rpc.common.config.HierarchicalNodeConfig;
 import io.effi.rpc.common.config.NodeConfig;
 import io.effi.rpc.common.util.AssertUtil;
 import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.ReflectionUtil;
 import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.RemoteService;
+import io.effi.rpc.contract.annotation.AnnotationStyle;
 import io.effi.rpc.contract.annotation.AnnotationStyleParser;
 import io.effi.rpc.contract.annotation.EffiRpcCallee;
 import io.effi.rpc.contract.annotation.EffiRpcService;
@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static io.effi.rpc.engine.AnnotationSupport.annotationStyleParserForMethod;
+import static io.effi.rpc.engine.AnnotationSupport.checkAnnotationStyle;
 
 /**
  * Annotation implementation of {@link RemoteService}.
@@ -35,14 +36,21 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
 
     private final EffiRpcService serviceAnnotation;
 
-    private final AnnotationStyleWrapper styleWrapper;
+    private final AnnotationStyle annotationStyle;
 
     public AnnotationRemoteService(T service, EffRpcApplication application) {
-        this.serviceAnnotation = parseServiceAnnotation(service);
+        this(service, null, application);
+    }
+
+    public AnnotationRemoteService(T service, Class<T> serviceType, EffRpcApplication application) {
         AssertUtil.notNull(application, "application");
-        initialize(serviceAnnotation.value(), service, parseConfig(serviceAnnotation, application));
-        this.styleWrapper = new AnnotationStyleWrapper(config);
-        if (styleWrapper.parser() != null) styleWrapper.parser().parseType(targetType, config);
+        AssertUtil.notNull(service, "service");
+        serviceType = checkServiceType(service, serviceType);
+        EffiRpcService rpcService = checkServiceAnnotation(serviceType);
+        NodeConfig config = parseConfig(rpcService, application);
+        initialize(rpcService.value(), service, serviceType, config);
+        this.annotationStyle = checkAnnotationStyle(serviceType, config);
+        this.serviceAnnotation = rpcService;
         parseCallee(application);
     }
 
@@ -50,29 +58,19 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return serviceAnnotation;
     }
 
-    public AnnotationStyleWrapper styleWrapper() {
-        return styleWrapper;
+    public AnnotationStyle annotationStyle() {
+        return annotationStyle;
     }
 
-    private EffiRpcService parseServiceAnnotation(T service) {
-        AssertUtil.notNull(service, "service");
-        Class<?> targetClass = ReflectionUtil.getTargetClass(service.getClass());
-        if (!targetClass.isAnnotationPresent(EffiRpcService.class)) {
-            throw new IllegalArgumentException("AnnotatedRemoteService can not be build because without @EffiRpcService");
-        }
-        return targetClass.getAnnotation(EffiRpcService.class);
-    }
-
-    private LinkedConfig parseConfig(EffiRpcService effiRpcService, EffRpcApplication application) {
-        NodeConfig config = new NodeConfig(this, application.providerConfig());
-        AnnotationSupport.fillConfig(effiRpcService, config);
-        return config;
+    private NodeConfig parseConfig(EffiRpcService effiRpcService, EffRpcApplication application) {
+        HierarchicalNodeConfig config = new HierarchicalNodeConfig(this, application.providerConfig());
+        return AnnotationSupport.fillConfig(effiRpcService, config);
     }
 
     private void parseCallee(EffRpcApplication application) {
-        List<Method> methods = AnnotationSupport.filterMethods(targetType.getMethods());
+        List<Method> methods = AnnotationSupport.filterMethods(serviceType.getDeclaredMethods());
         for (Method method : methods) {
-            NodeConfig calleeConfig = parseCalleeConfig(method);
+            HierarchicalNodeConfig calleeConfig = parseCalleeConfig(method);
             MethodMapper<T> methodMapper = getMethodMapper(calleeConfig, method);
             EffiRpcModule[] modules = getModules(calleeConfig, application);
             List<Protocol> supportedProtocols = getSupportedProtocols(calleeConfig);
@@ -82,15 +80,14 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         }
     }
 
-    private NodeConfig parseCalleeConfig(Method method) {
-        NodeConfig config = new NodeConfig(null, config());
+    private HierarchicalNodeConfig parseCalleeConfig(Method method) {
+        HierarchicalNodeConfig config = new HierarchicalNodeConfig(null, config());
         EffiRpcCallee effiRpcCallee = method.getAnnotation(EffiRpcCallee.class);
-        AnnotationSupport.fillConfig(effiRpcCallee, config);
-        return config;
+        return AnnotationSupport.fillConfig(effiRpcCallee, config);
     }
 
-    private MethodMapper<T> getMethodMapper(NodeConfig config, Method method) {
-        AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, styleWrapper);
+    private MethodMapper<T> getMethodMapper(HierarchicalNodeConfig config, Method method) {
+        AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, annotationStyle);
         ParameterMapper<ParameterParser<?>>[] parameterMappers;
         if (methodAnnotationStyleParser != null && methodAnnotationStyleParser.supported(method)) {
             parameterMappers = methodAnnotationStyleParser.parseCalleeParameterMapper(method);
@@ -101,7 +98,7 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return new MethodMapper<>(this, method, parameterMappers);
     }
 
-    private EffiRpcModule[] getModules(NodeConfig config, EffRpcApplication application) {
+    private EffiRpcModule[] getModules(HierarchicalNodeConfig config, EffRpcApplication application) {
         ArrayList<EffiRpcModule> result = new ArrayList<>();
         List<String> modules = config.getCascaded(DefaultConfigKeys.MODULES.key());
         if (CollectionUtil.isNotEmpty(modules)) {
@@ -115,7 +112,7 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return result.toArray(new EffiRpcModule[0]);
     }
 
-    private List<Protocol> getSupportedProtocols(NodeConfig config) {
+    private List<Protocol> getSupportedProtocols(HierarchicalNodeConfig config) {
         String protocolNames = config.get(DefaultConfigKeys.PROTOCOL);
         if (StringUtil.isBlank(protocolNames)) {
             return Collections.emptyList();
@@ -127,6 +124,11 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
             result.add(protocol);
         }
         return result;
+    }
+
+    private EffiRpcService checkServiceAnnotation(Class<T> targetType) {
+        EffiRpcService serviceAnnotation = targetType.getAnnotation(EffiRpcService.class);
+        return AssertUtil.notNull(serviceAnnotation, "the target type is missing @EffiRpcService");
     }
 
 }

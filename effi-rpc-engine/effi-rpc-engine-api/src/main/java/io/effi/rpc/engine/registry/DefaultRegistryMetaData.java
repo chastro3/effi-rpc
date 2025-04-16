@@ -4,7 +4,7 @@ import com.sun.management.OperatingSystemMXBean;
 import io.effi.rpc.common.config.URL;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.module.ServerExporter;
+import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.engine.DefaultServerExporter;
 import io.effi.rpc.transport.endpoint.Server;
 
@@ -43,9 +43,9 @@ public class DefaultRegistryMetaData {
         memoryUsage = round((double) usedMemory / totalMemory);
         EffRpcApplication application = EffRpcApplication.getInstance(url);
         for (EffiRpcModule module : application.modules()) {
-            ServerExporter serverExporter = module.serverExporterManager().get(url.uri());
+            ServerExporter serverExporter = module.serverExporterRepository().get(url.uri());
             if (serverExporter != null) {
-                services = serverExporter.calleeManager().components().size();
+                services = serverExporter.calleeRepository().components().size();
                 if (serverExporter instanceof DefaultServerExporter defaultServerExporter) {
                     Server server = defaultServerExporter.server();
                     if (server != null) {
