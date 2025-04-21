@@ -1,7 +1,7 @@
 package io.effi.rpc.internal.logging;
 
 /**
- * Retrieve logger instances based on a given name. Implementations of this
+ * Retrieves logger instances based on a given name. Implementations of this
  * interface can supply loggers that are suitable for different logging frameworks
  * or custom logging systems.
  */

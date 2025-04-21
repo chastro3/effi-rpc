@@ -1,21 +1,46 @@
 package io.effi.rpc.nativetools;
 
+import io.effi.rpc.common.util.StringUtil;
+
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a configuration for resource in native config.
+ *
+ * @see <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/resource-config-schema-v1.1.0.json">resource-config-schema-v1.1.0.json</a>
+ */
 public class ResourceConfig implements NativeConfig<Map<String, Object>> {
 
-    private final Resources resources = new Resources();
+    private final ResourcesItem resources = new ResourcesItem();
 
-    public ResourceConfig addInclude(String conditionClass, String pattern) {
-        resources.includes.add(new ResourcesItem(conditionClass, pattern));
+    private final List<GlobItem> globs = new ArrayList<>();
+
+    private final List<BundleItem> bundles = new ArrayList<>();
+
+    public ResourceConfig addIncludedResource(ConditionItem condition, String pattern) {
+        if (StringUtil.isNotBlank(pattern)) {
+            resources.includes.add(new ResourcesChildItem(condition, pattern));
+        }
         return this;
     }
 
-    public ResourceConfig addExclude(String conditionClass, String pattern) {
-        resources.excludes.add(new ResourcesItem(conditionClass, pattern));
+    public ResourceConfig addExcludeResource(ConditionItem condition, String pattern) {
+        if (StringUtil.isNotBlank(pattern)) {
+            resources.excludes.add(new ResourcesChildItem(condition, pattern));
+        }
+        return this;
+    }
+
+    public ResourceConfig addGlob(ConditionItem condition, String glob, String module) {
+        globs.add(new GlobItem(condition, glob, module));
+        return this;
+    }
+
+    public ResourceConfig addBundle(ConditionItem condition, String name, List<String> locales, List<String> classNames) {
+        bundles.add(new BundleItem(condition, name, locales, classNames));
         return this;
     }
 
@@ -26,9 +51,11 @@ public class ResourceConfig implements NativeConfig<Map<String, Object>> {
 
     @Override
     public Map<String, Object> toJsonConfig() {
-        Map<String, Object> map = new LinkedHashMap<>(2);
-        map.put("resources", resources.toMap());
-        return map;
+        return MapBuilder.create(3)
+                .put("resources", resources)
+                .put("globs", globs)
+                .put("bundles", bundles)
+                .build();
     }
 
     @Override
@@ -36,47 +63,58 @@ public class ResourceConfig implements NativeConfig<Map<String, Object>> {
         return !resources.excludes.isEmpty() || !resources.includes.isEmpty();
     }
 
-    static class Resources implements Item {
+    static class ResourcesItem implements Item {
 
-        private final List<ResourcesItem> includes = new ArrayList<>();
+        private final List<ResourcesChildItem> includes = new ArrayList<>();
 
-        private final List<ResourcesItem> excludes = new ArrayList<>();
+        private final List<ResourcesChildItem> excludes = new ArrayList<>();
 
         @Override
         public Map<String, Object> toMap() {
             if (!includes.isEmpty() || !excludes.isEmpty()) {
-                Map<String, Object> map = new LinkedHashMap<>(2);
-                if (!includes.isEmpty()) {
-                    map.put("includes", includes());
-                }
-                if (!excludes.isEmpty()) {
-                    map.put("excludes", excludes());
-                }
-                return map;
+                return MapBuilder.create(2)
+                        .put("includes", includes)
+                        .put("excludes", excludes)
+                        .build();
             }
-            return Map.of();
-        }
-
-        private List<Map<String, Object>> includes() {
-            return includes.stream().map(ResourcesItem::toMap).toList();
-        }
-
-        private List<Map<String, Object>> excludes() {
-            return excludes.stream().map(ResourcesItem::toMap).toList();
+            return Collections.emptyMap();
         }
     }
 
-    record ResourcesItem(String conditionClass, String pattern) implements Item {
+    record ResourcesChildItem(ConditionItem condition, String pattern) implements Item {
 
         @Override
         public Map<String, Object> toMap() {
-            Map<String, Object> map = new LinkedHashMap<>(2);
-            if (conditionClass != null)
-                map.put("condition", Map.of("typeReachable", conditionClass));
-            if (pattern != null) {
-                map.put("pattern", pattern);
-            }
-            return map;
+            return MapBuilder.create(2)
+                    .put("condition", condition)
+                    .put("pattern", pattern)
+                    .build();
+        }
+    }
+
+    record GlobItem(ConditionItem condition, String glob, String module) implements Item {
+
+        @Override
+        public Map<String, Object> toMap() {
+            return MapBuilder.create(3)
+                    .put("condition", condition)
+                    .put("glob", glob)
+                    .put("module", module)
+                    .build();
+        }
+    }
+
+    record BundleItem(ConditionItem condition, String name, List<String> locales,
+                      List<String> classNames) implements Item {
+
+        @Override
+        public Map<String, Object> toMap() {
+            return MapBuilder.create(4)
+                    .put("condition", condition)
+                    .put("name", name)
+                    .put("locales", locales)
+                    .put("classNames", classNames)
+                    .build();
         }
     }
 

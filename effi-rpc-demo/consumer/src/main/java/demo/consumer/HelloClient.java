@@ -5,10 +5,7 @@ import io.effi.rpc.common.constant.Component;
 import io.effi.rpc.contract.annotation.Body;
 import io.effi.rpc.contract.annotation.EffiRpcCaller;
 import io.effi.rpc.contract.annotation.EffiRpcClient;
-import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -17,9 +14,15 @@ import java.util.concurrent.CompletableFuture;
         application = "provider",
         protocol = "http",
         clientConfig = "hello-client",
-        path = "service"
+        path = "service",
+        address = "127.0.0.1:8091",
+        style = Component.AnnotationStyle.JAX_RS
 )
 public interface HelloClient {
+
+    @GET
+    @Path("hello")
+    String hello(@QueryParam("name") String name, @QueryParam("age") Integer age);
 
     @POST
     @Path("helloList")

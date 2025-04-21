@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
  */
 public final class EffiRpcFramework {
 
-    public static final String GROUP_ID = "io.github.taikonaut3";
+    public static final String GROUP_ID = "io.github.chastro3";
 
     private static final String FRAMEWORK_VERSION;
 

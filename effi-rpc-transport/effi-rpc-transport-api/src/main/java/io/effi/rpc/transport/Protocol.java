@@ -50,7 +50,7 @@ public interface Protocol extends Cleanable {
     Server openServer(URL url, EffiRpcModule module);
 
     /**
-     * Creates a request envelope for the given caller and arguments.
+     * Creates a request for the given caller and arguments.
      *
      * @param caller the request initiator
      * @param args   the request arguments
@@ -59,7 +59,7 @@ public interface Protocol extends Cleanable {
     Envelope.Request createRequest(Caller<?> caller, Object[] args);
 
     /**
-     * Creates a response envelope for the given callee and result.
+     * Creates a response for the given callee and result.
      *
      * @param callee the response handler
      * @param result the response result
@@ -88,12 +88,12 @@ public interface Protocol extends Cleanable {
     <T> Caller<T> createCaller(TypeToken<T> returnType, NodeConfig config, EffiRpcModule module);
 
     /**
-     * Returns the supported request envelope type.
+     * Returns the supported request type.
      */
     Class<? extends Envelope.Request> supportedRequestType();
 
     /**
-     * Returns the supported response envelope type.
+     * Returns the supported response type.
      */
     Class<? extends Envelope.Response> supportedResponseType();
 

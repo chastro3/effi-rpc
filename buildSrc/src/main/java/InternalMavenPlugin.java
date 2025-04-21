@@ -40,7 +40,7 @@ public class InternalMavenPlugin implements Plugin<Project> {
                 MavenPom pom = mavenPublication.getPom();
                 pom.getName().set(project.getName());
                 pom.getDescription().set(project.getDescription());
-                pom.getUrl().set("https://github.com/taikonaut3/effi-rpc/tree/master" + path);
+                pom.getUrl().set("https://github.com/chastro3/effi-rpc/tree/master" + path);
 
                 pom.licenses(licenses -> {
                     licenses.license(license -> {
@@ -51,14 +51,14 @@ public class InternalMavenPlugin implements Plugin<Project> {
 
                 pom.developers(developers -> {
                     developers.developer(developer -> {
-                        developer.getName().set("taikonaut3");
+                        developer.getName().set("chastro3");
                         developer.getEmail().set("wenbochou@163.com");
                     });
                 });
 
                 pom.scm(scm -> {
-                    scm.getConnection().set("scm:git:https://github.com/taikonaut3/effi-rpc.git");
-                    scm.getDeveloperConnection().set("scm:git:https://github.com/taikonaut3/effi-rpc.git");
+                    scm.getConnection().set("scm:git:https://github.com/chastro3/effi-rpc.git");
+                    scm.getDeveloperConnection().set("scm:git:https://github.com/chastro3/effi-rpc.git");
                     scm.getUrl().set(pom.getUrl());
                 });
 

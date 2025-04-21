@@ -9,6 +9,7 @@ import io.effi.rpc.common.util.StringUtil;
 import io.effi.rpc.contract.annotation.*;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,8 @@ public final class AnnotationSupport {
         return Arrays.stream(methods)
                 .filter(method ->
                         !method.isAnnotationPresent(UnParse.class)
-                                && !ReflectionUtil.isObjectMethod(method))
+                                && !ReflectionUtil.isObjectMethod(method)
+                                && !Modifier.isStatic(method.getModifiers()))
                 .collect(Collectors.toList());
     }
 

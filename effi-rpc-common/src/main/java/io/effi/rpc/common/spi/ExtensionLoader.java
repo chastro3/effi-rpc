@@ -16,8 +16,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
-
 /**
  * Loads and manages extensions of a given type.
  * The loader handles extension instantiation, scope management, listener notification, and cleanup.
@@ -94,10 +92,9 @@ public final class ExtensionLoader<S> implements Cleanable {
      */
     @SuppressWarnings("unchecked")
     public static <S> ExtensionLoader<S> load(Class<S> type) {
-        AssertUtil.notNull(type, "Extension type");
-        AssertUtil.condition(type.isInterface(), "Extension type (" + type + ") cannot be an interface");
-        AssertUtil.condition(type.isAnnotationPresent(Extensible.class),
-                "Failed to load extension type (" + type + "): missing @Extensible annotation");
+        AssertUtil.notNull(type, "extension type");
+        AssertUtil.condition(type.isInterface(), "extension type (" + type + ") cannot be an interface");
+        AssertUtil.condition(type.isAnnotationPresent(Extensible.class), "extension type (" + type + "): missing @Extensible annotation");
         return (ExtensionLoader<S>) LOADERS.computeIfAbsent(type.getTypeName(), k -> new ExtensionLoader<>(type));
     }
 
@@ -245,8 +242,10 @@ public final class ExtensionLoader<S> implements Cleanable {
     public S getExtension(String extensionName) {
         ExtensionWrapper wrapper = extensionWrappers.get(extensionName);
         if (wrapper == null) {
-            throw new IllegalArgumentException(format("Failed to load extension ['%s'] for %s. Unknown extension ['%s']. Please check if it exists.",
-                    extensionName, this.type.getTypeName(), extensionName));
+            throw new IllegalArgumentException(String.format(
+                    "Failed to load extension '%s' for %s: not found or does not meet loading conditions.",
+                    extensionName, this.type.getTypeName()
+            ));
         }
         return wrapper.instance();
     }
@@ -321,7 +320,7 @@ public final class ExtensionLoader<S> implements Cleanable {
             }
             try {
                 for (String type : classes) {
-                    Class.forName(type);
+                    ClassUtil.getClassLoader(this.type).loadClass(type);
                 }
                 return true;
             } catch (ClassNotFoundException e) {

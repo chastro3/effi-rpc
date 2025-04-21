@@ -28,7 +28,8 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
         resourceCollector = new ResourceCollector(processingEnv);
         processors = List.of(
                 new ExtensionProcessor(resourceCollector),
-                new RemoteServiceProcessor(resourceCollector)
+                new RemoteServiceProcessor(resourceCollector),
+                new RemoteClientProcessor(resourceCollector)
         );
         supportedAnnotation = processors.stream()
                 .map(item -> item.type().getName())

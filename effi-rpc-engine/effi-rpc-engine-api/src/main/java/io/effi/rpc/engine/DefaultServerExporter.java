@@ -154,7 +154,7 @@ public class DefaultServerExporter implements ServerExporter {
             CollectionUtil.addUnique(registryConfigs, sharedRegistryConfig);
         }
         if (CollectionUtil.isEmpty(registryConfigs)) {
-            logger.warn("No available RegistryConfig(s)");
+            logger.warn("No available registry config(s)");
         } else {
             for (RegistryConfig registryConfig : registryConfigs) {
                 URL registryConfigUrl = registryConfig.url().replicate();

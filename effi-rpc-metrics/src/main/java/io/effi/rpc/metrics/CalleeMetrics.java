@@ -163,15 +163,16 @@ public class CalleeMetrics {
 
     @Override
     public String toString() {
-        return "CalleeMetrics{" +
-                "requestCount=" + requestCount +
-                ", successCount=" + successCount +
-                ", failureCount=" + failureCount +
-                ", averageResponseTime=" + averageResponseTime +
-                ", averageSerializationTime=" + averageSerializationTime +
-                ", averageDeserializationTime=" + averageDeserializationTime +
-                ", maxResponseTime=" + maxResponseTime +
-                ", minResponseTime=" + minResponseTime +
-                '}';
+        return "CalleeMetrics{"
+                + "requestCount=" + requestCount
+                + ", successCount=" + successCount
+                + ", failureCount=" + failureCount
+                + ", averageResponseTime=" + averageResponseTime
+                + ", averageSerializationTime=" + averageSerializationTime
+                + ", averageDeserializationTime=" + averageDeserializationTime
+                + ", maxResponseTime=" + maxResponseTime
+                + ", minResponseTime=" + minResponseTime
+                + '}';
     }
+
 }

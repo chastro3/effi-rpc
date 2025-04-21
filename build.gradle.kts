@@ -1,6 +1,6 @@
 allprojects {
     apply(plugin = "base")
-    group = "io.github.taikonaut3"
+    group = "io.github.chastro3"
     version = "0.0.12-alpha"
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
@@ -19,14 +19,12 @@ allprojects {
 
     repositories {
         mavenLocal()
-
         listOf(
             "https://maven.aliyun.com/repository/public/",
             "https://maven.aliyun.com/repository/jcenter/",
             "https://maven.aliyun.com/repository/google/",
             "https://maven.aliyun.com/repository/gradle-plugin/"
         ).forEach { maven(url = uri(it)) }
-
         mavenCentral()
         google()
     }

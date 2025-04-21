@@ -7,7 +7,10 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RuntimeClassLoader extends ClassLoader {
+/**
+ * A custom class loader for defining bytecode-generated classes at runtime.
+ */
+public final class RuntimeClassLoader extends ClassLoader {
 
     private static final Map<ClassLoader, WeakReference<RuntimeClassLoader>> LOADERS = new WeakHashMap<>();
 

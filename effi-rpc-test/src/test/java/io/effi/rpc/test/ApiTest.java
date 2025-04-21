@@ -7,7 +7,8 @@ import io.effi.rpc.contract.annotation.AnnotationStyle;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.engine.*;
-import io.effi.rpc.nativetools.FastJsonWriter;
+import io.effi.rpc.nativetools.ConditionItem;
+import io.effi.rpc.nativetools.JsonWriter;
 import io.effi.rpc.nativetools.ReflectConfigItem;
 import io.effi.rpc.protocol.http.h2.Http2Callee;
 import io.effi.rpc.protocol.http.h2.Http2CalleeBuilder;
@@ -95,12 +96,12 @@ public class ApiTest {
 
     @Test
     public void jsonTest() {
-        ReflectConfigItem reflectConfigItem = new ReflectConfigItem().className("io.effi.rpc.common.config.FlatConfig")
-                .conditionClass("io.effi.rpc.common.config.Config")
-                .addMethod("<init>", null)
-                .addMethod("hello", List.of("java.lang.String"));
+        ReflectConfigItem reflectConfigItem = new ReflectConfigItem().type("io.effi.rpc.common.config.FlatConfig")
+                .condition(new ConditionItem().typeReachable("io.effi.rpc.common.config.Config"))
+                .method("<init>", null)
+                .method("hello", List.of("java.lang.String"));
         try  {
-            FastJsonWriter w = new FastJsonWriter(new BufferedWriter(new FileWriter("out.json")));
+            JsonWriter w = new JsonWriter(new BufferedWriter(new FileWriter("out.json")));
             Map<String, Object> data = reflectConfigItem.toMap();
             w.write(data).flush();
         } catch (Exception e) {

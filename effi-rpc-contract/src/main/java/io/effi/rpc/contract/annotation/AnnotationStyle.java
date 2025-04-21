@@ -47,7 +47,6 @@ public class AnnotationStyle {
                         style = new AnnotationStyle(name, parser);
                         annotationStyles.put(name, style);
                     } catch (Exception ignored) {
-
                     }
                 }
             }

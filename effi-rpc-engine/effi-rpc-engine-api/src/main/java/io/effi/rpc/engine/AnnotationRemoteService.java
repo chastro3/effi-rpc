@@ -74,7 +74,7 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
             MethodMapper<T> methodMapper = getMethodMapper(calleeConfig, method);
             EffiRpcModule[] modules = getModules(calleeConfig, application);
             List<Protocol> supportedProtocols = getSupportedProtocols(calleeConfig);
-            if(CollectionUtil.isNotEmpty(supportedProtocols)){
+            if (CollectionUtil.isNotEmpty(supportedProtocols)) {
                 supportedProtocols.forEach(protocol -> protocol.createCallee(methodMapper, calleeConfig, modules));
             }
         }

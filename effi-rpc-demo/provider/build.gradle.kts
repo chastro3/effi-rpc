@@ -7,8 +7,6 @@ dependencies {
     implementation("org.slf4j:slf4j-api")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.5.16")
-    // https://mvnrepository.com/artifact/org.springframework/spring-context
-    implementation("org.springframework:spring-context:6.2.5")
 }
 
 plugins {
@@ -24,12 +22,45 @@ application {
 }
 
 graalvmNative {
-    binaries {
-        named("main") {
-            sharedLibrary.set(false)
-        }
+    binaries.all {
+        // common options
+        verbose.set(true)
+        sharedLibrary.set(false)
     }
 }
+
+//tasks.register<Jar>("fatJar") {
+//    group = "build"
+//    archiveBaseName.set("provider")
+//    archiveVersion.set("1.0")
+//    destinationDirectory.set(file("$buildDir/libs"))
+//
+//    // 添加主代码（编译后的 class 文件）
+//    from(sourceSets.main.get().output)
+//
+//    // 设置 lib 目录，并将依赖 JAR 文件拷贝到 lib 目录下
+//    dependsOn(configurations.runtimeClasspath)
+//    from({
+//        configurations.runtimeClasspath.get()
+//            .filter { it.name.endsWith("jar") } // 只包括 JAR 文件
+//    }) {
+//        // 设置目标路径为 lib 目录
+//        into("lib")
+//    }
+//
+//    // 设置清晰的入口类
+//    manifest {
+//        attributes(
+//            "Manifest-Version" to "1.0", // Manifest 版本
+//            "Main-Class" to "demo.provider.FatJarTest" // 入口类
+//        )
+//    }
+//}
+
+
+
+
+
 
 
 

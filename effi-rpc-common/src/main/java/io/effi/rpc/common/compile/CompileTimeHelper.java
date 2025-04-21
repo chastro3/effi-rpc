@@ -12,9 +12,14 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * Compile time helper.
+ */
 public class CompileTimeHelper {
 
     private static final Set<String> OBJECT_METHOD_SIGNATURES = Set.of(
@@ -146,17 +151,15 @@ public class CompileTimeHelper {
                 return Type.DOUBLE_TYPE;
             case VOID:
                 return Type.VOID_TYPE;
-            case ARRAY: {
+            case ARRAY:
                 ArrayType at = (ArrayType) mirror;
                 Type elem = asAsmType(at.getComponentType());
                 return Type.getType("[" + elem.getDescriptor());
-            }
-            case DECLARED: {
+            case DECLARED:
                 DeclaredType dt = (DeclaredType) mirror;
                 String qName = ((TypeElement) types.asElement(dt)).getQualifiedName().toString();
                 String internal = qName.replace('.', '/');
                 return Type.getObjectType(internal);
-            }
             default:
                 throw new IllegalArgumentException("Unsupported kind: " + mirror.getKind());
         }

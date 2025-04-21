@@ -9,3 +9,22 @@ dependencies {
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.5.16")
 }
+plugins {
+    id("org.graalvm.buildtools.native") version "0.10.6"
+    id("application")
+}
+
+application {
+    mainClass.set("demo.consumer.Consumer")
+//    applicationDefaultJvmArgs = listOf(
+//        "-agentlib:native-image-agent=config-output-dir=${buildDir}/native-image,config-write-period-secs=60,config-write-initial-delay-secs=5"
+//    )
+}
+
+graalvmNative {
+    binaries.all {
+        // common options
+        verbose.set(true)
+        sharedLibrary.set(false)
+    }
+}

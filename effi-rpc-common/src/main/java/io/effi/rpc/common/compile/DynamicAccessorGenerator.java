@@ -14,6 +14,9 @@ import java.util.function.Function;
 
 import static org.objectweb.asm.Opcodes.*;
 
+/**
+ * Generates {@link DynamicAccessor} at compile-time and runtime.
+ */
 public class DynamicAccessorGenerator {
 
     private static final String METHOD_NAMES = "METHOD_NAMES";

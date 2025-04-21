@@ -5,7 +5,7 @@ import io.effi.rpc.common.config.ConfigSource;
 import io.effi.rpc.common.config.FlatConfig;
 import io.effi.rpc.common.util.ChainBuilder;
 
-public abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
+abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
         implements ChainBuilder<T, C>, ConfigSource {
 
     protected String name;

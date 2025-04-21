@@ -5,10 +5,7 @@ import io.effi.rpc.common.compile.DynamicAccessorGenerator;
 import io.effi.rpc.common.compile.GeneratedInfo;
 import io.effi.rpc.common.constant.Constant;
 import io.effi.rpc.common.constant.SystemKey;
-import io.effi.rpc.nativetools.FastJsonWriter;
-import io.effi.rpc.nativetools.NativeConfig;
-import io.effi.rpc.nativetools.ReflectConfig;
-import io.effi.rpc.nativetools.ReflectConfigItem;
+import io.effi.rpc.nativetools.*;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -28,6 +25,8 @@ public class ResourceCollector {
     private final List<TypeElement> remoteServices = new ArrayList<>();
 
     private final ReflectConfig reflectConfig = new ReflectConfig();
+
+    private final ProxyConfig proxyConfig = new ProxyConfig();
 
     private final ProcessingEnvironment processingEnv;
 
@@ -55,9 +54,9 @@ public class ResourceCollector {
         services.add(extensionName);
         if (isNativeBuild) {
             ReflectConfigItem reflectConfigItem = new ReflectConfigItem()
-                    .conditionClass(interfaceName)
-                    .className(extensionName)
-                    .addMethod("<init>", null);
+                    .condition(new ConditionItem().typeReachable(interfaceName))
+                    .name(extensionName)
+                    .method("<init>", null);
             addReflectConfigItem(reflectConfigItem);
         }
     }
@@ -70,11 +69,16 @@ public class ResourceCollector {
         reflectConfig.addItem(item);
     }
 
+    public void addProxyInterface(ProxyConfigItem item) {
+        proxyConfig.addItem(item);
+    }
+
     public void generateFiles() {
         generateExtensionFile();
         generateDynamicAccessorFile();
         if (isNativeBuild) {
             generateNativeConfigFile(reflectConfig);
+            generateNativeConfigFile(proxyConfig);
         }
     }
 
@@ -126,9 +130,9 @@ public class ResourceCollector {
     }
 
     private void generateNativeConfigFile(NativeConfig<?> nativeConfig) {
-        if (reflectConfig.hasResource()) {
+        if (nativeConfig.hasResource()) {
             try (Writer writer = createNativeFile(nativeConfig.name()).openWriter()) {
-                FastJsonWriter jsonWriter = new FastJsonWriter(writer);
+                JsonWriter jsonWriter = new JsonWriter(writer);
                 jsonWriter.write(nativeConfig.toJsonConfig());
             } catch (IOException e) {
                 messager.printError(e.getMessage());

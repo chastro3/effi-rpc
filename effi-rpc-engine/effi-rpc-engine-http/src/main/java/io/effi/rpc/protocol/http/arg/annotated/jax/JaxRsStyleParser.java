@@ -17,7 +17,7 @@ import static io.effi.rpc.common.constant.Component.AnnotationStyle.JAX_RS;
 /**
  * {@link AnnotationStyleParser} implementation based on jax-rs.
  */
-@Extension(value = JAX_RS, onClass = "jakarta.ws.rs.core.Application")
+@Extension(value = JAX_RS, onClass = "jakarta.ws.rs.Path")
 public class JaxRsStyleParser extends AbstractAnnotationStyleParser<HttpRequest<ByteBuf>> {
 
     @Override

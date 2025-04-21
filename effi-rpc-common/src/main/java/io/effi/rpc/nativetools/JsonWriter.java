@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 高性能 JSON 写出器，支持可选格式化输出。
+ * High-performance JSON writer with optional formatting output.
  */
-public class FastJsonWriter implements Closeable {
+public class JsonWriter implements Closeable {
 
     private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
 
@@ -21,17 +21,17 @@ public class FastJsonWriter implements Closeable {
 
     private int level = 0;
 
-    public FastJsonWriter(Writer writer, String indentUnit, boolean pretty) {
+    public JsonWriter(Writer writer, String indentUnit, boolean pretty) {
         this.out = writer;
         this.indentUnit = indentUnit;
         this.pretty = pretty;
     }
 
-    public FastJsonWriter(Writer writer) {
+    public JsonWriter(Writer writer) {
         this(writer, "  ", true);
     }
 
-    public FastJsonWriter write(Object obj) throws IOException {
+    public JsonWriter write(Object obj) throws IOException {
         if (obj == null) {
             out.write("null");
         } else if (obj instanceof Map) {
@@ -41,10 +41,9 @@ public class FastJsonWriter implements Closeable {
         } else if (obj instanceof String) {
             writeString((String) obj);
         } else if (obj instanceof Number || obj instanceof Boolean) {
-            // Number/Boolean 都直接 toString()
             out.write(obj.toString());
         } else {
-            throw new IllegalStateException("unsupported type: " + obj.getClass());
+            throw new IllegalArgumentException("Unsupported type: " + obj.getClass() + " is not allowed in JSON output");
         }
         return this;
     }

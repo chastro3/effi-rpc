@@ -2,15 +2,15 @@ package io.effi.rpc.processor;
 
 import io.effi.rpc.common.compile.DynamicAccessor;
 import io.effi.rpc.contract.annotation.EffiRpcService;
+import io.effi.rpc.nativetools.ConditionItem;
 import io.effi.rpc.nativetools.ReflectConfigItem;
-import org.objectweb.asm.Opcodes;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
-public class RemoteServiceProcessor extends BaseProcessor<EffiRpcService> implements Opcodes {
+public class RemoteServiceProcessor extends BaseProcessor<EffiRpcService> {
 
     public RemoteServiceProcessor(ResourceCollector resourceCollector) {
         super(EffiRpcService.class, resourceCollector);
@@ -22,12 +22,13 @@ public class RemoteServiceProcessor extends BaseProcessor<EffiRpcService> implem
             if (element instanceof TypeElement typeElement) {
                 String className = helper.getQualifiedClassName(typeElement);
                 ReflectConfigItem serviceItem = new ReflectConfigItem()
-                        .className(className)
+                        .name(className)
                         .queryAllDeclaredMethods(true)
                         .queryAllPublicMethods(true);
                 ReflectConfigItem serviceAccessItem = new ReflectConfigItem()
-                        .className(className + DynamicAccessor.SUFFIX)
-                        .addMethod("<init>", null);
+                        .condition(new ConditionItem().typeReachable(className))
+                        .name(className + DynamicAccessor.SUFFIX)
+                        .method("<init>", null);
                 resourceCollector.addRemoteService(typeElement);
                 resourceCollector.addReflectConfigItem(serviceItem);
                 resourceCollector.addReflectConfigItem(serviceAccessItem);

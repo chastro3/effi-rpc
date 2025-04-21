@@ -43,7 +43,7 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     protected void initialize(String name, T service, Class<T> serviceType, NodeConfig config) {
         this.service = AssertUtil.notNull(service, "service");
         this.serviceType = checkServiceType(service, serviceType);
-        this.name = checkName(name,this.serviceType);
+        this.name = checkName(name, this.serviceType);
         this.methodAccess = DynamicAccessor.get(this.serviceType);
         this.config = checkConfig(config);
     }
@@ -101,7 +101,7 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
         return serviceType;
     }
 
-    protected String checkName(String name,Class<T> serviceType) {
+    protected String checkName(String name, Class<T> serviceType) {
         if (StringUtil.isBlank(name))
             name = ObjectUtil.lowercaseName(serviceType);
         return name;
