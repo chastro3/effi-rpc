@@ -1,4 +1,5 @@
 rootProject.name = "effi-rpc"
+
 include("effi-rpc-common")
 include("effi-rpc-bom")
 include("effi-rpc-contract")
@@ -50,3 +51,26 @@ findProject(":effi-rpc-transport:effi-rpc-transport-api")?.name = "effi-rpc-tran
 include("effi-rpc-transport:effi-rpc-transport-netty")
 findProject(":effi-rpc-transport:effi-rpc-transport-netty")?.name = "effi-rpc-transport-netty"
 include("effi-rpc-processor")
+
+pluginManagement {
+    repositories {
+        listOf(
+            "https://maven.aliyun.com/repository/gradle-plugin/"
+        ).forEach { maven(it) }
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenLocal()
+        listOf(
+            "https://maven.aliyun.com/repository/public/",
+            "https://maven.aliyun.com/repository/jcenter/",
+            "https://maven.aliyun.com/repository/google/"
+        ).forEach { maven(it) }
+        mavenCentral()
+        google()
+    }
+}
+

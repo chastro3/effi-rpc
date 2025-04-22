@@ -1,5 +1,3 @@
-import groovy.util.Node;
-import groovy.util.NodeList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.PluginManager;
@@ -61,39 +59,12 @@ public class InternalMavenPlugin implements Plugin<Project> {
                     scm.getDeveloperConnection().set("scm:git:https://github.com/chastro3/effi-rpc.git");
                     scm.getUrl().set(pom.getUrl());
                 });
-
-                if (supportedComponent.equals("javaPlatform")) {
-                    project.getGradle().projectsEvaluated(g -> addProjectDependencyManagement(pom, project));
-                }
             }
 
         });
 
     }
 
-    public void addProjectDependencyManagement(MavenPom pom, Project project) {
-        for (Project subproject : project.getRootProject().getSubprojects()) {
-            if (subproject.getPluginManager().hasPlugin("java")) {
-                pom.withXml(xml -> {
-                    Node xmlNode = xml.asNode();
-                    Node dependencyManagement = findPomNode(xmlNode, "dependencyManagement");
-                    Node dependencies = findPomNode(dependencyManagement, "dependencies");
-                    Node dependency = dependencies.appendNode("dependency");
-                    dependency.appendNode("groupId", subproject.getGroup());
-                    dependency.appendNode("artifactId", subproject.getName());
-                    dependency.appendNode("version", subproject.getVersion());
-                });
-            }
-        }
-    }
-
-    private Node findPomNode(Node node, String childName) {
-        NodeList nodeList = (NodeList) node.get(childName);
-        if (nodeList != null && !nodeList.isEmpty()) {
-            return (Node) nodeList.getFirst();
-        }
-        return null;
-    }
 
     private String getSupportComponent(PluginManager pluginManager) {
         for (String plugin : SUPPORT_PLUGINS.keySet()) {

@@ -16,21 +16,15 @@ allprojects {
     // resolve Gradle console Chinese character encoding issues
     tasks.withType<JavaExec> { systemProperties["sun.stdout.encoding"] = "utf-8" }
     tasks.named("clean") { doLast { delete(fileTree(projectDir).include("**/*.iml")) } }
-
-    repositories {
-        mavenLocal()
-        listOf(
-            "https://maven.aliyun.com/repository/public/",
-            "https://maven.aliyun.com/repository/jcenter/",
-            "https://maven.aliyun.com/repository/google/",
-            "https://maven.aliyun.com/repository/gradle-plugin/"
-        ).forEach { maven(url = uri(it)) }
-        mavenCentral()
-        google()
-    }
 }
 
 subprojects {
+    val shouldPublish = project.extra.has("mavenPublish") &&
+            (project.extra["mavenPublish"].toString().toBoolean())
+    if(shouldPublish){
+        apply(plugin = "maven-publish")
+
+    }
     apply(plugin = "internal-maven-plugin")
     afterEvaluate {
         if (plugins.hasPlugin(JavaPlugin::class)) {
