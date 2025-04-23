@@ -28,11 +28,11 @@ javaPlatform {
 }
 
 dependencies {
-    api(enforcedPlatform("org.junit:junit-bom:$junitVersion"))
-    api(enforcedPlatform("io.vertx:vertx-dependencies:$vertxVersion"))
-    api(enforcedPlatform("io.netty:netty-bom:$nettyVersion"))
-    api(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
-    api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufBufVersion"))
+    api(platform("org.junit:junit-bom:$junitVersion"))
+    api(platform("io.vertx:vertx-dependencies:$vertxVersion"))
+    api(platform("io.netty:netty-bom:$nettyVersion"))
+    api(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    api(platform("com.google.protobuf:protobuf-bom:$protobufBufVersion"))
 
     constraints {
         api("org.jetbrains:annotations:$jetbrainsVersion")
@@ -49,6 +49,10 @@ dependencies {
         api("org.lz4:lz4-java:$lz4Version")
         api("org.xerial.snappy:snappy-java:$snappyVersion")
         api("jakarta.ws.rs:jakarta.ws.rs-api:$jakartaWsRsVersion")
-        api("${group}:effi-common:${version}")
+        rootProject.subprojects.forEach({
+            if (it.extra.has("publish") && it.extra["publish"] == true) {
+                api("${it.group}:${it.name}:${it.version}")
+            }
+        })
     }
 }
