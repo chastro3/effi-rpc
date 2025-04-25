@@ -1,7 +1,7 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.common.util.resoruce.Closeable;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.resoruce.Closeable;
 import io.effi.rpc.contract.repository.ComponentRepository;
 import org.jetbrains.annotations.NotNull;
 

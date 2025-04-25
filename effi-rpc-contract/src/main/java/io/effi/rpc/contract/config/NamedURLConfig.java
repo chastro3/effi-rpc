@@ -1,10 +1,11 @@
 package io.effi.rpc.contract.config;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.URLSource;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLSource;
 
 /**
- * Configuration that can be converted to a {@link io.effi.rpc.common.config.URL}
+ * Configuration that can be converted to a {@link URL}
  * and uses URL parameters for dynamic settings.
  */
 public interface NamedURLConfig extends NamedConfig, URLSource {

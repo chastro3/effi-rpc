@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.config;
 
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.util.StringUtil;
 
 /**
  * Configuration for client.

@@ -1,6 +1,6 @@
 package io.effi.rpc.serialization.jdk;
 
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
 import java.io.ByteArrayInputStream;
@@ -9,7 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.common.constant.Component.Serialization.JDK;
+import static io.effi.rpc.constant.Component.Serialization.JDK;
 
 /**
  * {@link io.effi.rpc.serialization.Serializer} implementation based on Java's built-in serialization.

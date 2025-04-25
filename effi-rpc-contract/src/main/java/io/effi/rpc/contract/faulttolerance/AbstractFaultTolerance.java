@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.faulttolerance;
 
-import io.effi.rpc.common.exception.EffiRpcException;
+import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.contract.CompletableReplyFuture;
 
 /**

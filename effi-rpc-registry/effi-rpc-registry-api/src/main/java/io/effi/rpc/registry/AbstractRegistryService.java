@@ -1,11 +1,11 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;

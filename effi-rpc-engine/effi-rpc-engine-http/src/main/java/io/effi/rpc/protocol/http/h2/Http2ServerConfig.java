@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.Config;
+import io.effi.rpc.config.Config;
 import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.engine.AbstractNamedConfig;
 

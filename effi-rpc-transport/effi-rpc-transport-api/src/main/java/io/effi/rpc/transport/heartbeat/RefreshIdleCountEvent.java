@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.heartbeat;
 
-import io.effi.rpc.common.event.AbstractEvent;
+import io.effi.rpc.event.AbstractEvent;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**

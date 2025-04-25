@@ -1,7 +1,7 @@
 package io.effi.rpc.serialization.protobuf;
 
 import com.google.protobuf.MessageLite;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
 import java.lang.reflect.Method;
@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.effi.rpc.common.constant.Component.Serialization.PROTOBUF;
+import static io.effi.rpc.constant.Component.Serialization.PROTOBUF;
 
 /**
  * {@link io.effi.rpc.serialization.Serializer} implementation based on protobuf.

@@ -1,9 +1,9 @@
 package io.effi.rpc.engine.faulttolerance;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.CompletableReplyFuture;
 import io.effi.rpc.contract.faulttolerance.AbstractFaultTolerance;
@@ -12,7 +12,7 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.metrics.CallerMetrics;
 
-import static io.effi.rpc.common.constant.Component.FaultTolerance.FAIL_RETRY;
+import static io.effi.rpc.constant.Component.FaultTolerance.FAIL_RETRY;
 
 /**
  * Fail-retry implementation of {@link FaultTolerance}.

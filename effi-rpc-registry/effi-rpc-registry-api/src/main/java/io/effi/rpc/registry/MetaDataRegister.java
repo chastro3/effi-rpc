@@ -1,7 +1,7 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.common.spi.Extensible;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.config.URL;
 
 import java.util.Map;
 

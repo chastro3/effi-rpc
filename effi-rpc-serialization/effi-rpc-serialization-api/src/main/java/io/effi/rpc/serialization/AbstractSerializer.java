@@ -1,6 +1,6 @@
 package io.effi.rpc.serialization;
 
-import io.effi.rpc.common.exception.PredefinedErrorCode;
+import io.effi.rpc.exception.PredefinedErrorCode;
 
 import java.lang.reflect.Type;
 

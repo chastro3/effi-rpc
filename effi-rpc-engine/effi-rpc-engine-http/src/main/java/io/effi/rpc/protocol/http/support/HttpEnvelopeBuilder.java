@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.common.util.ChainBuilder;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.util.ChainBuilder;
+import io.effi.rpc.config.URL;
 import io.netty.handler.codec.http.HttpMethod;
 
 /**

@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.transport.endpoint.AbstractServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;

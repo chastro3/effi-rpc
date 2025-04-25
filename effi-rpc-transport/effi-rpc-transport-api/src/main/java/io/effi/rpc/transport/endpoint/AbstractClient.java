@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 /**

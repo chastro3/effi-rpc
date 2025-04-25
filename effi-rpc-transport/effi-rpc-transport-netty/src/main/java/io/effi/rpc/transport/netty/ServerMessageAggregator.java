@@ -1,19 +1,20 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.util.Messages;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.util.Messages;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.RepackagedResponse;
 import io.effi.rpc.transport.TransportSupport;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
-import static io.effi.rpc.common.exception.PredefinedErrorCode.CHANNEL_READ;
-import static io.effi.rpc.common.exception.PredefinedErrorCode.CHANNEL_WRITE;
+import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_READ;
+import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
 
 /**
  * Handle message aggregation for server-side communication.
@@ -27,13 +28,6 @@ public class ServerMessageAggregator extends ChannelDuplexHandler {
 
     public static final String NAME = "serverMessageAggregator";
 
-    /**
-     * Decodes inbound messages into Request objects and triggers request events.
-     *
-     * @param ctx Netty context.
-     * @param msg Inbound message.
-     * @throws Exception if decoding fails.
-     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof Envelope.Request request) {
@@ -50,26 +44,26 @@ public class ServerMessageAggregator extends ChannelDuplexHandler {
         logger.error(exception);
     }
 
-    /**
-     * Encodes Response objects into outbound messages before writing to the channel.
-     *
-     * @param ctx     Netty context.
-     * @param msg     Outbound message.
-     * @param promise Write operation promise.
-     * @throws Exception if encoding or writing fails.
-     */
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        addFailedListener(ctx.channel(), msg, promise);
         if (msg instanceof RepackagedResponse<?> repackagedResponse) {
+            super.write(ctx, repackagedResponse.encode().response(), promise);
+        } else if (msg instanceof Envelope.Response) {
+            super.write(ctx, msg, promise);
+        } else {
+            logger.warn(Messages.onlySupport(RepackagedResponse.class));
+        }
+    }
+
+    private void addFailedListener(Channel channel, Object msg, ChannelPromise promise) {
+        if (msg instanceof RepackagedResponse<?> || msg instanceof Envelope.Response) {
             promise.addListener(future -> {
                 if (!future.isSuccess()) {
-                    EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), ctx.channel().remoteAddress());
+                    EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());
                     logger.error(exception);
                 }
             });
-            super.write(ctx, repackagedResponse.encode().response(), promise);
-        } else {
-            logger.warn(Messages.onlySupport(RepackagedResponse.class));
         }
     }
 }

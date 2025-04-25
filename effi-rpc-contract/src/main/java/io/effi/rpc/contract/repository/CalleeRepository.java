@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.repository;
 
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.config.URLUtil;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;

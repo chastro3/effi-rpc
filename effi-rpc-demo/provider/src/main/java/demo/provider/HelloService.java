@@ -1,7 +1,7 @@
 package demo.provider;
 
 import demo.provider.model.ParentObject;
-import io.effi.rpc.common.constant.Component;
+import io.effi.rpc.constant.Component;
 import io.effi.rpc.contract.annotation.Body;
 import io.effi.rpc.contract.annotation.EffiRpcCallee;
 import io.effi.rpc.contract.annotation.EffiRpcService;

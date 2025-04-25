@@ -1,10 +1,10 @@
 package io.effi.rpc.transport.compress;
 
-import io.effi.rpc.common.spi.Extensible;
+import io.effi.rpc.spi.Extensible;
 
 import java.io.IOException;
 
-import static io.effi.rpc.common.constant.Component.Compression.GZIP;
+import static io.effi.rpc.constant.Component.Compression.GZIP;
 
 /**
  * Handles data compression and decompression.

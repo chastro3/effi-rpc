@@ -1,10 +1,10 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.config.HierarchicalNodeConfig;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.common.util.Builder;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.Builder;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.RemoteService;
 import io.effi.rpc.contract.parameter.MethodMapper;

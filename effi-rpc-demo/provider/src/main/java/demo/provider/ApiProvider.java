@@ -1,6 +1,6 @@
 package demo.provider;
 
-import io.effi.rpc.common.config.HierarchicalNodeConfig;
+import io.effi.rpc.config.HierarchicalNodeConfig;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.Header;

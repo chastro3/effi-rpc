@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.constant.KeyConstant;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.heartbeat.IdleEvent;
 import io.effi.rpc.transport.heartbeat.RefreshIdleCountEvent;

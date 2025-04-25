@@ -3,12 +3,12 @@ package io.effi.rpc.serialization.kryo;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.common.constant.Component.Serialization.KRYO;
+import static io.effi.rpc.constant.Component.Serialization.KRYO;
 
 /**
  * {@link io.effi.rpc.serialization.Serializer} implementation based on kryo.

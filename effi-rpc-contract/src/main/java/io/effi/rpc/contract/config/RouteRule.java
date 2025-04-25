@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.config;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.context.InvocationContext;
 

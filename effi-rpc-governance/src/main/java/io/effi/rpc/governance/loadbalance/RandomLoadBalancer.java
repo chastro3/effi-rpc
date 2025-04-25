@@ -1,7 +1,7 @@
 package io.effi.rpc.governance.loadbalance;
 
-import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
@@ -9,7 +9,7 @@ import io.effi.rpc.contract.context.InvocationContext;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static io.effi.rpc.common.constant.Component.LoadBalance.RANDOM;
+import static io.effi.rpc.constant.Component.LoadBalance.RANDOM;
 
 /**
  * "Random" load balancing strategy:

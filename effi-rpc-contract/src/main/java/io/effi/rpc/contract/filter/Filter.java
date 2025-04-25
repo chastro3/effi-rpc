@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.filter;
 
-import io.effi.rpc.common.util.Ordered;
+import io.effi.rpc.util.Ordered;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;

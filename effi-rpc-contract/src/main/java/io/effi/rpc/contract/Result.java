@@ -1,8 +1,8 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.config.URL;
 
 /**
  * Represent the result of an invocation,

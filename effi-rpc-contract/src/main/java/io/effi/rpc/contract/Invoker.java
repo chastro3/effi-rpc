@@ -1,11 +1,11 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.NodeConfigSource;
-import io.effi.rpc.common.config.QueryPath;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.util.Attributes;
-import io.effi.rpc.common.util.GenerateUtil;
-import io.effi.rpc.common.util.TypeToken;
+import io.effi.rpc.config.NodeConfigSource;
+import io.effi.rpc.config.QueryPath;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.util.Attributes;
+import io.effi.rpc.util.GenerateUtil;
+import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.filter.Filter;
 import io.effi.rpc.contract.repository.ComponentRepository;
 

@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.ReplyFuture;

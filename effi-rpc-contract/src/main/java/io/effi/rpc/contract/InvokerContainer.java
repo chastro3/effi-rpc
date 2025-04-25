@@ -1,6 +1,6 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.NodeConfigSource;
+import io.effi.rpc.config.NodeConfigSource;
 
 import java.util.Collection;
 

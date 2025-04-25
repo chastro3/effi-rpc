@@ -1,11 +1,11 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.util.AbstractAttributes;
-import io.effi.rpc.common.util.StringAccessor;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.config.URLUtil;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.util.AbstractAttributes;
+import io.effi.rpc.util.StringAccessor;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.util.Map;
 

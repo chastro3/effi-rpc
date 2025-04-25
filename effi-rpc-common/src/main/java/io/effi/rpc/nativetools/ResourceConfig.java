@@ -1,6 +1,6 @@
 package io.effi.rpc.nativetools;
 
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.repository;
 
-import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.contract.filter.Filter;
 import io.effi.rpc.contract.filter.FilterSupport;
 import io.effi.rpc.contract.module.EffiRpcModule;

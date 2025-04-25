@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.netty.handler.ssl.SslContext;
 

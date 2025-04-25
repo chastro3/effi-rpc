@@ -1,6 +1,6 @@
 package io.effi.rpc.nativetools;
 
-import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.util.CollectionUtil;
 
 import java.util.Collections;
 import java.util.List;

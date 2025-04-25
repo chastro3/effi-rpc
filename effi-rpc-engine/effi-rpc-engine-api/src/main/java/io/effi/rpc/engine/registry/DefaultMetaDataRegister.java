@@ -1,9 +1,9 @@
 package io.effi.rpc.engine.registry;
 
-import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.constant.Component;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.registry.MetaDataRegister;
 
 import java.util.Map;

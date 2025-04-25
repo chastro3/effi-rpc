@@ -1,14 +1,14 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.util.NetUtil;
-import io.effi.rpc.common.util.StringUtil;
-import io.effi.rpc.common.util.VertxUtil;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.util.VertxUtil;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.registry.AbstractRegistryService;
 import io.effi.rpc.registry.RegisterTask;

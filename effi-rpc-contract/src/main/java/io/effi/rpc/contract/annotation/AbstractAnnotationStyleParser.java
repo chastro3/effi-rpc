@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;

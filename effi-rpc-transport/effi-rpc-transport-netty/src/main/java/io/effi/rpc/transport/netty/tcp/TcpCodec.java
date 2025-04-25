@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.netty.tcp;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;

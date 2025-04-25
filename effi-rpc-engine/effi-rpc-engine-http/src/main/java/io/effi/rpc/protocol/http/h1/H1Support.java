@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.transport.netty.NettySupport;
@@ -10,6 +10,9 @@ import io.netty.handler.codec.http.*;
 
 import static io.netty.handler.codec.http.DefaultHttpHeadersFactory.trailersFactory;
 
+/**
+ * Utility class for http1 operations.
+ */
 public class H1Support {
 
     /**

@@ -1,6 +1,6 @@
 package io.effi.rpc.metrics.event;
 
-import io.effi.rpc.common.event.AbstractEvent;
+import io.effi.rpc.event.AbstractEvent;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.metrics.constant.MetricsKey;
 

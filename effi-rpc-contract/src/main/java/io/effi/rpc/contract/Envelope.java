@@ -1,7 +1,7 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.config.URLSource;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLSource;
 
 /**
  * Represents a message envelope containing a request URL and body.

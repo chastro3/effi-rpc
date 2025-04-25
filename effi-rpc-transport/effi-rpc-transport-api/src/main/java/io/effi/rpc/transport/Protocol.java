@@ -1,10 +1,10 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.spi.Extensible;
-import io.effi.rpc.common.util.TypeToken;
-import io.effi.rpc.common.util.resoruce.Cleanable;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.util.TypeToken;
+import io.effi.rpc.util.resoruce.Cleanable;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
@@ -13,12 +13,13 @@ import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.transport.codec.ClientCodec;
 import io.effi.rpc.transport.codec.ServerCodec;
+import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
 
 import java.util.Collection;
 
-import static io.effi.rpc.common.constant.Component.Protocol.H2;
+import static io.effi.rpc.constant.Component.Protocol.H2;
 
 /**
  * Communication protocol within the system.
@@ -66,6 +67,14 @@ public interface Protocol extends Cleanable {
      * @return the response envelope
      */
     Envelope.Response createResponse(Callee<?> callee, Result result);
+
+    /**
+     * Sends a callee not found response to the specified channel.
+     *
+     * @param request the request
+     * @param channel the channel
+     */
+    void sendCalleeNotFound(Envelope.Request request, Channel channel);
 
     /**
      * Creates a callee instance based on the provided method mapper and configuration.

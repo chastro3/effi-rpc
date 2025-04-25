@@ -1,11 +1,11 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.util.TypeToken;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.protocol.http.HttpCallerBuilder;
 
-import static io.effi.rpc.common.constant.Component.Protocol.HTTP;
+import static io.effi.rpc.constant.Component.Protocol.HTTP;
 
 /**
  * Builder for creating {@link Http1Caller} instances,defining settings for caller.

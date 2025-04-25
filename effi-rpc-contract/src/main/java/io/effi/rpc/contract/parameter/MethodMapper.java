@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.parameter;
 
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.RemoteService;
 
 import java.lang.reflect.Method;

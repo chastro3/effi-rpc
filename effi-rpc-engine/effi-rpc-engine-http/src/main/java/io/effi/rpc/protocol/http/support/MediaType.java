@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.util.StringUtil;
 
-import static io.effi.rpc.common.constant.Component.Serialization.*;
+import static io.effi.rpc.constant.Component.Serialization.*;
 
 /**
  * Http media type.

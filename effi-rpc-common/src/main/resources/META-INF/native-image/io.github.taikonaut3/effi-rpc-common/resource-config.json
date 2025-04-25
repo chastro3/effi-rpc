@@ -3,9 +3,6 @@
     "includes": [
       {
         "pattern": "META-INF/effi-rpc(/.*)?"
-      },
-      {
-        "pattern": "META-INF/vertx(/.*)?"
       }
     ]
   }

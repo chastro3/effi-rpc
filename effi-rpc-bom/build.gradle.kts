@@ -50,9 +50,8 @@ dependencies {
         api("org.xerial.snappy:snappy-java:$snappyVersion")
         api("jakarta.ws.rs:jakarta.ws.rs-api:$jakartaWsRsVersion")
         rootProject.subprojects.forEach({
-            if (it.extra.has("publish") && it.extra["publish"] == true) {
+            if (it.isPublishEnabled() && it.name != project.name)
                 api("${it.group}:${it.name}:${it.version}")
-            }
         })
     }
 }

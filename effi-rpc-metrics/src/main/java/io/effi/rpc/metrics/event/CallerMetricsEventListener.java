@@ -1,7 +1,7 @@
 package io.effi.rpc.metrics.event;
 
-import io.effi.rpc.common.event.EventListener;
-import io.effi.rpc.common.util.AtomicUtil;
+import io.effi.rpc.event.EventListener;
+import io.effi.rpc.util.AtomicUtil;
 import io.effi.rpc.metrics.CallerMetrics;
 
 import java.util.concurrent.atomic.LongAdder;

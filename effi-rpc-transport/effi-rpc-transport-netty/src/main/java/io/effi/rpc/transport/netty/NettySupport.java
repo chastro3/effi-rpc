@@ -1,10 +1,10 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.config.URLType;
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLType;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.util.StringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

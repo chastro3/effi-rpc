@@ -1,5 +1,6 @@
 package demo.provider;
 
+import io.effi.rpc.engine.DefaultRegistryConfig;
 import io.effi.rpc.engine.DefaultServerConfig;
 import io.effi.rpc.engine.EffiRpcBootstrap;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
@@ -10,7 +11,7 @@ public class Provider {
         EffiRpcBootstrap bootstrap = EffiRpcBootstrap.newInstance("provider")
                 .exported(Http2ServerConfig.defaultConfig(), 8090)
                 .exported(DefaultServerConfig.builder().protocol("http").build(), 8091)
-               // .registry(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build())
+                .registry(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build())
                 .filter(new CalleeLogFilter())
                 .service(new HelloService())
                 .start();

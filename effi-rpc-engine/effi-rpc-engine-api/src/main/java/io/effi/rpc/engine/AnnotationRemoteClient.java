@@ -1,14 +1,8 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.HierarchicalNodeConfig;
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.AssertUtil;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.StringUtil;
-import io.effi.rpc.common.util.TypeToken;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.RemoteClient;
 import io.effi.rpc.contract.RpcType;
@@ -20,8 +14,13 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.proxy.InvocationHandler;
 import io.effi.rpc.proxy.ProxyFactory;
+import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.util.TypeToken;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -36,6 +35,11 @@ import java.util.concurrent.CompletableFuture;
 import static io.effi.rpc.engine.AnnotationSupport.annotationStyleParserForMethod;
 import static io.effi.rpc.engine.AnnotationSupport.checkAnnotationStyle;
 
+/**
+ * Annotation implementation of {@link RemoteClient}.
+ *
+ * @param <T> the type of the interface
+ */
 public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?>> implements RemoteClient<T>, InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationRemoteClient.class);
@@ -163,7 +167,6 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
     @Override
     public Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) throws Throwable {
         MethodCaller methodCaller = methodCallerMap.get(method);
-        try {
             if (methodCaller != null) {
                 Caller<?> caller = methodCaller.caller();
                 args = wrapArgs(methodCaller.parameterMappers(), args, caller);
@@ -174,10 +177,6 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
                     return caller.call(args);
                 }
             }
-        } catch (EffiRpcException e) {
-            logger.error(e);
-            throw e;
-        }
         return null;
     }
 

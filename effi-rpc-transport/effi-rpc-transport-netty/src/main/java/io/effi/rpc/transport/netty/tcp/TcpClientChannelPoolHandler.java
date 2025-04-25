@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty.tcp;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.transport.netty.NettyEndpointConfig;
 import io.effi.rpc.transport.netty.NettyIdleStateHandler;
 import io.netty.channel.Channel;

@@ -17,9 +17,11 @@ public interface RepackagedRequest<T extends Invoker<?>> extends RepackagedEnvel
     @Override
     RepackagedRequest<T> encode();
 
-    /**
-     * Returns the current request, which may have been encoded.
-     */
-    Envelope.Request request();
+    @Override
+    Envelope.Request envelope();
+
+    default Envelope.Request request() {
+        return envelope();
+    }
 }
 

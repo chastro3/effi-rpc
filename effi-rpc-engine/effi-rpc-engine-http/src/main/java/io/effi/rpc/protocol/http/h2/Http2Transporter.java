@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -13,6 +13,9 @@ import io.netty.handler.ssl.SslContext;
 
 import java.util.List;
 
+/**
+ * Http2 implementation of {@link NettyTransporter}.
+ */
 public class Http2Transporter implements NettyTransporter {
     @Override
     public Client connect(NettyEndpointConfig config) {

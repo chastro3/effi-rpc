@@ -41,7 +41,7 @@ public final class MapBuilder {
                 case Item item -> map.put(key, item.toMap());
                 case List<?> list -> {
                     if (!list.isEmpty()) {
-                        if (list.get(0) instanceof Item) {
+                        if (list.getFirst() instanceof Item) {
                             map.put(key, Item.toMapList((List<? extends Item>) list));
                         } else {
                             map.put(key, value);

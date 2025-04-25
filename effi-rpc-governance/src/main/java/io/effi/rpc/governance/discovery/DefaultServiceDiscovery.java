@@ -1,11 +1,11 @@
 package io.effi.rpc.governance.discovery;
 
-import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.constant.Component;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;

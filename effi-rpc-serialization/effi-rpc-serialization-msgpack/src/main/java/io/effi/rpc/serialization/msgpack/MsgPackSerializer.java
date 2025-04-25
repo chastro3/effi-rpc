@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.json.JacksonSerializer;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
-import static io.effi.rpc.common.constant.Component.Serialization.MSGPACK;
+import static io.effi.rpc.constant.Component.Serialization.MSGPACK;
 
 /**
  * {@link io.effi.rpc.serialization.Serializer} implementation based on message pack.

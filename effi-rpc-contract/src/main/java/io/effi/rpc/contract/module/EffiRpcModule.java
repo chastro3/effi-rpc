@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.module;
 
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.contract.ThreadPool;

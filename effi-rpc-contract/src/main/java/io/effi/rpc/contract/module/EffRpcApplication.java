@@ -1,14 +1,14 @@
 package io.effi.rpc.contract.module;
 
-import io.effi.rpc.common.config.*;
-import io.effi.rpc.common.constant.Component;
-import io.effi.rpc.common.constant.EffiRpcFramework;
-import io.effi.rpc.common.event.DisruptorEventDispatcher;
-import io.effi.rpc.common.event.Event;
-import io.effi.rpc.common.event.EventDispatcher;
-import io.effi.rpc.common.executor.RpcThreadPool;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.*;
+import io.effi.rpc.config.*;
+import io.effi.rpc.constant.Component;
+import io.effi.rpc.constant.EffiRpcFramework;
+import io.effi.rpc.event.DisruptorEventDispatcher;
+import io.effi.rpc.event.Event;
+import io.effi.rpc.event.EventDispatcher;
+import io.effi.rpc.executor.RpcThreadPool;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.*;
 
 import java.util.Collection;
 import java.util.List;

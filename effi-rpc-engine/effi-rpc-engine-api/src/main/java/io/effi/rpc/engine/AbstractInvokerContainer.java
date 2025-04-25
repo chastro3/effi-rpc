@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.InvokerContainer;
 

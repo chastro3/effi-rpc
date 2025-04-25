@@ -1,12 +1,12 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.config.URLType;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLType;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.metrics.CalleeMetrics;
 import io.effi.rpc.metrics.CallerMetrics;
@@ -15,6 +15,9 @@ import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
 
+/**
+ * Utility class for transport layer operations.
+ */
 public class TransportSupport {
     public static Protocol getProtocol(String name) {
         AssertUtil.notBlank(name, "name");
@@ -81,16 +84,17 @@ public class TransportSupport {
                 .getCallee(request.url());
         // todo send to client
         if (callee == null) {
-            throw PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().uri());
+            channel.protocol().sendCalleeNotFound(request, channel);
+        } else {
+            callee.threadPoolOf(channel.module()).execute(() -> {
+                ServerCodec serverCodec = channel.protocol().serverCodec();
+                RepackagedRequest<Callee<?>> repackagedRequest = serverCodec.decode(channel, request, callee);
+                var replyContext = callee.invokeWithContext(repackagedRequest.context());
+                if (repackagedRequest.request().needReply()) {
+                    channel.send(new DefaultRepackagedResponse<>(replyContext, channel));
+                }
+            });
         }
-        callee.threadPoolOf(channel.module()).execute(() -> {
-            ServerCodec serverCodec = channel.protocol().serverCodec();
-            RepackagedRequest<Callee<?>> repackagedRequest = serverCodec.decode(channel, request, callee);
-            var replyContext = callee.invokeWithContext(repackagedRequest.context());
-            if (repackagedRequest.request().needReply()) {
-                channel.send(new DefaultRepackagedResponse<>(replyContext, channel));
-            }
-        });
     }
 
     public static void handleResponse(Envelope.Response response, Channel channel) {

@@ -1,6 +1,6 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.config.Config;
+import io.effi.rpc.config.Config;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.engine.builder.ClientConfigBuilder;
 

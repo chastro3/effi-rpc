@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.context;
 
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;

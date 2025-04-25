@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.util.ReflectionUtil;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;

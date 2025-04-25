@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.transport.netty.NettyChannel;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.handler.codec.http.HttpMethod;

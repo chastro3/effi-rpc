@@ -1,7 +1,7 @@
 package io.effi.rpc.engine.registry;
 
 import com.sun.management.OperatingSystemMXBean;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.ServerExporter;

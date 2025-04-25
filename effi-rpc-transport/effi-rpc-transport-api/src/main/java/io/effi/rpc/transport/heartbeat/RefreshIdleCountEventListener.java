@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.heartbeat;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.event.EventListener;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.event.EventListener;
 import io.effi.rpc.transport.endpoint.Channel;
 
 import java.util.concurrent.atomic.AtomicInteger;

@@ -1,9 +1,9 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.util.TypeToken;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.config.ClientConfig;
@@ -12,8 +12,8 @@ import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpProtocol;
 import io.effi.rpc.protocol.http.support.HttpVersion;
 
-import static io.effi.rpc.common.constant.Component.Protocol.HTTP;
-import static io.effi.rpc.common.constant.Component.Protocol.HTTPS;
+import static io.effi.rpc.constant.Component.Protocol.HTTP;
+import static io.effi.rpc.constant.Component.Protocol.HTTPS;
 
 /**
  * Http protocol.

@@ -1,8 +1,10 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.Messages;
-import io.effi.rpc.common.util.ObjectUtil;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.Messages;
+import io.effi.rpc.util.ObjectUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
@@ -12,6 +14,9 @@ import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.*;
 import io.effi.rpc.transport.AbstractProtocol;
 import io.effi.rpc.transport.Transporter;
+import io.effi.rpc.transport.endpoint.Channel;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
 
@@ -78,6 +83,27 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
+    public void sendCalleeNotFound(Envelope.Request request, Channel channel) {
+        HttpResponse<byte[]> httpResponse = create404Response(request, channel);
+        channel.send(httpResponse);
+    }
+
+    private HttpResponse<byte[]> create404Response(Envelope.Request request, Channel channel) {
+        EffiRpcException ex = PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().uri());
+        DefaultHttpHeaders headers = new DefaultHttpHeaders();
+        headers.add(RESPONSE_REQUEST_HEADERS);
+        headers.add(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+        return HttpResponse.builder()
+                .version(version)
+                .method(HttpMethod.GET)
+                .statusCode(404)
+                .url(request.url())
+                .headers(headers)
+                .body(ex.getMessage().getBytes())
+                .build();
+    }
+
+    @Override
     public Class<? extends Envelope.Request> supportedRequestType() {
         return HttpRequest.class;
     }
@@ -87,9 +113,6 @@ public abstract class HttpProtocol extends AbstractProtocol {
         return HttpResponse.class;
     }
 
-    /**
-     * Returns http version.
-     */
     public HttpVersion version() {
         return version;
     }

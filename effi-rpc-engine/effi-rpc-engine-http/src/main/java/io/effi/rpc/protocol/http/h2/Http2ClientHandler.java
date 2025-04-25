@@ -14,7 +14,7 @@
  */
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;

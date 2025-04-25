@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.util.AbstractAttributes;
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.util.AbstractAttributes;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.Protocol;
@@ -30,11 +30,11 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
     public void send(Object message) {
         if (message instanceof RepackagedEnvelope<?, ?> repackagedEnvelope) {
             Invoker<?> invoker = repackagedEnvelope.context().invoker();
-            repackagedEnvelope = TransportSupport.inIOSerialization(invoker)
+            message = TransportSupport.inIOSerialization(invoker)
                     ? repackagedEnvelope
-                    : repackagedEnvelope.encode();
-            if (isActive()) doSend(repackagedEnvelope);
+                    : repackagedEnvelope.encode().envelope();
         }
+        if (isActive()) doSend(message);
     }
 
     @Override

@@ -1,13 +1,13 @@
 package io.effi.rpc.proxy.cglib;
 
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
 import io.effi.rpc.proxy.ProxyFactory;
 import org.springframework.cglib.proxy.Enhancer;
 
-import static io.effi.rpc.common.constant.Component.ProxyFactory.CGLIB;
-import static io.effi.rpc.common.util.ClassUtil.getClassLoader;
+import static io.effi.rpc.constant.Component.ProxyFactory.CGLIB;
+import static io.effi.rpc.util.ClassUtil.getClassLoader;
 
 /**
  * Cglib implementation of {@link ProxyFactory}.

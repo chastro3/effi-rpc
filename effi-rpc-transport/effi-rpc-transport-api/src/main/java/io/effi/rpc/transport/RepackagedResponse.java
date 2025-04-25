@@ -17,8 +17,10 @@ public interface RepackagedResponse<T extends Invoker<?>> extends RepackagedEnve
     @Override
     RepackagedResponse<T> encode();
 
-    /**
-     * Returns the current response, which may have been encoded.
-     */
-    Envelope.Response response();
+    @Override
+    Envelope.Response envelope();
+
+    default Envelope.Response response() {
+        return envelope();
+    }
 }

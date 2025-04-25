@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.repository;
 
-import io.effi.rpc.common.util.resoruce.Cleanable;
+import io.effi.rpc.util.resoruce.Cleanable;
 import io.effi.rpc.contract.module.ModuleSource;
 
 import java.util.Collection;

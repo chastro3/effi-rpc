@@ -1,8 +1,8 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.config.RegistryConfig;
 
 /**

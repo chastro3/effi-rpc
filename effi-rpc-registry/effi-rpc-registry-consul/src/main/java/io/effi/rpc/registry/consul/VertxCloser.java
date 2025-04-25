@@ -1,8 +1,8 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.contract.module.ApplicationConfiguration;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.vertx.core.Vertx;

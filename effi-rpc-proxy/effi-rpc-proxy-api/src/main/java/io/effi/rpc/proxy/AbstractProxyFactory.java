@@ -1,8 +1,8 @@
 package io.effi.rpc.proxy;
 
-import io.effi.rpc.common.exception.PredefinedErrorCode;
+import io.effi.rpc.exception.PredefinedErrorCode;
 
-import static io.effi.rpc.common.util.ReflectionUtil.invokeObjectMethod;
+import static io.effi.rpc.util.ReflectionUtil.invokeObjectMethod;
 
 /**
  * Abstract implementation of {@link ProxyFactory}.

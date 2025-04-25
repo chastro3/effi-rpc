@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigKeys;
 
 import java.lang.annotation.*;
 

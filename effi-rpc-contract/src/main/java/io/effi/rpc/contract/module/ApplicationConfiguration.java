@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.module;
 
-import io.effi.rpc.common.util.LifecycleConfiguration;
-import io.effi.rpc.common.spi.Extensible;
+import io.effi.rpc.util.LifecycleConfiguration;
+import io.effi.rpc.spi.Extensible;
 
 /**
  * Manages the lifecycle of a {@link EffRpcApplication} object.

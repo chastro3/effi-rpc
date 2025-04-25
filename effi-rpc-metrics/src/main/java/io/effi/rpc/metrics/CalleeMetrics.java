@@ -1,6 +1,6 @@
 package io.effi.rpc.metrics;
 
-import io.effi.rpc.common.util.GenericKey;
+import io.effi.rpc.util.GenericKey;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;

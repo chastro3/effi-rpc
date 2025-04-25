@@ -1,9 +1,9 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.config.*;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.config.*;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.parameter.*;
 
@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Http argument wrapper.
+ */
 public class HttpArgumentWrapper {
 
     private Map<String, String> headers;

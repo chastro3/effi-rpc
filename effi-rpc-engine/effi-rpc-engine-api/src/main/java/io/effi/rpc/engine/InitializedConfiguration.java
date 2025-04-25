@@ -1,9 +1,9 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.event.EventDispatcher;
-import io.effi.rpc.common.executor.RpcThreadPool;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.event.EventDispatcher;
+import io.effi.rpc.executor.RpcThreadPool;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.contract.ThreadPool;
 import io.effi.rpc.contract.module.ApplicationConfiguration;
 import io.effi.rpc.contract.module.EffRpcApplication;

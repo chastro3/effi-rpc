@@ -1,6 +1,6 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.URLSource;
+import io.effi.rpc.config.URLSource;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;

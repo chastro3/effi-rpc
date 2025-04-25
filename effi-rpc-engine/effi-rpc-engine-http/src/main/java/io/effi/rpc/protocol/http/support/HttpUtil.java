@@ -1,10 +1,10 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.common.config.*;
-import io.effi.rpc.common.constant.EffiRpcFramework;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.config.*;
+import io.effi.rpc.constant.EffiRpcFramework;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.annotation.Body;
 import io.effi.rpc.internal.logging.Logger;
@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.effi.rpc.common.constant.Component.Compression.*;
-import static io.effi.rpc.common.constant.Component.Protocol.*;
+import static io.effi.rpc.constant.Component.Compression.*;
+import static io.effi.rpc.constant.Component.Protocol.*;
 
 /**
  * Utility class for handling HTTP-related operations and transformations.

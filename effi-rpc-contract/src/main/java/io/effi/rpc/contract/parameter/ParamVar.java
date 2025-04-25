@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.parameter;
 
-import io.effi.rpc.common.util.Holder;
-import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.util.Holder;
+import io.effi.rpc.util.CollectionUtil;
 
 import java.util.Map;
 

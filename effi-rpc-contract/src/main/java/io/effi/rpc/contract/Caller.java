@@ -1,8 +1,8 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.module.ModuleSource;

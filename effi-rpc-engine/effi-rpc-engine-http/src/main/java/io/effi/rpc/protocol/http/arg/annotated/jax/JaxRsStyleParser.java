@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.arg.annotated.jax;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.contract.annotation.*;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpUtil;
@@ -12,7 +12,7 @@ import jakarta.ws.rs.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static io.effi.rpc.common.constant.Component.AnnotationStyle.JAX_RS;
+import static io.effi.rpc.constant.Component.AnnotationStyle.JAX_RS;
 
 /**
  * {@link AnnotationStyleParser} implementation based on jax-rs.

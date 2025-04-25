@@ -3,7 +3,7 @@ package io.effi.rpc.internal.logging;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static io.effi.rpc.common.util.ObjectUtil.simpleClassName;
+import static io.effi.rpc.util.ObjectUtil.simpleClassName;
 
 /**
  * Provides logger instances using various supported logging frameworks

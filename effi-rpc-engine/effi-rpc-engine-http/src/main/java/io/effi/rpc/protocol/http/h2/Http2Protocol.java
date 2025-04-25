@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.util.TypeToken;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.module.EffiRpcModule;
@@ -10,8 +10,8 @@ import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpProtocol;
 import io.effi.rpc.protocol.http.support.HttpVersion;
 
-import static io.effi.rpc.common.constant.Component.Protocol.H2;
-import static io.effi.rpc.common.constant.Component.Protocol.H2C;
+import static io.effi.rpc.constant.Component.Protocol.H2;
+import static io.effi.rpc.constant.Component.Protocol.H2C;
 
 /**
  * Http2 Protocol.

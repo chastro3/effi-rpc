@@ -15,26 +15,18 @@ public class DefaultRepackagedResponse<I extends Invoker<?>>
         extends DefaultRepackagedEnvelope<Envelope.Response, I, ReplyContext<Envelope.Response, I>>
         implements RepackagedResponse<I> {
 
-    private Envelope.Response response;
-
     public DefaultRepackagedResponse(ReplyContext<Envelope.Response, I> context, Channel channel) {
         super(context, channel);
-        this.response = context.source();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public RepackagedResponse<I> encode() {
-        if (response.isInstance() && context.invoker() instanceof Callee<?>) {
-            response = channel.protocol()
+        if (envelope.isInstance() && context.invoker() instanceof Callee<?>) {
+            envelope = channel.protocol()
                     .serverCodec().encode((RepackagedResponse<Callee<?>>) this);
         }
         return this;
-    }
-
-    @Override
-    public Envelope.Response response() {
-        return response;
     }
 
 }

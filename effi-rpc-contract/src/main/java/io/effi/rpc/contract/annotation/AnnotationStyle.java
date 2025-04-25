@@ -1,9 +1,9 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.StringUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

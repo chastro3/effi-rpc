@@ -1,5 +1,6 @@
 package io.effi.rpc.transport;
 
+import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.context.ExecutorContext;
 import io.effi.rpc.transport.endpoint.Channel;
@@ -21,6 +22,11 @@ public interface RepackagedEnvelope<I extends Invoker<?>, C extends ExecutorCont
      * Returns the channel.
      */
     Channel channel();
+
+    /**
+     * Returns the envelope.
+     */
+    Envelope envelope();
 
     /**
      * Encodes the envelope.

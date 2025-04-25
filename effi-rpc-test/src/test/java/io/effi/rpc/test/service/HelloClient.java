@@ -1,6 +1,6 @@
 package io.effi.rpc.test.service;
 
-import io.effi.rpc.common.constant.Component;
+import io.effi.rpc.constant.Component;
 import io.effi.rpc.contract.annotation.EffiRpcCaller;
 import io.effi.rpc.contract.annotation.EffiRpcClient;
 import jakarta.ws.rs.GET;

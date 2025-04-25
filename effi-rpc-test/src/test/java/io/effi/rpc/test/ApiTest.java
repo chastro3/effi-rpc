@@ -1,7 +1,7 @@
 package io.effi.rpc.test;
 
-import io.effi.rpc.common.config.HierarchicalNodeConfig;
-import io.effi.rpc.common.constant.Component;
+import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.constant.Component;
 import io.effi.rpc.contract.annotation.AnnotationCalleeBuilder;
 import io.effi.rpc.contract.annotation.AnnotationStyle;
 import io.effi.rpc.contract.module.EffRpcApplication;
@@ -96,8 +96,8 @@ public class ApiTest {
 
     @Test
     public void jsonTest() {
-        ReflectConfigItem reflectConfigItem = new ReflectConfigItem().type("io.effi.rpc.common.config.FlatConfig")
-                .condition(new ConditionItem().typeReachable("io.effi.rpc.common.config.Config"))
+        ReflectConfigItem reflectConfigItem = new ReflectConfigItem().type("io.effi.rpc.config.FlatConfig")
+                .condition(new ConditionItem().typeReachable("io.effi.rpc.config.Config"))
                 .method("<init>", null)
                 .method("hello", List.of("java.lang.String"));
         try  {

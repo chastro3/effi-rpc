@@ -1,11 +1,11 @@
 package io.effi.rpc.contract.parameter;
 
-import io.effi.rpc.common.spi.Extensible;
+import io.effi.rpc.spi.Extensible;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Result;
 
-import static io.effi.rpc.common.constant.Component.DEFAULT;
+import static io.effi.rpc.constant.Component.DEFAULT;
 
 /**
  * Handle the extraction and processing of response values.

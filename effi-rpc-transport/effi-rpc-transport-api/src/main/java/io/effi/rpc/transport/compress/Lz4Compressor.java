@@ -1,14 +1,14 @@
 package io.effi.rpc.transport.compress;
 
-import io.effi.rpc.common.spi.Extension;
-import io.effi.rpc.common.util.FileUtil;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.util.FileUtil;
 import net.jpountz.lz4.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static io.effi.rpc.common.constant.Component.Compression.LZ4;
+import static io.effi.rpc.constant.Component.Compression.LZ4;
 
 /**
  * Lz4 implementation of {@link Compressor}.

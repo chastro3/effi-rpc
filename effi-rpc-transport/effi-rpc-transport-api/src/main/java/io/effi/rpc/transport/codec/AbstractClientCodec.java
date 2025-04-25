@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.ReplyFuture;

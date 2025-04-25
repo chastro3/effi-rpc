@@ -1,7 +1,7 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.config.URL;
 
 import java.util.HashMap;
 import java.util.List;

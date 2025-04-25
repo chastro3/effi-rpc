@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpCallee;

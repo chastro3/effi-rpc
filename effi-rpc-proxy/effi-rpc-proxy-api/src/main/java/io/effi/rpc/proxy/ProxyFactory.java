@@ -1,8 +1,8 @@
 package io.effi.rpc.proxy;
 
-import io.effi.rpc.common.spi.Extensible;
+import io.effi.rpc.spi.Extensible;
 
-import static io.effi.rpc.common.constant.Component.ProxyFactory.JDK;
+import static io.effi.rpc.constant.Component.ProxyFactory.JDK;
 
 /**
  * Factory for creating proxy instances.

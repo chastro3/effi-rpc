@@ -1,10 +1,10 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.spi.ExtensionLoader;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
 import io.effi.rpc.contract.faulttolerance.FaultTolerance;

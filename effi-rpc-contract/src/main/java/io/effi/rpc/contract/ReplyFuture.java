@@ -1,9 +1,9 @@
 package io.effi.rpc.contract;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
 

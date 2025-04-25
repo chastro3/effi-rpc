@@ -1,10 +1,10 @@
 package io.effi.rpc.contract.faulttolerance;
 
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.spi.Extensible;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.spi.Extensible;
 import io.effi.rpc.contract.CompletableReplyFuture;
 
-import static io.effi.rpc.common.constant.Component.FaultTolerance.FAIL_FAST;
+import static io.effi.rpc.constant.Component.FaultTolerance.FAIL_FAST;
 
 /**
  * Handles fault tolerance during RPC calls.

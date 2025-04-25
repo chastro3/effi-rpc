@@ -1,11 +1,13 @@
 package demo.consumer;
 
+import demo.consumer.model.ParentObject;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.engine.AnnotationRemoteClient;
 import io.effi.rpc.engine.DefaultRegistryConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,9 +29,9 @@ public class Consumer {
         ExecutorService executorService = Executors.newFixedThreadPool(20);
         for (int i = 0; i < 2; i++) {
             executorService.execute(() -> {
-                System.out.println(helloClient.hello("native rpc", 21));
-//                List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
-//                logger.info("{}", parentObjects);
+               // System.out.println(helloClient.hello("native rpc", 21));
+                List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
+                logger.info("{}", parentObjects);
             });
         }
 //        helloClient.helloListAsync("哈哈哈222哈", "xxxx", ParentObject.getObjList("client list"))

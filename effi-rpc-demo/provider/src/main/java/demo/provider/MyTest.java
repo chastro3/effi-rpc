@@ -1,7 +1,7 @@
 package demo.provider;
 
-import io.effi.rpc.common.compile.DynamicAccessor;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.compile.DynamicAccessor;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.Serializer;
 import io.effi.rpc.transport.compress.Compressor;
 

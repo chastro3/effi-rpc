@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.exception.PredefinedErrorCode;
-import io.effi.rpc.common.util.collection.LazyMap;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.util.collection.LazyMap;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.*;
 

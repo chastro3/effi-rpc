@@ -1,6 +1,6 @@
 package io.effi.rpc.internal.logging;
 
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.util.StringUtil;
 
 abstract class AbstractLogger implements Logger {
 

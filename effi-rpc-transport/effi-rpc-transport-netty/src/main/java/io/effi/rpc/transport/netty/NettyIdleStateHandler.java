@@ -1,12 +1,12 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
 
-import static io.effi.rpc.common.config.DefaultConfigKeys.IDLE_TRIGGER_INTERVAL;
+import static io.effi.rpc.config.DefaultConfigKeys.IDLE_TRIGGER_INTERVAL;
 import static io.netty.channel.ChannelHandler.Sharable;
 
 /**

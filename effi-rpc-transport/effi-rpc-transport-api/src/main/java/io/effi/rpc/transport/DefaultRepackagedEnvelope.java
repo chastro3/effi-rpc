@@ -1,6 +1,6 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.context.ExecutorContext;
@@ -20,9 +20,12 @@ public abstract class DefaultRepackagedEnvelope<E extends Envelope, I extends In
 
     protected final Channel channel;
 
+    protected E envelope;
+
     protected DefaultRepackagedEnvelope(C context, Channel channel) {
         this.context = AssertUtil.notNull(context, "context");
         this.channel = AssertUtil.notNull(channel, "channel");
+        this.envelope = context.source();
     }
 
     @Override
@@ -33,6 +36,11 @@ public abstract class DefaultRepackagedEnvelope<E extends Envelope, I extends In
     @Override
     public Channel channel() {
         return channel;
+    }
+
+    @Override
+    public E envelope() {
+        return envelope;
     }
 }
 

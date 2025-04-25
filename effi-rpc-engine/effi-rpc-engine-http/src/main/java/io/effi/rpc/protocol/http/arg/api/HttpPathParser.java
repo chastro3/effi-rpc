@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.arg.api;
 
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.parameter.Argument;
 import io.effi.rpc.contract.parameter.ParameterParser;

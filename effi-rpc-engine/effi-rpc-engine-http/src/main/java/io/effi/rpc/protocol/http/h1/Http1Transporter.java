@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.constant.Constant;
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.constant.Constant;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -15,6 +15,9 @@ import io.netty.handler.ssl.SslContext;
 
 import java.util.List;
 
+/**
+ * Http1 implementation of {@link NettyTransporter}.
+ */
 public class Http1Transporter implements NettyTransporter {
 
     @Override

@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.parameter.Argument;
 

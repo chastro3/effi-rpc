@@ -1,10 +1,10 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.common.config.NodeConfig;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpCalleeBuilder;
 
-import static io.effi.rpc.common.constant.Component.Protocol.HTTP;
+import static io.effi.rpc.constant.Component.Protocol.HTTP;
 
 /**
  * Builder for creating {@link Http1Callee} instances,defining settings for callee.

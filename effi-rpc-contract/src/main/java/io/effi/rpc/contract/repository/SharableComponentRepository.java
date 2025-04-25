@@ -1,7 +1,7 @@
 package io.effi.rpc.contract.repository;
 
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.collection.LazyList;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.collection.LazyList;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 import java.util.ArrayList;

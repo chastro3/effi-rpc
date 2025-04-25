@@ -1,7 +1,7 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.common.constant.KeyConstant;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffRpcApplication;
 
 import java.util.Map;

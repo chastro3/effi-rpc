@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.contract.module.ApplicationConfiguration;
 import io.effi.rpc.contract.module.EffRpcApplication;
 

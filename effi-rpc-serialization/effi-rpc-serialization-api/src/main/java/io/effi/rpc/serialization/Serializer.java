@@ -1,10 +1,10 @@
 package io.effi.rpc.serialization;
 
-import io.effi.rpc.common.spi.Extensible;
+import io.effi.rpc.spi.Extensible;
 
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.common.constant.Component.Serialization.KRYO;
+import static io.effi.rpc.constant.Component.Serialization.KRYO;
 
 /**
  * Handles object serialization and deserialization.

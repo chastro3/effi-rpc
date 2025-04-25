@@ -1,9 +1,9 @@
 package io.effi.rpc.engine.builder;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.ConfigSource;
-import io.effi.rpc.common.config.FlatConfig;
-import io.effi.rpc.common.util.ChainBuilder;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.ConfigSource;
+import io.effi.rpc.config.FlatConfig;
+import io.effi.rpc.util.ChainBuilder;
 
 abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
         implements ChainBuilder<T, C>, ConfigSource {

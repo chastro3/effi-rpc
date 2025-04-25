@@ -1,9 +1,9 @@
 package io.effi.rpc.contract.filter;
 
-import io.effi.rpc.common.util.Attributes;
-import io.effi.rpc.common.util.CollectionUtil;
-import io.effi.rpc.common.util.GenericKey;
-import io.effi.rpc.common.util.Messages;
+import io.effi.rpc.util.Attributes;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.util.Messages;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;

@@ -13,9 +13,9 @@ public class ReflectConfig implements NativeConfig<List<Map<String, Object>>> {
 
     private final List<ReflectConfigItem> items = new ArrayList<>();
 
-    public void addItem(ReflectConfigItem item) {
-        if (item != null)
-            items.add(item);
+    public ReflectConfig addItem(ReflectConfigItem item) {
+        if (item != null) items.add(item);
+        return this;
     }
 
     @Override

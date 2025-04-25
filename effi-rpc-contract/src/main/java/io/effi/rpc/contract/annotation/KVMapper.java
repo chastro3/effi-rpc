@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.ConfigKey;
+import io.effi.rpc.config.ConfigKey;
 
 import java.lang.annotation.Annotation;
 import java.util.function.Function;

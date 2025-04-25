@@ -1,7 +1,7 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
-import io.effi.rpc.common.constant.Component;
+import io.effi.rpc.constant.Component;
 import io.effi.rpc.contract.annotation.Body;
 import io.effi.rpc.contract.annotation.EffiRpcCaller;
 import io.effi.rpc.contract.annotation.EffiRpcClient;
@@ -14,8 +14,7 @@ import java.util.concurrent.CompletableFuture;
         application = "provider",
         protocol = "http",
         clientConfig = "hello-client",
-        path = "service",
-        address = "127.0.0.1:8091",
+        path = "service1",
         style = Component.AnnotationStyle.JAX_RS
 )
 public interface HelloClient {

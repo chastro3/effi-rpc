@@ -1,6 +1,6 @@
 package io.effi.rpc.contract.config;
 
-import io.effi.rpc.common.config.ConfigSource;
+import io.effi.rpc.config.ConfigSource;
 import io.effi.rpc.contract.repository.ComponentRepository;
 
 /**

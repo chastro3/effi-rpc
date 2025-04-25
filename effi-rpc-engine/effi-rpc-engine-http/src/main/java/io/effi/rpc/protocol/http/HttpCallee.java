@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.common.config.DefaultConfigKeys;
-import io.effi.rpc.common.config.NodeConfig;
-import io.effi.rpc.common.util.StringUtil;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.engine.AbstractCallee;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpVersion;

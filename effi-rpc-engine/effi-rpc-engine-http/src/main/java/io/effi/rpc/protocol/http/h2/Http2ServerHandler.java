@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;

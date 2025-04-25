@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.config.URLSource;
-import io.effi.rpc.common.util.Attributes;
-import io.effi.rpc.common.util.resoruce.Closeable;
+import io.effi.rpc.config.URLSource;
+import io.effi.rpc.util.Attributes;
+import io.effi.rpc.util.resoruce.Closeable;
 import io.effi.rpc.contract.module.ModuleSource;
 import io.effi.rpc.transport.Protocol;
 

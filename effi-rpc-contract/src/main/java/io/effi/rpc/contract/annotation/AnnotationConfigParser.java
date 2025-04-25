@@ -1,8 +1,8 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.ConfigKey;
-import io.effi.rpc.common.util.CollectionUtil;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.ConfigKey;
+import io.effi.rpc.util.CollectionUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

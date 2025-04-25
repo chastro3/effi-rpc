@@ -1,7 +1,7 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.common.spi.Extensible;
-import io.effi.rpc.common.config.URL;
+import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;

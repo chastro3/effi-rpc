@@ -1,10 +1,10 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.common.config.Config;
-import io.effi.rpc.common.config.DefaultConfigKeys;
+import io.effi.rpc.config.Config;
+import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.engine.builder.ClientConfigBuilder;
 
-import static io.effi.rpc.common.constant.Component.Protocol.H2;
+import static io.effi.rpc.constant.Component.Protocol.H2;
 
 /**
  * Builder for HTTP/2 client configuration.

@@ -1,12 +1,12 @@
 package io.effi.rpc.engine.faulttolerance;
 
-import io.effi.rpc.common.exception.EffiRpcException;
-import io.effi.rpc.common.spi.Extension;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.contract.CompletableReplyFuture;
 import io.effi.rpc.contract.faulttolerance.AbstractFaultTolerance;
 import io.effi.rpc.contract.faulttolerance.FaultTolerance;
 
-import static io.effi.rpc.common.constant.Component.FaultTolerance.FAIL_FAST;
+import static io.effi.rpc.constant.Component.FaultTolerance.FAIL_FAST;
 
 /**
  * Fail-fast implementation of {@link FaultTolerance}.

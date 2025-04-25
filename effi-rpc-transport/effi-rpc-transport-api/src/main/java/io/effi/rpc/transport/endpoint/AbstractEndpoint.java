@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.common.config.URL;
-import io.effi.rpc.common.util.AssertUtil;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 
