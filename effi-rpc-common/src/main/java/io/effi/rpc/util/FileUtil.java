@@ -7,7 +7,7 @@ import java.nio.channels.FileLock;
 import static java.lang.String.format;
 
 /**
- * Utility class for file operations.
+ * Provides for file operations.
  */
 public final class FileUtil {
 
@@ -15,10 +15,7 @@ public final class FileUtil {
     }
 
     /**
-     * Write the content to the file.
-     *
-     * @param content    The content to write to the file.
-     * @param targetFile The file to write the content to.
+     * Writes the content to the file.
      */
     public static void writeLineFile(CharSequence content, File targetFile) {
         try {
@@ -48,9 +45,7 @@ public final class FileUtil {
     }
 
     /**
-     * Create File with dir.
-     *
-     * @param filePath The path of the file to create.
+     * Creates File with dir.
      */
     public static void createFileWithDir(String filePath) {
         File file = new File(filePath);
@@ -67,13 +62,9 @@ public final class FileUtil {
     }
 
     /**
-     * Convert input stream to byte array.
-     *
-     * @param inputStream
-     * @return
-     * @throws IOException
+     * Converts input stream to byte array.
      */
-    public static byte[] inputStreamToByteArray(InputStream inputStream) throws IOException {
+    public static byte[] toBytes(InputStream inputStream) throws IOException {
         try (inputStream; ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[2048];
             int bytesRead;
@@ -85,9 +76,7 @@ public final class FileUtil {
     }
 
     /**
-     * Create dir.
-     *
-     * @param directory The directory to create.
+     * Creates dir.
      */
     private static void mkdir(File directory) {
         if (!directory.exists()) {

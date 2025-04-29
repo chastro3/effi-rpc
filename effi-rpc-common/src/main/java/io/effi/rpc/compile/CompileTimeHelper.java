@@ -1,6 +1,7 @@
 package io.effi.rpc.compile;
 
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.ReflectionUtil;
 import org.objectweb.asm.Type;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -18,18 +19,10 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Compile time helper.
+ * Provides utilities for compile-time processing tasks.
+ * Handles types, elements, annotations, and bytecode operations.
  */
 public class CompileTimeHelper {
-
-    private static final Set<String> OBJECT_METHOD_SIGNATURES = Set.of(
-            "toString()", "hashCode()", "equals(java.lang.Object)", "getClass()",
-            "notify()", "notifyAll()", "wait()", "wait(long)", "wait(long,int)"
-    );
-
-    private static final Set<String> OBJECT_METHOD_NAMES = Set.of(
-            "toString", "hashCode", "equals", "getClass", "notify", "notifyAll", "wait"
-    );
 
     private final ProcessingEnvironment processingEnv;
 
@@ -47,10 +40,16 @@ public class CompileTimeHelper {
         return processingEnv;
     }
 
+    /**
+     * Gets the package name of the given type element.
+     */
     public String getPackage(TypeElement type) {
         return elements.getPackageOf(type).getQualifiedName().toString();
     }
 
+    /**
+     * Converts a set of modifiers into int bitmask compatible with {@link java.lang.reflect.Modifier}.
+     */
     public int toReflectModifiers(Set<Modifier> mods) {
         int result = 0;
         for (Modifier m : mods) {
@@ -69,6 +68,9 @@ public class CompileTimeHelper {
         return result;
     }
 
+    /**
+     * Builds method signature string: methodName(paramType1,paramType2,...).
+     */
     public String buildSignature(ExecutableElement method) {
         StringBuilder sb = new StringBuilder();
         sb.append(method.getSimpleName()).append("(");
@@ -83,6 +85,9 @@ public class CompileTimeHelper {
         return sb.toString();
     }
 
+    /**
+     * Gets the fully qualified class name including inner class $ notation.
+     */
     public  String getQualifiedClassName(TypeElement typeElement) {
         StringBuilder sb = new StringBuilder(64);
         Element current = typeElement;
@@ -102,17 +107,25 @@ public class CompileTimeHelper {
         return sb.toString();
     }
 
-
+    /**
+     * Collects all implemented interface names recursively.
+     */
     public Set<Name> getAllInterfaceNames(TypeElement typeElement, Predicate<TypeElement> filter) {
         Set<Name> result = new LinkedHashSet<>();
         collectInterfacesRecursively(typeElement, result, filter);
         return result;
     }
 
+    /**
+     * Returns the annotation mirror of the specified type on an element.
+     */
     public AnnotationMirror getAnnotationMirror(Element element, Class<? extends Annotation> type) {
         return getAnnotationMirror(element, type.getName());
     }
 
+    /**
+     * Returns the type mirror with the specified qualified name.
+     */
     public AnnotationMirror getAnnotationMirror(Element element, String annotationName) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
             TypeElement type = asType(annotationMirror);
@@ -123,14 +136,23 @@ public class CompileTimeHelper {
         return null;
     }
 
+    /**
+     * Converts an annotation mirror to its type element.
+     */
     public TypeElement asType(AnnotationMirror annotationMirror) {
         return (TypeElement) types.asElement(annotationMirror.getAnnotationType());
     }
 
+    /**
+     * Converts an annotation mirror to its type element.
+     */
     public TypeElement asType(TypeMirror typeMirror) {
         return (TypeElement) types.asElement(typeMirror);
     }
 
+    /**
+     * Converts a type mirror to ASM's Type representation.
+     */
     public Type asAsmType(TypeMirror mirror) {
         switch (mirror.getKind()) {
             case BOOLEAN:
@@ -165,6 +187,9 @@ public class CompileTimeHelper {
         }
     }
 
+    /**
+     * Returns the ASM method descriptor for a method.
+     */
     public String getMethodDescriptor(ExecutableElement element) {
         Type returnType = asAsmType(element.getReturnType());
         Type[] args = element.getParameters().stream()
@@ -173,13 +198,12 @@ public class CompileTimeHelper {
         return Type.getMethodDescriptor(returnType, args);
     }
 
+    /**
+     * Checks if the method is defined in java.lang.Object.
+     */
     public boolean isObjectMethod(ExecutableElement element) {
         String methodName = element.getSimpleName().toString();
-        if (!OBJECT_METHOD_NAMES.contains(methodName)) {
-            return false;
-        }
-        String signature = buildSignature(element);
-        return OBJECT_METHOD_SIGNATURES.contains(signature);
+        return ReflectionUtil.isObjectMethod(methodName, () -> buildSignature(element));
     }
 
     private void collectInterfacesRecursively(TypeElement typeElement, Set<Name> collectedNames, Predicate<TypeElement> filter) {

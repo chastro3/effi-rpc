@@ -8,30 +8,19 @@ import io.effi.rpc.util.resoruce.Closeable;
 public interface EventDispatcher extends Closeable {
 
     /**
-     * Registers an event listener for the specified event type.
-     *
-     * @param eventType the class object representing the event type
-     * @param listener  the event listener to register
-     * @param <E>       the type of the event
+     * Registers a listener for the specified event type.
      */
     <E extends Event<?>> void registerListener(Class<E> eventType, EventListener<E> listener);
 
     /**
-     * Removes an event listener for the specified event type.
-     *
-     * @param eventType the class object representing the event type
-     * @param listener  the event listener to remove
-     * @param <E>       the type of the event
+     * Removes a listener for the specified event type.
      */
     <E extends Event<?>> void removeListener(Class<E> eventType, EventListener<E> listener);
 
     /**
-     * Dispatches the event to all registered listeners for its type.
-     *
-     * @param event the event to dispatch
-     * @param <E>   the type of the event
+     * Dispatches the event to all registered listeners.
      */
     <E extends Event<?>> void publish(E event);
-
 }
+
 

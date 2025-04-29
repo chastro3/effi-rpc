@@ -1,15 +1,15 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.util.Messages;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.ReplyFuture;
+import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.DefaultRepackagedRequest;
 import io.effi.rpc.transport.RepackagedRequest;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.util.Messages;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -52,7 +52,7 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
             addFailedListener(promise, repackagedRequest.channel(), ReplyFuture.getFuture(repackagedRequest.request().url()));
             super.write(ctx, repackagedRequest.encode().request(), promise);
         } else if (msg instanceof Envelope.Request request) {
-            addFailedListener(promise,NettyChannel.get(ctx.channel()),ReplyFuture.getFuture(request.url()));
+            addFailedListener(promise, NettyChannel.get(ctx.channel()), ReplyFuture.getFuture(request.url()));
             super.write(ctx, msg, promise);
         } else {
             logger.warn(Messages.onlySupport(DefaultRepackagedRequest.class));

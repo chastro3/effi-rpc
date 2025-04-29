@@ -17,6 +17,10 @@ gradlePlugin {
     }
 }
 
+dependencies{
+    implementation("tech.yanand.maven-central-publish:tech.yanand.maven-central-publish.gradle.plugin:1.3.0")
+}
+
 fun RepositoryHandler.defaultRepositories() {
     mavenLocal()
     listOf(

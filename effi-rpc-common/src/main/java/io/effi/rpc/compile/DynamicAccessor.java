@@ -23,18 +23,29 @@ public abstract class DynamicAccessor {
         this.parameterTypes = parameterTypes;
     }
 
+    /**
+     * Gets a dynamic accessor instance for the specified class.
+     *
+     * @param type the target class to access
+     */
     public static DynamicAccessor get(Class<?> type) {
         RuntimeClassLoader cl = RuntimeClassLoader.get(type);
         Class<?> c;
         try {
+            // Loads existing dynamic accessor class
             c = cl.loadClass(type.getName() + SUFFIX);
         } catch (ClassNotFoundException e) {
+            // Generates and defines a new dynamic accessor class if not found
             GeneratedInfo generatedInfo = DynamicAccessorGenerator.fromClass(type);
             c = cl.define(generatedInfo.pkg() + "." + generatedInfo.name(), generatedInfo.data());
         }
         return (DynamicAccessor) ReflectionUtil.newInstance(c);
     }
 
+    /**
+     * Serves as a placeholder for method invocation logic.
+     * <p>Will be overridden in generated subclass to invoke the actual method.</p>
+     */
     public Object invoke(Object target, int index, Object... args) {
         throw new IllegalArgumentException("No methods found in class");
     }

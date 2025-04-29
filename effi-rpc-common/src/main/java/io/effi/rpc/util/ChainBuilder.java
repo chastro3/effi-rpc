@@ -1,21 +1,20 @@
 package io.effi.rpc.util;
 
 /**
- * Provides a fluent API for creating and configuring objects while enabling method chaining.
+ * Builds an instance of {@link T} with method chaining support.
  *
- * @param <T> the type of objects being built
- * @param <C> the type of the implementing class that extends this interface,
- *            allowing for method chaining
+ * @param <T> the type of object to build
+ * @param <C> the self type for fluent chaining
  */
 public interface ChainBuilder<T, C extends ChainBuilder<T, C>> extends Builder<T> {
 
     /**
-     * Returns the current instance of the implementing class, allowing for
-     * method chaining in a fluent style.
+     * Returns this instance for method chaining.
      */
     @SuppressWarnings("unchecked")
     default C returnThis() {
         return (C) this;
     }
 }
+
 

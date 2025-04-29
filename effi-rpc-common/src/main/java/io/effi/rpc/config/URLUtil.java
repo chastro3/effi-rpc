@@ -13,17 +13,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class for handling URL paths and query parameters.
- * It includes methods for converting paths to string, parsing query parameters from URL strings,
- * and building query parameter strings.
+ * Provides url operations.
  */
-public class URLUtil {
+public final class URLUtil {
+
+    private URLUtil() {
+    }
 
     /**
-     * Extracts a variable from a string formatted as {variable}.
-     *
-     * @param value the string to extract the variable from
-     * @return the extracted variable, or null if not formatted correctly
+     * Extracts the variable from a string formatted as {variable}.
      */
     public static String getVar(String value) {
         int length = value.length();
@@ -34,10 +32,7 @@ public class URLUtil {
     }
 
     /**
-     * Converts a list of path segments into a single path string, concatenated by "/".
-     *
-     * @param paths the list of path segments
-     * @return the concatenated path string, or null if the input list is empty
+     * Converts a list of path segments into a single concatenated path string.
      */
     public static String toPath(List<String> paths) {
         if (CollectionUtil.isEmpty(paths)) {
@@ -53,9 +48,6 @@ public class URLUtil {
 
     /**
      * Splits a path string into individual segments.
-     *
-     * @param path the path string to split
-     * @return a list of path segments, or null if the input path is blank
      */
     public static List<String> toPaths(String path) {
         List<String> list = null;
@@ -75,11 +67,7 @@ public class URLUtil {
     }
 
     /**
-     * Parses a given URL string, separates the path and parameters, and performs format validation.
-     *
-     * @param input the input URL string (may include path and params)
-     * @return a QueryPath object containing the path and params, or throws an exception if the format is invalid
-     * @throws IllegalArgumentException if the URL format is invalid
+     * Parses a URL string, extracting the path and query parameters.
      */
     public static QueryPath buildQueryPath(String input) {
         String path = null;
@@ -107,10 +95,7 @@ public class URLUtil {
     }
 
     /**
-     * Converts a given map of parameters into a query string with URL encoding.
-     *
-     * @param params the map of query parameters
-     * @return the encoded query string
+     * Converts a map of parameters into an encoded query string.
      */
     public static String toQueryParam(Map<String, String> params) {
         try {
@@ -121,12 +106,7 @@ public class URLUtil {
     }
 
     /**
-     * Converts a given map of parameters into a query string with URL encoding, using the specified encoding.
-     *
-     * @param params   the input map of query parameters
-     * @param encoding the encoding to use (e.g., "UTF-8")
-     * @return the encoded query string
-     * @throws UnsupportedEncodingException if the specified encoding is not supported
+     * Converts a map of parameters into a query string with URL encoding using the specified encoding.
      */
     public static String toQueryParam(Map<String, String> params, String encoding) throws UnsupportedEncodingException {
         if (params == null || params.isEmpty()) {
@@ -155,10 +135,7 @@ public class URLUtil {
     }
 
     /**
-     * Parses the query parameters from a URL string and returns them as a map.
-     *
-     * @param paramsString the parameters string without the leading "?"
-     * @return a map of parameter key-value pairs
+     * Parses query parameters from a URL string and returns them as a map.
      */
     public static Map<String, String> parseQueryParam(String paramsString) {
         try {
@@ -169,13 +146,8 @@ public class URLUtil {
     }
 
     /**
-     * Parses the parameters part of a query string and returns them as a Map.
-     * Invalid parameter formats are skipped without throwing exceptions.
-     *
-     * @param paramsString the parameters string to parameter
-     * @param encoding     the encoding to use (e.g., "UTF-8")
-     * @return a map of parameter key-value pairs
-     * @throws UnsupportedEncodingException if the specified encoding is not supported
+     * Parses the query parameters from a string and returns them as a map.
+     * Invalid formats are ignored without exceptions.
      */
     public static Map<String, String> parseQueryParam(String paramsString, String encoding) throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<>();

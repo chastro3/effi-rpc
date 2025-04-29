@@ -31,12 +31,12 @@ public interface ConfigKey {
         SELF_ONLY,
 
         /**
-         * Value from the current configuration, or parent if not found.
+         * Value from current configuration first, then parent if not found.
          */
         SELF_PREFERRED,
 
         /**
-         * Value from the current configuration, or parent if not found.
+         * Value from parent configuration first, then current if not found.
          */
         PARENT_PREFERRED,
 
@@ -47,3 +47,4 @@ public interface ConfigKey {
     }
 
 }
+

@@ -1,12 +1,11 @@
 package io.effi.rpc.engine;
 
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.Messages;
-import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.NetUtil;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -47,8 +46,7 @@ public class DirectLocator implements Locator {
      * @return the DirectLocator instance
      */
     public static DirectLocator getInstance(InetSocketAddress socketAddress) {
-        if (socketAddress == null)
-            throw new IllegalArgumentException(Messages.notNull("socketAddress"));
+        AssertUtil.notNull(socketAddress, "socketAddress");
         return RESOURCES.computeIfAbsent(NetUtil.toAddress(socketAddress), k -> new DirectLocator(socketAddress));
     }
 

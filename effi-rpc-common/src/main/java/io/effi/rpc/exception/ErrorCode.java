@@ -3,17 +3,17 @@ package io.effi.rpc.exception;
 import io.effi.rpc.util.StringUtil;
 
 /**
- * Represents an error code with its associated message.
+ * Represents an error code and its associated message.
  */
 public interface ErrorCode {
 
     /**
-     * Returns the error code.
+     * Gets the error code.
      */
     String code();
 
     /**
-     * Returns the error message.
+     * Gets the error message.
      */
     String message();
 
@@ -21,11 +21,12 @@ public interface ErrorCode {
      * Formats the error message with the provided arguments.
      *
      * @param args arguments to format the message
-     * @return the formatted error message
+     * @return the formatted message
      */
     default String convert(Object... args) {
         return StringUtil.format(message(), args);
     }
 }
+
 
 

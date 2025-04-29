@@ -1,7 +1,7 @@
 plugins {
     id("java-platform")
 }
-description = "Management dependency versions."
+description = "Manage dependency versions."
 
 val junitVersion = "5.10.0"
 val jetbrainsVersion = "24.1.0"

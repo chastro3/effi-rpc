@@ -1,8 +1,7 @@
 package io.effi.rpc.spi;
 
 /**
- * SPI listener invoked when an extension instance is created,
- * allowing for post-creation actions.
+ * Listener triggered after an extension instance is created.
  *
  * @param <T> the service type for the extension
  */
@@ -10,11 +9,10 @@ package io.effi.rpc.spi;
 public interface LoadedListener<T> {
 
     /**
-     * Invoked after an extension instance is created, allowing additional setup or operations.
-     *
-     * @param service the created service instance
+     * Called after an extension instance is loaded.
      */
     void onLoaded(T service);
 }
+
 
 

@@ -3,8 +3,7 @@ package io.effi.rpc.spi;
 import java.lang.annotation.*;
 
 /**
- * Marks an interface as a Service Provider Interface (SPI) for extension loading.
- * Apply to interfaces with multiple implementations managed by an extension loader.
+ * Marks a type as an SPI interface for extension loading.
  *
  * @see ExtensionLoader
  */
@@ -19,14 +18,15 @@ public @interface Extensible {
     String value() default "";
 
     /**
-     * Defines the extension key for selecting an extension during loading.
+     * Defines the extension key for selecting an extension.
      */
     String key() default "";
 
     /**
-     * Indicates whether lazy loading is enabled for the extension.
+     * Indicates if lazy loading is enabled for the extension.
      */
     boolean lazyLoad() default true;
 
 }
+
 

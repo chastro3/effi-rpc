@@ -1,15 +1,16 @@
 package io.effi.rpc.util;
 
 /**
- * Enables creating a deep copy of an object.
+ * Supports creating a deep copy of an object.
  *
  * @param <T> the type of the object
  */
 public interface Replicable<T> {
 
     /**
-     * Creates a deep copy of the object, duplicating all internal mutable state.
+     * Creates a deep copy, duplicating all mutable state.
      */
     T replicate();
 }
+
 

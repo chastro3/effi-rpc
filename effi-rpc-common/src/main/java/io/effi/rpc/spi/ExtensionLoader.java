@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Loads and manages extensions of a given type.
- * The loader handles extension instantiation, scope management, listener notification, and cleanup.
+ * Loads and manages extensions for a given type.
+ * Handles instantiation, scope management, listener notification, and cleanup.
  *
- * @param <S> the service type for which the extensions are loaded
+ * @param <S> the service type for the extensions
  */
 public final class ExtensionLoader<S> implements Cleanable {
 
@@ -58,12 +58,6 @@ public final class ExtensionLoader<S> implements Cleanable {
                 .forEach(ExtensionLoaderClassInitializer::initialize);
     }
 
-    /**
-     * Private constructor for initializing an ExtensionLoader.
-     * It loads extension wrappers and prepares for extension instantiation.
-     *
-     * @param type the extension interface class
-     */
     private ExtensionLoader(Class<S> type) {
         this.type = type;
         Extensible extensible = type.getAnnotation(Extensible.class);
@@ -75,8 +69,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Adds the extension factory for creating extension instances.
-     *
-     * @param extensionFactory
      */
     public static void addExtensionFactory(ExtensionFactory extensionFactory) {
         EXTENSION_FACTORY.add(extensionFactory);
@@ -84,11 +76,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Load the ExtensionLoader for the specified type.
-     * It checks for validity of the type and ensures the class is annotation with @Extensible.
-     *
-     * @param type the extension interface class
-     * @param <S>  the type of the extension
-     * @return the loaded ExtensionLoader instance
      */
     @SuppressWarnings("unchecked")
     public static <S> ExtensionLoader<S> load(Class<S> type) {
@@ -100,11 +87,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Loads an extension instance using a provided URL, based on a key defined in @Extensible.
-     *
-     * @param type   the extension interface class
-     * @param config the config containing extension configuration
-     * @param <S>    the type of the extension
-     * @return the loaded extension instance
      */
     public static <S> S loadExtension(Class<S> type, Config config) {
         ExtensionLoader<S> extensionLoader = load(type);
@@ -118,11 +100,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Loads an extension instance by its name.
-     *
-     * @param type          the extension interface class
-     * @param extensionName the name of the extension to load
-     * @param <S>           the type of the extension
-     * @return the loaded extension instance
      */
     @SuppressWarnings("unchecked")
     public static <S> S loadExtension(Class<S> type, String extensionName) {
@@ -132,10 +109,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Loads the default extension for the given type.
-     *
-     * @param type the extension interface class
-     * @param <S>  the type of the extension
-     * @return the default extension instance
      */
     public static <S> S loadExtension(Class<S> type) {
         return load(type).getDefault();
@@ -143,10 +116,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Loads all available extensions for the given type.
-     *
-     * @param type the extension interface class
-     * @param <S>  the type of the extension
-     * @return a list of loaded extension instances
      */
     public static <S> List<S> loadExtensions(Class<S> type) {
         return load(type).getExtensions();
@@ -155,10 +124,6 @@ public final class ExtensionLoader<S> implements Cleanable {
     /**
      * Adds listeners to a specific extension interface.
      * Listeners are invoked when an extension instance is created.
-     *
-     * @param interfaceType   the extension interface class
-     * @param loadedListeners the listeners to be registered
-     * @param <S>             the type of the extension
      */
     @SafeVarargs
     public static <S> void addListener(Class<S> interfaceType, LoadedListener<S>... loadedListeners) {
@@ -183,8 +148,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Loads all available extensions for the specified type by scanning resources.
-     *
-     * @param type the extension interface class
      */
     @SuppressWarnings("unchecked")
     private void loadExtensionWrappers(Class<S> type) {
@@ -235,9 +198,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
     /**
      * Retrieves the extension by name.
-     *
-     * @param extensionName the name of the extension
-     * @return the extension instance
      */
     public S getExtension(String extensionName) {
         ExtensionWrapper wrapper = extensionWrappers.get(extensionName);
@@ -278,7 +238,7 @@ public final class ExtensionLoader<S> implements Cleanable {
     }
 
     /**
-     * A wrapper class for managing the instantiation and lifecycle of extensions.
+     * Manages the instantiation and lifecycle of extensions.
      */
     class ExtensionWrapper implements Cleanable {
 
@@ -296,11 +256,6 @@ public final class ExtensionLoader<S> implements Cleanable {
 
         private boolean cleared = false;
 
-        /**
-         * Constructs an ExtensionWrapper for the given extension class.
-         *
-         * @param type the extension implementation class
-         */
         ExtensionWrapper(Class<? extends S> type) {
             this.type = type;
             this.extension = type.getAnnotation(Extension.class);
@@ -311,7 +266,7 @@ public final class ExtensionLoader<S> implements Cleanable {
         }
 
         /**
-         * Checks whether the extension condition is met.
+         * Checks if the extension condition is met.
          */
         public boolean isConditionMet() {
             String[] classes = extension.onClass();

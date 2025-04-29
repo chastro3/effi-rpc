@@ -11,9 +11,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Lazily initialized {@link Map} implementation.
- * The underlying map is created only when necessary, which can save memory and
- * improve performance in scenarios where the map may not be used immediately.
+ * Lazily initialized {@link Map}.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values

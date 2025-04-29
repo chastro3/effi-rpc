@@ -2,11 +2,6 @@ package io.effi.rpc.engine;
 
 import io.effi.rpc.config.Config;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.spi.ExtensionLoader;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.Messages;
-import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Locator;
@@ -16,6 +11,9 @@ import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.governance.discovery.ServiceDiscovery;
 import io.effi.rpc.governance.loadbalance.LoadBalancer;
 import io.effi.rpc.governance.router.Router;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.NetUtil;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -36,15 +34,13 @@ public class RegistryLocator implements Locator {
     }
 
     /**
-     * Gets or create a RegistryLocator instance.
+     * Gets or creates a RegistryLocator instance.
      *
      * @param remoteApplication the remote application name
-     * @param creator           the supplier to create a RegistryLocator instance if it doesn't exist
      * @return the RegistryLocator instance
      */
     public static RegistryLocator getInstance(String remoteApplication) {
-        if (StringUtil.isBlank(remoteApplication))
-            throw new IllegalArgumentException(Messages.notBlank("remoteApplication"));
+        AssertUtil.notBlank(remoteApplication, "remoteApplication");
         return RESOURCES.computeIfAbsent(remoteApplication, k -> new RegistryLocator(remoteApplication));
     }
 

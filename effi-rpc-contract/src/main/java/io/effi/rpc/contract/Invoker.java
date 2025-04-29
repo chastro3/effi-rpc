@@ -2,19 +2,15 @@ package io.effi.rpc.contract;
 
 import io.effi.rpc.config.NodeConfigSource;
 import io.effi.rpc.config.QueryPath;
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.util.Attributes;
-import io.effi.rpc.util.GenerateUtil;
-import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.filter.Filter;
 import io.effi.rpc.contract.repository.ComponentRepository;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.util.Attributes;
+import io.effi.rpc.util.TypeToken;
 
 /**
- * Wrapper for client and server invocation.
- * <p>
- * Provides a unified mechanism for invoking methods on both client and server sides.
- * Clients use {@link #invoke(Object...)} to initiate remote calls, while servers
- * invoke corresponding service methods for seamless interaction.
+ * Wraps client and server invocations.
+ * Clients invoke methods via {@link #invoke(Object...)}, servers process service methods.
  *
  * @param <R> the return type of the invocation
  */
@@ -46,14 +42,12 @@ public interface Invoker<R> extends Attributes, ComponentRepository.Key, NodeCon
 
     /**
      * Adds filters to the invoker.
-     *
-     * @param filters filters to process requests and responses
      */
     void addFilter(Filter<?, ?, ?>... filters);
 
     @Override
     default String repositoryKey() {
-        return GenerateUtil.generateInvokerKey(protocol(), queryPath().path());
+        return InvokerContainer.generateInvokerKey(protocol(), queryPath().path());
     }
 }
 

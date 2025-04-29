@@ -3,15 +3,15 @@ package io.effi.rpc.util;
 import java.lang.reflect.*;
 
 /**
- * Capture and represent generic type information.
+ * Captures and represents generic type information.
  *
  * @param <T> The type parameter.
  */
 public abstract class TypeToken<T> {
 
-    private final Type type; // The captured type
+    private final Type type;
 
-    private final Class<? super T> rawType; // The raw class type of T
+    private final Class<? super T> rawType;
 
     /**
      * Constructs a TypeToken that captures the generic type of the
@@ -22,11 +22,6 @@ public abstract class TypeToken<T> {
         this.rawType = getRawType(this.type);
     }
 
-    /**
-     * Constructs a TypeToken with a specified type.
-     *
-     * @param type The type to be captured
-     */
     protected TypeToken(Type type) {
         this.type = type;
         this.rawType = getRawType(type);
@@ -34,25 +29,15 @@ public abstract class TypeToken<T> {
 
     /**
      * Creates a TypeToken for the given type.
-     *
-     * @param type The type to be wrapped
-     * @param <T>
-     * @return A new instance of TypeToken capturing the specified type
      */
     public static <T> TypeToken<T> get(Type type) {
         return new TypeToken<>(type) {};
     }
 
-    /**
-     * Returns the captured type.
-     */
     public Type type() {
         return type;
     }
 
-    /**
-     * Returns the raw class type of the captured type.
-     */
     public Class<? super T> rawType() {
         return rawType;
     }

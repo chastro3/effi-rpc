@@ -1,49 +1,48 @@
 package io.effi.rpc.util;
 
 /**
- * Configuration for managing the lifecycle of an object.
- * Provides default hooks for each lifecycle phase: pre-initialization,
- * post-initialization, pre-start, post-start, pre-stop, and post-stop.
+ * Manages the object lifecycle with hooks for each phase.
  *
- * @param <T> the type of the lifecycle object
+ * @param <T> the lifecycle object type
  */
 public interface LifecycleConfiguration<T extends Lifecycle> {
 
     /**
-     * Hook to perform actions before the lifecycle object is initialized.
+     * Performs actions before initialization.
      */
     default void preInit(T lifecycle) {
     }
 
     /**
-     * Hook to perform actions after the lifecycle object is initialized.
+     * Performs actions after initialization.
      */
     default void postInit(T lifecycle) {
     }
 
     /**
-     * Hook to perform actions before the lifecycle object is started.
+     * Performs actions before start.
      */
     default void preStart(T lifecycle) {
     }
 
     /**
-     * Hook to perform actions after the lifecycle object has started.
+     * Performs actions after start.
      */
     default void postStart(T lifecycle) {
     }
 
     /**
-     * Hook to perform actions before the lifecycle object is stopped.
+     * Performs actions before stop.
      */
     default void preStop(T lifecycle) {
     }
 
     /**
-     * Hook to perform actions after the lifecycle object has stopped.
+     * Performs actions after stop.
      */
     default void postStop(T lifecycle) {
     }
 }
+
 
 

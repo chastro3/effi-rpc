@@ -4,6 +4,7 @@ import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.config.HierarchicalNodeConfig;
 import io.effi.rpc.compile.DynamicAccessor;
 import io.effi.rpc.contract.Callee;
+import io.effi.rpc.contract.InvokerContainer;
 import io.effi.rpc.contract.RemoteService;
 import io.effi.rpc.util.*;
 
@@ -50,7 +51,7 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
 
     @Override
     public Callee<?> getCallee(String protocol, String path) {
-        String key = GenerateUtil.generateInvokerKey(protocol, path);
+        String key = InvokerContainer.generateInvokerKey(protocol, path);
         return getInvoker(key);
     }
 
@@ -78,7 +79,7 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
     @Override
     public RemoteService<T> addCallee(Callee<?> callee) {
         String path = callee.queryPath() == null ? "" : callee.queryPath().path();
-        String key = GenerateUtil.generateInvokerKey(callee.protocol(), path);
+        String key = InvokerContainer.generateInvokerKey(callee.protocol(), path);
         addInvoker(key, callee);
         return this;
     }

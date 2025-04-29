@@ -4,7 +4,7 @@ import static io.effi.rpc.config.ConfigKey.Strategy.*;
 import static io.effi.rpc.constant.Constant.*;
 
 /**
- * Defines a set of default configuration keys with their sources and default values.
+ * Defines default config keys with their strategy and default values.
  */
 public enum DefaultConfigKeys implements ConfigKey {
 

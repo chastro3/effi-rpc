@@ -29,10 +29,6 @@ public final class MapBuilder {
      * - If the value is an {@link Item}, its map representation will be added.
      * - If the value is a {@link List}, and it contains {@link Item}s, their map representations will be added.
      * - Boolean values are only added if they are true.
-     *
-     * @param key   the key to be added.
-     * @param value the value associated with the key.
-     * @return this MapBuilder instance for method chaining.
      */
     @SuppressWarnings("unchecked")
     public MapBuilder put(String key, Object value) {

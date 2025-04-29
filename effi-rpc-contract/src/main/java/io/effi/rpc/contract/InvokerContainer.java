@@ -31,6 +31,10 @@ public interface InvokerContainer<I extends Invoker<?>> extends NodeConfigSource
      * Retrieves all invokers in the container.
      */
     Collection<I> invokers();
+
+    static String generateInvokerKey(String protocol, String path) {
+        return protocol + ":" + path;
+    }
 }
 
 

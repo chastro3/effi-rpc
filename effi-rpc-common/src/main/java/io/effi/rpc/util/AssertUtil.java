@@ -3,7 +3,7 @@ package io.effi.rpc.util;
 import java.util.Objects;
 
 /**
- * Utility class for assert operations.
+ * Provides assertion operations.
  */
 public final class AssertUtil {
 
@@ -11,19 +11,14 @@ public final class AssertUtil {
     }
 
     /**
-     * Determine if a condition is valid, and throw a AssertionError exception when not.
-     *
-     * @param condition
+     * Checks if the condition is true.
      */
     public static void condition(boolean condition) {
         condition(condition, null);
     }
 
     /**
-     * Determine if a condition is valid, and throw a AssertionError exception when not.
-     *
-     * @param condition
-     * @param message
+     * Checks if the condition is true with a custom message.
      */
     public static void condition(boolean condition, String message) {
         if (!condition) {
@@ -32,20 +27,14 @@ public final class AssertUtil {
     }
 
     /**
-     * Determine if an object is not null, and throw a NullPointerException exception when it is.
-     *
-     * @param object
-     * @param <T>
-     * @return
+     * Checks that the object is not null.
      */
     public static <T> T notNull(T object) {
         return Objects.requireNonNull(object);
     }
 
     /**
-     * Determine if an object is not null, and throw a NullPointerException exception when it is.
-     *
-     * @param objects
+     * Checks that each object is not null.
      */
     public static void notNull(Object... objects) {
         for (Object object : objects) {
@@ -54,56 +43,39 @@ public final class AssertUtil {
     }
 
     /**
-     * Determine if an object is not null, and throw a NullPointerException exception when it is.
-     *
-     * @param object
-     * @param name
-     * @param <T>
-     * @return
+     * Checks that the object is not null with a name in the error message.
      */
     public static <T> T notNull(T object, String name) {
         if (object == null) {
-            String message = Messages.notNull(StringUtil.isBlankOrDefault(name, "object"));
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(Messages.notNull(StringUtil.isBlankOrDefault(name, "object")));
         }
         return object;
     }
 
     /**
-     * Determine if a string is not empty.
-     *
-     * @param str
-     * @param name
+     * Checks that the string is not blank.
      */
     public static String notBlank(String str, String name) {
         if (StringUtil.isBlank(str)) {
-            String message = Messages.notBlank(StringUtil.isBlankOrDefault(name, "object"));
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(Messages.notBlank(StringUtil.isBlankOrDefault(name, "object")));
         }
         return str;
     }
 
     /**
-     * Determine whether the two objects are equal.
-     *
-     * @param expected
-     * @param actual
+     * Checks if two objects are equal.
      */
     public static void equals(Object expected, Object actual) {
         equals(expected, actual, null);
     }
 
     /**
-     * Determine whether the two objects are equal.
-     *
-     * @param expected
-     * @param actual
-     * @param message
+     * Checks if two objects are equal with a custom message.
      */
     public static void equals(Object expected, Object actual, String message) {
         if (!Objects.equals(expected, actual)) {
             throw new AssertionError(message);
         }
     }
-
 }
+

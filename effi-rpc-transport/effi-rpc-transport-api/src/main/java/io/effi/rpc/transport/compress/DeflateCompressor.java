@@ -29,7 +29,7 @@ public class DeflateCompressor extends AbstractCompressor {
     @Override
     protected byte[] doDecompress(byte[] data) throws IOException {
         try (InflaterInputStream inflaterInput = new InflaterInputStream(new ByteArrayInputStream(data))) {
-            return FileUtil.inputStreamToByteArray(inflaterInput);
+            return FileUtil.toBytes(inflaterInput);
         }
     }
 }

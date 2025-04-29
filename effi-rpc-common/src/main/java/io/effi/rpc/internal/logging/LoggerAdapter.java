@@ -1,18 +1,14 @@
 package io.effi.rpc.internal.logging;
 
 /**
- * Retrieves logger instances based on a given name. Implementations of this
- * interface can supply loggers that are suitable for different logging frameworks
- * or custom logging systems.
+ * Provides logger instances based on the given name.
  */
 public interface LoggerAdapter {
 
     /**
-     * Retrieves a logger instance associated with the given name.
-     *
-     * @param name the name of the logger to retrieve
-     * @return the logger instance for the specified name
+     * Retrieves the logger for the specified name.
      */
     Logger getLogger(String name);
 }
+
 

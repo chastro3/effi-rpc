@@ -1,4 +1,4 @@
-description = "Serialization implemented with protobuf."
+description = "Serialization implementation using Protobuf."
 dependencies {
     api(project(":effi-rpc-serialization:effi-rpc-serialization-api"))
     api("com.google.protobuf:protobuf-java")

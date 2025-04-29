@@ -16,6 +16,7 @@ import static org.objectweb.asm.Opcodes.*;
 
 /**
  * Generates {@link DynamicAccessor} at compile-time and runtime.
+ * Collects methods and constructs dynamic accessor classes.
  */
 public class DynamicAccessorGenerator {
 
@@ -23,6 +24,9 @@ public class DynamicAccessorGenerator {
 
     private static final String PARAMETER_TYPES = "PARAMETER_TYPES";
 
+    /**
+     * Generates {@link GeneratedInfo} from a runtime class.
+     */
     public static GeneratedInfo fromClass(Class<?> type) {
         String pkg = type.getPackage().getName();
         String name = type.getSimpleName();
@@ -37,6 +41,9 @@ public class DynamicAccessorGenerator {
         return generate(new ClassInfo(pkg, name, infos, type.isInterface()));
     }
 
+    /**
+     * Generates {@link GeneratedInfo} from a compile-time type element.
+     */
     public static GeneratedInfo fromTypeElement(TypeElement type, CompileTimeHelper helper) {
         String pkg = helper.getPackage(type);
         String name = type.getSimpleName().toString();

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a parsed URL query path, including path segments and query parameters.
+ * Represents a parsed URL query path with segments and query parameters.
  */
 public class QueryPath {
 
@@ -21,10 +21,7 @@ public class QueryPath {
     }
 
     /**
-     * Creates a QueryPath instance from an input string.
-     *
-     * @param input the input URL string
-     * @return a QueryPath object
+     * Creates a QueryPath instance from a URL string.
      */
     public static QueryPath valueOf(String input) {
         return URLUtil.buildQueryPath(input);

@@ -5,8 +5,7 @@ import io.effi.rpc.util.Ordered;
 import java.lang.annotation.*;
 
 /**
- * Marks a class as an implementation for an SPI interface,
- * making it available for SPI-based selection.
+ * Marks a class as an implementation of an SPI interface.
  *
  * @see ExtensionLoader
  */
@@ -16,28 +15,28 @@ import java.lang.annotation.*;
 public @interface Extension {
 
     /**
-     * Specifies the name(s) of the current implementation.
+     * Specifies the name(s) of the implementation.
      */
     String[] value() default {};
 
     /**
-     * Specifies the interfaces that this class implements.
+     * Specifies the interfaces this class implements.
      * Defaults to all interfaces marked with {@link Extensible}.
      */
     Class<?>[] interfaces() default {};
 
     /**
-     * Defines conditions for enabling this extension.
+     * Defines conditions for enabling the extension.
      */
     String[] onClass() default {};
 
     /**
-     * Indicates if this extension should override others with the same name.
+     * Indicates if this extension overrides others with the same name.
      */
     boolean override() default false;
 
     /**
-     * Specifies the extension scope.
+     * Specifies the extension's scope.
      */
     Scope scope() default Scope.SINGLETON;
 
@@ -46,4 +45,5 @@ public @interface Extension {
      */
     int order() default Ordered.DEFAULT;
 }
+
 

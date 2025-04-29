@@ -21,7 +21,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import java.util.Map;
 
 /**
- * Abstract Http implementation of {@link Protocol}.
+ * Abstract Http implementation of {@link io.effi.rpc.transport.Protocol}.
  */
 public abstract class HttpProtocol extends AbstractProtocol {
 

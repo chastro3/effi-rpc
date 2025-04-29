@@ -4,9 +4,6 @@ import io.effi.rpc.util.StringUtil;
 
 /**
  * Configuration for client.
- *
- * @see NamedConfig
- * @see io.effi.rpc.engine.builder.ClientConfigBuilder
  */
 public interface ClientConfig extends NamedConfig {
 

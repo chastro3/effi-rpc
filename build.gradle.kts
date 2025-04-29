@@ -1,24 +1,11 @@
 allprojects {
     apply(plugin = "base")
     group = "io.github.chastro3"
-    version = "0.0.1-alpha"
+    version = "0.0.2-alpha"
     repositories {
         defaultRepositories()
     }
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
-        options.compilerArgs.addAll(
-            listOf(
-                "-Agroup.id=${project.group}",
-                "-Aartifact.id=${project.name}",
-                "-Aversion=${project.version}",
-                "-Anative.build=true"
-            )
-        )
-    }
-    // resolve Gradle console Chinese character encoding issues
-    tasks.withType<JavaExec> { systemProperties["sun.stdout.encoding"] = "utf-8" }
-    tasks.named("clean") { doLast { delete(fileTree(projectDir).include("**/*.iml")) } }
+    configureTasks()
 }
 
 subprojects {

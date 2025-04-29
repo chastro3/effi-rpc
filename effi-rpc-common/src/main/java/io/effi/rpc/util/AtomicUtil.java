@@ -8,15 +8,15 @@ import java.util.function.LongUnaryOperator;
 import java.util.function.UnaryOperator;
 
 /**
- * Utility class for atomic operations.
+ * Provides atomic operations.
  */
-public class AtomicUtil {
+public final class AtomicUtil {
+
+    private AtomicUtil() {
+    }
 
     /**
-     * Use the compare And Set method to atomically update the Atomic Long value.
-     *
-     * @param atomicLong
-     * @param updateFunction
+     * Atomically updates the AtomicLong value using the provided update function.
      */
     public static long updateAtomicLong(AtomicLong atomicLong, LongUnaryOperator updateFunction) {
         long prevValue, newValue;
@@ -28,10 +28,7 @@ public class AtomicUtil {
     }
 
     /**
-     * Use the compare And Set method to atomically update the Atomic Int value.
-     *
-     * @param atomicInteger
-     * @param updateFunction
+     * Atomically updates the AtomicInteger value using the provided update function.
      */
     public static int updateAtomicInteger(AtomicInteger atomicInteger, IntUnaryOperator updateFunction) {
         int prevValue, newValue;
@@ -43,11 +40,7 @@ public class AtomicUtil {
     }
 
     /**
-     * Use the compare And Set method to atomically update the Atomic Reference value.
-     *
-     * @param <T>
-     * @param atomicReference
-     * @param updateFunction
+     * Atomically updates the AtomicReference value using the provided update function.
      */
     public static <T> void updateAtomicReference(AtomicReference<T> atomicReference, UnaryOperator<T> updateFunction) {
         T prevValue, newValue;
@@ -57,3 +50,4 @@ public class AtomicUtil {
         } while (!atomicReference.compareAndSet(prevValue, newValue));
     }
 }
+

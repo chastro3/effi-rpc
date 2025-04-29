@@ -17,10 +17,6 @@ public abstract class StringAccessor<T> implements Cleanable {
 
     /**
      * Set data.
-     *
-     * @param key
-     * @param value
-     * @return
      */
     public T set(String key, String value) {
         accessor.put(key, value);
@@ -29,9 +25,6 @@ public abstract class StringAccessor<T> implements Cleanable {
 
     /**
      * Remove data.
-     *
-     * @param key
-     * @return
      */
     public T remove(String key) {
         accessor.remove(key);
@@ -40,9 +33,6 @@ public abstract class StringAccessor<T> implements Cleanable {
 
     /**
      * Get data.
-     *
-     * @param key
-     * @return
      */
     public String get(String key) {
         return accessor.get(key);

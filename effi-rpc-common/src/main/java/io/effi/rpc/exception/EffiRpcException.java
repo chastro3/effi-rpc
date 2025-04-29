@@ -7,8 +7,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Custom exception class for Effi-RPC.
- * Wraps an {@link ErrorCode} and supports formatted messages with arguments.
+ * Wraps an {@link ErrorCode} with a formatted message.
  */
 public class EffiRpcException extends RuntimeException {
 

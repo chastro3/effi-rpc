@@ -1,14 +1,17 @@
 package io.effi.rpc.util;
 
 /**
- * Utility class for common class operations.
+ * Provides common class operations.
  */
 public final class ClassUtil {
 
-    public static ClassLoader getClassLoader(Class<?> clazz) {
+    /**
+     * Get the class loader for the specified class.
+     */
+    public static ClassLoader getClassLoader(Class<?> c) {
         ClassLoader cl = null;
-        if (!clazz.getName().startsWith("io.effi.rpc")) {
-            cl = clazz.getClassLoader();
+        if (!c.getName().startsWith("io.effi.rpc")) {
+            cl = c.getClassLoader();
         }
         if (cl == null) {
             try {
@@ -18,7 +21,7 @@ public final class ClassUtil {
             }
             if (cl == null) {
                 // No thread context class loader -> use class loader of this class.
-                cl = clazz.getClassLoader();
+                cl = c.getClassLoader();
                 if (cl == null) {
                     // getClassLoader() returning null indicates the bootstrap ClassLoader
                     try {

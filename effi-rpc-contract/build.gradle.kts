@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Defining core specifications and configs."
+description = "Core specifications and configurations."
 dependencies {
     api(project(":effi-rpc-common"))
 }

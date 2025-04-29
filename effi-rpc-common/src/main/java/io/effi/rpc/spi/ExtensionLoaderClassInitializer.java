@@ -1,7 +1,7 @@
 package io.effi.rpc.spi;
 
 /**
- * Invoked during the class initialization of {@link ExtensionLoader}.
+ * Initializes during {@link ExtensionLoader} class loading.
  */
 public interface ExtensionLoaderClassInitializer {
 

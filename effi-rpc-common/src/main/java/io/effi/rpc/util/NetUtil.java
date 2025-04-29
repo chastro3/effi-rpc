@@ -4,7 +4,7 @@ import java.net.*;
 import java.util.Enumeration;
 
 /**
- * Utility class for net operations.
+ * Provides net operations.
  */
 public final class NetUtil {
 
@@ -16,11 +16,8 @@ public final class NetUtil {
     }
 
     /**
-     * Validates the given IP and port string. If valid, returns the corresponding InetSocketAddress;
-     * otherwise, returns null.
-     *
-     * @param address The string representing IP address and port in the format "IP:Port".
-     * @return An InetSocketAddress if the input is valid; null otherwise.
+     * Validates the given IP and port string.
+     * Returns the corresponding InetSocketAddress if valid, null otherwise.
      */
     public static InetSocketAddress validateAddress(String address) {
         if (address == null || address.isEmpty()) {
@@ -56,30 +53,21 @@ public final class NetUtil {
     }
 
     /**
-     * Determine if a given port number is within the valid range (1-65535).
-     *
-     * @param port
-     * @return
+     * Checks if the given port number is within the valid range (1-65535).
      */
     public static boolean isValidPort(int port) {
         return port >= 0 && port <= 65535;
     }
 
     /**
-     * Determine if a given string is a valid IP address.
-     *
-     * @param ip
-     * @return
+     * Checks if the given string is a valid IP address (IPv4 or IPv6).
      */
     public static boolean isValidIP(String ip) {
         return isValidIPv4(ip) || isValidIPv6(ip);
     }
 
     /**
-     * Determine if a given string is a legitimate IPV4 address.
-     *
-     * @param ip
-     * @return
+     * Checks if the given string is a valid IPv4 address.
      */
     public static boolean isValidIPv4(String ip) {
         String[] parts = ip.split("\\.");
@@ -100,10 +88,7 @@ public final class NetUtil {
     }
 
     /**
-     * Determine if a given string is a legitimate IPV6 address.
-     *
-     * @param ip
-     * @return
+     * Checks if the given string is a valid IPv6 address.
      */
     public static boolean isValidIPv6(String ip) {
         // Split by colon (IPv6 segments are separated by colons)
@@ -113,7 +98,7 @@ public final class NetUtil {
         }
 
         for (String part : parts) {
-            // Check if each part has between 1 to 4 hexadecimal characters
+            // Check if each part has between 1 and 4 hexadecimal characters
             if (part.isEmpty() || part.length() > 4) {
                 return false;
             }
@@ -131,10 +116,7 @@ public final class NetUtil {
     }
 
     /**
-     * Converts a given InetSocketAddress object to a string representation.
-     *
-     * @param address
-     * @return
+     * Converts an InetSocketAddress to its string representation.
      */
     public static String toAddress(InetSocketAddress address) {
         return (isLoopbackAddress(address.getHostString())
@@ -143,11 +125,7 @@ public final class NetUtil {
     }
 
     /**
-     * Determine whether two InetSocketAddress objects are the same.
-     *
-     * @param addr1
-     * @param addr2
-     * @return
+     * Checks if two InetSocketAddress objects are the same.
      */
     public static boolean isSameAddress(InetSocketAddress addr1, InetSocketAddress addr2) {
         if (addr1 == null || addr2 == null) {
@@ -157,10 +135,7 @@ public final class NetUtil {
     }
 
     /**
-     * If it is a loopback address.
-     *
-     * @param host
-     * @return
+     * Checks if the given host is a loopback address.
      */
     public static boolean isLoopbackAddress(String host) {
         try {
@@ -172,10 +147,7 @@ public final class NetUtil {
     }
 
     /**
-     * Converts the given string to an InetSocketAddress object.
-     *
-     * @param address
-     * @return
+     * Converts the given string to an InetSocketAddress.
      */
     public static InetSocketAddress toInetSocketAddress(String address) {
         InetSocketAddress socketAddress = validateAddress(address);
@@ -186,20 +158,14 @@ public final class NetUtil {
     }
 
     /**
-     * Converts the given hostname and port number into a string representation.
-     *
-     * @param host
-     * @param port
-     * @return
+     * Converts the given hostname and port into a string representation.
      */
     public static String toAddress(String host, int port) {
         return host + ":" + port;
     }
 
     /**
-     * Get the local host.
-     *
-     * @return
+     *  Gets the local host address.
      */
     public static String defaultHost() {
         if (LOCAL_HOST != null) {

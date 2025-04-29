@@ -35,7 +35,7 @@ public class FilterSupport {
      * Extracts the types of the envelope and invoker from a filter.
      *
      * @param filter the filter to inspect
-     * @return a {@link Type} object containing the envelope and invoker types
+     * @return a {@link FilterType} object containing the envelope and invoker types
      * @throws IllegalStateException if the {@code doFilter} method cannot be found
      * @throws NullPointerException  if the filter is {@code null}
      */

@@ -10,21 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * URL with its various components, including protocol, address,
- * path segments, and query parameters. This class provides methods for parsing
- * a URL string into its components, adding or removing path segments and
- * query parameters, and constructing the complete URL representation.
- *
- * <p>The URL class implements the {@link Replicable} interface, allowing for
- * the creation of deep copies of URL instances. It also extends
- * {@link AbstractAttributes} to engine attribute management.</p>
- *
- * <p>Example usage:</p>
- * <pre>
- * URL url = URL.valueOf("http://www.example.com/path/to/resource?param1=value1");
- * url.addParam("param2", "value2");
- * String fullUrl = url.uri();
- * </pre>
+ * Represents a URL with protocol, address, path segments, and query parameters.
+ * Supports parsing, modification, and reconstruction.
  */
 public class URL extends AbstractAttributes implements Replicable<URL> {
 
@@ -53,11 +40,11 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Parses the given URL string and creates a corresponding URL object.
+     * Parses a URL string into a {@link URL} object.
      *
-     * @param url the URL string to parameter
-     * @return the URL object
-     * @throws IllegalArgumentException if the URL is blank or invalid
+     * @param url the URL string
+     * @return the parsed URL
+     * @throws IllegalArgumentException if the input is blank or invalid
      */
     public static URL valueOf(String url) {
         if (StringUtil.isBlank(url)) {
@@ -109,7 +96,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Sets the protocol for the URL.
+     * Sets the protocol.
      */
     public URL protocol(String protocol) {
         this.protocol = protocol;
@@ -117,7 +104,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Sets the address and extracts the host and port if valid.
+     * Sets the address and parses host and port if valid.
      */
     public URL address(String address) {
         InetSocketAddress socketAddress = NetUtil.validateAddress(address);
@@ -139,13 +126,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Accepts a query path string (e.g., "/path1/path2?param1=value1")
-     * and converts it into standard path segments and query parameters.
-     * The path segments and query parameters are then set in the
-     * URL being built.
-     *
-     * @param path The query path string to process.
-     * @return This URLBuilder instance for method chaining.
+     * Sets path segments and query parameters from the given string.
      */
     public URL path(String path) {
         QueryPath queryPath = QueryPath.valueOf(path);
@@ -156,12 +137,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Sets the path segments for the URL being built directly,
-     * allowing the user to provide a list of standard path segments
-     * and reducing the need for parsing.
-     *
-     * @param paths A list of path segments to set.
-     * @return This URLBuilder instance for method chaining.
+     * Sets the path segments directly.
      */
     public URL paths(List<String> paths) {
         if (CollectionUtil.isNotEmpty(paths)) {
@@ -172,10 +148,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Retrieves the path segment at the specified index.
-     *
-     * @param index the index of the path segment to retrieve
-     * @return the path segment, or null if the index is out of bounds
+     * Returns the path segment at the given index, or null if out of bounds.
      */
     public String getPath(int index) {
         if (paths.size() > index) {
@@ -185,11 +158,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Adds a query parameter to the URL.
-     *
-     * @param key   the parameter key
-     * @param value the parameter value
-     * @return the current URL instance
+     * Adds a query parameter.
      */
     public URL addParam(String key, String value) {
         params.set(key, value);
@@ -197,10 +166,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Adds multiple query parameters to the URL.
-     *
-     * @param params the map of parameters to add
-     * @return the current URL instance
+     * Adds multiple query parameters.
      */
     public URL addParams(Map<String, String> params) {
         if (CollectionUtil.isNotEmpty(params)) {
@@ -210,21 +176,21 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Retrieves the value of a query parameter by its key.
+     * Retrieves the value of a query parameter.
      */
     public String getParam(ConfigKey configKey) {
         return params.get(configKey);
     }
 
     /**
-     * Retrieves the value of a query parameter by its key.
+     * Retrieves the value of a query parameter.
      */
     public String getParam(String key) {
         return params.get(key);
     }
 
     /**
-     * Retrieves the value of a query parameter by its key,
+     * Retrieves the value of a query parameter,
      * returning a default value if not found.
      */
     public String getParam(String key, String defaultValue) {
@@ -301,7 +267,7 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
     }
 
     /**
-     * Removes a query parameter by its key.
+     * Removes a query parameter by key.
      */
     public URL removeParam(String key) {
         params.remove(key);

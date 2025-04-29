@@ -10,46 +10,30 @@ import java.util.function.Supplier;
 public interface Attributes extends Cleanable {
 
     /**
-     * Retrieves the value associated with the given key.
-     *
-     * @param key the attribute key
-     * @param <T> the type of the value
+     * Gets the value associated with the key.
      */
     <T> T get(GenericKey<T> key);
 
     /**
-     * Retrieves the value associated with the given key, or returns a default value if absent.
-     *
-     * @param key          the attribute key
-     * @param defaultValue the value to return if the key is absent
-     * @param <T>          the type of the value
+     * Gets the value associated with the key, or returns a default if absent.
      */
     <T> T getOrDefault(GenericKey<T> key, T defaultValue);
 
     /**
-     * Computes and stores a value if the key is absent; otherwise, returns the existing value.
-     *
-     * @param key     the attribute key
-     * @param creator a supplier for the value if absent
-     * @param <T>     the type of the value
+     * Computes and stores a value if absent.
      */
     <T> T computeIfAbsent(GenericKey<T> key, Supplier<T> creator);
 
     /**
-     * Sets the value for the given key.
-     *
-     * @param key   the attribute key
-     * @param value the value to store
-     * @param <T>   the type of the value
+     * Sets the value for the key.
      */
     <T> T set(GenericKey<T> key, T value);
 
     /**
-     * Removes the attribute for the given key.
-     *
-     * @param key the attribute key
+     * Removes the attribute for the key.
      */
     Attributes remove(GenericKey<?> key);
 }
+
 
 

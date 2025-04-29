@@ -1,7 +1,7 @@
 package io.effi.rpc.exception;
 
 /**
- * Predefined error codes with associated messages.
+ * Predefined error codes with their messages.
  */
 public enum PredefinedErrorCode implements ErrorCode {
     COMMON("0001", "{}"),

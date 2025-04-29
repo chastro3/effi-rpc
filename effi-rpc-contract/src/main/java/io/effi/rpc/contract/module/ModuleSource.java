@@ -6,7 +6,7 @@ package io.effi.rpc.contract.module;
 public interface ModuleSource {
 
     /**
-     * Returns the associated {@link Config}.
+     * Returns the associated {@link EffiRpcModule}.
      */
     EffiRpcModule module();
 }

@@ -1,20 +1,19 @@
 package io.effi.rpc.event;
 
 /**
- * Listener for handling events of type {@link E}.
+ * Listener for handling {@link Event} of type {@link E}.
  *
- * @param <E> the type of the event this listener handles, which extends {@link Event}
+ * @param <E> the type of event this listener handles
  */
 @FunctionalInterface
 public interface EventListener<E extends Event<?>> {
 
     /**
      * Handles the event when it occurs.
-     *
-     * @param event the event that has occurred
      */
     void onEvent(E event);
 }
+
 
 
 

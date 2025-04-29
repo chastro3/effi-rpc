@@ -6,11 +6,9 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Lazily initialized {@link List} implementation.
- * The underlying list is created only when necessary, which can save memory
- * and improve performance in scenarios where the list may not be used immediately.
+ * Lazily initialized {@link List}.
  *
- * @param <E> the type of elements in this list
+ * @param <E> the element type
  */
 public class LazyList<E> extends LazyInitializer<List<E>> implements List<E> {
 

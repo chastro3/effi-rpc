@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents a key-value configuration without hierarchy.
+ * Represents a flat key-value configuration.
  */
 public class FlatConfig implements Config {
 

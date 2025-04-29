@@ -3,38 +3,59 @@ package io.effi.rpc.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
- * Utility class for reflection operations.
+ * Provides reflection operations.
  */
 @SuppressWarnings("unchecked")
 public final class ReflectionUtil {
 
-    private static final Set<String> OBJECT_METHOD_SIGNATURES = Set.of(
-            "toString()", "hashCode()", "equals(java.lang.Object)", "getClass()",
-            "notify()", "notifyAll()", "wait()", "wait(long)", "wait(long,int)"
-    );
+    private static final Set<String> OBJECT_METHOD_NAMES;
 
-    private static final Set<String> OBJECT_METHOD_NAMES = Set.of(
-            "toString", "hashCode", "equals", "getClass", "notify", "notifyAll", "wait"
-    );
+    private static final Set<String> OBJECT_METHOD_SIGNATURES;
 
     // stores some commonly used annotation instances
     private static final Map<Class<? extends Annotation>, Annotation> DEFAULT_ANNOTATION_MAP = new LinkedHashMap<>();
 
-    public static boolean isObjectMethod(Method method) {
-        String methodName = method.getName();
+    static {
+        HashSet<String> names = new HashSet<>();
+        HashSet<String> signatures = new HashSet<>();
+        for (Method method : Object.class.getDeclaredMethods()) {
+            names.add(method.getName());
+            signatures.add(buildMethodSignature(method));
+        }
+        OBJECT_METHOD_NAMES = Collections.unmodifiableSet(names);
+        OBJECT_METHOD_SIGNATURES = Collections.unmodifiableSet(signatures);
+    }
+
+    /**
+     * Checks if a method name and signature match an Object class method.
+     */
+    public static boolean isObjectMethod(String methodName, Supplier<String> signatureGetter) {
         if (!OBJECT_METHOD_NAMES.contains(methodName)) {
             return false;
         }
-        String signature = buildMethodSignature(method);
-        return OBJECT_METHOD_SIGNATURES.contains(signature);
+        return OBJECT_METHOD_SIGNATURES.contains(signatureGetter.get());
     }
 
+    /**
+     * Checks if a method is an Object class method.
+     */
+    public static boolean isObjectMethod(Method method) {
+        return isObjectMethod(method.getName(), () -> buildMethodSignature(method));
+    }
+
+    /**
+     * Builds a method signature.
+     */
     public static String buildMethodSignature(Method method) {
         return buildMethodSignature(method.getName(), method.getParameterTypes());
     }
 
+    /**
+     * Builds a method signature.
+     */
     public static String buildMethodSignature(String name, Class<?>[] paramTypes) {
         StringBuilder sb = new StringBuilder();
         sb.append(name).append("(");
@@ -49,11 +70,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Based on the method's Parameter object, the incoming Object is converted to a target type.
-     *
-     * @param object    The object to be converted
-     * @param parameter Parameter object of the method
-     * @return Converted objects
+     * Converts the incoming object to the target type based on the method's parameter type.
      */
     public static Object convertToParameterType(Object object, Parameter parameter) {
         Class<?> parameterType = parameter.getType();
@@ -103,12 +120,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Create an instance of the class.
-     *
-     * @param type The type of class to be created
-     * @param args The argument to be passed to the class's constructor
-     * @param <T>  The type of class
-     * @return An instance of the class created
+     * Creates an instance using the specified class and arguments.
      */
     public static <T> T newInstance(Class<T> type, Object... args) {
         // Find the matching constructor
@@ -129,12 +141,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Create an instance of the class.
-     *
-     * @param constructor Constructor to use
-     * @param args        The argument to be passed to the class's constructor
-     * @param <T>         The type of class
-     * @return An instance of the class created
+     * Creates an instance using the specified constructor and arguments.
      */
     public static <T> T newInstance(Constructor<T> constructor, Object... args) {
         T instance;
@@ -147,13 +154,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Invoke the method of the object.
-     *
-     * @param instance
-     * @param method
-     * @param args
-     * @return
-     * @throws Exception
+     * Invokes the method of the object.
      */
     public static Object invokeObjectMethod(Object instance, Method method, Object... args) throws Exception {
         String methodName = method.getName();
@@ -172,10 +173,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Get the real class of the target class.
-     *
-     * @param type
-     * @return
+     * Gets the real class of the target class.
      */
     public static Class<?> getTargetClass(Class<?> type) {
         List<String> proxyNames = List.of("CGLIB", "ByteBuddy");
@@ -191,11 +189,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Get the default instance of the annotation.
-     *
-     * @param annotationType The type of annotation to get
-     * @param <T>            The type of annotation
-     * @return The default instance of the annotation
+     * Gets the default instance of the annotation.
      */
     public static <T extends Annotation> T getDefaultInstance(Class<T> annotationType) {
         // If a default instance of this type already exists, the system is returned
@@ -220,12 +214,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Find matching constructors.
-     *
-     * @param type The class to find
-     * @param args Parameters to be passed to the constructor
-     * @return matching constructor, if not found, returns null
-     * @throws NoSuchMethodException If no matching constructor is found
+     * Finds matching constructors.
      */
     public static Class<?>[] findMatchingConstructor(Class<?> type, Object... args) throws NoSuchMethodException {
         if (CollectionUtil.isEmpty(args)) {
@@ -263,12 +252,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Find the constructor for the class.
-     *
-     * @param type           The class to find
-     * @param parameterTypes The parameter type of the constructor you want to find
-     * @param <T>            The type of class
-     * @return The class's constructor, if not found, returns null
+     * Finds the constructor for the class.
      */
     public static <T> Constructor<T> finfConstructor(Class<T> type, Class<?>... parameterTypes) {
         Constructor<T> constructor = null;
@@ -284,28 +268,7 @@ public final class ReflectionUtil {
     }
 
     /**
-     * Get all the fields of the class.
-     *
-     * @param type The class to get the field
-     * @return All fields of the class
-     */
-    public static List<Field> getAllFields(Class<?> type) {
-        List<Field> allFields = new ArrayList<>();
-        do {
-            Field[] declaredFields = type.getDeclaredFields();
-            allFields.addAll(Arrays.asList(declaredFields));
-            type = type.getSuperclass();
-        } while (type != null && type != Object.class);
-        return allFields;
-    }
-
-    /**
-     * Find other annotation specified in the annotatedElement(Class、Method、Field).
-     *
-     * @param annotatedElement The annotatedElement to find
-     * @param annotationType   The type of annotation to find
-     * @param <T>              The type of annotation
-     * @return The other annotations specified in the annotatedElement are returned null if not found
+     * Finds other annotation specified in the annotatedElement(Class、Method、Field).
      */
     public static <T extends Annotation> T findAnnotation(AnnotatedElement annotatedElement, Class<T> annotationType) {
         T annotation = annotatedElement.getAnnotation(annotationType);
@@ -335,58 +298,6 @@ public final class ReflectionUtil {
         return primitiveType;
     }
 
-    /**
-     * Convert value to targetType.
-     *
-     * @param targetType
-     * @param value
-     * @param <T>
-     * @return
-     */
-    public static <T> T convertValue(Class<T> targetType, Object value) {
-        if (value == null) {
-            return null;
-        }
-        // 如果目标类型和值的类型相同，直接返回值
-        if (targetType.isAssignableFrom(value.getClass())) {
-            return targetType.cast(value);
-        }
-        // 根据目标类型进行转换
-        if (targetType == String.class) {
-            return (T) value.toString();
-        } else if (targetType == Integer.class || targetType == int.class) {
-            return (T) Integer.valueOf(value.toString());
-        } else if (targetType == Double.class || targetType == double.class) {
-            return (T) Double.valueOf(value.toString());
-        } else if (targetType == Float.class || targetType == float.class) {
-            return (T) Float.valueOf(value.toString());
-        } else if (targetType == Long.class || targetType == long.class) {
-            return (T) Long.valueOf(value.toString());
-        } else if (targetType == Short.class || targetType == short.class) {
-            return (T) Short.valueOf(value.toString());
-        } else if (targetType == Byte.class || targetType == byte.class) {
-            return (T) Byte.valueOf(value.toString());
-        } else if (targetType == Boolean.class || targetType == boolean.class) {
-            return (T) Boolean.valueOf(value.toString());
-        } else if (targetType == Character.class || targetType == char.class) {
-            if (value.toString().length() == 1) {
-                return (T) Character.valueOf(value.toString().charAt(0));
-            } else {
-                throw new IllegalArgumentException("Cannot convert value to char: " + value);
-            }
-        } else {
-            throw new IllegalArgumentException("Unsupported target type: " + targetType);
-        }
-    }
-
-    /**
-     * Find other annotation specified in the annotation.
-     *
-     * @param annotation     The annotation to find
-     * @param annotationType The type of annotation to find
-     * @param <T>            The type of annotation
-     * @return The other annotations specified in the annotation are returned null if not found
-     */
     private static <T extends Annotation> T findAnnotation(Annotation annotation, Class<T> annotationType) {
         Class<? extends Annotation> type = annotation.annotationType();
         if (type == annotationType) {
@@ -403,13 +314,6 @@ public final class ReflectionUtil {
         return null;
     }
 
-    /**
-     * A string representation of the returned annotation.
-     *
-     * @param annotationType The type of annotation
-     * @param proxy          Proxy objects
-     * @return The string representation of the annotation
-     */
     private static String formatAnnotationToString(Class<?> annotationType, Object proxy) {
         StringBuilder sb = new StringBuilder();
         sb.append('@').append(annotationType.getName()).append('(');
@@ -432,12 +336,6 @@ public final class ReflectionUtil {
         return sb.toString();
     }
 
-    /**
-     * Convert an object to a string.
-     *
-     * @param value
-     * @return
-     */
     private static String valueToString(Object value) {
         if (value instanceof String) {
             return "\"" + value + "\"";
@@ -475,19 +373,5 @@ public final class ReflectionUtil {
             }
         }
         return String.valueOf(value);
-    }
-
-    /**
-     * Get class by the type.
-     *
-     * @param type
-     * @return
-     */
-    public static Class<?> getClassByType(Type type) {
-        if (type instanceof ParameterizedType parameterizedType) {
-            return (Class<?>) parameterizedType.getRawType();
-        } else {
-            return (Class<?>) type;
-        }
     }
 }

@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Provide effi rpc metrics."
+description = "RPC metrics collection."
 dependencies {
     api(project(":effi-rpc-contract"))
 }

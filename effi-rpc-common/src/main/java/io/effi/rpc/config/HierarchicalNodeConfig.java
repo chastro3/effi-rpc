@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a key-value configuration with hierarchical support.
+ * Represents a key-value configuration with hierarchy.
  */
 public class HierarchicalNodeConfig extends FlatConfig implements NodeConfig {
 

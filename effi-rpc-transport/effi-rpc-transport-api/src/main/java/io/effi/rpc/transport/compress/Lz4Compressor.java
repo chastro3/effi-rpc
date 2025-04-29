@@ -38,7 +38,7 @@ public class Lz4Compressor extends AbstractCompressor {
     @Override
     protected byte[] doDecompress(byte[] data) throws IOException {
         try (LZ4BlockInputStream lz4Input = new LZ4BlockInputStream(new ByteArrayInputStream(data), decompressor)) {
-            return FileUtil.inputStreamToByteArray(lz4Input);
+            return FileUtil.toBytes(lz4Input);
         }
     }
 }

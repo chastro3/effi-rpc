@@ -30,7 +30,7 @@ public class GzipCompressor extends AbstractCompressor {
     @Override
     protected byte[] doDecompress(byte[] data) throws IOException {
         try (GZIPInputStream gzipInput = new GZIPInputStream(new ByteArrayInputStream(data))) {
-            return FileUtil.inputStreamToByteArray(gzipInput);
+            return FileUtil.toBytes(gzipInput);
         }
     }
 }

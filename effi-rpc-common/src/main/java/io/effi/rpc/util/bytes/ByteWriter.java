@@ -4,7 +4,6 @@ import java.nio.charset.Charset;
 
 /**
  * Tool for Writing bytes.
- * <p>Default use {@link io.effi.rpc.rpc.support.HeapByteWriter}.</p>
  */
 public interface ByteWriter {
 

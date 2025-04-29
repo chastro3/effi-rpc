@@ -8,7 +8,9 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A custom class loader for defining bytecode-generated classes at runtime.
+ * Defines classes dynamically using bytecode at runtime.
+ * <p>
+ * Restricts one instance per parent ClassLoader and invokes defineClass via reflection.
  */
 public final class RuntimeClassLoader extends ClassLoader {
 
@@ -24,6 +26,9 @@ public final class RuntimeClassLoader extends ClassLoader {
         super(parent);
     }
 
+    /**
+     * Gets or creates RuntimeClassLoader bound to given type’s class loader.
+     */
     public static RuntimeClassLoader get(Class<?> type) {
         ClassLoader cl = getClassLoader(type);
         // fast‑path: same parent as this class
@@ -46,6 +51,9 @@ public final class RuntimeClassLoader extends ClassLoader {
         }
     }
 
+    /**
+     * Removes cached RuntimeClassLoader for given parent.
+     */
     public static void remove(ClassLoader parent) {
         if (SELF_CLASS_LOADER.equals(parent)) {
             SELF.set(null);
@@ -56,6 +64,9 @@ public final class RuntimeClassLoader extends ClassLoader {
         }
     }
 
+    /**
+     * Defines class from bytecode, using parent loader first, then this loader if needed.
+     */
     public Class<?> define(String name, byte[] bytes) {
         ProtectionDomain pd = getClass().getProtectionDomain();
         try {

@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Provide some commonly used components, utility classes, and constants."
+description = "Common components, utility classes, and constants."
 dependencies {
     api(platform(project(":effi-rpc-bom")))
     api("com.lmax:disruptor")

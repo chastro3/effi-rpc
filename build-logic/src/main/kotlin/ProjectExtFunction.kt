@@ -1,5 +1,9 @@
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.kotlin.dsl.extra
 import java.net.URI
 
@@ -17,6 +21,37 @@ fun RepositoryHandler.defaultRepositories() {
     google()
     gradlePluginPortal()
 }
+
+
+fun Project.configureTasks() {
+    tasks.withType(JavaCompile::class.java).configureEach {
+        options.encoding = "UTF-8"
+        options.compilerArgs.addAll(
+            listOf(
+                "-Agroup.id=${project.group}",
+                "-Aartifact.id=${project.name}",
+                "-Aversion=${project.version}",
+                "-Anative.build=true"
+            )
+        )
+    }
+
+    tasks.withType(JavaExec::class.java).configureEach {
+        systemProperties["sun.stdout.encoding"] = "utf-8"
+    }
+
+    tasks.withType(Javadoc::class.java).configureEach {
+        (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
+    }
+
+    tasks.named("clean").configure {
+        doLast {
+            delete(fileTree(projectDir).include("**/*.iml"))
+        }
+    }
+}
+
+
 
 fun Project.enablePublish(): Project {
     extra[Constants.PUBLISH] = true

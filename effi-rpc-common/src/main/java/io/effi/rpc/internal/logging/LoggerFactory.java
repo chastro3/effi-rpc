@@ -6,10 +6,8 @@ import java.util.concurrent.Callable;
 import static io.effi.rpc.util.ObjectUtil.simpleClassName;
 
 /**
- * Provides logger instances using various supported logging frameworks
- * (e.g., SLF4J, Log4j2, JCL, JDK logging). It automatically selects
- * an appropriate LoggerAdapter and provides a logger for the specified
- * class or name.
+ * Provides logger instances using supported logging frameworks (e.g., SLF4J, Log4j2, JCL, JDK logging).
+ * Automatically selects the appropriate LoggerAdapter for the specified class or name.
  */
 public final class LoggerFactory {
 
@@ -22,7 +20,7 @@ public final class LoggerFactory {
                 JclLoggerAdapter::new,
                 JdkLoggerAdapter::new
         );
-        // List of supported LoggerAdapters in the priority order
+        // Select the first available LoggerAdapter
         CURRENT_ADAPTER = findUsableLoggerAdapter(supportedAdapters);
         if (CURRENT_ADAPTER == null) {
             System.err.println("No LoggerAdapter found");
