@@ -49,7 +49,7 @@ public final class Http2ClientHandler extends URLBinderChannelHandler {
 
     public Http2ClientHandler() {
         this.handlers = Collections.singletonList(
-                new NamedChannelHandler(ClientMessageAggregator.NAME, new ClientMessageAggregator())
+                ClientMessageAggregator.getInstance()
         );
     }
 

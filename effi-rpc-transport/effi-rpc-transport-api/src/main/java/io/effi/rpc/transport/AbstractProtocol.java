@@ -1,15 +1,15 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.codec.ClientCodec;
 import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -96,7 +96,7 @@ public abstract class AbstractProtocol implements Protocol {
         servers.clear();
     }
 
-    protected Transporter getTransporter(URL url) {
+    public Transporter getTransporter(URL url) {
         String transporterName = url.getParam(KeyConstant.TRANSPORTER);
         if (StringUtil.isBlank(transporterName) && transporter != null) {
             return transporter;

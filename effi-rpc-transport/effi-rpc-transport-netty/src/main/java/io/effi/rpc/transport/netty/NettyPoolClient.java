@@ -25,7 +25,7 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    protected void configHandler() {
+    protected void configureHandler() {
         // Acquire a ChannelPoolHandler for managing channels in the pool
         // Set up the fixed channel pool with a maximum number of connections
         int maxConnections = url().getIntParam(DefaultConfigKeys.MAX_CONNECTIONS.key(), Constant.DEFAULT_CLIENT_MAX_CONNECTIONS);

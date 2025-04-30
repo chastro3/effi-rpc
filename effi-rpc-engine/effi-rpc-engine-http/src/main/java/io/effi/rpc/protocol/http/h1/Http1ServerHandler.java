@@ -1,7 +1,9 @@
 package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.protocol.http.support.HttpResponse;
+import io.effi.rpc.transport.netty.NamedChannelHandler;
 import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.util.LazyInitializer;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -14,6 +16,13 @@ import static io.netty.channel.ChannelHandler.Sharable;
  */
 @Sharable
 public final class Http1ServerHandler extends ChannelDuplexHandler {
+
+    private static final LazyInitializer<NamedChannelHandler> LAZY_INITIALIZER = new LazyInitializer<>(
+            () -> new NamedChannelHandler("httpServerHandler", new Http1ServerHandler())
+    );
+
+    private Http1ServerHandler() {
+    }
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest fullHttpRequest) {
@@ -31,6 +40,10 @@ public final class Http1ServerHandler extends ChannelDuplexHandler {
             msg = H1Support.toFullHttpResponse(httpResponse);
         }
         super.write(ctx, msg, promise);
+    }
+
+    public static NamedChannelHandler getInstance() {
+        return LAZY_INITIALIZER.get(false);
     }
 
 }

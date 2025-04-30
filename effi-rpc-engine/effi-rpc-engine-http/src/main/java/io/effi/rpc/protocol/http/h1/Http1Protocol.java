@@ -2,8 +2,6 @@ package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.spi.Extension;
-import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.config.ClientConfig;
@@ -11,6 +9,8 @@ import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpProtocol;
 import io.effi.rpc.protocol.http.support.HttpVersion;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.util.TypeToken;
 
 import static io.effi.rpc.constant.Component.Protocol.HTTP;
 import static io.effi.rpc.constant.Component.Protocol.HTTPS;
@@ -22,7 +22,7 @@ import static io.effi.rpc.constant.Component.Protocol.HTTPS;
 public class Http1Protocol extends HttpProtocol {
 
     public Http1Protocol() {
-        super(HttpVersion.HTTP_1_1, new Http1Transporter());
+        super(HttpVersion.HTTP_1_1, Http1Transporter.INSTANCE);
     }
 
     public Http1Client getClient(ClientConfig config) {

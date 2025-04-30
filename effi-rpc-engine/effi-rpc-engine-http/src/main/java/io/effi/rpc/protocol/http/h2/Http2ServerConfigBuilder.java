@@ -17,13 +17,23 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
     }
 
     /**
+     * Sets the clear text mode for HTTP/2.
+     *
+     * @see io.effi.rpc.constant.Component.H2ClearTextMode
+     */
+    public Http2ServerConfigBuilder clearTextMode(String mode) {
+        config.set(DefaultConfigKeys.CLEAR_TEXT_MODE, mode);
+        return returnThis();
+    }
+
+    /**
      * Sets the size of the HPACK header compression table.
      *
      * @param headerTableSize the maximum header table size
      * @return the current builder instance for chaining
      */
     public Http2ServerConfigBuilder headerTableSize(int headerTableSize) {
-        config.set(DefaultConfigKeys.HEADER_TABLE_SIZE.key(), String.valueOf(headerTableSize));
+        config.set(DefaultConfigKeys.HEADER_TABLE_SIZE, String.valueOf(headerTableSize));
         return returnThis();
     }
 
@@ -34,7 +44,7 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
      * @return the current builder instance for chaining
      */
     public Http2ServerConfigBuilder initialWindowSize(int initialWindowSize) {
-        config.set(DefaultConfigKeys.INITIAL_WINDOW_SIZE.key(), String.valueOf(initialWindowSize));
+        config.set(DefaultConfigKeys.INITIAL_WINDOW_SIZE, String.valueOf(initialWindowSize));
         return returnThis();
     }
 
@@ -45,7 +55,7 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
      * @return the current builder instance for chaining
      */
     public Http2ServerConfigBuilder maxConcurrentStreams(int maxConcurrentStreams) {
-        config.set(DefaultConfigKeys.MAX_CONCURRENT_STREAMS.key(), String.valueOf(maxConcurrentStreams));
+        config.set(DefaultConfigKeys.MAX_CONCURRENT_STREAMS, String.valueOf(maxConcurrentStreams));
         return returnThis();
     }
 
@@ -56,7 +66,7 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
      * @return the current builder instance for chaining
      */
     public Http2ServerConfigBuilder maxFrameSize(int maxFrameSize) {
-        config.set(DefaultConfigKeys.MAX_FRAME_SIZE.key(), String.valueOf(maxFrameSize));
+        config.set(DefaultConfigKeys.MAX_FRAME_SIZE, String.valueOf(maxFrameSize));
         return returnThis();
     }
 
@@ -67,7 +77,7 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
      * @return the current builder instance for chaining
      */
     public Http2ServerConfigBuilder maxHeaderListSize(int maxHeaderListSize) {
-        config.set(DefaultConfigKeys.MAX_HEADER_LIST_SIZE.key(), String.valueOf(maxHeaderListSize));
+        config.set(DefaultConfigKeys.MAX_HEADER_LIST_SIZE, String.valueOf(maxHeaderListSize));
         return returnThis();
     }
 

@@ -55,10 +55,10 @@ public class NettyClient extends AbstractClient {
                 .option(ChannelOption.SO_KEEPALIVE, url().getBooleanParam(DefaultConfigKeys.KEEP_ALIVE))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-        configHandler();
+        configureHandler();
     }
 
-    protected void configHandler() {
+    protected void configureHandler() {
         bootstrap.handler(buildChannelInitializer());
     }
 

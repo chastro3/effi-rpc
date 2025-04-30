@@ -1,12 +1,13 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.util.Messages;
 import io.effi.rpc.contract.Envelope;
+import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.RepackagedResponse;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.util.LazyInitializer;
+import io.effi.rpc.util.Messages;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -22,11 +23,17 @@ import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
  * - Encodes outbound Response objects into network messages.
  */
 @Sharable
-public class ServerMessageAggregator extends ChannelDuplexHandler {
+public final class ServerMessageAggregator extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerMessageAggregator.class);
 
-    public static final String NAME = "serverMessageAggregator";
+    private static final LazyInitializer<NamedChannelHandler> LAZY_INITIALIZER = new LazyInitializer<>(
+            () -> new NamedChannelHandler("serverMessageAggregator", new ServerMessageAggregator())
+    );
+
+    private ServerMessageAggregator() {
+
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -65,6 +72,10 @@ public class ServerMessageAggregator extends ChannelDuplexHandler {
                 }
             });
         }
+    }
+
+    public static NamedChannelHandler getInstance() {
+        return LAZY_INITIALIZER.get(false);
     }
 }
 

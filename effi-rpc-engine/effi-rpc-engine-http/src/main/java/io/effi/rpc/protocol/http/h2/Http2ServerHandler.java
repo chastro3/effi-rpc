@@ -36,9 +36,7 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
     public Http2ServerHandler(URL serverUrl, EffiRpcModule module) {
         this.serverUrl = serverUrl;
         this.module = module;
-        this.handlers = Collections.singletonList(
-                new NamedChannelHandler(ServerMessageAggregator.NAME, new ServerMessageAggregator())
-        );
+        this.handlers = Collections.singletonList(ServerMessageAggregator.getInstance());
     }
 
     @Override

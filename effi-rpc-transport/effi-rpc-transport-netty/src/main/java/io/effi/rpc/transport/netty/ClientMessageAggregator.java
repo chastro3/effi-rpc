@@ -9,6 +9,7 @@ import io.effi.rpc.transport.DefaultRepackagedRequest;
 import io.effi.rpc.transport.RepackagedRequest;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.util.LazyInitializer;
 import io.effi.rpc.util.Messages;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -26,9 +27,11 @@ import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
 @Sharable
 public class ClientMessageAggregator extends ChannelDuplexHandler {
 
-    public static final String NAME = "clientMessageAggregator";
-
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageAggregator.class);
+
+    private static final LazyInitializer<NamedChannelHandler> LAZY_INITIALIZER = new LazyInitializer<>(
+            () -> new NamedChannelHandler("clientMessageAggregator", new ClientMessageAggregator())
+    );
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -71,6 +74,10 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
                 }
             }
         });
+    }
+
+    public static NamedChannelHandler getInstance() {
+        return LAZY_INITIALIZER.get(false);
     }
 }
 

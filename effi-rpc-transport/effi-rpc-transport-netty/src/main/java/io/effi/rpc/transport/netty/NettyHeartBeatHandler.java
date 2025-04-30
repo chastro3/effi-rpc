@@ -45,6 +45,6 @@ public class NettyHeartBeatHandler extends ChannelInboundHandlerAdapter {
                     .ifPresent(AtomicInteger::incrementAndGet);
             module.application().publishEvent(new IdleEvent(nettyChannel));
         }
-        super.userEventTriggered(ctx, evt);
+        ctx.fireUserEventTriggered(evt);
     }
 }

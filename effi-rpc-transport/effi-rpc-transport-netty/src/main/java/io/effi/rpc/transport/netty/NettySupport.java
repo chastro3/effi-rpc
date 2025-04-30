@@ -158,29 +158,36 @@ public class NettySupport {
      * Initializes client channel.
      */
     public static void initClientChannel(Channel channel, NettyEndpointConfig config) {
-        initChannel(channel, config, null);
+        ChannelPipeline pipeline = channel.pipeline();
+        NettyChannel.getOrCreate(channel, config.url(), config.module());
+        SslContext sslContext = config.sslContext();
+        if (sslContext != null)
+            pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
+        addCommonHandlers(pipeline, config);
     }
 
     /**
      * Initializes server channel.
      */
     public static void initServerChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
-        initChannel(channel, config, channelManager);
-    }
-
-    private static void initChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
         ChannelPipeline pipeline = channel.pipeline();
         NettyChannel.getOrCreate(channel, config.url(), config.module());
         SslContext sslContext = config.sslContext();
-        if (sslContext != null)
+        if (sslContext != null && pipeline.get(HandlerNames.SSL) == null)
             pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
         if (channelManager != null)
             pipeline.addLast(ChannelManageHandler.NAME, channelManager);
-        NettyIdleStateHandler idleStateHandler = new NettyIdleStateHandler(config.url(), config.module());
-        pipeline.addLast(HandlerNames.IDLE_STATE, idleStateHandler);
-        pipeline.addLast(HandlerNames.HEARTBEAT, idleStateHandler.heartBeatHandler());
-        List<NamedChannelHandler> handlers = config.initializedHandlers().get();
-        handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
+        addCommonHandlers(pipeline, config);
+    }
+
+    /**
+     * Removes all handlers from pipeline.
+     */
+    public static void removeAllHandlers(ChannelPipeline pipeline) {
+        List<String> names = pipeline.names();
+        for (String name : names) {
+            pipeline.remove(name);
+        }
     }
 
     /**
@@ -195,5 +202,15 @@ public class NettySupport {
                 .build();
         requestUrl.addParam(KeyConstant.ONEWAY, Boolean.FALSE.toString());
         return requestUrl;
+    }
+
+    private static void addCommonHandlers(ChannelPipeline pipeline, NettyEndpointConfig config) {
+        NettyIdleStateHandler idleStateHandler = new NettyIdleStateHandler(config.url(), config.module());
+        pipeline.addLast(HandlerNames.IDLE_STATE, idleStateHandler);
+        pipeline.addLast(HandlerNames.HEARTBEAT, idleStateHandler.heartBeatHandler());
+        NamedChannelHandler codec = config.codec();
+        pipeline.addLast(codec.name(), codec.handler());
+        List<NamedChannelHandler> handlers = config.handlers();
+        handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
     }
 }

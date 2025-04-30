@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.transport.endpoint.AbstractServer;
+import io.effi.rpc.util.AssertUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -23,11 +23,11 @@ public class NettyServer extends AbstractServer {
 
     protected Channel channel;
 
-    private ServerBootstrap bootstrap;
+    protected ServerBootstrap bootstrap;
 
-    private NioEventLoopGroup bossGroup;
+    protected NioEventLoopGroup bossGroup;
 
-    private NioEventLoopGroup workerGroup;
+    protected NioEventLoopGroup workerGroup;
 
     public NettyServer(NettyEndpointConfig config) {
         super(config.url(), config.module());
@@ -49,9 +49,14 @@ public class NettyServer extends AbstractServer {
                 //.option(ChannelOption.TCP_FASTOPEN_CONNECT, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, url().getBooleanParam(DefaultConfigKeys.KEEP_ALIVE))
                 .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childHandler(NettySupport.buildServerChannelInitializer(config, channelManageHandler));
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        configureChildHandler(channelManageHandler);
     }
+
+    protected void configureChildHandler(ChannelManageHandler channelManageHandler) {
+        bootstrap.childHandler(NettySupport.buildServerChannelInitializer(config, channelManageHandler));
+    }
+
 
     @Override
     protected void doBind() throws Throwable {

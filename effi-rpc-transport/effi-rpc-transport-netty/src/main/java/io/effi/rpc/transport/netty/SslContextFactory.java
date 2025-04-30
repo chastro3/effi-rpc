@@ -9,17 +9,17 @@ import io.netty.handler.ssl.*;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SslContext Factory.
  */
 public class SslContextFactory {
 
-    private static final Map<String, SslContext> SERVER_SSL_CONTEXT = new LazyMap<>(HashMap::new);
+    private static final Map<String, SslContext> SERVER_SSL_CONTEXT = new LazyMap<>(ConcurrentHashMap::new);
 
-    private static final Map<String, SslContext> CLIENT_SSL_CONTEXT = new LazyMap<>(HashMap::new);
+    private static final Map<String, SslContext> CLIENT_SSL_CONTEXT = new LazyMap<>(ConcurrentHashMap::new);
 
     private static final byte[] CA_BYTES;
 

@@ -1,21 +1,21 @@
 package io.effi.rpc.contract.annotation;
 
-import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.spi.ExtensionLoader;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.Builder;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.RemoteService;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.Builder;
 
 import java.lang.reflect.Method;
 import java.util.function.BiFunction;
 
 /**
- * Builder class for creating an annotation callee instance.
+ * Builds an annotation callee instance.
  *
  * @param <S> the type of the remote service
  */
@@ -30,7 +30,7 @@ public class AnnotationCalleeBuilder<S> {
     public AnnotationCalleeBuilder(RemoteService<S> remoteService, String methodName, Class<?>... parameterTypes) {
         this.remoteService = AssertUtil.notNull(remoteService, "remoteService");
         try {
-            this.method = remoteService.serviceType().getMethod(methodName, parameterTypes); // Get method by name and types
+            this.method = remoteService.serviceType().getMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException("Can't find method: " + methodName + " in " + remoteService.serviceType());
         }

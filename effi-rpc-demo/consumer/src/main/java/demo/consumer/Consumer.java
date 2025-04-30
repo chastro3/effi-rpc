@@ -3,6 +3,7 @@ package demo.consumer;
 import demo.consumer.model.ParentObject;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.engine.AnnotationRemoteClient;
+import io.effi.rpc.engine.DefaultClientConfig;
 import io.effi.rpc.engine.DefaultRegistryConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -19,6 +20,7 @@ public class Consumer {
     public static void main(String[] args) {
         EffRpcApplication application = new EffRpcApplication("consumer");
         application.defaultModule()
+                .register(DefaultClientConfig.builder().name("hello-client").ssl(false).protocol("http").build())
                 .registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
         AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         HelloClient helloClient = remoteCaller.get();
@@ -26,12 +28,14 @@ public class Consumer {
 //        scheduledExecutorService.scheduleAtFixedRate(() -> {
 //
 //        },0,1, TimeUnit.SECONDS);
-        ExecutorService executorService = Executors.newFixedThreadPool(20);
-        for (int i = 0; i < 2; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(200);
+        for (int i = 0; i < 200; i++) {
             executorService.execute(() -> {
                // System.out.println(helloClient.hello("native rpc", 21));
                 List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
                 logger.info("{}", parentObjects);
+                List<ParentObject> parentObjects1 = helloClient.helloListAsync("哈哈哈哈", "xxxx", ParentObject.getObjList("async client list")).join();
+                logger.info("{}", parentObjects1);
             });
         }
 //        helloClient.helloListAsync("哈哈哈222哈", "xxxx", ParentObject.getObjList("client list"))

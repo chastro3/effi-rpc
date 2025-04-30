@@ -1,34 +1,40 @@
 package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.HttpCaller;
+import io.effi.rpc.protocol.http.h1.Http1Transporter;
 import io.effi.rpc.protocol.http.support.*;
-import io.effi.rpc.transport.netty.NettyChannel;
-import io.effi.rpc.transport.netty.NettyEndpointConfig;
-import io.effi.rpc.transport.netty.NettySupport;
+import io.effi.rpc.transport.netty.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.*;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpServerUpgradeHandler;
 import io.netty.handler.codec.http2.*;
+import io.netty.handler.ssl.SslContext;
+import io.netty.util.AsciiString;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+
+import static io.effi.rpc.constant.Component.H2ClearTextMode.H2C_MODE;
+import static io.effi.rpc.constant.Component.H2ClearTextMode.PREFACE_MODE;
 
 /**
  * Utility class for http2 operations.
@@ -77,6 +83,15 @@ public class H2Support {
         };
     }
 
+    public static ChannelInitializer<SocketChannel> buildServerChannelInitializer(NettyEndpointConfig config, ChannelManageHandler manageHandler) {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(SocketChannel ch) throws Exception {
+                initServerChannel(ch, config, manageHandler);
+            }
+        };
+    }
+
     /**
      * Initializes http2 client channel.
      */
@@ -85,6 +100,22 @@ public class H2Support {
         var streamChannelBootstrap = new Http2StreamChannelBootstrap(channel);
         streamChannelBootstrap.handler(streamHandler);
         channel.attr(H2_STREAM_BOOTSTRAP_KEY).set(streamChannelBootstrap);
+    }
+
+    /**
+     * Initializes http2 server channel.
+     */
+
+    public static void initServerChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
+        NettyChannel.getOrCreate(channel, config.url(), config.module());
+        SslContext sslContext = config.sslContext();
+        if (sslContext != null) {
+            ChannelPipeline pipeline = channel.pipeline();
+            pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
+            pipeline.addLast(new HttpNegotiationHandler(channelManager, config));
+        } else {
+            configureClearText(channel, config, channelManager);
+        }
     }
 
     /**
@@ -204,7 +235,7 @@ public class H2Support {
     /**
      * Builds http2 settings.
      */
-    public static Http2Settings buildHttp2Settings(URL url) {
+    public static Http2Settings createHttp2Settings(URL url) {
         int initialWindows = url.getIntParam(DefaultConfigKeys.INITIAL_WINDOW_SIZE);
         long maxConcurrentStreams = url.getLongParam(DefaultConfigKeys.MAX_CONCURRENT_STREAMS);
         int maxFrameSize = url.getIntParam(DefaultConfigKeys.MAX_FRAME_SIZE);
@@ -221,6 +252,59 @@ public class H2Support {
             settings.pushEnabled(pushEnabled);
         }
         return settings;
+    }
+
+    public static NettyEndpointConfig getH1config(NettyEndpointConfig h2config) {
+        return Http1Transporter.INSTANCE.initServerConfig(h2config.url(), h2config.module());
+    }
+
+    private static void configureClearText(Channel channel, NettyEndpointConfig h2config, ChannelManageHandler channelManager) {
+        URL url = h2config.url();
+        String mode = url.getParam(DefaultConfigKeys.CLEAR_TEXT_MODE);
+        ChannelPipeline pipeline = channel.pipeline();
+        if (PREFACE_MODE.equals(mode)) {
+            pipeline.addLast(new HttpClearTextSniffHandler(channelManager, h2config));
+        } else if (H2C_MODE.equals(mode)) {
+            configureH2CMode(channel, h2config);
+        }
+    }
+
+    private static void configureH2CMode(Channel channel, NettyEndpointConfig h2Config) {
+        ChannelPipeline pipeline = channel.pipeline();
+        HttpServerCodec serverCodec = new HttpServerCodec();
+        NettyIdleStateHandler idleStateHandler = new NettyIdleStateHandler(h2Config.url(), h2Config.module());
+        pipeline.addLast(HandlerNames.IDLE_STATE, idleStateHandler);
+        pipeline.addLast(HandlerNames.HEARTBEAT, idleStateHandler.heartBeatHandler());
+        pipeline.addLast(serverCodec);
+        pipeline.addLast(new HttpServerUpgradeHandler(serverCodec, createUpgradeCodecFactory(h2Config)));
+        pipeline.addLast(new SimpleChannelInboundHandler<HttpMessage>() {
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, HttpMessage msg) throws Exception {
+                // If this handler is hit then no upgrade has been attempted and the client is just talking HTTP.
+                System.err.println("Directly talking: " + msg.protocolVersion() + " (no upgrade was attempted)");
+                NettyEndpointConfig h1config = getH1config(h2Config);
+                List<NamedChannelHandler> handlers = h1config.handlers();
+                handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
+                pipeline.remove(this);
+                ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+            }
+        });
+    }
+
+    private static HttpServerUpgradeHandler.UpgradeCodecFactory createUpgradeCodecFactory(NettyEndpointConfig config) {
+        return protocol -> {
+            if (AsciiString.contentEquals(Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME, protocol)) {
+                NamedChannelHandler codec = config.codec();
+                List<NamedChannelHandler> handlers = config.handlers();
+                ChannelHandler[] channelHandlers = handlers
+                        .stream()
+                        .map(NamedChannelHandler::handler)
+                        .toArray(ChannelHandler[]::new);
+                return new Http2ServerUpgradeCodec((Http2FrameCodec) codec.handler(), channelHandlers);
+            } else {
+                return null;
+            }
+        };
     }
 
     private static <T extends Http2MessageStream> T getOrCreateStream(String streamKey, ChannelHandlerContext ctx, Supplier<T> creator) {

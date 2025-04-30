@@ -1,6 +1,7 @@
 package io.effi.rpc.config;
 
 import static io.effi.rpc.config.ConfigKey.Strategy.*;
+import static io.effi.rpc.constant.Component.H2ClearTextMode.H2C_MODE;
 import static io.effi.rpc.constant.Constant.*;
 
 /**
@@ -37,8 +38,8 @@ public enum DefaultConfigKeys implements ConfigKey {
     SSL("ssl", SELF_ONLY),
     MAX_CONNECTIONS("maxConnections", SELF_ONLY, 3),
     MAX_MESSAGE_SIZE("maxMessageSize", SELF_ONLY),
-    CLIENT_MAX_RECEIVE_SIZE("clientMaxReceiveSize", SELF_ONLY),
-    SERVER_MAX_RECEIVE_SIZE("serverMaxReceiveSize", SELF_ONLY),
+    CLIENT_MAX_RECEIVE_SIZE("clientMaxReceiveSize", SELF_ONLY, DEFAULT_MAX_MESSAGE_SIZE),
+    SERVER_MAX_RECEIVE_SIZE("serverMaxReceiveSize", SELF_ONLY, DEFAULT_MAX_MESSAGE_SIZE),
     CONNECT_TIMEOUT("connectTimeout", SELF_ONLY),
     IDLE_COUNT_THRESHOLD("idleCountThreshold", SELF_ONLY, 6),
     IDLE_TRIGGER_INTERVAL("idleTriggerInterval", SELF_ONLY, 5000),
@@ -53,6 +54,7 @@ public enum DefaultConfigKeys implements ConfigKey {
     INITIAL_WINDOW_SIZE("initialWindowSize", SELF_ONLY, DEFAULT_INITIAL_WINDOW_SIZE),
     MAX_FRAME_SIZE("maxFrameSize", SELF_ONLY, DEFAULT_MAX_FRAME_SIZE),
     MAX_HEADER_LIST_SIZE("maxHeaderListSize", SELF_ONLY, DEFAULT_MAX_HEADER_LIST_SIZE),
+    CLEAR_TEXT_MODE("clearTextMode", SELF_ONLY, H2C_MODE),
 
     /* -------------------------registry config----------------------- */
     HEALTH_CHECK_INTERVAL("healthCheckInterval", SELF_ONLY, DEFAULT_HEALTH_CHECK_INTERVAL),

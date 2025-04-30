@@ -2,7 +2,6 @@ package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.constant.Constant;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -20,6 +19,8 @@ import java.util.List;
  */
 public class Http1Transporter implements NettyTransporter {
 
+    public static final Http1Transporter INSTANCE = new Http1Transporter();
+
     @Override
     public Client connect(NettyEndpointConfig config) {
         return new Http1Client(config);
@@ -32,27 +33,39 @@ public class Http1Transporter implements NettyTransporter {
 
     @Override
     public NettyEndpointConfig initClientConfig(URL url, EffiRpcModule module) {
-        int maxReceiveSize = url.getIntParam(DefaultConfigKeys.CLIENT_MAX_RECEIVE_SIZE.key(), Constant.DEFAULT_MAX_MESSAGE_SIZE);
+        int maxReceiveSize = url.getIntParam(DefaultConfigKeys.CLIENT_MAX_RECEIVE_SIZE);
         SslContext sslContext = NettySupport.getOrCreateSslContext(url, () ->
                 SslContextFactory.getForClient(ApplicationProtocolNames.HTTP_1_1));
-        return new NettyEndpointConfig(url, module, sslContext, () -> List.of(
-                new NamedChannelHandler("httpClientCodec", new HttpClientCodec()),
-                new NamedChannelHandler("aggregator", new HttpObjectAggregator(maxReceiveSize)),
-                new NamedChannelHandler("httpClientHandler", new Http1ClientHandler(url)),
-                new NamedChannelHandler(ClientMessageAggregator.NAME, new ClientMessageAggregator()))
-        );
+        return new NettyEndpointConfig(url, module)
+                .sslContext(sslContext)
+                .codecInitializer(this::initClientCodec)
+                .handlersInitializer(config -> List.of(
+                        new NamedChannelHandler("aggregator", new HttpObjectAggregator(maxReceiveSize)),
+                        Http1ClientHandler.getInstance(),
+                        ClientMessageAggregator.getInstance())
+                );
     }
 
     @Override
     public NettyEndpointConfig initServerConfig(URL url, EffiRpcModule module) {
-        int maxReceiveSize = url.getIntParam(DefaultConfigKeys.SERVER_MAX_RECEIVE_SIZE.key(), Constant.DEFAULT_MAX_MESSAGE_SIZE);
+        int maxReceiveSize = url.getIntParam(DefaultConfigKeys.SERVER_MAX_RECEIVE_SIZE);
         SslContext sslContext = NettySupport.getOrCreateSslContext(url, () ->
                 SslContextFactory.getForServer(ApplicationProtocolNames.HTTP_1_1));
-        return new NettyEndpointConfig(url, module, sslContext, () -> List.of(
-                new NamedChannelHandler("httpServerCodec", new HttpServerCodec()),
-                new NamedChannelHandler("aggregator", new HttpObjectAggregator(maxReceiveSize)),
-                new NamedChannelHandler("httpServerHandler", new Http1ServerHandler()),
-                new NamedChannelHandler(ServerMessageAggregator.NAME, new ServerMessageAggregator())
-        ));
+        return new NettyEndpointConfig(url, module)
+                .sslContext(sslContext)
+                .codecInitializer(this::initServerCodec)
+                .handlersInitializer(config -> List.of(
+                        new NamedChannelHandler("aggregator", new HttpObjectAggregator(maxReceiveSize)),
+                        Http1ServerHandler.getInstance(),
+                        ServerMessageAggregator.getInstance()
+                ));
+    }
+
+    private NamedChannelHandler initClientCodec(NettyEndpointConfig config) {
+        return new NamedChannelHandler("httpClientCodec", new HttpClientCodec());
+    }
+
+    private NamedChannelHandler initServerCodec(NettyEndpointConfig config) {
+        return new NamedChannelHandler("httpServerCodec", new HttpServerCodec());
     }
 }

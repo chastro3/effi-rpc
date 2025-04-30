@@ -212,4 +212,17 @@ public interface Component {
          */
         String JAX_RS = "jax-rs";
     }
+
+    /**
+     * H2 clear text mode.
+     */
+    interface H2ClearTextMode {
+
+        String H2C_MODE = "h2cMode";
+
+        String PREFACE_MODE = "prefaceMode";
+
+    }
+
+
 }
