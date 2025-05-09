@@ -1,15 +1,16 @@
 package io.effi.rpc.contract.context;
 
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;
+import io.effi.rpc.util.AssertUtil;
 
 /**
- * Context for an RPC reply.
- *
- * @param <T> the type of the response
- * @param <I> the type of the invoker
+ * Represents the context for an RPC reply.
+ * <p>
+ * For the client, occurs after the response is received and parsed,but before the result is returned.
+ * For the server, occurs after the target method is invoked,but before the response is sent.
+ * </p>
  */
 public class ReplyContext<T extends Envelope.Response, I extends Invoker<?>>
         extends ExecutorContext<T, I, ReplyContext<T, I>> {
@@ -24,16 +25,10 @@ public class ReplyContext<T extends Envelope.Response, I extends Invoker<?>>
         this.result = AssertUtil.notNull(result, "result");
     }
 
-    /**
-     * Returns the associated invocation context.
-     */
     public InvocationContext<?, I> invocationContext() {
         return invocationContext;
     }
 
-    /**
-     * Returns the result of the invocation.
-     */
     public Result result() {
         return result;
     }

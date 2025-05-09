@@ -1,25 +1,19 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.ReplyFuture;
-import io.effi.rpc.contract.Result;
+import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
 import io.effi.rpc.contract.parameter.ReplyParser;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.metrics.MetricsSupport;
-import io.effi.rpc.transport.DefaultRepackagedResponse;
-import io.effi.rpc.transport.RepackagedRequest;
-import io.effi.rpc.transport.RepackagedResponse;
+import io.effi.rpc.transport.DefaultWrappedResponse;
+import io.effi.rpc.transport.WrappedRequest;
+import io.effi.rpc.transport.WrappedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Abstract implementation of {@link ClientCodec}.
- *
- * @param <REQ>  the type of request
- * @param <RESP> the type of response
+ * Provides an abstract implementation of {@link ClientCodec}.
  */
 public abstract class AbstractClientCodec<REQ extends Envelope.Request, RESP extends Envelope.Response> implements ClientCodec {
 
@@ -27,24 +21,24 @@ public abstract class AbstractClientCodec<REQ extends Envelope.Request, RESP ext
 
     @SuppressWarnings("unchecked")
     @Override
-    public Envelope.Request encode(RepackagedRequest<Caller<?>> repackagedRequest) {
-        REQ request = (REQ) repackagedRequest.request();
+    public Envelope.Request encode(WrappedRequest<Caller<?>> wrappedRequest) {
+        REQ request = (REQ) wrappedRequest.request();
         if (!request.isInstance()) {
             return request;
         }
-        MetricsSupport.recordSerializeStartTime(repackagedRequest.context());
+        MetricsSupport.recordSerializeStartTime(wrappedRequest.context());
         try {
-            return encodeRequest(repackagedRequest, request);
+            return encodeRequest(wrappedRequest, request);
         } catch (Exception e) {
-            throw PredefinedErrorCode.ENCODE.fail(e, Envelope.Request.class, repackagedRequest.getClass());
+            throw PredefinedErrorCode.ENCODE.fail(e, Envelope.Request.class, wrappedRequest.getClass());
         } finally {
-            MetricsSupport.recordSerializeEndTime(repackagedRequest.context());
+            MetricsSupport.recordSerializeEndTime(wrappedRequest.context());
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public RepackagedResponse<Caller<?>> decode(Channel channel, Envelope.Response response, ReplyFuture future) {
+    public WrappedResponse<Caller<?>> decode(Channel channel, Envelope.Response response, ReplyFuture future) {
         InvocationContext<Envelope.Request, Caller<?>> context = future.context();
         try {
             URL requestUrl = response.url();
@@ -52,11 +46,11 @@ public abstract class AbstractClientCodec<REQ extends Envelope.Request, RESP ext
             Result result = null;
             if (!response.isInstance())
                 result = replyParser.resolve((RESP) response, context.invoker());
-            if (result == null) result = new Result(requestUrl, null);
+            if (result == null) result = ResultType.resolve(requestUrl, null);
             var replyContext = new ReplyContext<>(context, response, result);
-            return new DefaultRepackagedResponse<>(replyContext, channel);
+            return new DefaultWrappedResponse<>(replyContext, channel);
         } catch (Exception e) {
-            throw PredefinedErrorCode.DECODE.fail(e, DefaultRepackagedResponse.class, response.getClass());
+            throw PredefinedErrorCode.DECODE.fail(e, DefaultWrappedResponse.class, response.getClass());
         } finally {
             if (context != null) MetricsSupport.recordDeserializeEndTime(context);
         }
@@ -68,5 +62,5 @@ public abstract class AbstractClientCodec<REQ extends Envelope.Request, RESP ext
         }
     }
 
-    protected abstract Envelope.Request encodeRequest(RepackagedRequest<Caller<?>> repackagedRequest, REQ request) throws Exception;
+    protected abstract Envelope.Request encodeRequest(WrappedRequest<Caller<?>> wrappedRequest, REQ request) throws Exception;
 }

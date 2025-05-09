@@ -5,7 +5,7 @@ import io.effi.rpc.spi.Extensible;
 import static io.effi.rpc.constant.Component.ProxyFactory.JDK;
 
 /**
- * Factory for creating proxy instances.
+ * Creates proxy instances for specified interfaces or objects.
  */
 @Extensible(JDK)
 public interface ProxyFactory {
@@ -21,7 +21,7 @@ public interface ProxyFactory {
     <T> T createProxy(Class<T> interfaceClass, InvocationHandler handler);
 
     /**
-     * Creates a proxy for the given object.
+     * Creates a proxy for the specified object.
      *
      * @param target  the target object
      * @param handler the invocation handler

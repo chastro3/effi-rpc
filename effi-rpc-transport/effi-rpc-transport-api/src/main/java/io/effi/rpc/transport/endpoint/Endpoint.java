@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.config.URLSource;
-import io.effi.rpc.util.resoruce.Closeable;
 import io.effi.rpc.contract.module.ModuleSource;
+import io.effi.rpc.util.resoruce.Closeable;
 
 import java.net.InetSocketAddress;
 
@@ -22,15 +22,16 @@ public interface Endpoint extends URLSource, ModuleSource, Closeable {
     int port();
 
     /**
-     * Returns the {@link InetSocketAddress} containing host and port.
+     * Returns the socket address composed of host and port.
      */
     InetSocketAddress socketAddress();
 
     /**
-     * Returns the address string in "host:port" format.
+     * Returns the full address string in "host:port" format.
      */
     default String address() {
         return url().address();
     }
 }
+
 

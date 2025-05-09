@@ -7,9 +7,7 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Abstract class for handling annotation.
- *
- * @param <T> The annotation type this handler processes.
+ * Provides an abstract class for handling annotation.
  */
 public abstract class AnnotationHandler<T extends Annotation> extends Helper {
 

@@ -5,7 +5,7 @@ import io.effi.rpc.exception.PredefinedErrorCode;
 import static io.effi.rpc.util.ReflectionUtil.invokeObjectMethod;
 
 /**
- * Abstract implementation of {@link ProxyFactory}.
+ * Provides an abstract implementation of {@link ProxyFactory}.
  */
 public abstract class AbstractProxyFactory implements ProxyFactory {
 

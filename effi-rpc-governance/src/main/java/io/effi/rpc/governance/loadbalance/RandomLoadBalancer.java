@@ -12,9 +12,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import static io.effi.rpc.constant.Component.LoadBalance.RANDOM;
 
 /**
- * "Random" load balancing strategy:
- * Randomly assign requests to any server in the server cluster,
- * This strategy is simple and fast, but it can lead to an uneven server load.
+ * Implements a "random" load balancing strategy.
+ * <p>
+ * Distributes requests to random servers in the cluster.
+ * Fast and simple, but may cause uneven load distribution.
+ * </p>
  */
 @Extension(RANDOM)
 public class RandomLoadBalancer extends AbstractLoadBalancer {

@@ -10,7 +10,7 @@ public class CalleeLogFilter implements InvokeFilter<Envelope.Request, Callee<?>
 
     @Override
     public Result doFilter(InvocationContext<Envelope.Request, Callee<?>> context) {
-        System.out.println("请求地址========>> " + context.source().url());
+        System.out.println("请求地址========>> " + context.envelope().url());
         return context.execute();
     }
 

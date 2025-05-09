@@ -5,10 +5,6 @@ import java.lang.reflect.Parameter;
 
 /**
  * Holds a method parameter and its corresponding handled value.
- *
- * @param parameter the method parameter
- * @param value     the handled value
- * @param <T>       the type of the handled value
  */
 public record ParameterMapper<T>(Parameter parameter, T value) {
 

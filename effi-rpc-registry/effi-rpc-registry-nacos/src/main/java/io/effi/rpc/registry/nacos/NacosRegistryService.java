@@ -20,8 +20,10 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
- * {@link io.effi.rpc.registry.RegistryService} implementation based on the nacos client.
- * For more information,refer to the <a href = "https://github.com/alibaba/nacos">nacos</a>.
+ * Implements {@link io.effi.rpc.registry.RegistryService} using Nacos.
+ * <p>
+ * See <a href="https://github.com/alibaba/nacos">Nacos</a> for details.
+ * </p>
  */
 public class NacosRegistryService extends AbstractRegistryService {
 

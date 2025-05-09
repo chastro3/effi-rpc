@@ -12,8 +12,6 @@ import java.util.List;
 
 /**
  * Abstract implementation of {@link AnnotationStyleParser}.
- *
- * @param <REQ> the request type
  */
 public abstract class AbstractAnnotationStyleParser<REQ extends Envelope.Request> implements AnnotationStyleParser {
 

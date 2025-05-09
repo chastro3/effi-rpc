@@ -2,10 +2,6 @@ package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.RemoteClient;
@@ -14,14 +10,15 @@ import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.engine.DefaultClientConfig;
 import io.effi.rpc.engine.DirectLocator;
 import io.effi.rpc.engine.RegistryLocator;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.util.TypeToken;
 
 import java.net.InetSocketAddress;
 
 /**
- * Builder for creating {@link Caller} instances,defining settings for caller.
- *
- * @param <T> The type of {@link Caller}.
- * @param <C> The type of this builder.
+ * Builds {@link Caller} instances and defines configuration for caller.
  */
 public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder<T, C>>
         extends InvokerBuilder<T, C> {
@@ -176,8 +173,7 @@ public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder
         if (locator == null) {
             String address = config.get(DefaultConfigKeys.ADDRESS);
             if (StringUtil.isNotBlank(address)) {
-                InetSocketAddress socketAddress = NetUtil.toInetSocketAddress(address);
-                locator = DirectLocator.getInstance(socketAddress);
+                locator = DirectLocator.getInstance(address);
             } else {
                 String remoteApplication = config.get(DefaultConfigKeys.APPLICATION);
                 if (StringUtil.isNotBlank(remoteApplication)) {

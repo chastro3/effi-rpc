@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.util.ChainBuilder;
+import io.effi.rpc.util.FluentBuilder;
 import io.effi.rpc.config.URL;
 import io.netty.handler.codec.http.HttpMethod;
 
@@ -13,7 +13,7 @@ import io.netty.handler.codec.http.HttpMethod;
  *               allowing for method chaining
  */
 public abstract class HttpEnvelopeBuilder<BODY, T, C extends HttpEnvelopeBuilder<BODY, T, C>>
-        extends DefaultHttpEnvelope<BODY> implements ChainBuilder<T, C> {
+        extends DefaultHttpEnvelope<BODY> implements FluentBuilder<T, C> {
 
     /**
      * Sets the HTTP version for the envelope.

@@ -11,8 +11,6 @@ import java.util.Map;
 
 /**
  * Abstract implementation of {@link InvokerContainer}.
- *
- * @param <I> the type of the invoker
  */
 public abstract class AbstractInvokerContainer<I extends Invoker<?>> implements InvokerContainer<I> {
 

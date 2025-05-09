@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 import static io.effi.rpc.constant.Component.Serialization.KRYO;
 
 /**
- * Handles object serialization and deserialization.
+ * Serializes and deserializes objects.
  */
 @Extensible(KRYO)
 public interface Serializer {
@@ -15,18 +15,18 @@ public interface Serializer {
     /**
      * Serializes the given object into a byte array.
      *
-     * @param input The object to serialize.
-     * @return A byte array representing the serialized object.
+     * @param input the object to serialize
+     * @return the serialized byte array
      */
     byte[] serialize(Object input);
 
     /**
-     * Deserializes a byte array into an object of the specified type.
+     * Deserializes the given byte array into an object of the specified type.
      *
-     * @param bytes The byte array to deserialize.
-     * @param type  The class of the object to deserialize.
-     * @param <T>   The type of the object to deserialize.
-     * @return The deserialized object of the specified type.
+     * @param bytes the byte array to deserialize
+     * @param type  the target type
+     * @param <T>   the object type
+     * @return the deserialized object
      */
     <T> T deserialize(byte[] bytes, Type type);
 }

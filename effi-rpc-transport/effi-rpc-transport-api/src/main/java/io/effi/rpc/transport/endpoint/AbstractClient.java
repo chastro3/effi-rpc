@@ -7,7 +7,7 @@ import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 /**
- * Abstract implementation of {@link Client}.
+ * Provides an abstract implementation of {@link Client}.
  */
 public abstract class AbstractClient extends AbstractEndpoint implements Client {
 

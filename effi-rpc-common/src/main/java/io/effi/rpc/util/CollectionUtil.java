@@ -10,9 +10,6 @@ import java.util.function.Consumer;
 @SuppressWarnings("unchecked")
 public final class CollectionUtil {
 
-    private CollectionUtil() {
-    }
-
     /**
      * Adds unique elements to the list.
      */
@@ -94,4 +91,7 @@ public final class CollectionUtil {
         return !isEmpty(value);
     }
 
+
+    private CollectionUtil() {
+    }
 }

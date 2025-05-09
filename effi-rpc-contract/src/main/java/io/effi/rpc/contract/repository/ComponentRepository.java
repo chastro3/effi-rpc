@@ -7,8 +7,6 @@ import java.util.Collection;
 
 /**
  * Manages components of type {@link T} indexed by keys.
- *
- * @param <T> the type of components
  */
 public interface ComponentRepository<T> extends ModuleSource, Cleanable {
 
@@ -57,8 +55,6 @@ public interface ComponentRepository<T> extends ModuleSource, Cleanable {
     interface Key {
         /**
          * Returns the repository key.
-         *
-         * @return the key as a string
          */
         String repositoryKey();
     }

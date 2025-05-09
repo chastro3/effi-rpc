@@ -29,16 +29,14 @@ public interface ServerExporter extends URLSource, ModuleSource, ComponentReposi
     /**
      * Registers one or more callees to handle incoming requests.
      *
-     * @param callee callees to register
-     * @return this exporter instance
+     * @param callee the callee(s) to be registered
      */
-    ServerExporter callee(Callee<?>... callee);
+    ServerExporter callee(Callee<?>... callees);
 
     /**
      * Registers one or more registry configurations.
      *
-     * @param registryConfigs registries to register
-     * @return this exporter instance
+     * @param registryConfigs the registry configuration(s) to be registered
      */
     ServerExporter registry(RegistryConfig... registryConfigs);
 

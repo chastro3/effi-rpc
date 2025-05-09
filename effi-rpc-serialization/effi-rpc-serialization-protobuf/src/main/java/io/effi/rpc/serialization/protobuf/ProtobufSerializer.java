@@ -1,8 +1,8 @@
 package io.effi.rpc.serialization.protobuf;
 
 import com.google.protobuf.MessageLite;
-import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
+import io.effi.rpc.spi.Extension;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -12,10 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.effi.rpc.constant.Component.Serialization.PROTOBUF;
 
 /**
- * {@link io.effi.rpc.serialization.Serializer} implementation based on protobuf.
- * <p>If there are multiple parameters,
- * only the first one will be serialized as {@link MessageLite},
- * and the same is true for deserialization</p>
+ * Implements {@link io.effi.rpc.serialization.Serializer} using Protobuf.
+ * <p>
+ * Serializes only the first parameter as a {@link MessageLite}; deserialization behaves the same.
+ * </p>
  */
 @Extension(PROTOBUF)
 public class ProtobufSerializer extends AbstractSerializer {

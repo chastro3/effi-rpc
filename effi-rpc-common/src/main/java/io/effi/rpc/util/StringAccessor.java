@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * todo 待优化
  * Store data for type String.
  *
  * @param <T> current instance

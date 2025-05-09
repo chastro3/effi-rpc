@@ -8,7 +8,7 @@ import io.effi.rpc.registry.AbstractRegistryFactory;
 import io.effi.rpc.registry.RegistryService;
 
 /**
- * {@link io.effi.rpc.registry.RegistryFactory} implementation based on nacos.
+ * Implements {@link io.effi.rpc.registry.RegistryFactory} using Nacos.
  */
 @Extension(Component.Registry.NACOS)
 public class NacosRegistryFactory extends AbstractRegistryFactory {

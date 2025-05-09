@@ -12,9 +12,6 @@ import java.util.function.UnaryOperator;
  */
 public final class AtomicUtil {
 
-    private AtomicUtil() {
-    }
-
     /**
      * Atomically updates the AtomicLong value using the provided update function.
      */
@@ -48,6 +45,9 @@ public final class AtomicUtil {
             prevValue = atomicReference.get();
             newValue = updateFunction.apply(prevValue);
         } while (!atomicReference.compareAndSet(prevValue, newValue));
+    }
+
+    private AtomicUtil() {
     }
 }
 

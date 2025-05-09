@@ -6,12 +6,9 @@ import io.effi.rpc.contract.context.ExecutorContext;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Represents a repackaged envelope.
- *
- * @param <I> the type of the invoker
- * @param <C> the type of the executor context
+ * Represents a wrapped envelope.
  */
-public interface RepackagedEnvelope<I extends Invoker<?>, C extends ExecutorContext<?, ?, ?>> {
+public interface WrappedEnvelope<I extends Invoker<?>, C extends ExecutorContext<?, ?, ?>> {
 
     /**
      * Returns the context.
@@ -31,7 +28,7 @@ public interface RepackagedEnvelope<I extends Invoker<?>, C extends ExecutorCont
     /**
      * Encodes the envelope.
      */
-    RepackagedEnvelope<I, C> encode();
+    WrappedEnvelope<I, C> encode();
 }
 
 

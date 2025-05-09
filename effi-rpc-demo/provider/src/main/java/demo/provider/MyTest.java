@@ -1,11 +1,10 @@
 package demo.provider;
 
 import io.effi.rpc.compile.DynamicAccessor;
-import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.Serializer;
+import io.effi.rpc.spi.Extension;
 import io.effi.rpc.transport.compress.Compressor;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 
 /**
@@ -25,12 +24,12 @@ public class MyTest implements Serializer, Compressor {
     }
 
     @Override
-    public byte[] compress(byte[] data) throws IOException {
+    public byte[] compress(byte[] data) {
         return new byte[0];
     }
 
     @Override
-    public byte[] decompress(byte[] compressedData) throws IOException {
+    public byte[] decompress(byte[] compressedData) {
         return new byte[0];
     }
 

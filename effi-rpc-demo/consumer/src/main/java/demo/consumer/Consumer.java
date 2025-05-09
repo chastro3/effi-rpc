@@ -1,12 +1,15 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
+import io.effi.rpc.contract.config.CertificateConfig;
 import io.effi.rpc.contract.module.EffRpcApplication;
 import io.effi.rpc.engine.AnnotationRemoteClient;
+import io.effi.rpc.engine.DefaultCertificateConfig;
 import io.effi.rpc.engine.DefaultClientConfig;
 import io.effi.rpc.engine.DefaultRegistryConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
 
 import java.util.List;
 import java.util.Map;
@@ -19,8 +22,20 @@ public class Consumer {
 
     public static void main(String[] args) {
         EffRpcApplication application = new EffRpcApplication("consumer");
+        CertificateConfig certificateConfig = DefaultCertificateConfig.builder()
+                .name("client-cert")
+                .certChainPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\client-cert.pem")
+                .privateKeyPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\client-private-key.pem")
+                .trustCertPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\ca-cert.pem")
+                .build();
+        Http2ClientConfig http2ClientConfig = Http2ClientConfig.builder()
+                .name("h2-client")
+                .ssl(true)
+                .certificate(certificateConfig)
+                .build();
         application.defaultModule()
-                .register(DefaultClientConfig.builder().name("hello-client").ssl(false).protocol("http").build())
+                .register(http2ClientConfig)
+                .register(DefaultClientConfig.builder().name("hello-client").ssl(true).certificate(certificateConfig).protocol("http").build())
                 .registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
         AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         HelloClient helloClient = remoteCaller.get();
@@ -33,9 +48,9 @@ public class Consumer {
             executorService.execute(() -> {
                // System.out.println(helloClient.hello("native rpc", 21));
                 List<ParentObject> parentObjects = helloClient.helloList("哈哈哈哈", "xxxx", ParentObject.getObjList("client list"));
-                logger.info("{}", parentObjects);
+                logger.info("http {}", parentObjects);
                 List<ParentObject> parentObjects1 = helloClient.helloListAsync("哈哈哈哈", "xxxx", ParentObject.getObjList("async client list")).join();
-                logger.info("{}", parentObjects1);
+                logger.info("h2 {}", parentObjects1);
             });
         }
 //        helloClient.helloListAsync("哈哈哈222哈", "xxxx", ParentObject.getObjList("client list"))

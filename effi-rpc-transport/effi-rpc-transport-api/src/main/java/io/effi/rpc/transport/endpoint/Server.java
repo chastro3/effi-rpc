@@ -4,7 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 
 /**
- * Server for handling incoming connections and managing channels.
+ * Represents a server that handles incoming connections and manages active channels.
  */
 public interface Server extends Endpoint {
 

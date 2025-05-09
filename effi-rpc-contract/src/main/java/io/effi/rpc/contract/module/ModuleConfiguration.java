@@ -4,7 +4,7 @@ import io.effi.rpc.util.LifecycleConfiguration;
 import io.effi.rpc.spi.Extensible;
 
 /**
- * Manages the lifecycle of a {@link EffiRpcModule} object.
+ * Manages the lifecycle of a {@link EffiRpcModule} instance.
  */
 @Extensible(lazyLoad = false)
 public interface ModuleConfiguration extends LifecycleConfiguration<EffiRpcModule> {}

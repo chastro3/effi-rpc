@@ -16,8 +16,6 @@ import java.util.function.BiFunction;
 
 /**
  * Builds an annotation callee instance.
- *
- * @param <S> the type of the remote service
  */
 public class AnnotationCalleeBuilder<S> {
 

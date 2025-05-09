@@ -2,33 +2,30 @@ package io.effi.rpc.transport.compress;
 
 import io.effi.rpc.spi.Extensible;
 
-import java.io.IOException;
-
 import static io.effi.rpc.constant.Component.Compression.GZIP;
 
 /**
- * Handles data compression and decompression.
+ * Compresses and decompresses byte arrays.
  */
 @Extensible(GZIP)
 public interface Compressor {
 
     /**
-     * Compresses the given byte array.
+     * Compresses the input byte array.
      *
      * @param data the data to compress
      * @return the compressed data
-     * @throws IOException if compression fails
      */
-    byte[] compress(byte[] data) throws IOException;
+    byte[] compress(byte[] data);
 
     /**
-     * Decompresses the given byte array.
+     * Decompresses the input byte array.
      *
      * @param compressedData the data to decompress
-     * @return the original uncompressed data
-     * @throws IOException if decompression fails
+     * @return the decompressed data
      */
-    byte[] decompress(byte[] compressedData) throws IOException;
+    byte[] decompress(byte[] compressedData);
+
 }
 
 

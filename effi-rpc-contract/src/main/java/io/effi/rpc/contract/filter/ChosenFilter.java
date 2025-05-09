@@ -6,14 +6,12 @@ import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.context.InvocationContext;
 
 /**
- * Filter for handling the request after addressing, but before it is sent.
+ * Intercepts the request after addressing, before sending.
  * <p>
- * Used only in the client flow, invoked after {@link Locator#locate(InvocationContext)}
- * has completed addressing and before sending the request to the target.
+ * Used only in the client, invoked after {@link Locator#locate(InvocationContext)}
+ * has completed addressing and before sending the request.
  * </p>
  *
- * @param <T> the type of the request
- * @param <I> the type of the caller
  * @see Filter
  * @see InvocationContext
  */

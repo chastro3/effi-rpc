@@ -4,16 +4,17 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.effi.rpc.constant.Component;
-import io.effi.rpc.spi.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
+import io.effi.rpc.spi.Extension;
 
 import java.lang.reflect.Type;
 
+import static io.effi.rpc.constant.Component.Serialization.JSON;
+
 /**
- * {@link io.effi.rpc.serialization.Serializer} implementation based on jackson.
+ * Implements {@link io.effi.rpc.serialization.Serializer} using Jackson.
  */
-@Extension(Component.Serialization.JSON)
+@Extension(JSON)
 public class JacksonSerializer extends AbstractSerializer {
 
     protected JsonMapper jsonMapper;

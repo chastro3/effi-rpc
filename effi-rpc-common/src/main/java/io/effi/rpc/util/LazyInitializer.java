@@ -4,8 +4,6 @@ import java.util.function.Supplier;
 
 /**
  * Provides lazy initialization for instances.
- *
- * @param <T> the type of the lazily initialized object
  */
 public class LazyInitializer<T> {
 

@@ -1,25 +1,18 @@
 package io.effi.rpc.contract.filter;
 
-import io.effi.rpc.util.Ordered;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;
 import io.effi.rpc.contract.context.ExecutorContext;
+import io.effi.rpc.util.Ordered;
 
 /**
- * Base interface for filters that intercept RPC calls.
+ * Intercepts RPC calls during invocation or reply phases.
  * <p>
- * Client flow:
- * InvokerFilter -> Locator -> ChosenFilter -> Send Request -> Received Response -> ReplyFilter
- * </p>
- * <p>
- * Server flow:
- * InvokerFilter -> Invoke Callee -> ReplyFilter
+ * Client flow: InvokerFilter → Locator → ChosenFilter → Send Request → Receive Response → ReplyFilter.
+ * Server flow: InvokerFilter → Invoke Callee → ReplyFilter.
  * </p>
  *
- * @param <T> the type of the message
- * @param <I> the type of the invoker
- * @param <C> the type of the execution context
  * @see InvokeFilter
  * @see ChosenFilter
  * @see ReplyFilter
@@ -28,20 +21,39 @@ import io.effi.rpc.contract.context.ExecutorContext;
 public interface Filter<T extends Envelope, I extends Invoker<?>, C extends ExecutorContext<T, I, ?>> extends Ordered {
 
     /**
-     * Intercepts and processes an RPC call.
-     * Typically, {@link ExecutorContext#execute} is used to return the result.
+     * Processes the RPC call.
+     * Typically, uses {@link ExecutorContext#execute()} to return the result.
      *
      * @param context the execution context
-     * @return the result of the filter process
+     * @return the result of filtering
      */
     Result doFilter(C context);
 
+    /**
+     * Checks if a filter is supported.
+     */
+    static boolean isSupported(Filter<?, ?, ?> filter) {
+        if (filter == null) return false;
+        try {
+            FilterType.extract(filter);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the filter type.
+     * <p>
+     * Defaults to {@code null}. Frameworks can infer the {@link FilterType} using reflection,
+     * but overriding this avoids reflection overhead.
+     * </p>
+     */
     default FilterType<T, I> type() {
         return null;
     }
-
-
 }
+
 
 
 

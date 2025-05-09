@@ -8,9 +8,6 @@ import java.lang.reflect.Parameter;
 
 /**
  * Handles parameter extraction based on a specific annotation.
- *
- * @param <T>   the annotation type
- * @param <REQ> the request type
  */
 @FunctionalInterface
 public interface AnnotationParameterParserHandler<T extends Annotation, REQ extends Envelope.Request> {

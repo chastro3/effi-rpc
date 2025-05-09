@@ -5,8 +5,7 @@ import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLSource;
 
 /**
- * Configuration that can be converted to a {@link URL}
- * and uses URL parameters for dynamic settings.
+ * Defines configuration that can be converted to a {@link URL} and uses URL parameters for dynamic settings.
  */
 public interface NamedURLConfig extends NamedConfig, URLSource {
 

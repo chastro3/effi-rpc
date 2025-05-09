@@ -6,9 +6,7 @@ import io.effi.rpc.contract.Envelope;
 import java.lang.reflect.Parameter;
 
 /**
- * Parse parameters from a request.
- *
- * @param <REQ> the type of the request
+ * Parses parameters from a request.
  */
 public interface ParameterParser<REQ extends Envelope.Request> {
 

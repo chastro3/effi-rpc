@@ -5,16 +5,12 @@ import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.context.ReplyContext;
 
 /**
- * Filter for handling the RPC response.
+ * Intercepts RPC response.
  * <p>
- * In the client flow, invoked after receiving the response and before returning it to the caller.
- * </p>
- * <p>
- * In the server flow, invoked after processing the request and before sending the response.
+ * For the client, invoked after receiving the response and before returning it to the caller.
+ * For the server, invoked after processing the request and before sending the response.
  * </p>
  *
- * @param <T> the type of the response
- * @param <I> the type of the invoker
  * @see Filter
  * @see ReplyContext
  */

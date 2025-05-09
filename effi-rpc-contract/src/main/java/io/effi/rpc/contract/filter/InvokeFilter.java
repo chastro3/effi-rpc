@@ -7,16 +7,12 @@ import io.effi.rpc.contract.Locator;
 import io.effi.rpc.contract.context.InvocationContext;
 
 /**
- * Filter for handling RPC invocation.
+ * Intercepts RPC invocation.
  * <p>
- * In the client flow, invoked before {@link Locator#locate(InvocationContext)}.
- * </p>
- * <p>
- * In the server flow, invoked before {@link Callee#invoke(Object...)}.
+ * For the client, invoked before {@link Locator#locate(InvocationContext)}.
+ * For the server, invoked before {@link Callee#invoke(Object...)}.
  * </p>
  *
- * @param <T> the type of the request
- * @param <I> the type of the invoker
  * @see Filter
  * @see InvocationContext
  */

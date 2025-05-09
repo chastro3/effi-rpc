@@ -2,8 +2,6 @@ package io.effi.rpc.nativetools;
 
 /**
  * Represents a native configuration item.
- *
- * @param <T> the type of the JSON config.
  */
 public interface NativeConfig<T> {
 

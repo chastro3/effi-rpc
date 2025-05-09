@@ -6,9 +6,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Lazily initialized {@link List}.
- *
- * @param <E> the element type
+ * Provides lazy initialization for {@link List}.
  */
 public class LazyList<E> extends LazyInitializer<List<E>> implements List<E> {
 

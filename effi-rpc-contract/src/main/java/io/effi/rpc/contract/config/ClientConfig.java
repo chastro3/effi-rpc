@@ -1,20 +1,23 @@
 package io.effi.rpc.contract.config;
 
-import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLType;
+
+import java.net.InetSocketAddress;
 
 /**
- * Configuration for client.
+ * Defines configuration for client.
  */
-public interface ClientConfig extends NamedConfig {
-
-    /**
-     * The protocol of client.
-     */
-    String protocol();
+public interface ClientConfig extends EndpointConfig {
 
     @Override
-    default String repositoryKey() {
-        return StringUtil.isBlankOrDefault(name(), protocol());
+    default URL newUrl(InetSocketAddress address) {
+        return URL.builder()
+                .type(URLType.CLIENT)
+                .protocol(protocol())
+                .address(address)
+                .params(config().items())
+                .build();
     }
 }
 

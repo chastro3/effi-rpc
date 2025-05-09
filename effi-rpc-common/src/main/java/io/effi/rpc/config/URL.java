@@ -13,7 +13,7 @@ import java.util.Map;
  * Represents a URL with protocol, address, path segments, and query parameters.
  * Supports parsing, modification, and reconstruction.
  */
-public class URL extends AbstractAttributes implements Replicable<URL> {
+public class URL extends AbstractAttributes implements Replicable<URL>, ExtParams {
 
     private final List<String> paths = new LazyList<>(ArrayList::new);
 
@@ -157,123 +157,6 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
         return null;
     }
 
-    /**
-     * Adds a query parameter.
-     */
-    public URL addParam(String key, String value) {
-        params.set(key, value);
-        return this;
-    }
-
-    /**
-     * Adds multiple query parameters.
-     */
-    public URL addParams(Map<String, String> params) {
-        if (CollectionUtil.isNotEmpty(params)) {
-            this.params.set(params);
-        }
-        return this;
-    }
-
-    /**
-     * Retrieves the value of a query parameter.
-     */
-    public String getParam(ConfigKey configKey) {
-        return params.get(configKey);
-    }
-
-    /**
-     * Retrieves the value of a query parameter.
-     */
-    public String getParam(String key) {
-        return params.get(key);
-    }
-
-    /**
-     * Retrieves the value of a query parameter,
-     * returning a default value if not found.
-     */
-    public String getParam(String key, String defaultValue) {
-        return params.getOrDefault(key, defaultValue);
-    }
-
-    /**
-     * Retrieves a boolean value for a query parameter.
-     */
-    public boolean getBooleanParam(ConfigKey configKey) {
-        return Boolean.parseBoolean(getParam(configKey));
-    }
-
-    /**
-     * Retrieves a boolean value for a query parameter.
-     */
-    public boolean getBooleanParam(String key) {
-        return Boolean.parseBoolean(getParam(key));
-    }
-
-    /**
-     * Retrieves a boolean value for a query parameter,
-     * returning a default value if not found.
-     */
-    public boolean getBooleanParam(String key, boolean defaultValue) {
-        String value = getParam(key);
-        return StringUtil.isBlank(value) ? defaultValue : Boolean.parseBoolean(value);
-    }
-
-    /**
-     * Retrieves an integer value for a query parameter.
-     */
-    public int getIntParam(ConfigKey configKey) {
-        return Integer.parseInt(getParam(configKey));
-    }
-
-    /**
-     * Retrieves an integer value for a query parameter.
-     */
-    public int getIntParam(String key) {
-        return Integer.parseInt(getParam(key));
-    }
-
-    /**
-     * Retrieves an integer value for a query parameter,
-     * returning a default value if not found.
-     */
-    public int getIntParam(String key, int defaultValue) {
-        String value = getParam(key);
-        return StringUtil.isBlank(value) ? defaultValue : Integer.parseInt(value);
-    }
-
-    /**
-     * Retrieves a long value for a query parameter.
-     */
-    public long getLongParam(ConfigKey configKey) {
-        return Long.parseLong(getParam(configKey));
-    }
-
-    /**
-     * Retrieves a long value for a query parameter.
-     */
-    public long getLongParam(String key) {
-        return Long.parseLong(getParam(key));
-    }
-
-    /**
-     * Retrieves a long value for a query parameter,
-     * returning a default value if not found.
-     */
-    public long getLongParam(String key, long defaultValue) {
-        String value = getParam(key);
-        return StringUtil.isBlank(value) ? defaultValue : Long.parseLong(value);
-    }
-
-    /**
-     * Removes a query parameter by key.
-     */
-    public URL removeParam(String key) {
-        params.remove(key);
-        return this;
-    }
-
     public URLType type() {
         return type;
     }
@@ -336,4 +219,8 @@ public class URL extends AbstractAttributes implements Replicable<URL> {
                 .build();
     }
 
+    @Override
+    public Config config() {
+        return params;
+    }
 }

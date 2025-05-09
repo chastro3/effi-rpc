@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Listens for {@link IdleEvent} and handles idle timeout logic.
- * If the idle count exceeds the threshold, the associated channel is closed.
+ * Closes the associated channel if the idle count exceeds the threshold.
  */
 public class IdleEventListener implements EventListener<IdleEvent> {
 

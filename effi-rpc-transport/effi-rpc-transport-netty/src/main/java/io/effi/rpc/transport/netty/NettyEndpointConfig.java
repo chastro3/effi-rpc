@@ -2,6 +2,7 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLSource;
+import io.effi.rpc.contract.config.EndpointConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.module.ModuleSource;
 import io.effi.rpc.util.AssertUtil;
@@ -14,6 +15,9 @@ import java.util.function.Function;
  * Endpoint's initialize configuration.
  */
 public class NettyEndpointConfig implements URLSource, ModuleSource {
+
+    private final EndpointConfig config;
+
     private final URL url;
 
     private final EffiRpcModule module;
@@ -24,7 +28,8 @@ public class NettyEndpointConfig implements URLSource, ModuleSource {
 
     private Function<NettyEndpointConfig, List<NamedChannelHandler>> handlersInitializer;
 
-    public NettyEndpointConfig(URL url, EffiRpcModule module) {
+    public NettyEndpointConfig(EndpointConfig config, URL url, EffiRpcModule module) {
+        this.config = AssertUtil.notNull(config, "config");
         this.url = AssertUtil.notNull(url, "url");
         this.module = AssertUtil.notNull(module, "module");
     }
@@ -42,6 +47,10 @@ public class NettyEndpointConfig implements URLSource, ModuleSource {
     public NettyEndpointConfig handlersInitializer(Function<NettyEndpointConfig, List<NamedChannelHandler>> creator) {
         this.handlersInitializer = creator;
         return this;
+    }
+
+    public EndpointConfig config() {
+        return config;
     }
 
     @Override

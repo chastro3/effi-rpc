@@ -1,7 +1,9 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.config.URL;
 import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.config.EndpointConfig;
+import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.codec.ClientCodec;
@@ -9,14 +11,16 @@ import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
 
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Abstract implementation of {@link Protocol}.
+ * Provides an abstract implementation of {@link Protocol}.
  */
 public abstract class AbstractProtocol implements Protocol {
 
@@ -48,9 +52,9 @@ public abstract class AbstractProtocol implements Protocol {
     }
 
     @Override
-    public Client openClient(URL url, EffiRpcModule module) {
-        String key = url.getParam(KeyConstant.NAME, url.protocol());
-        Client client = clients.computeIfAbsent(key, k -> getTransporter(url).connect(url, module));
+    public Client openClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module) {
+        Client client = clients.computeIfAbsent(NetUtil.toAddress(remoteAddress),
+                k -> getTransporter(config).connect(config, remoteAddress, module));
         if (!client.isActive()) {
             client.connect();
         }
@@ -58,9 +62,8 @@ public abstract class AbstractProtocol implements Protocol {
     }
 
     @Override
-    public Server openServer(URL url, EffiRpcModule module) {
-        String key = url.getParam(KeyConstant.NAME, url.authority());
-        return servers.computeIfAbsent(key, k -> getTransporter(url).bind(url, module));
+    public Server openServer(ServerConfig config, InetSocketAddress address, EffiRpcModule module) {
+        return servers.computeIfAbsent(NetUtil.toAddress(address), k -> getTransporter(config).bind(config, address, module));
     }
 
     @Override
@@ -96,8 +99,8 @@ public abstract class AbstractProtocol implements Protocol {
         servers.clear();
     }
 
-    public Transporter getTransporter(URL url) {
-        String transporterName = url.getParam(KeyConstant.TRANSPORTER);
+    public Transporter getTransporter(EndpointConfig config) {
+        String transporterName = config.getParam(KeyConstant.TRANSPORTER);
         if (StringUtil.isBlank(transporterName) && transporter != null) {
             return transporter;
         }

@@ -10,9 +10,6 @@ import java.util.function.Function;
 
 /**
  * Parses the annotation on the specified method and updates the configuration.
- *
- * @param <T> the element type
- * @param <A> the annotation type
  */
 public class AnnotationConfigParser<T extends AnnotatedElement, A extends Annotation> {
 

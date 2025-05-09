@@ -5,7 +5,7 @@ import io.effi.rpc.config.DefaultConfigKeys;
 import java.lang.annotation.*;
 
 /**
- * RPC caller (consumer) configuration.
+ * Configures an RPC caller (consumer) method.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -13,130 +13,131 @@ import java.lang.annotation.*;
 public @interface EffiRpcCaller {
 
     /**
-     * Request path.
+     * Specifies request path.
      *
      * @see DefaultConfigKeys#PATH
      */
     String path() default "";
 
     /**
-     * Annotation style.
+     * Defines annotation style.
      *
      * @see DefaultConfigKeys#ANNOTATION_STYLE
      */
     String style() default "";
 
     /**
-     * Protocol type.
+     * Specifies protocol type.
      *
      * @see DefaultConfigKeys#PROTOCOL
      */
     String protocol() default "";
 
     /**
-     * Application name.
+     * Sets application name.
      *
      * @see DefaultConfigKeys#APPLICATION
      */
     String application() default "";
 
     /**
-     * Client configuration.
+     * Applies client configuration.
      *
      * @see DefaultConfigKeys#CLIENT_CONFIG
      */
     String clientConfig() default "";
 
     /**
-     * Server address.
+     * Sets server address.
      *
      * @see DefaultConfigKeys#ADDRESS
      */
     String address() default "";
 
     /**
-     * List of filters.
+     * Applies filters.
      *
      * @see DefaultConfigKeys#FILTERS
      */
     String[] filters() default {};
 
     /**
-     * List of registries.
+     * Registers registries.
      *
      * @see DefaultConfigKeys#REGISTRIES
      */
     String[] registries() default {};
 
     /**
-     * Serialization type.
+     * Specifies serialization type.
      *
      * @see DefaultConfigKeys#SERIALIZATION
      */
     String serialization() default "";
 
     /**
-     * Compression type.
+     * Specifies compression type.
      *
      * @see DefaultConfigKeys#COMPRESSION
      */
     String compression() default "";
 
     /**
-     * Module name.
+     * Sets module name.
      *
      * @see DefaultConfigKeys#MODULE
      */
     String module() default "";
 
     /**
-     * Timeout in milliseconds.
+     * Sets timeout in milliseconds.
      *
      * @see DefaultConfigKeys#TIMEOUT
      */
     int timeout() default -1;
 
     /**
-     * Retry count.
+     * Sets retry count.
      *
      * @see DefaultConfigKeys#RETRIES
      */
     int retries() default -1;
 
     /**
-     * Load balancing strategy.
+     * Defines load balancing strategy.
      *
      * @see DefaultConfigKeys#LOAD_BALANCE
      */
     String loadBalance() default "";
 
     /**
-     * Fault tolerance policy.
+     * Defines fault tolerance policy.
      *
      * @see DefaultConfigKeys#FAULT_TOLERANCE
      */
     String faultTolerance() default "";
 
     /**
-     * Deserialization threshold.
+     * Sets serialization threshold.
      *
      * @see DefaultConfigKeys#SERIALIZATION_THRESHOLD
      */
     long serializationThreshold() default -1;
 
     /**
-     * Deserialization threshold.
+     * Sets deserialization threshold.
      *
      * @see DefaultConfigKeys#DESERIALIZATION_THRESHOLD
      */
     long deserializationThreshold() default -1;
 
     /**
-     * Thread pool name.
+     * Specifies thread pool name.
      *
      * @see DefaultConfigKeys#THREAD_POOL
      */
     String threadPool() default "";
 }
+
 
 

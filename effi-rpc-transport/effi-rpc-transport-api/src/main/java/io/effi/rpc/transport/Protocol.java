@@ -1,22 +1,21 @@
 package io.effi.rpc.transport;
 
 import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.spi.Extensible;
-import io.effi.rpc.util.TypeToken;
-import io.effi.rpc.util.resoruce.Cleanable;
-import io.effi.rpc.contract.Callee;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Result;
+import io.effi.rpc.contract.*;
+import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.MethodMapper;
+import io.effi.rpc.spi.Extensible;
 import io.effi.rpc.transport.codec.ClientCodec;
 import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.util.TypeToken;
+import io.effi.rpc.util.resoruce.Cleanable;
 
+import java.net.InetSocketAddress;
 import java.util.Collection;
 
 import static io.effi.rpc.constant.Component.Protocol.H2;
@@ -35,20 +34,20 @@ public interface Protocol extends Cleanable {
     /**
      * Opens a client, reusing an existing instance if available.
      *
-     * @param url    the client configuration URL
+     * @param config    the client configuration
      * @param module the associated module
      * @return the client instance
      */
-    Client openClient(URL url, EffiRpcModule module);
+    Client openClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module);
 
     /**
      * Opens a server based on the provided configuration.
      *
-     * @param url    the server configuration URL
+     * @param config    the server configuration
      * @param module the associated module
      * @return the server instance
      */
-    Server openServer(URL url, EffiRpcModule module);
+    Server openServer(ServerConfig config, InetSocketAddress address, EffiRpcModule module);
 
     /**
      * Creates a request for the given caller and arguments.

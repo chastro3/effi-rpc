@@ -12,8 +12,6 @@ import java.lang.reflect.Method;
 
 /**
  * Default implementation of {@link RemoteService}.
- *
- * @param <T> the type of target
  */
 public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>> implements RemoteService<T> {
 

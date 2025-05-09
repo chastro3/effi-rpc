@@ -1,17 +1,17 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.constant.Constant;
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.contract.module.EffRpcApplication;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.registry.AbstractRegistryService;
+import io.effi.rpc.registry.RegisterTask;
 import io.effi.rpc.util.GenericKey;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.VertxUtil;
-import io.effi.rpc.contract.module.EffRpcApplication;
-import io.effi.rpc.registry.AbstractRegistryService;
-import io.effi.rpc.registry.RegisterTask;
 import io.vertx.core.Vertx;
 import io.vertx.ext.consul.*;
 
@@ -21,10 +21,11 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
- * {@link io.effi.rpc.registry.RegistryService} implementation based on vertx-consul client.
- * This service is responsible for handling service registration and discovery
- * using Consul as the underlying registry mechanism.
- * For more information,refer to the <a href="https://github.com/vert-x3/vertx-consul-client">vertx-consul-client</a>.
+ * Implements {@link io.effi.rpc.registry.RegistryService} using Consul.
+ * <p>
+ * Handles service registration and discovery via the Consul registry.
+ * See <a href="https://github.com/vert-x3/vertx-consul-client">vertx-consul-client</a> for details.
+ * </p>
  */
 public class ConsulRegistryService extends AbstractRegistryService {
 

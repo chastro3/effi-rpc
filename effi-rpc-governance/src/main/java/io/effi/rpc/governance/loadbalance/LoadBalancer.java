@@ -11,21 +11,19 @@ import java.util.List;
 import static io.effi.rpc.constant.Component.LoadBalance.RANDOM;
 
 /**
- * Load balancing strategies for selecting a URL from a list of available URLs
- * based on the context of the invocation.
+ * Selects a target URL from available candidates using a load balancing strategy.
  */
 @Extensible(RANDOM)
 public interface LoadBalancer {
 
     /**
-     * Selects a URL for a given invocation from a list of available URLs.
-     * Different implementations may employ various strategies for selection.
+     * Selects a URL from the given list based on the invocation context.
      *
-     * @param context the context for the selection process
-     * @param urls    a list of available URLs to choose from
+     * @param context the invocation context
+     * @param urls    the list of available URLs
      * @return the selected URL
      */
-    URL choose(InvocationContext<Envelope.Request, Caller<?>> context, List<URL> urls);
+    URL select(InvocationContext<Envelope.Request, Caller<?>> context, List<URL> urls);
 }
 
 

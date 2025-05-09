@@ -4,6 +4,7 @@ import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
 import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.contract.config.EndpointConfig;
 import io.effi.rpc.util.StringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -91,8 +92,8 @@ public class NettySupport {
     /**
      * Gets or creates ssl context.
      */
-    public static SslContext getOrCreateSslContext(URL url, Supplier<SslContext> creator) {
-        boolean sslEnabled = url.getBooleanParam(DefaultConfigKeys.SSL.key(), false);
+    public static SslContext getOrCreateSslContext(EndpointConfig config, Supplier<SslContext> creator) {
+        boolean sslEnabled = config.getBooleanParam(DefaultConfigKeys.SSL.key(), false);
         return sslEnabled ? creator.get() : null;
     }
 

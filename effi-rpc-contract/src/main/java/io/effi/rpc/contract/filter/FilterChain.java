@@ -1,9 +1,5 @@
 package io.effi.rpc.contract.filter;
 
-import io.effi.rpc.util.Attributes;
-import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.GenericKey;
-import io.effi.rpc.util.Messages;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.Result;
@@ -12,18 +8,19 @@ import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.util.Attributes;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.util.Messages;
 
 import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Manage a chain of filters to process an RPC invocation.
+ * Manages a chain of filters for processing an RPC invocation.
  * <p>
- * The filter chain executes filters in a specified order,
- * allowing concerns like logging, authentication,and validation
- * to be applied during the invocation process.
- * Filters can modify the invocation or its result, and
- * control whether to proceed to the next filter.
+ * Executes filters in order to handle concerns like logging, authentication, and validation.
+ * Filters can modify the invocation or its result, and control whether to proceed to the next filter.
  * </p>
  */
 public class FilterChain {
@@ -31,12 +28,12 @@ public class FilterChain {
     private static final Logger logger = LoggerFactory.getLogger(FilterChain.class);
 
     /**
-     * Executes the filter chain on the provided context.
+     * Executes the filter chain on the given context.
      *
      * @param context the execution context for the filter chain
-     * @param filters the list of filters to be applied
+     * @param filters the filters to apply
      * @param <C>     the type of the execution context
-     * @return the result of the executed operation
+     * @return the result of the execution
      */
     @SuppressWarnings("unchecked")
     public static <C extends ExecutorContext<?, ?, C>> Result execute(C context, List<? extends Filter<?, ?, ?>> filters) {
@@ -66,7 +63,7 @@ public class FilterChain {
         private final InvocationContext<R, I> context;
 
         FilterInvocationContext(InvocationContext<R, I> context) {
-            super(context.module(), context.source(), context.invoker(), context.args());
+            super(context.module(), context.envelope(), context.invoker(), context.args());
             this.context = context;
         }
 
@@ -107,7 +104,7 @@ public class FilterChain {
         private final ReplyContext<R, I> context;
 
         FilterReplyContext(ReplyContext<R, I> context) {
-            super(context.invocationContext(), context.source(), context.result());
+            super(context.invocationContext(), context.envelope(), context.result());
             this.context = context;
         }
 

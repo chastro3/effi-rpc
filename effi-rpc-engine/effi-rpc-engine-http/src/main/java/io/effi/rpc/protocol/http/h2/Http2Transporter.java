@@ -1,6 +1,8 @@
 package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.config.URL;
+import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -12,12 +14,15 @@ import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 
 /**
  * Http2 implementation of {@link NettyTransporter}.
  */
 public class Http2Transporter implements NettyTransporter {
+
+    private static final String[] SUPPORTED_PROTOCOL = new String[]{ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1};
 
     private static final ChannelHandler INBOUND_HANDLER = new ChannelInboundHandlerAdapter();
     @Override
@@ -33,27 +38,27 @@ public class Http2Transporter implements NettyTransporter {
     }
 
     @Override
-    public NettyEndpointConfig initClientConfig(URL url, EffiRpcModule module) {
-        SslContext sslContext = NettySupport.getOrCreateSslContext(url, () ->
-                SslContextFactory.getForClient(ApplicationProtocolNames.HTTP_2));
-        return new NettyEndpointConfig(url, module)
+    public NettyEndpointConfig initClientConfig(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module) {
+        SslContext sslContext = NettySupport.getOrCreateSslContext(config,
+                () -> SslContextFactory.getForClient(SUPPORTED_PROTOCOL, config.certificate()));
+        return new NettyEndpointConfig(config, config.newUrl(remoteAddress), module)
                 .sslContext(sslContext)
                 .codecInitializer(this::initClientCodec)
-                .handlersInitializer(config -> List.of(
+                .handlersInitializer(cfg -> List.of(
                         // this parameter ChannelInboundHandlerAdapter is Invalid for client
                         new NamedChannelHandler("http2MultiplexHandler", new Http2MultiplexHandler(INBOUND_HANDLER))
         ));
     }
 
     @Override
-    public NettyEndpointConfig initServerConfig(URL url, EffiRpcModule module) {
-        SslContext sslContext = NettySupport.getOrCreateSslContext(url, () ->
-                SslContextFactory.getForServer(ApplicationProtocolNames.HTTP_2));
+    public NettyEndpointConfig initServerConfig(ServerConfig config, InetSocketAddress address, EffiRpcModule module) {
+        SslContext sslContext = NettySupport.getOrCreateSslContext(config, () -> SslContextFactory.getForServer(SUPPORTED_PROTOCOL, config.certificate()));
+        URL url = config.newUrl(address);
         Http2ServerHandler serverHandler = new Http2ServerHandler(url, module);
-        return new NettyEndpointConfig(url, module)
+        return new NettyEndpointConfig(config, url, module)
                 .sslContext(sslContext)
                 .codecInitializer(this::initServerCodec)
-                .handlersInitializer(config -> List.of(
+                .handlersInitializer(cfg -> List.of(
                         new NamedChannelHandler("http2serverHandler", new Http2MultiplexHandler(serverHandler))
         ));
     }

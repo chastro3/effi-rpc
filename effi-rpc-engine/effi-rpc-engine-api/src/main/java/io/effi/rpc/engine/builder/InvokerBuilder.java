@@ -5,7 +5,7 @@ import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.config.HierarchicalNodeConfig;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.ChainBuilder;
+import io.effi.rpc.util.FluentBuilder;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.Invoker;
@@ -16,13 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builder for creating {@link Invoker} instances,defining settings for invoker.
- *
- * @param <T> The type of {@link Invoker}.
- * @param <C> The type of the builder.
+ * Builds {@link Invoker} instances and defines configuration for invoker.
  */
 public abstract class InvokerBuilder<T extends Invoker<?>, C extends InvokerBuilder<T, C>>
-        implements ChainBuilder<T, C>, ConfigSource {
+        implements FluentBuilder<T, C>, ConfigSource {
 
     protected NodeConfig config;
 

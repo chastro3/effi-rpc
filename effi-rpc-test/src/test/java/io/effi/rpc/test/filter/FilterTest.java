@@ -1,6 +1,5 @@
 package io.effi.rpc.test.filter;
 
-import io.effi.rpc.contract.filter.FilterSupport;
 import io.effi.rpc.contract.filter.FilterType;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +11,7 @@ public class FilterTest {
 
     @Test
     public void addFilter() {
-        FilterType<?, ?> type = FilterSupport.getType(new CallerReqFilter());
+        FilterType<?, ?> type = FilterType.extract(new CallerReqFilter());
         System.out.println(type);
     }
 }

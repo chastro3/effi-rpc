@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import static io.effi.rpc.constant.SystemKey.*;
 
 /**
- * Custom annotation processor for handling Effi-RPC annotations.
+ * Processes Effi-RPC annotations.
  * It processes the following annotations and generates the necessary resources:
  *
  * <ul>
@@ -26,7 +26,6 @@ import static io.effi.rpc.constant.SystemKey.*;
  *   <li>{@link io.effi.rpc.contract.annotation.EffiRpcClient}</li>
  * </ul>
  */
-
 @SupportedOptions({GROUP_ID, ARTIFACT_ID, VERSION, NATIVE_BUILD})
 public class EffiRpcAnnotationProcessor extends AbstractProcessor {
 

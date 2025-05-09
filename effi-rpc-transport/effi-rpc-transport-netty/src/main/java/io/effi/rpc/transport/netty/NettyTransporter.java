@@ -1,10 +1,13 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.config.URL;
+import io.effi.rpc.contract.config.ClientConfig;
+import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.Transporter;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
+
+import java.net.InetSocketAddress;
 
 /**
  * Netty implementation of {@link Transporter}.
@@ -34,7 +37,7 @@ public interface NettyTransporter extends Transporter {
      * @param module  the associated module
      * @return the initialized client configuration
      */
-    NettyEndpointConfig initClientConfig(URL url, EffiRpcModule module);
+    NettyEndpointConfig initClientConfig(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module);
 
     /**
      * Initializes the server configuration based on the given URL and module.
@@ -43,16 +46,16 @@ public interface NettyTransporter extends Transporter {
      * @param module  the associated module
      * @return the initialized server configuration
      */
-    NettyEndpointConfig initServerConfig(URL url, EffiRpcModule module);
+    NettyEndpointConfig initServerConfig(ServerConfig config, InetSocketAddress address, EffiRpcModule module);
 
     @Override
-    default Client connect(URL url, EffiRpcModule module) {
-        return connect(initClientConfig(url, module));
+    default Client connect(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module) {
+        return connect(initClientConfig(config, remoteAddress, module));
     }
 
     @Override
-    default Server bind(URL url, EffiRpcModule module) {
-        return bind(initServerConfig(url, module));
+    default Server bind(ServerConfig config, InetSocketAddress address, EffiRpcModule module) {
+        return bind(initServerConfig(config, address, module));
     }
 }
 

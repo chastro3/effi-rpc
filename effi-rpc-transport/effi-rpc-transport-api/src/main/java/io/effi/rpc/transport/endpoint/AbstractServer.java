@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.config.URL;
+import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.contract.module.EffiRpcModule;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Abstract implementation of {@link Server}.
+ * Provides an abstract implementation of {@link Server}.
  */
 public abstract class AbstractServer extends AbstractEndpoint implements Server {
 

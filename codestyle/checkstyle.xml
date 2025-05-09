@@ -55,6 +55,7 @@
 
         <module name="JavadocType">
             <property name="allowUnknownTags" value="true"/>
+            <property name="allowMissingParamTags" value="true"/>
         </module>
         <module name="MissingJavadocType"/>
         <module name="JavadocStyle"/>

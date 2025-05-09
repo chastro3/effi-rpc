@@ -1,19 +1,19 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.contract.config.CertificateConfig;
 import io.effi.rpc.contract.config.ServerConfig;
 
 /**
- * Builder for configuring {@link ServerConfig} instances.
- *
- * @param <T> The type of {@link ServerConfig}.
- * @param <C> The type of the builder.
+ * Builds {@link ServerConfig} instances.
  */
 public abstract class ServerConfigBuilder<T extends ServerConfig, C extends ServerConfigBuilder<T, C>>
         extends NamedConfigBuilder<T, C> {
 
+    protected CertificateConfig certificateConfig;
+
     /**
-     * Enables or disables SSL for the server.
+     * Enables or disables SSL.
      */
     public C ssl(boolean ssl) {
         config.set(DefaultConfigKeys.SSL.key(), String.valueOf(ssl));
@@ -21,7 +21,15 @@ public abstract class ServerConfigBuilder<T extends ServerConfig, C extends Serv
     }
 
     /**
-     * Sets the maximum number of threads for the server.
+     * Sets the certificate configuration.
+     */
+    public C certificate(CertificateConfig certificateConfig) {
+        this.certificateConfig = certificateConfig;
+        return returnThis();
+    }
+
+    /**
+     * Sets the maximum number of threads.
      */
     public C maxThreads(int maxThreads) {
         config.set(DefaultConfigKeys.MAX_THREADS.key(), String.valueOf(maxThreads));

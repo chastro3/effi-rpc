@@ -5,7 +5,7 @@ import io.effi.rpc.config.DefaultConfigKeys;
 import java.lang.annotation.*;
 
 /**
- * RPC callee (provider) configuration.
+ * Configures an RPC callee (provider) method.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -13,88 +13,89 @@ import java.lang.annotation.*;
 public @interface EffiRpcCallee {
 
     /**
-     * Request path.
+     * Specifies request path.
      *
      * @see DefaultConfigKeys#PATH
      */
     String path() default "";
 
     /**
-     * Annotation style.
+     * Defines annotation style.
      *
      * @see DefaultConfigKeys#ANNOTATION_STYLE
      */
     String style() default "";
 
     /**
-     * Supported protocols.
+     * Declares supported protocols.
      *
      * @see DefaultConfigKeys#PROTOCOL
      */
     String[] protocol() default {};
 
     /**
-     * Excluded ports.
+     * Lists excluded ports.
      *
      * @see DefaultConfigKeys#EXCLUDED_PORT
      */
     int[] excludedPort() default {};
 
     /**
-     * Associated modules.
+     * Associates with modules.
      *
      * @see DefaultConfigKeys#MODULES
      */
     String[] modules() default {};
 
     /**
-     * Filters to apply.
+     * Applies filters.
      *
      * @see DefaultConfigKeys#FILTERS
      */
     String[] filters() default {};
 
     /**
-     * Description.
+     * Describes callee.
      *
      * @see DefaultConfigKeys#CALLEE_DESC
      */
     String desc() default "";
 
     /**
-     * Serialization type.
+     * Specifies serialization type.
      *
      * @see DefaultConfigKeys#SERIALIZATION
      */
     String serialization() default "";
 
     /**
-     * Compression type.
+     * Specifies compression type.
      *
      * @see DefaultConfigKeys#COMPRESSION
      */
     String compression() default "";
 
     /**
-     * Serialization threshold.
+     * Sets serialization threshold.
      *
      * @see DefaultConfigKeys#SERIALIZATION_THRESHOLD
      */
     long serializationThreshold() default -1;
 
     /**
-     * Deserialization threshold.
+     * Sets deserialization threshold.
      *
      * @see DefaultConfigKeys#DESERIALIZATION_THRESHOLD
      */
     long deserializationThreshold() default -1;
 
     /**
-     * Thread pool name.
+     * Specifies thread pool name.
      *
      * @see DefaultConfigKeys#THREAD_POOL
      */
     String threadPool() default "";
 }
+
 
 

@@ -7,9 +7,6 @@ import java.util.Objects;
  */
 public final class StringUtil {
 
-    private StringUtil() {
-    }
-
     /**
      * Checks if a CharSequence is null, empty, or contains only whitespace characters.
      */
@@ -77,6 +74,9 @@ public final class StringUtil {
             }
         }
         return true;
+    }
+
+    private StringUtil() {
     }
 }
 

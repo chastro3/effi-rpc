@@ -5,10 +5,11 @@ import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 /**
- * Context for an RPC invocation.
- *
- * @param <T> the type of the request
- * @param <I> the type of the invoker
+ * Represents the context for an RPC invocation.
+ * <p>
+ * For the client, occurs before the request is sent.
+ * For the server, occurs before the target method is invoked.
+ * </p>
  */
 public class InvocationContext<T extends Envelope.Request, I extends Invoker<?>>
         extends ExecutorContext<T, I, InvocationContext<T, I>> {
@@ -20,9 +21,6 @@ public class InvocationContext<T extends Envelope.Request, I extends Invoker<?>>
         this.args = args;
     }
 
-    /**
-     * Returns the arguments for the invocation.
-     */
     public Object[] args() {
         return args;
     }

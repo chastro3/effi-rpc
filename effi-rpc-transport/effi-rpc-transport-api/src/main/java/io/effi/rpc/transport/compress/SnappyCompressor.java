@@ -8,7 +8,7 @@ import java.io.IOException;
 import static io.effi.rpc.constant.Component.Compression.SNAPPY;
 
 /**
- * Snappy implementation of {@link Compressor}.
+ * Implements {@link Compressor} using Snappy.
  */
 @Extension(SNAPPY)
 public class SnappyCompressor extends AbstractCompressor {

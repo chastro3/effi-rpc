@@ -8,9 +8,10 @@ import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 /**
- * Adapts the CGLIB's {@link MethodInterceptor} to
- * handle method invocations on proxy instances, delegating the calls to a
- * user-defined {@link InvocationHandler}.
+ * Adapts CGLIB's {@link MethodInterceptor} to handle method invocations on proxies.
+ * <p>
+ * Delegates method calls to a user-defined {@link InvocationHandler}.
+ * </p>
  */
 public class CGLibMethodInterceptor implements MethodInterceptor {
 

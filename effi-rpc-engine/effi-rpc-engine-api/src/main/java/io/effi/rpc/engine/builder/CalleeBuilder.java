@@ -12,10 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builder for creating {@link Callee} instances,defining settings for callee.
- *
- * @param <T> The type of {@link Callee}.
- * @param <C> The type of the builder.
+ * Builds {@link Callee} instances and defines configuration for callee.
  */
 public abstract class CalleeBuilder<T extends Callee<?>, C extends CalleeBuilder<T, C>>
         extends InvokerBuilder<T, C> {

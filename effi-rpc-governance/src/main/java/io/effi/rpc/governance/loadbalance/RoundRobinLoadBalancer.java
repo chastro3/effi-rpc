@@ -1,12 +1,12 @@
 package io.effi.rpc.governance.loadbalance;
 
-import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.spi.Extension;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.util.AtomicUtil;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.util.AtomicUtil;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,10 +14,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static io.effi.rpc.constant.Component.LoadBalance.ROUND_ROBIN;
 
 /**
- * "RoundRobin" load balancing strategy:
- * Requests are assigned to each server in sequence,
- * Each request is assigned in the order of the server list, and starts again at the end of the list,
- * This strategy applies to cases where the server performance is equivalent.
+ * Implements a "round-robin" load balancing strategy.
+ * <p>
+ * Distributes requests to servers in a fixed sequence, cycling through the server list.
+ * Suitable when all servers have equivalent performance.
+ * </p>
  */
 @Extension(ROUND_ROBIN)
 public class RoundRobinLoadBalancer extends AbstractLoadBalancer {

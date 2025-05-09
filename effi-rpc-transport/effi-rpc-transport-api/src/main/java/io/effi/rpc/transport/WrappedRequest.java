@@ -9,13 +9,13 @@ import io.effi.rpc.contract.context.InvocationContext;
  *
  * @param <T> the type of the invoker
  */
-public interface RepackagedRequest<T extends Invoker<?>> extends RepackagedEnvelope<T, InvocationContext<Envelope.Request, T>> {
+public interface WrappedRequest<T extends Invoker<?>> extends WrappedEnvelope<T, InvocationContext<Envelope.Request, T>> {
 
     /**
      * Encodes the request.
      */
     @Override
-    RepackagedRequest<T> encode();
+    WrappedRequest<T> encode();
 
     @Override
     Envelope.Request envelope();

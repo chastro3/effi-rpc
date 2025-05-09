@@ -1,12 +1,8 @@
 package io.effi.rpc.contract;
 
 /**
- * Wrapper service for interacting with a remote service.
- * <p>
- * Provides methods to access the service instance, its type, and invoke methods on it.
- * The service can have multiple callees, each representing a specific endpoint.
  *
- * @param <T> the type of the remote service interface
+ * Wraps a remote service and manages its internal callees.
  */
 public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
 
@@ -16,27 +12,27 @@ public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
     T service();
 
     /**
-     * Returns the class type of the service.
+     * Returns the type of the service.
      */
     Class<T> serviceType();
 
     /**
-     * Returns the name of the remote service.
+     * Returns the name of the service.
      */
     String name();
 
     /**
-     * Invokes a method on the remote service.
+     * Invokes a callee on the service.
      *
-     * @param callee the callee representing the method to invoke
-     * @param args   the arguments to pass to the method
+     * @param callee the callee
+     * @param args   the arguments
      * @param <R>    the return type of {@link Callee#invoke(Object...)}
      * @return the result of the invocation
      */
     <R> R invokeCallee(Callee<T> callee, Object... args);
 
     /**
-     * Adds a callee to the remote service.
+     * Adds a callee to the service.
      *
      * @param callee the callee to add
      * @return the updated remote service instance

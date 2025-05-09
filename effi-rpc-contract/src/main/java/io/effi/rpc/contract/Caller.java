@@ -1,11 +1,11 @@
 package io.effi.rpc.contract;
 
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.module.ModuleSource;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -13,11 +13,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Client caller for making remote service calls.
- * <p>
- * Supports both asynchronous and synchronous RPC calls with flexible client-side configuration.
- *
- * @param <R> the return type of the remote service call
+ * Represents an RPC caller that can call a remote callee.
  */
 public interface Caller<R> extends Invoker<CompletableFuture<R>>, ModuleSource {
 

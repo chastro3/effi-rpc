@@ -3,8 +3,6 @@ package io.effi.rpc.util;
 /**
  * Holds a value of type {@link T}.
  * Provides getter and setter methods to encapsulate and modify the held value.
- *
- * @param <T> the type of the value being held
  */
 @SuppressWarnings("unchecked")
 public class Holder<T> {

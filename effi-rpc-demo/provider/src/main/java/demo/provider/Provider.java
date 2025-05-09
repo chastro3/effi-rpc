@@ -1,16 +1,26 @@
 package demo.provider;
 
+import io.effi.rpc.contract.config.CertificateConfig;
+import io.effi.rpc.engine.DefaultCertificateConfig;
 import io.effi.rpc.engine.DefaultServerConfig;
 import io.effi.rpc.engine.EffiRpcBootstrap;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 
-import static io.effi.rpc.constant.Component.H2ClearTextMode.PREFACE_MODE;
-
 public class Provider {
 
     public static void main(String[] args) {
+        CertificateConfig certificateConfig = DefaultCertificateConfig.builder()
+                .name("server-cert")
+                .certChainPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\server-cert.pem")
+                .privateKeyPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\server-private-key.pem")
+                .trustCertPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\ca-cert.pem")
+                .build();
+        Http2ServerConfig http2ServerConfig = Http2ServerConfig.builder()
+                .ssl(true)
+                .certificate(certificateConfig)
+                .build();
         EffiRpcBootstrap bootstrap = EffiRpcBootstrap.newInstance("provider")
-                .exported(Http2ServerConfig.builder().ssl(false).clearTextMode(PREFACE_MODE).build(), 8090)
+                .exported(http2ServerConfig, 8090)
                 .exported(DefaultServerConfig.builder().protocol("http").build(), 8091)
                 //.registry(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build())
                 .filter(new CalleeLogFilter())

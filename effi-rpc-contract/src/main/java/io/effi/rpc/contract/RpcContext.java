@@ -1,15 +1,16 @@
 package io.effi.rpc.contract;
 
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.URLUtil;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.StringAccessor;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.config.URLUtil;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.Map;
 
 /**
+ * todo 待优化
  * Rpc context.
  */
 public class RpcContext {

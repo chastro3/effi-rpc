@@ -5,8 +5,8 @@ import io.effi.rpc.contract.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
-import io.effi.rpc.transport.DefaultRepackagedRequest;
-import io.effi.rpc.transport.RepackagedRequest;
+import io.effi.rpc.transport.DefaultWrappedRequest;
+import io.effi.rpc.transport.WrappedRequest;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.util.LazyInitializer;
@@ -51,14 +51,14 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof RepackagedRequest<?> repackagedRequest) {
-            addFailedListener(promise, repackagedRequest.channel(), ReplyFuture.getFuture(repackagedRequest.request().url()));
-            super.write(ctx, repackagedRequest.encode().request(), promise);
+        if (msg instanceof WrappedRequest<?> wrappedRequest) {
+            addFailedListener(promise, wrappedRequest.channel(), ReplyFuture.getFuture(wrappedRequest.request().url()));
+            super.write(ctx, wrappedRequest.encode().request(), promise);
         } else if (msg instanceof Envelope.Request request) {
             addFailedListener(promise, NettyChannel.get(ctx.channel()), ReplyFuture.getFuture(request.url()));
             super.write(ctx, msg, promise);
         } else {
-            logger.warn(Messages.onlySupport(DefaultRepackagedRequest.class));
+            logger.warn(Messages.onlySupport(DefaultWrappedRequest.class));
         }
     }
 

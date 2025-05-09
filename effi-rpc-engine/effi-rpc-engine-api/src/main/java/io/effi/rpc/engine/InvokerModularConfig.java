@@ -16,8 +16,6 @@ import java.util.List;
 
 /**
  * Configures invoker-related modular components.
- *
- * @param <T> the type of the invoker
  */
 public abstract class InvokerModularConfig<T extends Invoker<?>> {
 
@@ -35,18 +33,12 @@ public abstract class InvokerModularConfig<T extends Invoker<?>> {
         this.invoker = AssertUtil.notNull(invoker, "invoker");
     }
 
-    /**
-     * Adds filters to the configuration.
-     * Filters are added based on invoker type and envelope type.
-     *
-     * @param filters the filters to add
-     */
     public void addFilter(Filter<?, ?, ?>... filters) {
         if (CollectionUtil.isNotEmpty(filters)) {
             Class<? extends Envelope.Request> supportedRequestType = getSupportedRequestType(invoker);
             Class<? extends Envelope.Response> supportedResponseType = getSupportedResponseType(invoker);
             for (Filter<?, ?, ?> filter : filters) {
-                FilterType<?, ?> type = FilterSupport.getType(filter);
+                FilterType<?, ?> type = FilterType.extract(filter);
                 Class<? extends Envelope> envelopeType = type.envelopeType();
                 if (type.invokerType().isAssignableFrom(invoker.getClass())) {
                     switch (filter) {
@@ -68,37 +60,22 @@ public abstract class InvokerModularConfig<T extends Invoker<?>> {
         }
     }
 
-    /**
-     * Returns the module.
-     */
     public EffiRpcModule module() {
         return module;
     }
 
-    /**
-     * Returns the invoker.
-     */
     public T invoker() {
         return invoker;
     }
 
-    /**
-     * Returns the list of reply filters.
-     */
     public List<ReplyFilter<?, ?>> replyFilters() {
         return replyFilters;
     }
 
-    /**
-     * Returns the list of invoke filters.
-     */
     public List<InvokeFilter<?, ?>> invokeFilters() {
         return invokeFilters;
     }
 
-    /**
-     * Adds filters based on the invoker's configuration.
-     */
     protected void addConfiguredFilters() {
         List<String> filterNames = invoker.config().getCascaded(DefaultConfigKeys.FILTERS);
         FilterRepository filterManager = module.filterRepository();

@@ -6,7 +6,7 @@ import io.effi.rpc.config.FlatConfig;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.constant.SystemKey;
-import io.effi.rpc.util.ChainBuilder;
+import io.effi.rpc.util.FluentBuilder;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.contract.config.ServerConfig;
@@ -16,27 +16,15 @@ import io.effi.rpc.contract.ServerExporter;
 import java.net.InetSocketAddress;
 
 /**
- * Builder for configuring {@link ServerExporter} instances.
- *
- * @param <T> The type of {@link ServerExporter}.
- * @param <C> The type of the builder.
+ * Builds {@link ServerExporter} instances.
  */
 public abstract class ServerExportBuilder<T extends ServerExporter, C extends ServerExportBuilder<T, C>>
-        implements ChainBuilder<T, C>, ConfigSource {
+        implements FluentBuilder<T, C>, ConfigSource {
 
-    /**
-     * Weight of the server export (used for load balancing).
-     */
     protected int weight = Constant.DEFAULT_WEIGHT;
 
-    /**
-     * Address where the server is exported.
-     */
     protected InetSocketAddress exportedAddress;
 
-    /**
-     * Configuration for the server.
-     */
     protected ServerConfig serverConfig;
 
     /**
@@ -45,10 +33,7 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
     protected EffiRpcModule module;
 
     /**
-     * Sets the server configuration for the exporter.
-     *
-     * @param serverConfig The configuration for the server
-     * @return The current builder instance for method chaining
+     * Sets the server configuration.
      */
     public C serverConfig(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
@@ -56,10 +41,7 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
     }
 
     /**
-     * Sets the module for the exporter.
-     *
-     * @param module The module that will be associated with the exporter
-     * @return The current builder instance for method chaining
+     * Sets the module.
      */
     public C module(EffiRpcModule module) {
         this.module = module;
@@ -67,10 +49,7 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
     }
 
     /**
-     * Sets the weight for the server export (used for load balancing).
-     *
-     * @param weight Weight value
-     * @return This builder
+     * Sets the weight(used for load balancing).
      */
     public C weight(int weight) {
         this.weight = weight;
@@ -79,9 +58,6 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
 
     /**
      * Sets the exported address from a string representation (e.g., "127.0.0.1:8080").
-     *
-     * @param exportedAddress String representation of the exported address
-     * @return This builder
      */
     public C exportedAddress(String exportedAddress) {
         return exportedAddress(NetUtil.toInetSocketAddress(exportedAddress));
@@ -89,10 +65,6 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
 
     /**
      * Sets the exported address using an IP and port.
-     *
-     * @param ip   IP address
-     * @param port Port number
-     * @return This builder
      */
     public C exportedAddress(String ip, int port) {
         if (NetUtil.isValidIP(ip) && NetUtil.isValidPort(port)) {
@@ -103,9 +75,6 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
 
     /**
      * Sets the exported address using an {@link InetSocketAddress}.
-     *
-     * @param address {@link InetSocketAddress} for the exported address
-     * @return This builder
      */
     public C exportedAddress(InetSocketAddress address) {
         this.exportedAddress = address;
@@ -114,10 +83,6 @@ public abstract class ServerExportBuilder<T extends ServerExporter, C extends Se
 
     /**
      * Sets the exported address using a port number and automatically determines the IP address.
-     *
-     * @param port Port number
-     * @return This builder
-     * @throws IllegalArgumentException if the port is invalid
      */
     public C exportedPort(int port) {
         if (NetUtil.isValidPort(port)) {

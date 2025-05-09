@@ -9,8 +9,6 @@ import java.lang.reflect.Parameter;
 
 /**
  * Wraps a method argument into an {@link Argument} based on a specific annotation.
- *
- * @param <T> the annotation type
  */
 public class AnnotationParameterWrapper<T extends Annotation> {
 

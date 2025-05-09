@@ -2,18 +2,19 @@ package io.effi.rpc.transport;
 
 import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.config.URLType;
+import io.effi.rpc.contract.*;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.spi.ExtensionLoader;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.contract.*;
 import io.effi.rpc.metrics.CalleeMetrics;
 import io.effi.rpc.metrics.CallerMetrics;
+import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.codec.ClientCodec;
 import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
+import io.effi.rpc.util.AssertUtil;
+
+import java.net.InetSocketAddress;
 
 /**
  * Utility class for transport layer operations.
@@ -65,16 +66,13 @@ public class TransportSupport {
     public static <T extends ReplyFuture> T sendRequest(Protocol protocol, T future) {
         var context = future.context();
         Caller<?> caller = context.invoker();
-        URL requestUrl = context.source().url();
-        URL clientUrl = URL.builder()
-                .type(URLType.CLIENT)
-                .protocol(requestUrl.protocol())
-                .address(requestUrl.address())
-                .params(caller.clientConfig().config().items())
-                .build();
-        Client client = protocol.openClient(clientUrl, context.module());
+        URL requestUrl = context.envelope().url();
+        // todo 优化重复创建逻辑
+        InetSocketAddress remoteAddress = InetSocketAddress.createUnresolved(requestUrl.host(), requestUrl.port());
+        Client client = protocol.openClient(caller.clientConfig(), remoteAddress, context.module());
         Channel channel = client.getChannel();
-        channel.send(new DefaultRepackagedRequest<>(context, channel));
+        channel.send(new DefaultWrappedRequest<>(context, channel));
+        future.startTimeout();
         return future;
     }
 
@@ -88,10 +86,10 @@ public class TransportSupport {
         } else {
             callee.threadPoolOf(channel.module()).execute(() -> {
                 ServerCodec serverCodec = channel.protocol().serverCodec();
-                RepackagedRequest<Callee<?>> repackagedRequest = serverCodec.decode(channel, request, callee);
-                var replyContext = callee.invokeWithContext(repackagedRequest.context());
-                if (repackagedRequest.request().needReply()) {
-                    channel.send(new DefaultRepackagedResponse<>(replyContext, channel));
+                WrappedRequest<Callee<?>> wrappedRequest = serverCodec.decode(channel, request, callee);
+                var replyContext = callee.invokeWithContext(wrappedRequest.context());
+                if (wrappedRequest.request().needReply()) {
+                    channel.send(new DefaultWrappedResponse<>(replyContext, channel));
                 }
             });
         }
@@ -106,11 +104,11 @@ public class TransportSupport {
             ThreadPool threadPool = caller.threadPool();
             try {
                 if (inIODeserialization(caller)) {
-                    RepackagedResponse<Caller<?>> repackagedResponse = clientCodec.decode(channel, response, future);
+                    WrappedResponse<Caller<?>> repackagedResponse = clientCodec.decode(channel, response, future);
                     threadPool.execute(() -> future.complete(repackagedResponse.context()));
                 } else {
                     threadPool.execute(() -> {
-                        RepackagedResponse<Caller<?>> repackagedResponse = clientCodec.decode(channel, response, future);
+                        WrappedResponse<Caller<?>> repackagedResponse = clientCodec.decode(channel, response, future);
                         future.complete(repackagedResponse.context());
                     });
                 }

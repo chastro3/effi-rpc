@@ -20,42 +20,15 @@ public class DirectLocator implements Locator {
 
     private final InetSocketAddress remoteAddress;
 
-    /**
-     * Initializes with a specified {@link InetSocketAddress}.
-     *
-     * @param remoteAddress The remote address to be returned by the {@link #locate(CallInvocation)} method.
-     * @throws IllegalArgumentException if the remote address is null.
-     */
-    DirectLocator(InetSocketAddress remoteAddress) {
+    private DirectLocator(InetSocketAddress remoteAddress) {
         this.remoteAddress = AssertUtil.notNull(remoteAddress, "remote address");
     }
 
-    /**
-     * Initializes with a remote address string, converting it to an {@link InetSocketAddress}.
-     *
-     * @param remoteAddress The remote address as a string (e.g., "127.0.0.1:8080").
-     */
-    public DirectLocator(String remoteAddress) {
-        this.remoteAddress = NetUtil.toInetSocketAddress(remoteAddress);
+    public static DirectLocator getInstance(String address) {
+        AssertUtil.notNull(address, "address");
+        return RESOURCES.computeIfAbsent(address, k -> new DirectLocator(NetUtil.toInetSocketAddress(address)));
     }
 
-    /**
-     * Gets or create a DirectLocator instance.
-     *
-     * @param socketAddress the remote address
-     * @return the DirectLocator instance
-     */
-    public static DirectLocator getInstance(InetSocketAddress socketAddress) {
-        AssertUtil.notNull(socketAddress, "socketAddress");
-        return RESOURCES.computeIfAbsent(NetUtil.toAddress(socketAddress), k -> new DirectLocator(socketAddress));
-    }
-
-    /**
-     * Returns the predefined remote address.
-     *
-     * @param context The invocation context.
-     * @return The {@link InetSocketAddress} that was passed to the constructor.
-     */
     @Override
     public InetSocketAddress locate(InvocationContext<Envelope.Request, Caller<?>> context) {
         return remoteAddress;

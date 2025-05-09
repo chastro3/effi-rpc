@@ -9,7 +9,7 @@ import io.effi.rpc.transport.Protocol;
 import java.net.InetSocketAddress;
 
 /**
- * Communication channel for sending messages.
+ * Represents a communication channel for sending messages.
  */
 public interface Channel extends Attributes, ModuleSource, URLSource, Closeable {
 

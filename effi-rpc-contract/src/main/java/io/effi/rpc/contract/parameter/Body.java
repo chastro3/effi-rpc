@@ -3,9 +3,7 @@ package io.effi.rpc.contract.parameter;
 import io.effi.rpc.util.Holder;
 
 /**
- * Message body identify.
- *
- * @param <T>
+ * Wraps message body for RPC argument resolution.
  */
 public class Body<T> extends Holder<T> implements Argument {
 
@@ -16,14 +14,11 @@ public class Body<T> extends Holder<T> implements Argument {
     }
 
     /**
-     * Wrap body.
-     *
-     * @param value
-     * @param <T>
-     * @return
+     * Wraps the given value into a Body instance.
      */
     public static <T> Body<T> wrap(T value) {
         return new Body<>(value);
     }
 
 }
+

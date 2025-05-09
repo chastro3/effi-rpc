@@ -11,6 +11,7 @@ import io.effi.rpc.transport.netty.NamedChannelHandler;
 import io.effi.rpc.transport.netty.NettyChannel;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.effi.rpc.util.LazyInitializer;
+import io.effi.rpc.util.NetUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -57,13 +58,13 @@ public final class Http1ClientHandler extends URLBinderChannelHandler {
     @Override
     protected void readHttpResponse(ChannelHandlerContext ctx, Object msg, InvocationContext<Envelope.Request, Caller<?>> context) throws Exception {
         if (msg instanceof FullHttpResponse fullHttpResponse) {
-            msg = H1Support.fromFullHttpResponse(fullHttpResponse, context.source().url());
+            msg = H1Support.fromFullHttpResponse(fullHttpResponse, context.envelope().url());
             ctx.fireChannelRead(msg);
             Channel channel = ctx.channel();
             NettySupport.unbindURL(channel);
             NettyChannel nettyChannel = NettyChannel.get(channel);
             if (nettyChannel != null) {
-                Http1Client http1Client = protocol().getClient(context.invoker().clientConfig());
+                Http1Client http1Client = protocol().getClient(NetUtil.toAddress(nettyChannel.remoteAddress()));
                 if (http1Client != null) {
                     http1Client.release(channel);
                 }

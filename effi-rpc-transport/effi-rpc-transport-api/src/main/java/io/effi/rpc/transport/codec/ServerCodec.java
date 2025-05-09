@@ -2,32 +2,33 @@ package io.effi.rpc.transport.codec;
 
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.transport.RepackagedRequest;
-import io.effi.rpc.transport.RepackagedResponse;
+import io.effi.rpc.transport.WrappedRequest;
+import io.effi.rpc.transport.WrappedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Server-side codec for encoding and decoding requests and responses.
+ * Encodes and decodes RPC requests and responses on the server side.
  */
 public interface ServerCodec {
 
     /**
-     * Encodes to response from repackaged response.
+     * Encodes the given wrapped response into a response.
      *
-     * @param repackagedResponse the repackaged response
-     * @return the encoded response
+     * @param wrappedResponse the response to encode
+     * @return the encoded response envelope
      */
-    Envelope.Response encode(RepackagedResponse<Callee<?>> repackagedResponse);
+    Envelope.Response encode(WrappedResponse<Callee<?>> wrappedResponse);
 
     /**
-     * Decodes to repackaged request from request.
+     * Decodes the incoming request into a wrapped request.
      *
-     * @param channel the channel
-     * @param request the request
-     * @param callee  the callee
-     * @return the decoded repackaged request
+     * @param channel the communication channel
+     * @param request the original request
+     * @param callee  the callee handling the request
+     * @return the repackaged request
      */
-    RepackagedRequest<Callee<?>> decode(Channel channel, Envelope.Request request, Callee<?> callee);
+    WrappedRequest<Callee<?>> decode(Channel channel, Envelope.Request request, Callee<?> callee);
+
 }
 
 

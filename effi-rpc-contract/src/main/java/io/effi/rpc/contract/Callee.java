@@ -10,11 +10,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 
 /**
- * Server callee for handling remote service calls.
- * <p>
- * Responsible for invoking remote service methods and mapping parameters for the invocation.
- *
- * @param <T> the type of the remote service interface
+ * Represents an RPC callee that can be called by a caller.
  */
 public interface Callee<T> extends Invoker<Object> {
 
@@ -34,7 +30,7 @@ public interface Callee<T> extends Invoker<Object> {
     int methodIndex();
 
     /**
-     * Invokes the current call using the specified invocation context.
+     * Invokes the current callee using the specified invocation context.
      *
      * @param context the invocation context
      * @return the reply context

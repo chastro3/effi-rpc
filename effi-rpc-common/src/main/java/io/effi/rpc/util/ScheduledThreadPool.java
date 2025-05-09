@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Base on {@link ScheduledExecutorService}.
+ * {@link ScheduledExecutorService} implementation of {@link Scheduler}.
  */
 public class ScheduledThreadPool implements Scheduler {
     private final ScheduledExecutorService executorService;

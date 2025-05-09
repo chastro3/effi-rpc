@@ -12,9 +12,6 @@ public final class NetUtil {
 
     private static volatile String LOCAL_HOST = null;
 
-    private NetUtil() {
-    }
-
     /**
      * Validates the given IP and port string.
      * Returns the corresponding InetSocketAddress if valid, null otherwise.
@@ -49,7 +46,7 @@ public final class NetUtil {
             return null; // Invalid port
         }
 
-        return new InetSocketAddress(ip, port);
+        return InetSocketAddress.createUnresolved(ip, port);
     }
 
     /**
@@ -205,5 +202,8 @@ public final class NetUtil {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    private NetUtil() {
     }
 }

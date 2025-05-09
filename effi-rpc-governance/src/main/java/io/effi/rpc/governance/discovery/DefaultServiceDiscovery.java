@@ -1,25 +1,25 @@
 package io.effi.rpc.governance.discovery;
 
-import io.effi.rpc.constant.Component;
-import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.spi.Extension;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.constant.Component;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.module.EffRpcApplication;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryFactory;
+import io.effi.rpc.spi.Extension;
+import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.util.CollectionUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Default implementation of {@link ServiceDiscovery}.
+ * Provides the default implementation of {@link ServiceDiscovery}.
  * <p>Deduplication based on address.</p>
  */
 @Extension(Component.DEFAULT)
@@ -33,7 +33,7 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
             logger.warn("Registry config(s) is empty");
         }
         List<URL> availableServiceUrls = new ArrayList<>();
-        URL url = context.source().url();
+        URL url = context.envelope().url();
         EffRpcApplication application = context.module().application();
         for (URL registryUrl : registryConfigs) {
             var registryService = ExtensionLoader.loadExtension(RegistryFactory.class, registryUrl.protocol()).getService(application, registryUrl);

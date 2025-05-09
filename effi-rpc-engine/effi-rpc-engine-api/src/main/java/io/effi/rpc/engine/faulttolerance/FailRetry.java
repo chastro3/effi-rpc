@@ -15,9 +15,8 @@ import io.effi.rpc.metrics.CallerMetrics;
 import static io.effi.rpc.constant.Component.FaultTolerance.FAIL_RETRY;
 
 /**
- * Fail-retry implementation of {@link FaultTolerance}.
- * Attempts to retry an operation a specified number of
- * times before ultimately failing.
+ * Fail-retry implementation of {@link FaultTolerance}.Attempts to retry an operation a specified
+ * number of times before ultimately failing.
  */
 @Extension(FAIL_RETRY)
 public class FailRetry extends AbstractFaultTolerance {

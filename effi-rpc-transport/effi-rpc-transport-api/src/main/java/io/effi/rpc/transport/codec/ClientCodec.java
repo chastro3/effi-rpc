@@ -3,32 +3,33 @@ package io.effi.rpc.transport.codec;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.ReplyFuture;
-import io.effi.rpc.transport.RepackagedRequest;
-import io.effi.rpc.transport.RepackagedResponse;
+import io.effi.rpc.transport.WrappedRequest;
+import io.effi.rpc.transport.WrappedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Client-side codec for encoding and decoding requests and responses.
+ * Encodes and decodes RPC requests and responses on the client side.
  */
 public interface ClientCodec {
 
     /**
-     * Encodes to request from repackaged request.
+     * Encodes the given wrapped request into a request.
      *
-     * @param repackagedRequest the repackaged request
-     * @return the encoded request
+     * @param wrappedRequest the request to encode
+     * @return the encoded request envelope
      */
-    Envelope.Request encode(RepackagedRequest<Caller<?>> repackagedRequest);
+    Envelope.Request encode(WrappedRequest<Caller<?>> wrappedRequest);
 
     /**
-     * Decodes to repackaged response from response.
+     * Decodes the incoming response into a wrapped response.
      *
-     * @param channel  the channel
-     * @param response the response
-     * @param future   the future
-     * @return the decoded repackaged response
+     * @param channel  the communication channel
+     * @param response the original response
+     * @param future   the associated reply future
+     * @return the wrapped response
      */
-    RepackagedResponse<Caller<?>> decode(Channel channel, Envelope.Response response, ReplyFuture future);
+    WrappedResponse<Caller<?>> decode(Channel channel, Envelope.Response response, ReplyFuture future);
+
 }
 
 

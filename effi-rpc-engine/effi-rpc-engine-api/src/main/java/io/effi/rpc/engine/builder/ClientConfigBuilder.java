@@ -1,22 +1,30 @@
 package io.effi.rpc.engine.builder;
 
 import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.contract.config.CertificateConfig;
 import io.effi.rpc.contract.config.ClientConfig;
 
 /**
- * Builder for creating {@link ClientConfig} instances,defining settings for client.
- *
- * @param <T> The type of {@link ClientConfig}.
- * @param <C> The type of the builder.
+ * Builds {@link ClientConfig} instances and defines configuration for client.
  */
 public abstract class ClientConfigBuilder<T extends ClientConfig, C extends ClientConfigBuilder<T, C>>
         extends NamedConfigBuilder<T, C> {
+
+    protected CertificateConfig certificateConfig;
 
     /**
      * Enables or disables SSL.
      */
     public C ssl(boolean ssl) {
         config.set(DefaultConfigKeys.SSL.key(), String.valueOf(ssl));
+        return returnThis();
+    }
+
+    /**
+     * Sets the certificate configuration.
+     */
+    public C certificate(CertificateConfig certificateConfig) {
+        this.certificateConfig = certificateConfig;
         return returnThis();
     }
 

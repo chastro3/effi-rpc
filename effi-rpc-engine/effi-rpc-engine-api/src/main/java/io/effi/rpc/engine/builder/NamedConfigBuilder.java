@@ -3,10 +3,10 @@ package io.effi.rpc.engine.builder;
 import io.effi.rpc.config.Config;
 import io.effi.rpc.config.ConfigSource;
 import io.effi.rpc.config.FlatConfig;
-import io.effi.rpc.util.ChainBuilder;
+import io.effi.rpc.util.FluentBuilder;
 
 abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
-        implements ChainBuilder<T, C>, ConfigSource {
+        implements FluentBuilder<T, C>, ConfigSource {
 
     protected String name;
 

@@ -11,10 +11,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Lazily initialized {@link Map}.
- *
- * @param <K> the type of keys maintained by this map
- * @param <V> the type of mapped values
+ * Provides lazy initialization for {@link Map}.
  */
 public class LazyMap<K, V> extends LazyInitializer<Map<K, V>> implements Map<K, V> {
 

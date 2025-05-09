@@ -1,19 +1,17 @@
 package io.effi.rpc.contract;
 
 /**
- * Remote client for invoking remote service methods.
- *
- * @param <T> The type of the remote service interface.
+ * Wraps a client interface and manages its internal callers.
  */
 public interface RemoteClient<T> extends InvokerContainer<Caller<?>> {
 
     /**
-     * Returns the target interface of the remote service.
+     * Returns the type of the client interface.
      */
     Class<T> targetType();
 
     /**
-     * Gets the proxy instance of the remote service.
+     * Gets the proxy instance.
      */
     T get();
 }

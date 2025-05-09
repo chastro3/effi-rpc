@@ -1,7 +1,7 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.util.resoruce.Closeable;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.util.resoruce.Closeable;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
 public interface RegistryService extends Closeable {
 
     /**
-     * Connects to the registry.
+     * Connects to the specified registry.
      *
      * @param registryUrl the registry URL
      */

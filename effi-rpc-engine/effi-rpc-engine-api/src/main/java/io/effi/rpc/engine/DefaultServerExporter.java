@@ -3,25 +3,25 @@ package io.effi.rpc.engine;
 import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
-import io.effi.rpc.spi.ExtensionLoader;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.util.collection.LazyList;
 import io.effi.rpc.contract.Callee;
+import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.contract.config.RegistryConfig;
 import io.effi.rpc.contract.config.ServerConfig;
-import io.effi.rpc.contract.repository.CalleeRepository;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.ServerExporter;
+import io.effi.rpc.contract.repository.CalleeRepository;
 import io.effi.rpc.engine.builder.ServerExportBuilder;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryFactory;
 import io.effi.rpc.registry.RegistryService;
+import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.ObjectUtil;
+import io.effi.rpc.util.collection.LazyList;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -58,11 +58,8 @@ public class DefaultServerExporter implements ServerExporter {
         module.serverExporterRepository().register(this);
     }
 
-    /**
-     * Builder method for creating instances of {@link DefaultServerExporter}.
-     */
-    public static DefaultServerExporterBuilder builder() {
-        return new DefaultServerExporterBuilder();
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -83,9 +80,9 @@ public class DefaultServerExporter implements ServerExporter {
     }
 
     @Override
-    public ServerExporter callee(Callee<?>... callee) {
-        if (CollectionUtil.isNotEmpty(callee)) {
-            for (Callee<?> ce : callee) {
+    public ServerExporter callee(Callee<?>... callees) {
+        if (CollectionUtil.isNotEmpty(callees)) {
+            for (Callee<?> ce : callees) {
                 if (exportedUrl.protocol().equals(ce.protocol())) {
                     calleeManager.register(ce);
                 }
@@ -138,13 +135,7 @@ public class DefaultServerExporter implements ServerExporter {
 
     protected Server openServer() {
         Protocol protocol = TransportSupport.getProtocol(exportedUrl.protocol());
-        URL serverUrl = URL.builder()
-                .type(URLType.SERVER)
-                .protocol(exportedUrl.protocol())
-                .address(exportedAddress)
-                .params(serverConfig.config().items())
-                .build();
-        return protocol.openServer(serverUrl, module);
+        return protocol.openServer(serverConfig, exportedAddress, module);
     }
 
     protected void doRegister() {
@@ -177,9 +168,9 @@ public class DefaultServerExporter implements ServerExporter {
     }
 
     /**
-     * Builder class for constructing {@link DefaultServerExporter} instances.
+     * Builds {@link DefaultServerExporter} instances.
      */
-    public static class DefaultServerExporterBuilder extends ServerExportBuilder<DefaultServerExporter, DefaultServerExporterBuilder> {
+    public static class Builder extends ServerExportBuilder<DefaultServerExporter, Builder> {
 
         @Override
         public DefaultServerExporter build() {

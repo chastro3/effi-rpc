@@ -37,8 +37,6 @@ import static io.effi.rpc.engine.AnnotationSupport.checkAnnotationStyle;
 
 /**
  * Annotation implementation of {@link RemoteClient}.
- *
- * @param <T> the type of the interface
  */
 public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?>> implements RemoteClient<T>, InvocationHandler {
 

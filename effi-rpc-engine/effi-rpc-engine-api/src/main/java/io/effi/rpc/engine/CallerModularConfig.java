@@ -39,7 +39,7 @@ public class CallerModularConfig extends InvokerModularConfig<Caller<?>> {
             Class<? extends Envelope.Request> supportedRequestType = getSupportedRequestType(invoker);
             Class<? extends Envelope.Response> supportedResponseType = getSupportedResponseType(invoker);
             for (Filter<?, ?, ?> filter : filters) {
-                FilterType<?, ?> type = FilterSupport.getType(filter);
+                FilterType<?, ?> type = FilterType.extract(filter);
                 Class<? extends Envelope> envelopeType = type.envelopeType();
                 if (type.invokerType().isAssignableFrom(invoker.getClass())) {
                     switch (filter) {

@@ -12,8 +12,6 @@ import java.io.IOException;
 
 /**
  * Collects native-image configuration and generates the corresponding files.
- *
- * @param <T> The type of native configuration.
  */
 public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Helper implements ResourceSection {
 

@@ -1,7 +1,7 @@
 package io.effi.rpc.config;
 
 import static io.effi.rpc.config.ConfigKey.Strategy.*;
-import static io.effi.rpc.constant.Component.H2ClearTextMode.H2C_MODE;
+import static io.effi.rpc.constant.Component.H2ClearTextMode.PREFACE_MODE;
 import static io.effi.rpc.constant.Constant.*;
 
 /**
@@ -54,7 +54,7 @@ public enum DefaultConfigKeys implements ConfigKey {
     INITIAL_WINDOW_SIZE("initialWindowSize", SELF_ONLY, DEFAULT_INITIAL_WINDOW_SIZE),
     MAX_FRAME_SIZE("maxFrameSize", SELF_ONLY, DEFAULT_MAX_FRAME_SIZE),
     MAX_HEADER_LIST_SIZE("maxHeaderListSize", SELF_ONLY, DEFAULT_MAX_HEADER_LIST_SIZE),
-    CLEAR_TEXT_MODE("clearTextMode", SELF_ONLY, H2C_MODE),
+    CLEAR_TEXT_MODE("clearTextMode", SELF_ONLY, PREFACE_MODE),
 
     /* -------------------------registry config----------------------- */
     HEALTH_CHECK_INTERVAL("healthCheckInterval", SELF_ONLY, DEFAULT_HEALTH_CHECK_INTERVAL),

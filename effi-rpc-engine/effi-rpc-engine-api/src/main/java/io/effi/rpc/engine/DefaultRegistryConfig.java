@@ -16,12 +16,6 @@ public class DefaultRegistryConfig extends AbstractNamedConfig implements Regist
         this.url = url;
     }
 
-    /**
-     * Creates and returns a new {@link DefaultRegistryConfigBuilder} instance for constructing
-     * {@link DefaultRegistryConfig} objects using a fluent API.
-     *
-     * @return a new {@link DefaultRegistryConfigBuilder} instance
-     */
     public static DefaultRegistryConfigBuilder builder() {
         return new DefaultRegistryConfigBuilder();
     }
@@ -32,7 +26,7 @@ public class DefaultRegistryConfig extends AbstractNamedConfig implements Regist
     }
 
     /**
-     * Builder class for {@link DefaultRegistryConfig}.
+     * Builds {@link DefaultRegistryConfig} instances.
      */
     public static class DefaultRegistryConfigBuilder extends RegistryConfigBuilder<DefaultRegistryConfig, DefaultRegistryConfigBuilder> {
 

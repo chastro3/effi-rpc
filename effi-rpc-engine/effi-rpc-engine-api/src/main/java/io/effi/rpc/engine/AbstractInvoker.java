@@ -16,8 +16,6 @@ import io.effi.rpc.transport.TransportSupport;
 
 /**
  * Abstract implementation of {@link Invoker}.
- *
- * @param <R> the type of the result
  */
 public abstract class AbstractInvoker<R> extends AbstractAttributes implements Invoker<R> {
 

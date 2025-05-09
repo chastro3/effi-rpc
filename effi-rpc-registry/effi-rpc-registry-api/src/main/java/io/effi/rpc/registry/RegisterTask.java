@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
- * Represents a task that registers metadata for a given URL.
- * It processes the URL using registered metadata handlers and executes a provided task.
+ * Registers metadata for a given URL using registered metadata handlers.
+ * <p>
+ * Processes the URL and executes the associated task.
+ * </p>
  */
 public class RegisterTask implements Runnable {
 
@@ -28,31 +30,19 @@ public class RegisterTask implements Runnable {
         run();
     }
 
-    /**
-     * Returns the config.
-     */
     public URL url() {
         return url;
     }
 
-    /**
-     * Returns the task.
-     */
     public BiConsumer<RegisterTask, Map<String, String>> task() {
         return task;
     }
 
-    /**
-     * Sets the firstRun.
-     */
     public RegisterTask firstRun(boolean firstRun) {
         isFirstRun = firstRun;
         return this;
     }
 
-    /**
-     * Returns the isFirstRun.
-     */
     public boolean isFirstRun() {
         return isFirstRun;
     }

@@ -8,8 +8,6 @@ import java.lang.reflect.Parameter;
 
 /**
  * Handles wrapping of a method argument into an {@link Argument} based on a specific annotation.
- *
- * @param <T> the annotation type
  */
 @FunctionalInterface
 public interface AnnotationParameterWrapperHandler<T extends Annotation> {

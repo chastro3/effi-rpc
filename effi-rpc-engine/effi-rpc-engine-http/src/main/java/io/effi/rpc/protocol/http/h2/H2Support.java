@@ -5,6 +5,7 @@ import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
+import io.effi.rpc.contract.config.ServerConfig;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.exception.PredefinedErrorCode;
@@ -29,6 +30,7 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -195,7 +197,7 @@ public class H2Support {
                 .version(HttpVersion.HTTP_2_0)
                 .method(httpCaller.httpMethod())
                 .statusCode(responseStream.statusCode())
-                .url(context.source().url())
+                .url(context.envelope().url())
                 .headers(fromHttp2Headers(responseStream.headers()))
                 .body(responseStream.body())
                 .build();
@@ -255,7 +257,11 @@ public class H2Support {
     }
 
     public static NettyEndpointConfig getH1config(NettyEndpointConfig h2config) {
-        return Http1Transporter.INSTANCE.initServerConfig(h2config.url(), h2config.module());
+        ServerConfig config = (ServerConfig) h2config.config();
+        URL url = h2config.url();
+        // todo 优化重复创建逻辑
+        InetSocketAddress address = InetSocketAddress.createUnresolved(url.host(), url.port());
+        return Http1Transporter.INSTANCE.initServerConfig(config, address, h2config.module());
     }
 
     private static void configureClearText(Channel channel, NettyEndpointConfig h2config, ChannelManageHandler channelManager) {

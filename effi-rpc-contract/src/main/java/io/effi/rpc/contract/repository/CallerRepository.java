@@ -4,7 +4,7 @@ import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 /**
- * Manage the registration and retrieval of {@link Caller} instances.
+ * Manages the registration and retrieval of {@link Caller} instances.
  */
 public class CallerRepository extends AbstractComponentRepository<Caller<?>> {
 

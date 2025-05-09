@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represent a node in a module hierarchy.
+ * Represents a lifecycle-managed node with a parent-child structure.
  */
 public abstract class Node extends AbstractAttributes implements Lifecycle {
 
@@ -91,24 +91,6 @@ public abstract class Node extends AbstractAttributes implements Lifecycle {
         }
     }
 
-    protected boolean doInit() {
-        return true;
-    }
-
-    protected boolean doStart() {
-        return true;
-    }
-
-    protected boolean doStop() {
-        return true;
-    }
-
-    /**
-     * Adds the child.
-     *
-     * @param child
-     * @return
-     */
     public Node addChild(Node child) {
         if (child != null) {
             if (children == null) {
@@ -122,41 +104,33 @@ public abstract class Node extends AbstractAttributes implements Lifecycle {
         return this;
     }
 
-    /**
-     * Sets the name.
-     *
-     * @param name name
-     */
     public Node name(String name) {
         this.name = name;
         return this;
     }
 
-    /**
-     * Returns the name.
-     *
-     * @return the name
-     */
     public String name() {
         return name;
     }
 
-    /**
-     * Returns the parent.
-     *
-     * @return the parent
-     */
     public Node parent() {
         return parent;
     }
 
-    /**
-     * Returns the children.
-     *
-     * @return the children
-     */
     public Map<String, Node> children() {
         return children;
+    }
+
+    protected boolean doInit() {
+        return true;
+    }
+
+    protected boolean doStart() {
+        return true;
+    }
+
+    protected boolean doStop() {
+        return true;
     }
 
 }

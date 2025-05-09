@@ -58,10 +58,7 @@ public class DefaultRegistryMetaData {
     }
 
     /**
-     * Convert map to DefaultRegistryMetaData.
-     *
-     * @param map
-     * @return
+     * Converts map to DefaultRegistryMetaData.
      */
     public static DefaultRegistryMetaData valueOf(Map<String, String> map) {
         DefaultRegistryMetaData defaultRegistryMetaData = new DefaultRegistryMetaData();
@@ -86,8 +83,6 @@ public class DefaultRegistryMetaData {
 
     /**
      * Sets the cpuUsage.
-     *
-     * @param cpuUsage cpuUsage
      */
     public DefaultRegistryMetaData cpuUsage(double cpuUsage) {
         this.cpuUsage = cpuUsage;
@@ -103,8 +98,6 @@ public class DefaultRegistryMetaData {
 
     /**
      * Sets the memoryUsage.
-     *
-     * @param memoryUsage memoryUsage
      */
     public DefaultRegistryMetaData memoryUsage(double memoryUsage) {
         this.memoryUsage = memoryUsage;
@@ -120,8 +113,6 @@ public class DefaultRegistryMetaData {
 
     /**
      * Sets the connections.
-     *
-     * @param connections connections
      */
     public DefaultRegistryMetaData connections(long connections) {
         this.connections = connections;
@@ -137,8 +128,6 @@ public class DefaultRegistryMetaData {
 
     /**
      * Sets the services.
-     *
-     * @param services services
      */
     public DefaultRegistryMetaData services(int services) {
         this.services = services;
@@ -154,8 +143,6 @@ public class DefaultRegistryMetaData {
 
     /**
      * Sets the loadAverage.
-     *
-     * @param loadAverage loadAverage
      */
     public DefaultRegistryMetaData loadAverage(double loadAverage) {
         this.loadAverage = loadAverage;

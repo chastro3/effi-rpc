@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 /**
- * Abstract implementation of {@link RegistryService}.
+ * Provides an abstract implementation of {@link RegistryService}.
  */
 public abstract class AbstractRegistryService implements RegistryService {
 

@@ -29,8 +29,6 @@ import static io.effi.rpc.engine.AnnotationSupport.checkAnnotationStyle;
 
 /**
  * Annotation implementation of {@link RemoteService}.
- *
- * @param <T> the type of target
  */
 public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
 

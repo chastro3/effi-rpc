@@ -1,20 +1,17 @@
 package io.effi.rpc.protocol.http;
 
+import io.effi.rpc.contract.*;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.Messages;
-import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.contract.Callee;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Result;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.*;
 import io.effi.rpc.transport.AbstractProtocol;
 import io.effi.rpc.transport.Transporter;
 import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.Messages;
+import io.effi.rpc.util.ObjectUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 
@@ -64,7 +61,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
             int statusCode = 200;
             Object value = result.value();
             if (result.hasException()) {
-                value = result.exception().getMessage();
+                value = result.as(ResultType.EXCEPTION).getMessage();
                 statusCode = 500;
             }
             DefaultHttpHeaders headers = new DefaultHttpHeaders();

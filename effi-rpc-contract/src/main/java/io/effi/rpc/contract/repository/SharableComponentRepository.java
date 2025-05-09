@@ -11,8 +11,6 @@ import java.util.List;
 /**
  * Handles shared components of type {@link T},
  * Registering and accessing shared components in a module context.
- *
- * @param <T> the type of values managed by this class
  */
 public abstract class SharableComponentRepository<T> extends AbstractComponentRepository<T> {
 
@@ -23,8 +21,7 @@ public abstract class SharableComponentRepository<T> extends AbstractComponentRe
     }
 
     /**
-     * Registers one or more shared components. If a value is already present,
-     * it will not be added again.
+     * Registers one or more shared components.
      *
      * @param components the components to be registered as shared.
      */
@@ -35,9 +32,6 @@ public abstract class SharableComponentRepository<T> extends AbstractComponentRe
         }
     }
 
-    /**
-     * Returns the list of shared components.
-     */
     public List<T> sharedComponents() {
         return Collections.unmodifiableList(sharedComponents);
     }

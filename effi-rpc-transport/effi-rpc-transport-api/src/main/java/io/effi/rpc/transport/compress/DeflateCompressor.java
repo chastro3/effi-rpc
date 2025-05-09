@@ -12,7 +12,7 @@ import java.util.zip.InflaterInputStream;
 import static io.effi.rpc.constant.Component.Compression.DEFLATE;
 
 /**
- * Deflate implementation of {@link Compressor}.
+ * Implements {@link Compressor} using Deflate.
  */
 @Extension(DEFLATE)
 public class DeflateCompressor extends AbstractCompressor {

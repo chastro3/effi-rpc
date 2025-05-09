@@ -1,18 +1,19 @@
 package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.config.Config;
+import io.effi.rpc.contract.config.CertificateConfig;
 import io.effi.rpc.contract.config.ClientConfig;
-import io.effi.rpc.engine.AbstractNamedConfig;
+import io.effi.rpc.engine.AbstractEndpointConfig;
 
 /**
  * Configuration class for HTTP/2 client settings.
  */
-public class Http2ClientConfig extends AbstractNamedConfig implements ClientConfig {
+public class Http2ClientConfig extends AbstractEndpointConfig implements ClientConfig {
 
     private static final Http2ClientConfig DEFAULT_CONFIG = builder().name("default-http2").build();
 
-    Http2ClientConfig(String protocol, String name, Config config) {
-        super(protocol, name, config);
+    Http2ClientConfig(String protocol, String name, Config config, CertificateConfig certificateConfig) {
+        super(protocol, name, config, certificateConfig);
     }
 
     /**

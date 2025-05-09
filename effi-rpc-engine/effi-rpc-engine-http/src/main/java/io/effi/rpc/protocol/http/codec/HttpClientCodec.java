@@ -2,18 +2,16 @@ package io.effi.rpc.protocol.http.codec;
 
 import io.effi.rpc.config.URL;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.util.DateUtil;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Result;
+import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.parameter.ReplyParser;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
-import io.effi.rpc.transport.RepackagedRequest;
+import io.effi.rpc.transport.WrappedRequest;
 import io.effi.rpc.transport.codec.AbstractClientCodec;
+import io.effi.rpc.util.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 
@@ -32,7 +30,7 @@ public class HttpClientCodec extends AbstractClientCodec<HttpRequest<Object>, Ht
     }
 
     @Override
-    protected Envelope.Request encodeRequest(RepackagedRequest<Caller<?>> repackagedRequest, HttpRequest<Object> request) throws Exception {
+    protected Envelope.Request encodeRequest(WrappedRequest<Caller<?>> wrappedRequest, HttpRequest<Object> request) throws Exception {
         HttpHeaders headers = request.headers();
         headers.add(HttpHeaderNames.HOST, request.url().host());
         request.url().addParam(KeyConstant.UNIQUE_ID, String.valueOf(request.url().get(KeyConstant.ATTR_UNIQUE_ID)));
@@ -46,7 +44,7 @@ public class HttpClientCodec extends AbstractClientCodec<HttpRequest<Object>, Ht
         response.body(replyValue);
         URL url = response.url();
         return response.isSuccess()
-                ? new Result(url, replyValue)
-                : new Result(url, PredefinedErrorCode.INVOKE_SERVICE.fail(null, String.valueOf(replyValue)));
+                ? ResultType.VALUE.createResult(url, replyValue)
+                : ResultType.EXCEPTION.createResult(url, PredefinedErrorCode.INVOKE_SERVICE.fail(null, String.valueOf(replyValue)));
     }
 }

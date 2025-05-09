@@ -8,8 +8,6 @@ import java.util.Map;
 
 /**
  * Abstract implementation of {@link ComponentRepository}.
- *
- * @param <T> the type of components managed
  */
 public abstract class AbstractComponentRepository<T> implements ComponentRepository<T> {
 

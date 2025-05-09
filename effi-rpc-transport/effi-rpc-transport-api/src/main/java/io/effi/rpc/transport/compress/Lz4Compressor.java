@@ -11,7 +11,7 @@ import java.io.IOException;
 import static io.effi.rpc.constant.Component.Compression.LZ4;
 
 /**
- * Lz4 implementation of {@link Compressor}.
+ * Implements {@link Compressor} using Lz4.
  */
 @Extension(LZ4)
 public class Lz4Compressor extends AbstractCompressor {

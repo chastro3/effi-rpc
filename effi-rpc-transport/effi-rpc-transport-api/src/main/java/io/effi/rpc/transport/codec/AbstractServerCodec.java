@@ -1,46 +1,43 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.metrics.CalleeMetrics;
 import io.effi.rpc.metrics.MetricsSupport;
 import io.effi.rpc.metrics.constant.MetricsKey;
 import io.effi.rpc.metrics.event.CalleeMetricsEvent;
-import io.effi.rpc.transport.DefaultRepackagedRequest;
-import io.effi.rpc.transport.RepackagedRequest;
-import io.effi.rpc.transport.RepackagedResponse;
+import io.effi.rpc.transport.DefaultWrappedRequest;
+import io.effi.rpc.transport.WrappedRequest;
+import io.effi.rpc.transport.WrappedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.util.ReflectionUtil;
 
 import java.lang.reflect.Parameter;
 
 /**
- * Abstract implementation of {@link ServerCodec}.
- *
- * @param <RESP> the type of response
- * @param <REQ>  the type of request
+ * Provides an abstract implementation of {@link ServerCodec}.
  */
 public abstract class AbstractServerCodec<RESP extends Envelope.Response, REQ extends Envelope.Request> implements ServerCodec {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Envelope.Response encode(RepackagedResponse<Callee<?>> repackagedResponse) {
-        RESP response = (RESP) repackagedResponse.response();
+    public Envelope.Response encode(WrappedResponse<Callee<?>> wrappedResponse) {
+        RESP response = (RESP) wrappedResponse.response();
         if (!response.isInstance()) {
             return response;
         }
-        var replyContext = repackagedResponse.context();
+        var replyContext = wrappedResponse.context();
         var context = replyContext.invocationContext();
         MetricsSupport.recordSerializeStartTime(context);
         try {
-            return encodeResponse(repackagedResponse, response);
+            return encodeResponse(wrappedResponse, response);
         } catch (Exception e) {
-            throw PredefinedErrorCode.ENCODE.fail(e, Envelope.Response.class, repackagedResponse.getClass());
+            throw PredefinedErrorCode.ENCODE.fail(e, Envelope.Response.class, wrappedResponse.getClass());
         } finally {
             MetricsSupport.recordSerializeEndTime(context);
             Callee<?> callee = replyContext.invoker();
@@ -53,7 +50,7 @@ public abstract class AbstractServerCodec<RESP extends Envelope.Response, REQ ex
 
     @SuppressWarnings("unchecked")
     @Override
-    public RepackagedRequest<Callee<?>> decode(Channel channel, Envelope.Request request, Callee<?> callee) {
+    public WrappedRequest<Callee<?>> decode(Channel channel, Envelope.Request request, Callee<?> callee) {
         long startTime = System.nanoTime();
         try {
             EffiRpcModule module = channel.module();
@@ -71,12 +68,12 @@ public abstract class AbstractServerCodec<RESP extends Envelope.Response, REQ ex
             InvocationContext<Envelope.Request, Callee<?>> context = new InvocationContext<>(module, request, callee, args);
             MetricsSupport.recordDeserializeEndTime(context);
             context.set(MetricsKey.DESERIALIZE_START_TIME, startTime);
-            return new DefaultRepackagedRequest<>(context, channel);
+            return new DefaultWrappedRequest<>(context, channel);
         } catch (Exception e) {
-            throw PredefinedErrorCode.ENCODE.fail(e, DefaultRepackagedRequest.class, request.getClass());
+            throw PredefinedErrorCode.ENCODE.fail(e, DefaultWrappedRequest.class, request.getClass());
         }
     }
 
-    protected abstract Envelope.Response encodeResponse(RepackagedResponse<Callee<?>> repackagedResponse, RESP response) throws Exception;
+    protected abstract Envelope.Response encodeResponse(WrappedResponse<Callee<?>> wrappedResponse, RESP response) throws Exception;
 
 }

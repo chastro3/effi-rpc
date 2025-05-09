@@ -6,11 +6,11 @@ import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.contract.Invoker;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.transport.Protocol;
-import io.effi.rpc.transport.RepackagedEnvelope;
+import io.effi.rpc.transport.WrappedEnvelope;
 import io.effi.rpc.transport.TransportSupport;
 
 /**
- * Abstract implementation of {@link Channel}.
+ * Provides an abstract implementation of {@link Channel}.
  */
 public abstract class AbstractChannel extends AbstractAttributes implements Channel {
 
@@ -28,11 +28,11 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
 
     @Override
     public void send(Object message) {
-        if (message instanceof RepackagedEnvelope<?, ?> repackagedEnvelope) {
-            Invoker<?> invoker = repackagedEnvelope.context().invoker();
+        if (message instanceof WrappedEnvelope<?, ?> wrappedEnvelope) {
+            Invoker<?> invoker = wrappedEnvelope.context().invoker();
             message = TransportSupport.inIOSerialization(invoker)
-                    ? repackagedEnvelope
-                    : repackagedEnvelope.encode().envelope();
+                    ? wrappedEnvelope
+                    : wrappedEnvelope.encode().envelope();
         }
         if (isActive()) doSend(message);
     }

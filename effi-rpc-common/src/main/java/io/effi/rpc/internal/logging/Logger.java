@@ -1,8 +1,8 @@
 package io.effi.rpc.internal.logging;
 
 /**
- * Internal logger for various logging levels.
- * <em>Internal-use-only</em>
+ * Logs messages at various levels.
+ * <p><em>For internal use only.</em></p>
  */
 public interface Logger {
 

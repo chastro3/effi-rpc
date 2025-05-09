@@ -7,9 +7,6 @@ import java.util.Objects;
  */
 public final class AssertUtil {
 
-    private AssertUtil() {
-    }
-
     /**
      * Checks if the condition is true.
      */
@@ -76,6 +73,9 @@ public final class AssertUtil {
         if (!Objects.equals(expected, actual)) {
             throw new AssertionError(message);
         }
+    }
+
+    private AssertUtil() {
     }
 }
 

@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Resolve service URLs using ServiceDiscovery, Router, and LoadBalancer.
+ * Resolves service URLs using ServiceDiscovery, Router, and LoadBalancer.
  */
 public class RegistryLocator implements Locator {
 
@@ -29,16 +29,10 @@ public class RegistryLocator implements Locator {
 
     private final String remoteApplication;
 
-    RegistryLocator(String remoteApplication) {
+    private RegistryLocator(String remoteApplication) {
         this.remoteApplication = AssertUtil.notBlank(remoteApplication, "remoteApplication");
     }
 
-    /**
-     * Gets or creates a RegistryLocator instance.
-     *
-     * @param remoteApplication the remote application name
-     * @return the RegistryLocator instance
-     */
     public static RegistryLocator getInstance(String remoteApplication) {
         AssertUtil.notBlank(remoteApplication, "remoteApplication");
         return RESOURCES.computeIfAbsent(remoteApplication, k -> new RegistryLocator(remoteApplication));
@@ -46,7 +40,7 @@ public class RegistryLocator implements Locator {
 
     @Override
     public InetSocketAddress locate(InvocationContext<Envelope.Request, Caller<?>> context) {
-        context.source().url().address(remoteApplication);
+        context.envelope().url().address(remoteApplication);
         Config config = context.invoker().config();
         // ServiceDiscovery
         ServiceDiscovery serviceDiscovery = ExtensionLoader.loadExtension(ServiceDiscovery.class, config);
@@ -61,7 +55,7 @@ public class RegistryLocator implements Locator {
         List<URL> finalServiceUrls = router.route(context, availableServiceUrls);
         // LoadBalance
         LoadBalancer loadBalancer = ExtensionLoader.loadExtension(LoadBalancer.class, config);
-        URL chosenUrl = loadBalancer.choose(context, finalServiceUrls);
+        URL chosenUrl = loadBalancer.select(context, finalServiceUrls);
         return NetUtil.toInetSocketAddress(chosenUrl.address());
     }
 

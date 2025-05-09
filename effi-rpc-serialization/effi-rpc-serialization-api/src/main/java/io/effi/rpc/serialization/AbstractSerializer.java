@@ -5,7 +5,7 @@ import io.effi.rpc.exception.PredefinedErrorCode;
 import java.lang.reflect.Type;
 
 /**
- * Abstract implementation of {@link Serializer}.
+ * Provides an abstract implementation of {@link Serializer}.
  */
 public abstract class AbstractSerializer implements Serializer {
 

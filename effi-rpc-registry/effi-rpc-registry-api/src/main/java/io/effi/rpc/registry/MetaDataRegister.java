@@ -1,19 +1,19 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.spi.Extensible;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.spi.Extensible;
 
 import java.util.Map;
 
 /**
- * Manages metadata registration for services.
- * <p>Supports extending registered metadata during service registration.</p>
+ * Registers and extends service metadata during registration.
  */
 @Extensible(lazyLoad = false)
 public interface MetaDataRegister {
 
     /**
-     * Processes metadata before service registration.
+     * todo 待优化
+     * Processes metadata before registering the service.
      *
      * @param url      the service URL
      * @param metaData the associated metadata

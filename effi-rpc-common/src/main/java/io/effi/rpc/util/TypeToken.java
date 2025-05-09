@@ -4,8 +4,6 @@ import java.lang.reflect.*;
 
 /**
  * Captures and represents generic type information.
- *
- * @param <T> The type parameter.
  */
 public abstract class TypeToken<T> {
 
@@ -27,9 +25,6 @@ public abstract class TypeToken<T> {
         this.rawType = getRawType(type);
     }
 
-    /**
-     * Creates a TypeToken for the given type.
-     */
     public static <T> TypeToken<T> get(Type type) {
         return new TypeToken<>(type) {};
     }

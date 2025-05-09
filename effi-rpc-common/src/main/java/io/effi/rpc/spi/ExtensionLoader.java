@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 /**
  * Loads and manages extensions for a given type.
  * Handles instantiation, scope management, listener notification, and cleanup.
- *
- * @param <S> the service type for the extensions
  */
 public final class ExtensionLoader<S> implements Cleanable {
 

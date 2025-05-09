@@ -4,7 +4,7 @@ import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
-import io.effi.rpc.transport.RepackagedResponse;
+import io.effi.rpc.transport.WrappedResponse;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.util.LazyInitializer;
 import io.effi.rpc.util.Messages;
@@ -54,17 +54,17 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         addFailedListener(ctx.channel(), msg, promise);
-        if (msg instanceof RepackagedResponse<?> repackagedResponse) {
+        if (msg instanceof WrappedResponse<?> repackagedResponse) {
             super.write(ctx, repackagedResponse.encode().response(), promise);
         } else if (msg instanceof Envelope.Response) {
             super.write(ctx, msg, promise);
         } else {
-            logger.warn(Messages.onlySupport(RepackagedResponse.class));
+            logger.warn(Messages.onlySupport(WrappedResponse.class));
         }
     }
 
     private void addFailedListener(Channel channel, Object msg, ChannelPromise promise) {
-        if (msg instanceof RepackagedResponse<?> || msg instanceof Envelope.Response) {
+        if (msg instanceof WrappedResponse<?> || msg instanceof Envelope.Response) {
             promise.addListener(future -> {
                 if (!future.isSuccess()) {
                     EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());

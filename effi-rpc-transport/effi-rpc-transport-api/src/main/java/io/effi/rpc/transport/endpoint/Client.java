@@ -1,12 +1,12 @@
 package io.effi.rpc.transport.endpoint;
 
 /**
- * Client for connecting to a remote endpoint and get channel.
+ * Represents a client that connects to a remote endpoint and manages channel(s).
  */
 public interface Client extends Endpoint {
 
     /**
-     * Connects to the remote endpoint.
+     * Connects to the remote server.
      */
     void connect();
 

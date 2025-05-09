@@ -2,8 +2,6 @@ package io.effi.rpc.util;
 
 /**
  * Manages the object lifecycle with hooks for each phase.
- *
- * @param <T> the lifecycle object type
  */
 public interface LifecycleConfiguration<T extends Lifecycle> {
 

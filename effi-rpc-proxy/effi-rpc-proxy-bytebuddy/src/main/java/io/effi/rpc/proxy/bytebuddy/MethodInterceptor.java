@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 /**
- * Used to handle interception of interface and instance methods.
+ * Intercepts and handles method invocations on interfaces and instances.
  */
 public class MethodInterceptor implements InvocationHandler {
 
@@ -23,19 +23,10 @@ public class MethodInterceptor implements InvocationHandler {
     }
 
     /**
-     * Used to handle interception of interface methods.
+     * Intercepts interface method invocations.
      */
     public class InterfaceInterceptor {
 
-        /**
-         * Bytebuddy interceptor method.
-         *
-         * @param proxy
-         * @param method
-         * @param args
-         * @return
-         * @throws Throwable
-         */
         @RuntimeType
         public Object intercept(@This Object proxy, @Origin Method method, @AllArguments Object[] args) throws Throwable {
             return invoke(proxy, method, args, () -> null);
@@ -43,24 +34,13 @@ public class MethodInterceptor implements InvocationHandler {
     }
 
     /**
-     * Used to handle interception of instance methods.
+     * Intercepts instance method invocations.
      */
     public class InstanceInterceptor {
-
-        /**
-         * Bytebuddy interceptor method.
-         *
-         * @param proxy
-         * @param method
-         * @param args
-         * @param callable
-         * @return
-         * @throws Throwable
-         */
         @RuntimeType
         public Object intercept(@This Object proxy, @Origin Method method, @AllArguments Object[] args,
                                 @SuperCall Callable<?> callable) throws Throwable {
-            return invoke(proxy, method, args, callable::call);
+            return invoke(proxy, method, args, callable);
         }
     }
 

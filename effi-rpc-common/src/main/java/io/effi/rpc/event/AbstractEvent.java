@@ -6,8 +6,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract implementation of {@link Event}.
- *
- * @param <S> the type of the source
  */
 public abstract class AbstractEvent<S> extends AbstractAttributes implements Event<S> {
 

@@ -13,7 +13,6 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
 
     public Http2ServerConfigBuilder() {
         this.protocol = H2;
-        ssl(true);
     }
 
     /**
@@ -83,6 +82,6 @@ public class Http2ServerConfigBuilder extends ServerConfigBuilder<Http2ServerCon
 
     @Override
     protected Http2ServerConfig build(Config config) {
-        return new Http2ServerConfig(protocol, name, config);
+        return new Http2ServerConfig(protocol, name, config, certificateConfig);
     }
 }

@@ -6,17 +6,11 @@ import io.effi.rpc.config.URL;
 import io.effi.rpc.contract.config.RegistryConfig;
 
 /**
- * Builder for creating {@link RegistryConfig} instances,defining settings for registry.
- *
- * @param <T> The type of {@link RegistryConfig}.
- * @param <C> The type of the builder.
+ * Builds {@link RegistryConfig} instances and defines configuration for registry.
  */
 public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends RegistryConfigBuilder<T, C>>
         extends NamedConfigBuilder<T, C> {
 
-    /**
-     * Registry address.
-     */
     protected String address;
 
     /**

@@ -7,14 +7,10 @@ import io.effi.rpc.contract.context.ExecutorContext;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Default implementation of {@link RepackagedEnvelope}.
- *
- * @param <I> the type of the invoker
- * @param <E> the type of the envelope
- * @param <C> the type of the executor context
+ * Provides the default implementation of {@link WrappedEnvelope}.
  */
-public abstract class DefaultRepackagedEnvelope<E extends Envelope, I extends Invoker<?>,
-        C extends ExecutorContext<E, I, C>> implements RepackagedEnvelope<I, C> {
+public abstract class DefaultWrappedEnvelope<E extends Envelope, I extends Invoker<?>,
+        C extends ExecutorContext<E, I, C>> implements WrappedEnvelope<I, C> {
 
     protected final C context;
 
@@ -22,10 +18,10 @@ public abstract class DefaultRepackagedEnvelope<E extends Envelope, I extends In
 
     protected E envelope;
 
-    protected DefaultRepackagedEnvelope(C context, Channel channel) {
+    protected DefaultWrappedEnvelope(C context, Channel channel) {
         this.context = AssertUtil.notNull(context, "context");
         this.channel = AssertUtil.notNull(channel, "channel");
-        this.envelope = context.source();
+        this.envelope = context.envelope();
     }
 
     @Override

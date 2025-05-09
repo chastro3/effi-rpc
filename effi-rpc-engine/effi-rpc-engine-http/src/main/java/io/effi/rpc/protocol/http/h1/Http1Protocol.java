@@ -1,10 +1,8 @@
 package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.contract.Callee;
 import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpProtocol;
@@ -25,9 +23,8 @@ public class Http1Protocol extends HttpProtocol {
         super(HttpVersion.HTTP_1_1, Http1Transporter.INSTANCE);
     }
 
-    public Http1Client getClient(ClientConfig config) {
-        String key = config.config().getOrDefault(KeyConstant.NAME, config.protocol());
-        return (Http1Client) clients.get(key);
+    public Http1Client getClient(String remoteAddress) {
+        return (Http1Client) clients.get(remoteAddress);
     }
 
     @Override

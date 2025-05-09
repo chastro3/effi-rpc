@@ -5,8 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents a type-safe key used for storing and retrieving attributes.
- *
- * @param <T> the type of value associated with this key
  */
 public final class GenericKey<T> {
 

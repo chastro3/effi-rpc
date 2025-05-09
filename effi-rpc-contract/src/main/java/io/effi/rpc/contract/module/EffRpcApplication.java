@@ -17,12 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Centralized management component for handling {@link EffiRpcModule} instances.
- * <p>
- * Provides a singleton for managing modules, configuration, environment setup,
- * event dispatching, and task scheduling. Supports opening, starting, stopping,
- * and interacting with modules, following a configurable and extensible architecture.
- * </p>
+ * Manages modules, configurations, environments, events, and tasks.
  */
 public class EffRpcApplication extends Node {
 
@@ -56,18 +51,12 @@ public class EffRpcApplication extends Node {
         }
     }
 
-    /**
-     * Returns all {@link EffRpcApplication} instances.
-     */
     public static Collection<EffRpcApplication> all() {
         return APPLICATIONS.values();
     }
 
     /**
      * Retrieves the application name from the URL.
-     *
-     * @param url the URL containing the application name
-     * @return application name
      */
     public static String getName(URL url) {
         String applicationName = null;
@@ -81,22 +70,10 @@ public class EffRpcApplication extends Node {
         return applicationName;
     }
 
-    /**
-     * Gets an {@link EffRpcApplication} by URL.
-     *
-     * @param url the URL for locating the application
-     * @return the corresponding {@link EffRpcApplication}
-     */
     public static EffRpcApplication getInstance(URL url) {
         return getInstance(getName(url));
     }
 
-    /**
-     * Gets an {@link EffRpcApplication} by name.
-     *
-     * @param name the name of the application
-     * @return the corresponding {@link EffRpcApplication}
-     */
     public static EffRpcApplication getInstance(String name) {
         return APPLICATIONS.get(name);
     }
@@ -117,20 +94,12 @@ public class EffRpcApplication extends Node {
         return super.doStop();
     }
 
-    /**
-     * Creates a new {@link EffiRpcModule} with the default configuration.
-     *
-     * @return a new {@link EffiRpcModule} instance
-     */
     public EffiRpcModule newModule() {
         return newModule(null);
     }
 
     /**
      * Creates a new {@link EffiRpcModule} with a specified name.
-     *
-     * @param name the module name
-     * @return a new {@link EffiRpcModule} instance
      */
     public EffiRpcModule newModule(String name) {
         if (StringUtil.isBlank(name)) {
@@ -145,53 +114,30 @@ public class EffRpcApplication extends Node {
         return (EffiRpcModule) children.get(name);
     }
 
-    /**
-     * Publishes an event using the event dispatcher.
-     *
-     * @param event the event to be published
-     */
     public void publishEvent(Event<?> event) {
         eventDispatcher().publish(event);
     }
 
-    /**
-     * Returns the scheduler.
-     */
     public Scheduler scheduler() {
         return scheduler;
     }
 
-    /**
-     * Returns the event dispatcher.
-     */
     public EventDispatcher eventDispatcher() {
         return eventDispatcher;
     }
 
-    /**
-     * Returns the provider configuration.
-     */
     public Config providerConfig() {
         return providerConfig;
     }
 
-    /**
-     * Returns the consumer configuration.
-     */
     public Config consumerConfig() {
         return consumerConfig;
     }
 
-    /**
-     * Returns the defaultModule.
-     */
     public EffiRpcModule defaultModule() {
         return defaultModule;
     }
 
-    /**
-     * Returns the collection of modules in the application.
-     */
     public Collection<EffiRpcModule> modules() {
         if (CollectionUtil.isEmpty(children)) {
             return List.of();

@@ -9,10 +9,7 @@ import io.effi.rpc.util.Attributes;
 import io.effi.rpc.util.TypeToken;
 
 /**
- * Wraps client and server invocations.
- * Clients invoke methods via {@link #invoke(Object...)}, servers process service methods.
- *
- * @param <R> the return type of the invocation
+ * Represents an invocable unit that encapsulates shared behaviors of caller and callee.
  */
 public interface Invoker<R> extends Attributes, ComponentRepository.Key, NodeConfigSource {
 
@@ -27,7 +24,7 @@ public interface Invoker<R> extends Attributes, ComponentRepository.Key, NodeCon
     QueryPath queryPath();
 
     /**
-     * Invokes the method with the given arguments.
+     * Invokes the callee/method with the given arguments.
      *
      * @param args the arguments for the invocation
      * @return the result of the invocation

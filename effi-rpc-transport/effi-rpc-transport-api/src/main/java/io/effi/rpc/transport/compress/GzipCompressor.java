@@ -3,7 +3,6 @@ package io.effi.rpc.transport.compress;
 import io.effi.rpc.spi.Extension;
 import io.effi.rpc.util.FileUtil;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,7 +12,7 @@ import java.util.zip.GZIPOutputStream;
 import static io.effi.rpc.constant.Component.Compression.GZIP;
 
 /**
- * Gzip implementation of {@link Compressor}.
+ * Implements {@link Compressor} using Gzip.
  */
 @Extension(GZIP)
 public class GzipCompressor extends AbstractCompressor {

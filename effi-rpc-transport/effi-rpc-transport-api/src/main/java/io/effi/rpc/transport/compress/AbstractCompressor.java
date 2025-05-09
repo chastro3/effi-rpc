@@ -1,25 +1,35 @@
 package io.effi.rpc.transport.compress;
 
+import io.effi.rpc.exception.PredefinedErrorCode;
+
 import java.io.IOException;
 
 /**
- * Abstract implementation of {@link Compressor}.
+ * Provides an abstract implementation of {@link Compressor}.
  */
 public abstract class AbstractCompressor implements Compressor {
     @Override
-    public byte[] compress(byte[] data) throws IOException {
+    public byte[] compress(byte[] data) {
         if (data == null || data.length == 0) {
             return new byte[0];
         }
-        return doCompress(data);
+        try {
+            return doCompress(data);
+        } catch (IOException e) {
+            throw PredefinedErrorCode.COMPRESS.fail(e);
+        }
     }
 
     @Override
-    public byte[] decompress(byte[] compressedData) throws IOException {
+    public byte[] decompress(byte[] compressedData) {
         if (compressedData == null || compressedData.length == 0) {
             return new byte[0];
         }
-        return doDecompress(compressedData);
+        try {
+            return doDecompress(compressedData);
+        } catch (IOException e) {
+            throw PredefinedErrorCode.DECOMPRESS.fail(e);
+        }
     }
 
     protected abstract byte[] doCompress(byte[] data) throws IOException;

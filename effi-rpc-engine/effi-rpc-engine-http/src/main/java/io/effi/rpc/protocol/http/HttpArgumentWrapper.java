@@ -16,9 +16,9 @@ import java.util.Map;
  */
 public class HttpArgumentWrapper {
 
-    private Map<String, String> headers;
-
     private final URL requestUrl;
+
+    private Map<String, String> headers;
 
     private Object body;
 

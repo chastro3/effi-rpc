@@ -6,12 +6,6 @@ import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.DateUtil;
-import io.effi.rpc.util.Ordered;
-import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.context.InvocationContext;
 import io.effi.rpc.contract.context.ReplyContext;
@@ -20,14 +14,19 @@ import io.effi.rpc.contract.filter.FilterChain;
 import io.effi.rpc.contract.filter.InvokeFilter;
 import io.effi.rpc.contract.filter.ReplyFilter;
 import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.ServerExporter;
 import io.effi.rpc.contract.parameter.MethodMapper;
 import io.effi.rpc.contract.parameter.ParameterMapper;
 import io.effi.rpc.contract.parameter.ParameterParser;
 import io.effi.rpc.engine.builder.CalleeBuilder;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.metrics.CalleeMetrics;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.DateUtil;
+import io.effi.rpc.util.Ordered;
+import io.effi.rpc.util.TypeToken;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -41,8 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Abstract implementation of {@link Callee}.
- *
- * @param <T> the type of service
  */
 public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implements Callee<T> {
 
@@ -128,7 +125,7 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
 
     @Override
     public ReplyContext<Envelope.Response, Callee<?>> invokeWithContext(InvocationContext<Envelope.Request, Callee<?>> context) {
-        URL url = context.source().url();
+        URL url = context.envelope().url();
         AtomicReference<ReplyContext<Envelope.Response, Callee<?>>> replyContext = new AtomicReference<>();
         CalleeModularConfig modularConfig = modularConfigMap.get(context.module());
         List<InvokeFilter<?, ?>> invokeFilters = Ordered.sort(modularConfig.invokeFilters());
@@ -154,7 +151,7 @@ public abstract class AbstractCallee<T> extends AbstractInvoker<Object> implemen
             } catch (EffiRpcException e) {
                 returnValue = e;
             }
-            Result result = new Result(url, returnValue);
+            Result result = Result.create(url, returnValue);
             Envelope.Response response = protocol.createResponse(this, result);
             replyContext.set(new ReplyContext<>(context, response, result));
             var replyFilterContext = replyContext.get().executor(() -> result);

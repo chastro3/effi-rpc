@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Make parameters.
+ * Builds arguments for RPC method mapping.
  */
 public interface Argument {
 
     /**
-     * Represents the source from which the method field obtains its value when configuring {@link MethodMapper}.
+     * Holds source expressions used to extract parameter values in {@link MethodMapper} mapping.
      */
     class Source extends Holder<String> {
 
@@ -21,8 +21,7 @@ public interface Argument {
     }
 
     /**
-     * Represents the target location in the request where the parameters wrapped by this class are added.
-     * Used during the caller invocation.
+     * Stores target parameters for injection during caller invocation.
      */
     class Target extends Holder<Map<String, String>> {
 
@@ -31,11 +30,7 @@ public interface Argument {
         }
 
         /**
-         * Adds a key-value pair to the target map.
-         *
-         * @param key   the key to add
-         * @param value the value associated with the key
-         * @return the current Target instance for method chaining
+         * Adds key-value pairs to the target map.
          */
         public Target add(String key, String value) {
             get().put(key, value);
@@ -44,4 +39,5 @@ public interface Argument {
     }
 
 }
+
 

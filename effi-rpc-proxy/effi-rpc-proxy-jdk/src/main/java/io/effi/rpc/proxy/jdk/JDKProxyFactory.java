@@ -1,16 +1,15 @@
 package io.effi.rpc.proxy.jdk;
 
-import io.effi.rpc.spi.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.proxy.ProxyFactory;
+import io.effi.rpc.spi.Extension;
 
 import java.lang.reflect.Proxy;
 
 import static io.effi.rpc.constant.Component.ProxyFactory.JDK;
 
 /**
- * Jdk implementation of {@link ProxyFactory}.
+ * Implements {@link io.effi.rpc.proxy.ProxyFactory} using Jdk.
  */
 @Extension(JDK)
 public class JDKProxyFactory extends AbstractProxyFactory {

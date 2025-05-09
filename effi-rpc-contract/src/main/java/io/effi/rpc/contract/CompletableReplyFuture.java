@@ -1,13 +1,13 @@
 package io.effi.rpc.contract;
 
 import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.contract.context.ReplyContext;
+import io.effi.rpc.contract.faulttolerance.FaultTolerance;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.contract.context.ReplyContext;
-import io.effi.rpc.contract.faulttolerance.FaultTolerance;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -28,6 +28,10 @@ public class CompletableReplyFuture extends ReplyFuture {
     public CompletableReplyFuture(InvocationContext<Envelope.Request, Caller<?>> context) {
         super(context);
         this.completableFuture = new CompletableFuture<>();
+    }
+
+    @Override
+    public void startTimeout() {
         String timeoutStr = context.invoker().get(DefaultConfigKeys.TIMEOUT);
         if (StringUtil.isNotBlank(timeoutStr)) {
             completableFuture.orTimeout(Long.parseLong(timeoutStr), TimeUnit.MILLISECONDS);
@@ -69,16 +73,10 @@ public class CompletableReplyFuture extends ReplyFuture {
         }
     }
 
-    /**
-     * Returns error count of this future.
-     */
     public AtomicInteger errorCount() {
         return errorCount;
     }
 
-    /**
-     * Returns the completable future of this future.
-     */
     public CompletableFuture<Object> completableFuture() {
         return completableFuture;
     }

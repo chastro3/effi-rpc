@@ -1,35 +1,30 @@
 package io.effi.rpc.contract.parameter;
 
-import io.effi.rpc.spi.Extensible;
 import io.effi.rpc.contract.Caller;
 import io.effi.rpc.contract.Envelope;
 import io.effi.rpc.contract.Result;
+import io.effi.rpc.spi.Extensible;
 
 import static io.effi.rpc.constant.Component.DEFAULT;
 
 /**
- * Handle the extraction and processing of response values.
- *
- * @param <RESP> the type of the response envelope that this resolver handles,
- *               which must extend the {@link Envelope} interface
+ * Parses and converts response into result object.
  */
 @Extensible(DEFAULT)
 public interface ReplyParser<RESP extends Envelope.Response> {
 
     /**
-     * Resolves the specified response into an appropriate object.
+     * Parses the given response and return a resolved result.
      * <p>
-     * It may involve deserialization operations
-     * and modifications to the response body. The resolved data
-     * is returned in a format suitable for further processing or
-     * for returning to the caller.
+     * May involve deserialization and content transformation. The result is
+     * suitable for downstream processing or returning to the original caller.
      * </p>
      *
-     * @param response the response envelope containing the data to be resolved
-     * @param caller   the caller object representing the entity that
-     *                 initiated the request and expects a response
+     * @param response the response envelope to parse
+     * @param caller   the caller that initiated the request
+     * @return the resolved result
      */
     Result resolve(RESP response, Caller<?> caller);
-
 }
+
 

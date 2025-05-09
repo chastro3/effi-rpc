@@ -4,7 +4,7 @@ import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.module.EffiRpcModule;
 
 /**
- * Manage the registration and retrieval of {@link ClientConfig} instances.
+ * Manages the registration and retrieval of {@link ClientConfig} instances.
  */
 public class ClientConfigRepository extends AbstractComponentRepository<ClientConfig> {
 

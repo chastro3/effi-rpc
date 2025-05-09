@@ -23,9 +23,11 @@ public class HttpNegotiationHandler extends ApplicationProtocolNegotiationHandle
     protected void configurePipeline(ChannelHandlerContext ctx, String protocol) throws Exception {
         switch (protocol) {
             case ApplicationProtocolNames.HTTP_2:
+                System.out.println("-------------h2");
                 configurer.configure(ctx.channel(), true);
                 break;
             case ApplicationProtocolNames.HTTP_1_1:
+                System.out.println("-------------h1");
                 configurer.configure(ctx.channel(), false);
                 break;
             default:

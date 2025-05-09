@@ -1,14 +1,14 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.contract.module.EffRpcApplication;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Abstract implementation of {@link RegistryFactory}.
+ * Provides an abstract implementation of {@link RegistryFactory}.
  */
 public abstract class AbstractRegistryFactory implements RegistryFactory {
 

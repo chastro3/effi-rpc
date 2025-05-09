@@ -14,7 +14,7 @@ import io.effi.rpc.internal.logging.LoggerFactory;
 import org.intellij.lang.annotations.Language;
 
 /**
- * Manage all entry configurations.
+ * Manages configurations and components required for RPC.
  */
 public class EffiRpcModule extends Node {
 

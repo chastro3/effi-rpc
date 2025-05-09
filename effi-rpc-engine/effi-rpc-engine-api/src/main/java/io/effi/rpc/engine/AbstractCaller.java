@@ -3,9 +3,6 @@ package io.effi.rpc.engine;
 import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.Ordered;
 import io.effi.rpc.contract.*;
 import io.effi.rpc.contract.config.ClientConfig;
 import io.effi.rpc.contract.config.RegistryConfig;
@@ -14,9 +11,12 @@ import io.effi.rpc.contract.filter.Filter;
 import io.effi.rpc.contract.filter.FilterChain;
 import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.engine.builder.CallerBuilder;
+import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.metrics.CallerMetrics;
 import io.effi.rpc.metrics.MetricsSupport;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.Ordered;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -26,8 +26,6 @@ import java.util.function.Function;
 
 /**
  * Abstract implementation of {@link Caller}.
- *
- * @param <R> the type of the result
  */
 public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFuture<R>> implements Caller<R> {
 
@@ -116,13 +114,13 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
         var rpcContext = context.executor(() -> {
             var filterContext = context.executor(() -> {
                 InetSocketAddress remoteAddress = locator().locate(context);
-                context.source().url().address(remoteAddress);
+                context.envelope().url().address(remoteAddress);
                 var chosenContext = context.executor(() -> {
                     future.whenComplete(replyContext -> {
                         replyContext = replyContext.executor(replyContext::result);
                         FilterChain.execute(replyContext, Ordered.sort(modularConfig.replyFilters()));
                     });
-                    return new Result(context.source().url(), future);
+                    return ResultType.FUTURE.createResult(context.envelope().url(), future);
                 });
                 return FilterChain.execute(chosenContext, Ordered.sort(modularConfig.chosenFilters()));
             });

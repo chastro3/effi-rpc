@@ -1,14 +1,13 @@
 package io.effi.rpc.contract.repository;
 
-import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.contract.filter.Filter;
-import io.effi.rpc.contract.filter.FilterSupport;
 import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.util.CollectionUtil;
 
 import java.util.Arrays;
 
 /**
- * Manage the registration and retrieval of {@link Filter} instances.
+ * Manages the registration and retrieval of {@link Filter} instances.
  */
 public class FilterRepository extends SharableComponentRepository<Filter<?, ?, ?>> {
 
@@ -18,7 +17,7 @@ public class FilterRepository extends SharableComponentRepository<Filter<?, ?, ?
 
     @Override
     public void register(String key, Filter<?, ?, ?> value) {
-        if (FilterSupport.isSupport(value)) {
+        if (Filter.isSupported(value)) {
             super.register(key, value);
         }
 
@@ -28,7 +27,7 @@ public class FilterRepository extends SharableComponentRepository<Filter<?, ?, ?
     public void registerShared(Filter<?, ?, ?>... values) {
         if (CollectionUtil.isNotEmpty(values)) {
             Arrays.stream(values)
-                    .filter(FilterSupport::isSupport).forEach(super::registerShared);
+                    .filter(Filter::isSupported).forEach(super::registerShared);
         }
     }
 }
