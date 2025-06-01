@@ -25,6 +25,8 @@ public interface Constant {
 
     String UNKNOWN_ADDRESS = "unknown";
 
+    String HTTP = "http";
+
     int DEFAULT_TIMEOUT = 4000;
 
     int DEFAULT_HEART_BEAT_INTERVAL = 6000;
@@ -45,7 +47,7 @@ public interface Constant {
 
     int DEFAULT_INTERVAL = 1000;
 
-    int DEFAULT_HEALTH_CHECK_INTERVAL = 5000;
+    int DEFAULT_HEARTBEAT_INTERVAL = 5000;
 
     int DEFAULT_RETRIES = 3;
 
@@ -91,11 +93,13 @@ public interface Constant {
 
     String DEFAULT_TRANSPORTER = Transport.NETTY;
 
-    String SPI_FIX_PATH = "META-INF/effi-rpc/services/";
+    String INTERNAL_PATH = "META-INF/effi-rpc/";
+
+    String SPI_FIX_PATH = INTERNAL_PATH + "services/";
 
     String NATIVE_IMAGE_PREFIX = "META-INF/native-image/";
 
-    String INTERNAL_CERTS_PATH = "META-INF/effi-rpc/internal/certs/";
+    String COMPONENT_PROPERTIES_PATH = INTERNAL_PATH + "component.properties";
 
     String DEFAULT_COMPRESSION = Compression.GZIP;
 

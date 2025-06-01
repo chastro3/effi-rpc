@@ -9,12 +9,12 @@ import java.util.Map;
  */
 public class ConditionItem implements Item {
 
-    @Deprecated
+    //@Deprecated
     private String typeReachable;
 
     private String typeReached;
 
-    @Deprecated
+    //@Deprecated
     public ConditionItem typeReachable(String typeReachable) {
         this.typeReachable = typeReachable;
         return this;

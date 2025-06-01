@@ -5,7 +5,15 @@ import io.effi.rpc.util.ReflectionUtil;
 import org.objectweb.asm.Type;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -88,7 +96,7 @@ public class CompileTimeHelper {
     /**
      * Gets the fully qualified class name including inner class $ notation.
      */
-    public  String getQualifiedClassName(TypeElement typeElement) {
+    public String getQualifiedClassName(TypeElement typeElement) {
         StringBuilder sb = new StringBuilder(64);
         Element current = typeElement;
         while (current.getKind().isClass() || current.getKind().isInterface()) {
@@ -216,9 +224,10 @@ public class CompileTimeHelper {
             }
             Element element = ((DeclaredType) interfaceMirror).asElement();
             if (element.getKind() == ElementKind.INTERFACE && element instanceof TypeElement interfaceElement) {
-                if (filter.test(interfaceElement) && collectedNames.add(interfaceElement.getQualifiedName())) {
-                    collectInterfacesRecursively(interfaceElement, collectedNames, filter);
+                if (filter.test(interfaceElement)) {
+                    collectedNames.add(interfaceElement.getQualifiedName());
                 }
+                collectInterfacesRecursively(interfaceElement, collectedNames, filter);
             }
         }
         TypeMirror superclass = typeElement.getSuperclass();

@@ -1,6 +1,6 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.contract.annotation.EffiRpcClient;
+import io.effi.rpc.annotation.rpc.EffiRpcClient;
 import io.effi.rpc.nativetools.ProxyConfigItem;
 
 import javax.annotation.processing.ProcessingEnvironment;

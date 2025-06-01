@@ -1,12 +1,13 @@
 package demo.provider;
 
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.contract.module.EffRpcApplication;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.parameter.Header;
-import io.effi.rpc.contract.parameter.MethodMapper;
-import io.effi.rpc.engine.ComplexRemoteService;
-import io.effi.rpc.engine.DefaultServerExporter;
+import io.effi.rpc.component.EffiRpcApplication;
+import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.base.parameter.Header;
+import io.effi.rpc.base.parameter.MethodMapper;
+import io.effi.rpc.boot.ComplexRemoteService;
+import io.effi.rpc.boot.DefaultServiceHost;
 import io.effi.rpc.protocol.http.arg.api.HttpMethodMapperBuilder;
 import io.effi.rpc.protocol.http.h2.Http2Callee;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
@@ -18,7 +19,8 @@ import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 public class ApiProvider {
 
     public static void main(String[] args) {
-        EffRpcApplication application = new EffRpcApplication("provider");
+        EffiRpcApplication application = EffiRpcPlatform.init("effi-rpc-platform")
+                .newApplication("provider");
         EffiRpcModule module = application.defaultModule();
         ComplexRemoteService<HelloService> remoteService = new ComplexRemoteService<>(new HelloService());
         MethodMapper<HelloService> methodMapper = new HttpMethodMapperBuilder<>(remoteService, "hello")
@@ -26,18 +28,17 @@ public class ApiProvider {
                 .mappedParameterType(Integer.class, null)
                 .build();
 
-        DefaultServerExporter exporter = DefaultServerExporter.builder()
+        DefaultServiceHost exporter = DefaultServiceHost.builder()
                 .exportedPort(8090)
-                .module(module)
                 .serverConfig(Http2ServerConfig.defaultConfig())
                 .build();
 
         Http2Callee.builder(methodMapper, new HierarchicalNodeConfig())
                 .path("hello")
-                .export(module)
+                .module(module)
                 .build();
 
-        exporter.export();
+        exporter.start();
 
     }
 }

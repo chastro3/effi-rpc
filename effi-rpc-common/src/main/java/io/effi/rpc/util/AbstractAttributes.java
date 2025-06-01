@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
- * Abstract implementation of {@link Attributes}.
+ * Provides an abstract implementation of {@link Attributes}.
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractAttributes implements Attributes {
@@ -44,5 +44,10 @@ public abstract class AbstractAttributes implements Attributes {
     @Override
     public void clear() {
         attributes.clear();
+    }
+
+    @Override
+    public String toString() {
+        return attributes.toString();
     }
 }

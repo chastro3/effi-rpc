@@ -1,10 +1,12 @@
 package io.effi.rpc.governance.discovery;
 
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.config.ExtensionKeys;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.config.registry.RegistryConfig;
+import io.effi.rpc.annotation.spi.Extensible;
 
 import java.util.List;
 
@@ -13,7 +15,7 @@ import static io.effi.rpc.constant.Component.DEFAULT;
 /**
  * Discovers available services from registry center(s).
  */
-@Extensible(DEFAULT)
+@Extensible(value = DEFAULT, key = ExtensionKeys.SERVICE_DISCOVERY)
 public interface ServiceDiscovery {
 
     /**
@@ -23,7 +25,7 @@ public interface ServiceDiscovery {
      * @param registryConfigs the registry configurations
      * @return a list of URLs representing discovered services
      */
-    List<URL> discover(InvocationContext<Envelope.Request, Caller<?>> context, URL... registryConfigs);
+    List<URL> discover(String serviceName, InvocationContext<Envelope.Request, Caller<?>> context, List<RegistryConfig> registryConfigs);
 }
 
 

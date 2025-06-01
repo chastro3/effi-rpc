@@ -21,6 +21,7 @@ public class ResourceCollector implements ResourceSection {
         sections.put(RemoteServiceResourceSection.class, new RemoteServiceResourceSection(processingEnv));
         sections.put(ReflectConfigResourceSection.class, new ReflectConfigResourceSection(processingEnv));
         sections.put(ProxyConfigResourceSection.class, new ProxyConfigResourceSection(processingEnv));
+        sections.put(ScopedComponentResourceSection.class, new ScopedComponentResourceSection(processingEnv));
     }
 
     public <T extends ResourceSection> T section(Class<T> type) {

@@ -1,6 +1,8 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.spi.Extension;
+import io.effi.rpc.annotation.rpc.EffiRpcClient;
+import io.effi.rpc.annotation.rpc.EffiRpcService;
+import io.effi.rpc.annotation.spi.Extension;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -8,13 +10,17 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.effi.rpc.constant.SystemKey.*;
+import static io.effi.rpc.constant.SystemKey.ARTIFACT_ID;
+import static io.effi.rpc.constant.SystemKey.GROUP_ID;
+import static io.effi.rpc.constant.SystemKey.NATIVE_BUILD;
+import static io.effi.rpc.constant.SystemKey.VERSION;
 
 /**
  * Processes Effi-RPC annotations.
@@ -22,8 +28,8 @@ import static io.effi.rpc.constant.SystemKey.*;
  *
  * <ul>
  *   <li>{@link Extension}</li>
- *   <li>{@link io.effi.rpc.contract.annotation.EffiRpcService}</li>
- *   <li>{@link io.effi.rpc.contract.annotation.EffiRpcClient}</li>
+ *   <li>{@link EffiRpcService}</li>
+ *   <li>{@link EffiRpcClient}</li>
  * </ul>
  */
 @SupportedOptions({GROUP_ID, ARTIFACT_ID, VERSION, NATIVE_BUILD})
@@ -41,7 +47,8 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
         processors = List.of(
                 new ExtensionHandler(processingEnv),
                 new RemoteServiceHandler(processingEnv),
-                new RemoteClientHandler(processingEnv)
+                new RemoteClientHandler(processingEnv),
+                new ScopedComponentHandler(processingEnv)
         );
         resourceCollector = new ResourceCollector(processingEnv, processors);
         supportedAnnotation = processors.stream()
@@ -58,7 +65,7 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
             try {
                 resourceCollector.write();
             } catch (IOException e) {
-                processingEnv.getMessager().printError(e.getMessage());
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }
         }
         return false;

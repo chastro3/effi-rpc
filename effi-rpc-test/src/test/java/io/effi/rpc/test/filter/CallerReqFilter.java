@@ -1,9 +1,9 @@
 package io.effi.rpc.test.filter;
 
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Result;
-import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.contract.filter.InvokeFilter;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Result;
+import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.filter.InvokeFilter;
 import io.effi.rpc.protocol.http.h2.Http2Callee;
 
 /**

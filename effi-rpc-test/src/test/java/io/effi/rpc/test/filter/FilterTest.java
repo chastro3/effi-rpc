@@ -1,6 +1,6 @@
 package io.effi.rpc.test.filter;
 
-import io.effi.rpc.contract.filter.FilterType;
+import io.effi.rpc.base.filter.FilterType;
 import org.junit.jupiter.api.Test;
 
 /**

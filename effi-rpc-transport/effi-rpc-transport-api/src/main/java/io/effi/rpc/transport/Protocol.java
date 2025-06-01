@@ -1,29 +1,25 @@
 package io.effi.rpc.transport;
 
+import io.effi.rpc.base.Callee;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Result;
+import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.base.parameter.MethodMapper;
 import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.contract.*;
-import io.effi.rpc.contract.config.ClientConfig;
-import io.effi.rpc.contract.config.ServerConfig;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.contract.parameter.MethodMapper;
-import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.annotation.spi.Extensible;
 import io.effi.rpc.transport.codec.ClientCodec;
 import io.effi.rpc.transport.codec.ServerCodec;
 import io.effi.rpc.transport.endpoint.Channel;
-import io.effi.rpc.transport.endpoint.Client;
-import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.TypeToken;
 import io.effi.rpc.util.resoruce.Cleanable;
 
-import java.net.InetSocketAddress;
-import java.util.Collection;
-
-import static io.effi.rpc.constant.Component.Protocol.H2;
+import static io.effi.rpc.constant.Component.Protocol.HTTP_2;
 
 /**
- * Communication protocol within the system.
+ * Defines protocols for client-server communication and request handling.
  */
-@Extensible(H2)
+@Extensible(HTTP_2)
 public interface Protocol extends Cleanable {
 
     /**
@@ -32,22 +28,9 @@ public interface Protocol extends Cleanable {
     String protocol();
 
     /**
-     * Opens a client, reusing an existing instance if available.
-     *
-     * @param config    the client configuration
-     * @param module the associated module
-     * @return the client instance
+     * Returns the transporter.
      */
-    Client openClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module);
-
-    /**
-     * Opens a server based on the provided configuration.
-     *
-     * @param config    the server configuration
-     * @param module the associated module
-     * @return the server instance
-     */
-    Server openServer(ServerConfig config, InetSocketAddress address, EffiRpcModule module);
+    Transporter transporter();
 
     /**
      * Creates a request for the given caller and arguments.
@@ -80,10 +63,10 @@ public interface Protocol extends Cleanable {
      *
      * @param methodMapper the method mapping
      * @param config       the configuration
-     * @param modules      optional modules
+     * @param module      optional module
      * @return the created callee instance
      */
-    <T> Callee<T> createCallee(MethodMapper<T> methodMapper, NodeConfig config, EffiRpcModule... modules);
+    <T> Callee<T> createCallee(MethodMapper<T> methodMapper, NodeConfig config, EffiRpcModule module);
 
     /**
      * Creates a caller instance with the specified return type and configuration.
@@ -104,16 +87,6 @@ public interface Protocol extends Cleanable {
      * Returns the supported response type.
      */
     Class<? extends Envelope.Response> supportedResponseType();
-
-    /**
-     * Returns all active clients.
-     */
-    Collection<Client> clients();
-
-    /**
-     * Returns all active servers.
-     */
-    Collection<Server> servers();
 
     /**
      * Returns the server-side codec.

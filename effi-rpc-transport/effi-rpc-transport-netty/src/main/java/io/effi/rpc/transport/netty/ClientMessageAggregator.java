@@ -1,13 +1,13 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.ReplyFuture;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.DefaultWrappedRequest;
-import io.effi.rpc.transport.WrappedRequest;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.transport.WrappedRequest;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.util.LazyInitializer;
 import io.effi.rpc.util.Messages;
@@ -20,12 +20,12 @@ import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_READ;
 import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
 
 /**
- * Handle message conversion for client-side communication.
- * - Decodes inbound network messages into Response objects.
- * - Encodes outbound Request objects into network messages.
+ * Converts messages for client-side communication.
+ * - Decodes inbound messages into responses.
+ * - Encodes outbound requests into messages.
  */
 @Sharable
-public class ClientMessageAggregator extends ChannelDuplexHandler {
+public final class ClientMessageAggregator extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageAggregator.class);
 
@@ -37,7 +37,7 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof Envelope.Response response) {
             NettyChannel channel = NettyChannel.get(ctx.channel());
-            TransportSupport.handleResponse(response, channel);
+            if (channel != null) TransportSupport.handleResponse(response, channel);
         } else {
             logger.warn(Messages.onlySupport(Envelope.Response.class));
         }
@@ -78,6 +78,9 @@ public class ClientMessageAggregator extends ChannelDuplexHandler {
 
     public static NamedChannelHandler getInstance() {
         return LAZY_INITIALIZER.get(false);
+    }
+
+    private ClientMessageAggregator() {
     }
 }
 

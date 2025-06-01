@@ -1,19 +1,16 @@
 package io.effi.rpc.governance.router;
 
+import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.constant.Component;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.config.RouterConfig;
-import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.spi.Extension;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.annotation.spi.Extension;
 import io.effi.rpc.util.StringUtil;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -33,7 +30,7 @@ public class DefaultRouter implements Router {
         }
         // filter by router rule
         EffiRpcModule module = context.module();
-        Collection<RouterConfig> routerConfigs = module.routerConfigRepository().components();
+        Collection<RouterConfig> routerConfigs = Collections.emptyList();
         LinkedList<URL> result = new LinkedList<>();
         boolean hadConfig = false;
         for (RouterConfig routerConfig : routerConfigs) {

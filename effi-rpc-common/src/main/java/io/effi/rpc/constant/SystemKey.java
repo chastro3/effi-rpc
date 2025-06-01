@@ -9,7 +9,7 @@ public interface SystemKey {
 
     String PRINT_HEARTBEAT_LOG = "effi-rpc.print.heartbeat.log";
 
-    String PROJECT_NAME = "project.name";
+    String CLIENT_IO_THREADS = "effi-rpc.client.io.threads";
 
     String GROUP_ID = "group.id";
 
@@ -18,4 +18,6 @@ public interface SystemKey {
     String VERSION = "version";
 
     String NATIVE_BUILD = "native.build";
+
+    String JAVA_VERSION = "java.version";
 }

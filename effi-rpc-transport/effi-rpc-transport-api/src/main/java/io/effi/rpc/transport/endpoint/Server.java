@@ -1,30 +1,37 @@
 package io.effi.rpc.transport.endpoint;
 
+import io.effi.rpc.config.transport.ServerConfig;
+
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Represents a server that handles incoming connections and manages active channels.
+ * Accepts incoming connections and manages active channels.
  */
 public interface Server extends Endpoint {
 
     /**
-     * Binds the server, making it ready to accept connections.
+     * Asynchronously binds to the configured address.
      */
-    void bind();
+    CompletableFuture<Void> bind();
 
     /**
-     * Returns all active channels.
+     * Returns active channels.
      */
     Collection<Channel> channels();
 
     /**
-     * Retrieves the channel associated with the given remote address.
+     * Looks up channel mapped to given remote address.
      *
      * @param remoteAddress the remote client address
      * @return the associated {@link Channel}, or {@code null} if not found
      */
-    Channel findChannel(InetSocketAddress remoteAddress);
+    Channel lookupChannel(InetSocketAddress remoteAddress);
+
+    @Override
+    ServerConfig config();
 }
+
 
 

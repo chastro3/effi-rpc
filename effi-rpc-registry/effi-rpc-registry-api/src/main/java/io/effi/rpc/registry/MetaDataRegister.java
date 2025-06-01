@@ -1,7 +1,7 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.config.URL;
-import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.base.ServiceHost;
+import io.effi.rpc.annotation.spi.Extensible;
 
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public interface MetaDataRegister {
      * @param url      the service URL
      * @param metaData the associated metadata
      */
-    void process(URL url, Map<String, String> metaData);
+    void process(ServiceHost serviceHost, Map<String, String> metaData);
 }
 
 

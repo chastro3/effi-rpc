@@ -1,44 +1,60 @@
 package io.effi.rpc.registry;
 
+import io.effi.rpc.base.ServiceHost;
+import io.effi.rpc.component.EffiRpcModule;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.util.resoruce.Closeable;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Manages service registration and discovery in a registry.
+ * Manages service registrations and discoveries in a registry.
  */
 public interface RegistryService extends Closeable {
 
     /**
-     * Connects to the specified registry.
+     * Registers a service into the registry.
      *
-     * @param registryUrl the registry URL
+     * @param serviceName the service name
+     * @param serviceHost the service host
      */
-    void connect(URL registryUrl);
-
-    /**
-     * Registers a service with the registry.
-     *
-     * @param exporterUrl the service URL to register
-     */
-    void register(URL exporterUrl);
+    CompletableFuture<Void> register(String serviceName, ServiceHost serviceHost);
 
     /**
      * Deregisters a service from the registry.
      *
-     * @param exporterUrl the service URL to deregister
+     * @param serviceName the service name
+     * @param serviceHost the service host
      */
-    void deregister(URL exporterUrl);
+    CompletableFuture<Void> deregister(String serviceName, ServiceHost serviceHost);
 
     /**
-     * Discovers services in the registry.
+     * Discovers service(s) from the registry.
      *
-     * @param requestUrl the service discovery URL
-     * @return a list of discovered service URLs
+     * @param serviceName the service name
+     * @param module the module
+     * @return discovered service URLs
      */
-    List<URL> discover(URL requestUrl);
+    CompletableFuture<List<URL>> discover(String serviceName, EffiRpcModule module);
+
+    /**
+     * Represents a registration action.
+     */
+    @FunctionalInterface
+    interface RegistrationAction {
+
+        /**
+         * Executes registration logic with given metadata.
+         *
+         * @param metaData metadata map
+         * @throws Exception if execution fails
+         */
+        CompletableFuture<Void> execute(Map<String, String> metaData);
+    }
 }
+
 
 
 

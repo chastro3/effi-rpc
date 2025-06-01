@@ -1,11 +1,11 @@
 package io.effi.rpc.test.service;
 
-import io.effi.rpc.contract.annotation.EffiRpcService;
+import io.effi.rpc.annotation.rpc.EffiRpcService;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 
-@EffiRpcService
+@EffiRpcService(module = "test")
 public class HelloService {
 
     public String hello(String name) {

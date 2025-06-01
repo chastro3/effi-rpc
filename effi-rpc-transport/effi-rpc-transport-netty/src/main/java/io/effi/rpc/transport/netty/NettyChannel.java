@@ -1,20 +1,21 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.config.URL;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.contract.module.EffiRpcModule;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.AbstractChannel;
+import io.effi.rpc.transport.endpoint.Endpoint;
+import io.effi.rpc.util.AssertUtil;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2StreamChannel;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Netty implementation of {@link io.effi.rpc.transport.endpoint.Channel}.
+ * Implements {@link io.effi.rpc.transport.endpoint.Channel} using Netty.
  */
 public final class NettyChannel extends AbstractChannel {
 
@@ -24,29 +25,21 @@ public final class NettyChannel extends AbstractChannel {
 
     private final Channel channel;
 
-    private NettyChannel(Channel channel, URL endpointUrl, EffiRpcModule module) {
-        super(endpointUrl, module);
+    private NettyChannel(Channel channel, Endpoint endpoint, URL url) {
+        super(endpoint, url);
         this.channel = channel;
         registerCloseCallBack();
     }
 
-    public static NettyChannel getOrCreate(Channel channel, URL endpointUrl, EffiRpcModule module) {
+    public static NettyChannel init(Channel channel, Endpoint endpoint, URL url) {
         AssertUtil.notNull(channel, "channel");
-        return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpointUrl, module));
+        return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpoint, url));
     }
 
     public static NettyChannel get(Channel channel) {
         return CHANNELS.get(channel);
     }
 
-    public static void remove(Channel channel) {
-        if (channel != null) {
-            if (channel.isActive()) {
-                channel.close();
-            }
-            CHANNELS.remove(channel);
-        }
-    }
     @Override
     public InetSocketAddress remoteAddress() {
         return (InetSocketAddress) channel.remoteAddress();
@@ -68,8 +61,8 @@ public final class NettyChannel extends AbstractChannel {
     }
 
     @Override
-    protected void doSend(Object message) {
-        channel.writeAndFlush(message);
+    protected CompletableFuture<io.effi.rpc.transport.endpoint.Channel> doSend(Object message) {
+        return NettySupport.wrap(channel.writeAndFlush(message), endpoint);
     }
 
     public Channel channel() {

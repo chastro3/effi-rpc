@@ -5,12 +5,33 @@ package io.effi.rpc.util;
  */
 public final class ClassUtil {
 
+    public static ClassLoader defaultClassLoader() {
+        ClassLoader cl = null;
+        try {
+            cl = Thread.currentThread().getContextClassLoader();
+        } catch (Throwable ex) {
+            // Ignore the exception and continue
+        }
+        if (cl == null) {
+            cl = ClassUtil.class.getClassLoader();
+            if (cl == null) {
+                try {
+                    cl = ClassLoader.getSystemClassLoader();
+                } catch (Throwable ex) {
+                    // Ignore
+                }
+            }
+        }
+        return cl;
+    }
+
+
     /**
      * Get the class loader for the specified class.
      */
     public static ClassLoader getClassLoader(Class<?> c) {
         ClassLoader cl = null;
-        if (!c.getName().startsWith("io.effi.rpc")) {
+        if (!c.getName().startsWith("org.apache.dubbo")) {
             cl = c.getClassLoader();
         }
         if (cl == null) {

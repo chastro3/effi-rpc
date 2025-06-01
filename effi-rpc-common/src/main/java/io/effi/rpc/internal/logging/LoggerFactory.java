@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import static io.effi.rpc.util.ObjectUtil.simpleClassName;
 
 /**
- * Provides logger instances using supported logging frameworks (e.g., SLF4J, Log4j2, JCL, JDK logging).
+ * Provides logger instance using supported logging frameworks (e.g., SLF4J, Log4j2, JCL, JDK logging).
  * Automatically selects the appropriate LoggerAdapter for the specified class or name.
  */
 public final class LoggerFactory {

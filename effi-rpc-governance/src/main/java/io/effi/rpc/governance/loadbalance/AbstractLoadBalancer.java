@@ -2,9 +2,9 @@ package io.effi.rpc.governance.loadbalance;
 
 import io.effi.rpc.config.URL;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.context.InvocationContext;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
             throw NOT_FOUND_SERVICE.fail(null, context.envelope().url());
         }
         if (urls.size() == 1) {
-            return urls.getFirst();
+            return urls.get(0);
         }
         return doChoose(context, urls);
     }

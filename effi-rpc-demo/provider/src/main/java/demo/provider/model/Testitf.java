@@ -1,6 +1,6 @@
 package demo.provider.model;
 
-import io.effi.rpc.contract.annotation.EffiRpcService;
+import io.effi.rpc.annotation.rpc.EffiRpcService;
 
 /**
  * @Author WenBo Zhou

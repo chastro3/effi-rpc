@@ -22,7 +22,7 @@ public class ReflectConfigItem implements Item {
     /**
      * Optional. Deprecated alias for "type".
      */
-    @Deprecated
+    //@Deprecated
     private String name;
 
     /**
@@ -140,7 +140,7 @@ public class ReflectConfigItem implements Item {
         return this;
     }
 
-    @Deprecated
+    //@Deprecated
     public ReflectConfigItem name(String name) {
         this.name = name;
         return this;
@@ -275,7 +275,16 @@ public class ReflectConfigItem implements Item {
                 .build();
     }
 
-    record MethodConfigItem(String name, List<String> parameterTypes) implements Item {
+    static class MethodConfigItem implements Item {
+
+        private final String name;
+        private final List<String> parameterTypes;
+
+        MethodConfigItem(String name, List<String> parameterTypes) {
+            this.name = name;
+            this.parameterTypes = parameterTypes;
+        }
+
 
         @Override
         public Map<String, Object> toMap() {

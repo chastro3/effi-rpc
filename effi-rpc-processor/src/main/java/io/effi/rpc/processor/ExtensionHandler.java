@@ -1,14 +1,19 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.spi.Extensible;
-import io.effi.rpc.spi.Extension;
-import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.annotation.spi.Extensible;
+import io.effi.rpc.annotation.spi.Extension;
 import io.effi.rpc.nativetools.ConditionItem;
 import io.effi.rpc.nativetools.ReflectConfigItem;
+import io.effi.rpc.util.CollectionUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +35,7 @@ public class ExtensionHandler extends AnnotationHandler<Extension> {
         ReflectConfigResourceSection reflectConfigResourceSection = getResourceSection(ReflectConfigResourceSection.class);
         for (Element element : elements) {
             if (element instanceof TypeElement typeElement) {
+                String extensionName = helper().getQualifiedClassName(typeElement);
                 // Get @Extension
                 AnnotationMirror extensionMirror = helper().getAnnotationMirror(typeElement, Extension.class);
                 // Get interfaces from @Extension#interfaces()
@@ -37,7 +43,6 @@ public class ExtensionHandler extends AnnotationHandler<Extension> {
                 // Get need generate interfaces.
                 Set<Name> neededInterfaces = helper().getAllInterfaceNames(typeElement, item -> isSupportedInterface(item, supportedInterfaces));
                 for (Name interfaceName : neededInterfaces) {
-                    String extensionName = helper().getQualifiedClassName(typeElement);
                     String interfaceNameStr = interfaceName.toString();
                     extensionResourceSection.add(interfaceNameStr, extensionName);
                     ReflectConfigItem reflectConfigItem = new ReflectConfigItem()

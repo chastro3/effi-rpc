@@ -1,91 +1,54 @@
 package io.effi.rpc.transport.netty;
 
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.SystemProperties;
+import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.constant.Constant;
-import io.effi.rpc.transport.endpoint.AbstractClient;
+import io.effi.rpc.constant.SystemKey;
+import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.util.StringUtil;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
-import java.net.ConnectException;
-import java.util.concurrent.TimeUnit;
+import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Netty implementation of {@link Client}.
+ * Implements {@link Client} using Netty.
  */
-public class NettyClient extends AbstractClient {
+public class NettyClient extends AbstractNettyEndpoint<NettyClient, Bootstrap> implements Client {
 
-    protected static final NioEventLoopGroup NIO_EVENT_LOOP_GROUP = new NioEventLoopGroup(Constant.DEFAULT_IO_THREADS, new DefaultThreadFactory("netty-client-worker", false));
+    public static final GenericKey<NioEventLoopGroup> EVENT_LOOP_GROUP_KEY = GenericKey.valueOf("nio-event-loop-group");
 
-    protected NettyEndpointConfig config;
+    protected static final NioEventLoopGroup NIO_EVENT_LOOP_GROUP = getNioEventLoopGroup();
 
-    protected Bootstrap bootstrap;
+    private final Object lock = new Object();
 
-    protected Channel channel;
+    protected volatile CompletableFuture<Channel> connectedFuture;
 
-    public NettyClient(NettyEndpointConfig config) {
-        super(config.url(), config.module());
-        this.config = config;
-        connect();
-    }
-
-    /**
-     * Closes the NioEventLoopGroup gracefully, releasing all resources.
-     */
-    public static void closeNioEventLoopGroup() {
-        NIO_EVENT_LOOP_GROUP.shutdownGracefully();
+    public NettyClient(ClientConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+        super(config, address, platform, new Bootstrap());
     }
 
     @Override
-    protected void doInit() {
-        bootstrap = new Bootstrap();
-        // Configure the bootstrap options
-        bootstrap.group(NIO_EVENT_LOOP_GROUP)
-                .channel(NioSocketChannel.class)
-                .remoteAddress(socketAddress())
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
-                .option(ChannelOption.SO_KEEPALIVE, url().getBooleanParam(DefaultConfigKeys.KEEP_ALIVE))
-                .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-        configureHandler();
-    }
-
-    protected void configureHandler() {
-        bootstrap.handler(buildChannelInitializer());
-    }
-
-    protected ChannelInitializer<SocketChannel> buildChannelInitializer() {
-        return NettySupport.buildClientChannelInitializer(config);
-    }
-
-    @Override
-    protected void doConnect() throws ConnectException {
-        ChannelFuture future = bootstrap.connect();
-        // Wait for the connection to complete
-        boolean success = future.awaitUninterruptibly(connectTimeout, TimeUnit.MILLISECONDS);
-        // Check the outcome of the connection attempt
-        if (success && future.isSuccess()) {
-            channel = future.channel();
-        } else if (future.cause() != null) {
-            ConnectException connectException = new ConnectException();
-            connectException.initCause(future.cause());
-            throw connectException;
-        } else {
-            throw new ConnectException("Connect to " + url().address() + " timeout");
+    public CompletableFuture<Channel> getChannel() {
+        if (connectedFuture == null) {
+            synchronized (lock) {
+                if (connectedFuture == null) {
+                    connectedFuture = NettySupport.wrap(bootstrap.connect(), this);
+                    connectedFuture.thenAccept(channel -> {
+                        this.channel = (NettyChannel) channel;
+                    });
+                }
+            }
         }
-    }
-
-    @Override
-    public void close() {
-        channel.close();
+        return connectedFuture;
     }
 
     @Override
@@ -94,8 +57,55 @@ public class NettyClient extends AbstractClient {
     }
 
     @Override
-    public io.effi.rpc.transport.endpoint.Channel getChannel() {
-        return NettyChannel.get(channel);
+    public void close() {
+        if (channel != null) channel.close();
+    }
+
+    @Override
+    public ClientConfig config() {
+        return (ClientConfig) config;
+    }
+
+    protected void configureOptions(Bootstrap bootstrap) {
+        int connectTimeout = url().getIntParam(DefaultConfigKeys.CONNECT_TIMEOUT);
+        bootstrap.group(NIO_EVENT_LOOP_GROUP)
+                .channel(NioSocketChannel.class)
+                .remoteAddress(socketAddress())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
+        configureIfValid(DefaultConfigKeys.SEND_BUFFER_SIZE, Integer::parseInt, val -> {
+            bootstrap.option(ChannelOption.SO_SNDBUF, val);
+        });
+        configureIfValid(DefaultConfigKeys.RECEIVE_BUFFER_SIZE, Integer::parseInt, val -> {
+            bootstrap.option(ChannelOption.SO_RCVBUF, val);
+        });
+        configureIfValid(DefaultConfigKeys.NO_DELAY, Boolean::parseBoolean, val -> {
+            bootstrap.option(ChannelOption.TCP_NODELAY, val);
+        });
+        configureIfValid(DefaultConfigKeys.KEEP_ALIVE, Boolean::parseBoolean, val -> {
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, val);
+        });
+    }
+
+    @Override
+    protected void configureChannelHandler(Bootstrap bootstrap) {
+        bootstrap.handler(NettySupport.newChannelInitializer(this::configureChannel));
+    }
+
+    private static NioEventLoopGroup getNioEventLoopGroup() {
+        String ioThreadsStr = SystemProperties.getInstance().getParam(SystemKey.CLIENT_IO_THREADS);
+        int ioThreads = Constant.DEFAULT_IO_THREADS;
+        if (StringUtil.isNotBlank(ioThreadsStr)) {
+            try {
+                ioThreads = Math.max(Integer.parseInt(ioThreadsStr), ioThreads);
+            } catch (NumberFormatException ignore) {
+            }
+        }
+        int finalIoThreads = ioThreads;
+        return EffiRpcPlatform.currentPlatform().getOrCreate(
+                EVENT_LOOP_GROUP_KEY,
+                () -> new NioEventLoopGroup(finalIoThreads, new DefaultThreadFactory("netty-client-worker", false)),
+                NioEventLoopGroup::shutdownGracefully
+        );
     }
 }
 

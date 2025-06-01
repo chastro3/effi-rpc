@@ -1,38 +1,40 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.config.URLSource;
+import io.effi.rpc.component.PlatformSource;
+import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.util.Attributes;
 import io.effi.rpc.util.resoruce.Closeable;
-import io.effi.rpc.contract.module.ModuleSource;
-import io.effi.rpc.transport.Protocol;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Represents a communication channel for sending messages.
+ * Handles message transmission over a communication channel.
  */
-public interface Channel extends Attributes, ModuleSource, URLSource, Closeable {
+public interface Channel extends Attributes, PlatformSource, URLSource, Closeable {
 
     /**
-     * Sends a message through the channel.
+     * Sends a message through this channel.
      *
      * @param message the message to send
      */
-    void send(Object message);
+    CompletableFuture<Channel> send(Object message);
 
     /**
-     * Returns the remote address of this channel.
+     * Returns remote address.
      */
     InetSocketAddress remoteAddress();
 
     /**
-     * Returns the local address of this channel.
+     * Returns local address.
      */
     InetSocketAddress localAddress();
 
     /**
-     * Returns the protocol of this channel.
+     * Returns protocol.
      */
     Protocol protocol();
 }
+
 

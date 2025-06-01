@@ -1,10 +1,9 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.module.EffRpcApplication;
+import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.registry.AbstractRegistryFactory;
 import io.effi.rpc.registry.RegistryService;
-import io.effi.rpc.spi.Extension;
+import io.effi.rpc.annotation.spi.Extension;
 
 import static io.effi.rpc.constant.Component.Registry.CONSUL;
 
@@ -15,8 +14,8 @@ import static io.effi.rpc.constant.Component.Registry.CONSUL;
 public class ConsulRegistryFactory extends AbstractRegistryFactory {
 
     @Override
-    protected RegistryService create(EffRpcApplication application, URL url) {
-        return new ConsulRegistryService(application, url);
+    protected RegistryService newService(RegistryConfig config) {
+        return new ConsulRegistryService(config);
     }
 
 }

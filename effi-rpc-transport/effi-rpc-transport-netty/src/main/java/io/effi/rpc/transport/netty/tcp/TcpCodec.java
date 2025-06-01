@@ -29,29 +29,14 @@ public final class TcpCodec {
         decoder = new NettyDecoder(maxReceiveSize);
     }
 
-    /**
-     * Returns the encoder.
-     *
-     * @return the encoder
-     */
     public ChannelHandler encoder() {
         return encoder;
     }
 
-    /**
-     * Returns the decoder.
-     *
-     * @return the decoder
-     */
     public ChannelHandler decoder() {
         return decoder;
     }
 
-    /**
-     * Returns the endpointUrl.
-     *
-     * @return the endpointUrl
-     */
     public URL endpointUrl() {
         return endpointUrl;
     }

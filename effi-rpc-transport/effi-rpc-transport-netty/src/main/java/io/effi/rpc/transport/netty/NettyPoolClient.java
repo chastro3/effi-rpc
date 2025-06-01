@@ -1,62 +1,47 @@
 package io.effi.rpc.transport.netty;
 
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.constant.Constant;
-import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.transport.endpoint.Client;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.pool.ChannelPoolHandler;
+import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.FixedChannelPool;
-import io.netty.util.concurrent.Future;
 
-import java.net.ConnectException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Netty implementation of {@link Client} with a fixed channel pool for efficient connection reuse.
+ * Implements of {@link Client} using Netty, with a fixed channel pool for efficient connection reuse.
  */
 public class NettyPoolClient extends NettyClient {
 
     protected FixedChannelPool channelPool;
 
-    public NettyPoolClient(NettyEndpointConfig config) {
-        super(config);
+    public NettyPoolClient(ClientConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+        super(config, address, platform);
     }
 
     @Override
-    protected void configureHandler() {
-        // Acquire a ChannelPoolHandler for managing channels in the pool
-        // Set up the fixed channel pool with a maximum number of connections
-        int maxConnections = url().getIntParam(DefaultConfigKeys.MAX_CONNECTIONS.key(), Constant.DEFAULT_CLIENT_MAX_CONNECTIONS);
-        channelPool = new FixedChannelPool(bootstrap, buildChannelPoolHandler(), maxConnections);
-    }
-
-    protected ChannelPoolHandler buildChannelPoolHandler() {
-        return NettySupport.buildChannelPoolHandler(config);
-    }
-
-    @Override
-    protected void doConnect() throws ConnectException {
-        // Connection is handled by the channel pool; no direct connection is made here.
+    protected void configureChannelHandler(Bootstrap bootstrap) {
+        int maxConnections = url().getIntParam(DefaultConfigKeys.MAX_CONNECTIONS);
+        channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
+            @Override
+            public void channelCreated(Channel ch) throws Exception {
+                configureChannel(ch);
+            }
+        }, maxConnections);
     }
 
     @Override
-    public io.effi.rpc.transport.endpoint.Channel getChannel() {
-        Future<Channel> future = channelPool.acquire();
-        boolean success = future.awaitUninterruptibly(connectTimeout, TimeUnit.MILLISECONDS);
-        // Check the outcome of acquiring a channel
-        if (success && future.isSuccess()) {
-            return NettyChannel.get(future.getNow());
-        }
-        Throwable cause = future.cause();
-        cause = cause != null ? cause : new TimeoutException("Connect to " + url().address() + " timeout");
-        throw PredefinedErrorCode.GET_CHANNEL.fail(cause, url().address(), url().protocol());
+    public CompletableFuture<io.effi.rpc.transport.endpoint.Channel> getChannel() {
+        return NettySupport.wrap(channelPool.acquire(), this);
     }
 
     @Override
     public boolean isActive() {
-        return isInit;
+        return true;
     }
 
     @Override
@@ -64,11 +49,6 @@ public class NettyPoolClient extends NettyClient {
         channelPool.close();
     }
 
-    /**
-     * Releases the specified channel back to the channel pool.
-     *
-     * @param channel The channel to be released.
-     */
     public void release(Channel channel) {
         channelPool.release(channel);
     }

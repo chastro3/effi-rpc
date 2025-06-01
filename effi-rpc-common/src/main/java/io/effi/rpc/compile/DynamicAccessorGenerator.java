@@ -1,9 +1,17 @@
 package io.effi.rpc.compile;
 
 import io.effi.rpc.util.CollectionUtil;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -12,7 +20,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.AALOAD;
+import static org.objectweb.asm.Opcodes.AASTORE;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ANEWARRAY;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.ASTORE;
+import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.BIPUSH;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.F_SAME;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.NEW;
+import static org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
  * Generates {@link DynamicAccessor} at compile-time and runtime.
@@ -30,6 +64,7 @@ public class DynamicAccessorGenerator {
     public static GeneratedInfo fromClass(Class<?> type) {
         String pkg = type.getPackage().getName();
         String name = type.getSimpleName();
+        String qualifiedName = type.getName();
         Method[] methods = type.getMethods();
         List<MethodInfo> methodInfos = new ArrayList<>(methods.length);
         for (Method method : methods) {
@@ -38,7 +73,7 @@ public class DynamicAccessorGenerator {
             }
         }
         MethodInfo[] infos = methodInfos.toArray(new MethodInfo[0]);
-        return generate(new ClassInfo(pkg, name, infos, type.isInterface()));
+        return generate(new ClassInfo(pkg, name, qualifiedName, infos, type.isInterface()));
     }
 
     /**
@@ -46,6 +81,7 @@ public class DynamicAccessorGenerator {
      */
     public static GeneratedInfo fromTypeElement(TypeElement type, CompileTimeHelper helper) {
         String pkg = helper.getPackage(type);
+        String qualifiedName = helper.getQualifiedClassName(type);
         String name = type.getSimpleName().toString();
         List<? extends Element> members = helper.processingEnv().getElementUtils().getAllMembers(type);
         List<MethodInfo> methods = new ArrayList<>(members.size());
@@ -57,16 +93,16 @@ public class DynamicAccessorGenerator {
             methods.add(MethodInfo.fromExecutableElement(m, helper));
         }
         MethodInfo[] infos = methods.toArray(new MethodInfo[0]);
-        return generate(new ClassInfo(pkg, name, infos, type.getKind() == ElementKind.INTERFACE));
+        return generate(new ClassInfo(pkg, name, qualifiedName, infos, type.getKind() == ElementKind.INTERFACE));
     }
 
     private static GeneratedInfo generate(ClassInfo info) {
         String pkgInternal = info.pkg().replace('.', '/') + '/';
         String internal = pkgInternal + info.name() + DynamicAccessor.SUFFIX;
-        String targetInternal = pkgInternal + info.name();
+        String targetInternal = info.qualifiedName().replace('.', '/');
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-        cw.visit(V21, ACC_PUBLIC | ACC_SUPER, internal, null, DynamicAccessor.INTERNAL_NAME, null);
+        cw.visit(V1_8, ACC_PUBLIC | ACC_SUPER, internal, null, DynamicAccessor.INTERNAL_NAME, null);
         boolean hasMethods = CollectionUtil.isNotEmpty(info.methods());
         if (hasMethods) emitStaticInitializer(cw, internal, info);
         emitConstructor(cw, internal, targetInternal, hasMethods);
@@ -240,7 +276,8 @@ public class DynamicAccessorGenerator {
         mv.visitInsn(ARETURN);
     }
 
-    record ClassInfo(String pkg, String name, MethodInfo[] methods, boolean isInterface) {}
+    record ClassInfo(String pkg, String name, String qualifiedName, MethodInfo[] methods, boolean isInterface) {
+    }
 
     record MethodInfo(String name, Type[] parameterTypes, Type returnType, String descriptor, int modifiers) {
 

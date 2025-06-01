@@ -1,6 +1,6 @@
 package demo.provider.model;
 
-import io.effi.rpc.contract.annotation.EffiRpcService;
+import io.effi.rpc.annotation.rpc.EffiRpcService;
 
 @EffiRpcService
 public class TestitfImpl implements Testitf {

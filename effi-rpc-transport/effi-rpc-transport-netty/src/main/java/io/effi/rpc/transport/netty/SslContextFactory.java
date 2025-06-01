@@ -1,6 +1,8 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.contract.config.CertificateConfig;
+import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.transport.CertificateConfig;
+import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -8,7 +10,6 @@ import io.effi.rpc.util.collection.LazyMap;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.*;
 
-import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,27 +30,29 @@ public class SslContextFactory {
     private static final Map<String, SslContext> CLIENT_SSL_CONTEXT = new LazyMap<>(ConcurrentHashMap::new);
 
     /**
-     * Builds server-side SSL context with specified protocols and certificate config.
-     *
-     * @param supportedProtocols supported protocol array
-     * @param config             certificate configuration
-     * @return server-side SSL context
+     * Returns a server-side SSL context, creating it if necessary,
+     * using specified protocols and configuration.
      */
-    public static SslContext getForServer(String[] supportedProtocols, CertificateConfig config) {
-        String key = sslContextKey(supportedProtocols, config.name());
-        return SERVER_SSL_CONTEXT.computeIfAbsent(key, k -> createSslContext(supportedProtocols, config, true));
+    public static SslContext getOrCreateForServer(String[] supportedProtocols, EndpointConfig config) {
+        return getOrCreate(supportedProtocols, config, true);
     }
 
     /**
-     * Builds client-side SSL context with specified protocols and certificate config.
-     *
-     * @param supportedProtocols supported protocol array
-     * @param config             certificate configuration
-     * @return client-side SSL context
+     * Returns a client-side SSL context, creating it if necessary,
+     * using specified protocols and configuration.
      */
-    public static SslContext getForClient(String[] supportedProtocols, CertificateConfig config) {
+    public static SslContext getOrCreateForClient(String[] supportedProtocols, EndpointConfig config) {
+        return getOrCreate(supportedProtocols, config, false);
+    }
+
+    private static SslContext getOrCreate(String[] supportedProtocols, EndpointConfig config, boolean isServer) {
+        if (!sslEnabled(config)) {
+            return null;
+        }
         String key = sslContextKey(supportedProtocols, config.name());
-        return CLIENT_SSL_CONTEXT.computeIfAbsent(key, k -> createSslContext(supportedProtocols, config, false));
+        Map<String, SslContext> contextMap = isServer ? SERVER_SSL_CONTEXT : CLIENT_SSL_CONTEXT;
+        return contextMap.computeIfAbsent(key,
+                k -> createSslContext(supportedProtocols, config.certificateConfig(), isServer));
     }
 
     private static SslContext createSslContext(String[] supportedProtocols, CertificateConfig config, boolean isServer) {
@@ -66,6 +69,7 @@ public class SslContextFactory {
             if (trustCert != null) {
                 builder.trustManager(trustCert);
             }
+
             if (isServer) handleClientAuth(builder, config, trustCert);
 
             return builder.sslProvider(SSL_PROVIDER)
@@ -89,6 +93,20 @@ public class SslContextFactory {
         }
     }
 
+    private static SslProvider findSslProvider() {
+        if (OpenSsl.isAvailable()) {
+            logger.info("Using OPENSSL provider.");
+            return SslProvider.OPENSSL;
+        } else {
+            logger.info("Using JDK provider.");
+            return SslProvider.JDK;
+        }
+    }
+
+    private static boolean sslEnabled(EndpointConfig config) {
+        return config.getBooleanParam(DefaultConfigKeys.SSL);
+    }
+
     private static String sslContextKey(String[] supportedProtocols, String name) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < supportedProtocols.length; i++) {
@@ -101,6 +119,11 @@ public class SslContextFactory {
             builder.append('-').append(name);
         }
         return builder.toString();
+    }
+
+    private static InputStream newInputStream(byte[] bytes) {
+        if (bytes == null) return null;
+        return new ByteArrayInputStream(bytes);
     }
 
     private static void close(InputStream... inputStreams) {
@@ -117,47 +140,11 @@ public class SslContextFactory {
         }
     }
 
-    private static InputStream newInputStream(byte[] bytes) {
-        if (bytes == null) return null;
-        return new ByteArrayInputStream(bytes);
-    }
-
     private static void handleClientAuth(SslContextBuilder builder, CertificateConfig config, InputStream trustCert) {
         if (trustCert != null) {
             builder.clientAuth(config.clientAuthEnabled() ? ClientAuth.REQUIRE : ClientAuth.OPTIONAL);
         } else {
             builder.clientAuth(ClientAuth.NONE);
-        }
-    }
-
-    private static SslProvider findSslProvider() {
-        if (OpenSsl.isAvailable()) {
-            logger.info("Using OPENSSL provider.");
-            return SslProvider.OPENSSL;
-        } else {
-            logger.warn("OpenSSL not available: " + OpenSsl.unavailabilityCause());
-        }
-        if (checkJdkSslSupport()) {
-            logger.info("Using JDK provider.");
-            return SslProvider.JDK;
-        }
-        throw new IllegalStateException(
-                "No valid TLS provider found. Please check your environment and dependencies.\n" +
-                        "Suggestions:\n" +
-                        " - Add netty-tcnative-boringssl-static for OpenSSL support\n" +
-                        " - Ensure your JDK supports TLS and ALPN\n" +
-                        " - Alternatively, consider using Conscrypt or Jetty ALPN/NPN extensions"
-        );
-    }
-
-    private static boolean checkJdkSslSupport() {
-        try {
-            SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, null, null);
-            return true;
-        } catch (Exception e) {
-            logger.warn("JDK SSLContext initialization failed: " + e.getMessage());
-            return false;
         }
     }
 }

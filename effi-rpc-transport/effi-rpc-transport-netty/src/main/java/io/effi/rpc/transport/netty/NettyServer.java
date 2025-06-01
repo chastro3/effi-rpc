@@ -1,77 +1,62 @@
 package io.effi.rpc.transport.netty;
 
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.transport.endpoint.AbstractServer;
-import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.config.URL;
+import io.effi.rpc.config.transport.ServerConfig;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.util.NetUtil;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * Netty implementation of {@link io.effi.rpc.transport.endpoint.Server}.
+ * Implements {@link Server} using Netty.
  */
-public class NettyServer extends AbstractServer {
+public class NettyServer extends AbstractNettyEndpoint<NettyServer, ServerBootstrap> implements Server {
 
-    protected NettyEndpointConfig config;
-
-    protected Channel channel;
-
-    protected ServerBootstrap bootstrap;
+    private final Object lock = new Object();
 
     protected NioEventLoopGroup bossGroup;
 
     protected NioEventLoopGroup workerGroup;
 
-    public NettyServer(NettyEndpointConfig config) {
-        super(config.url(), config.module());
-        this.config = AssertUtil.notNull(config, "config");
-        bind();
+    protected volatile CompletableFuture<Void> boundFuture;
+
+    protected ChannelManageHandler channelManager;
+
+    public NettyServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+        super(config, address, platform, new ServerBootstrap());
     }
 
     @Override
-    protected void doInit() {
-        int workThreads = url().getIntParam(DefaultConfigKeys.MAX_THREADS);
-        int maxUnConnections = url().getIntParam(DefaultConfigKeys.MAX_UN_CONNECTIONS);
-        ChannelManageHandler channelManageHandler = new ChannelManageHandler(this.activeChannels, this);
-        bootstrap = new ServerBootstrap();
-        bossGroup = new NioEventLoopGroup(1, buildThreadFactory("server-boss"));
-        workerGroup = new NioEventLoopGroup(workThreads, buildThreadFactory("server-worker"));
-        bootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, maxUnConnections)
-                //.option(ChannelOption.TCP_FASTOPEN_CONNECT, true)
-                .childOption(ChannelOption.SO_KEEPALIVE, url().getBooleanParam(DefaultConfigKeys.KEEP_ALIVE))
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-        configureChildHandler(channelManageHandler);
-    }
-
-    protected void configureChildHandler(ChannelManageHandler channelManageHandler) {
-        bootstrap.childHandler(NettySupport.buildServerChannelInitializer(config, channelManageHandler));
-    }
-
-
-    @Override
-    protected void doBind() throws Throwable {
-        ChannelFuture future = bootstrap.bind(port()).syncUninterruptibly();
-        if (!future.isSuccess()) {
-            throw future.cause();
+    public CompletableFuture<Void> bind() {
+        if (boundFuture == null) {
+            synchronized (lock) {
+                if (boundFuture == null) {
+                    ChannelFuture future = bootstrap.bind();
+                    boundFuture = new CompletableFuture<>();
+                    future.addListener(v -> {
+                        if (future.isSuccess()) {
+                            boundFuture.complete(null);
+                        } else {
+                            boundFuture.completeExceptionally(future.cause());
+                        }
+                    });
+                }
+            }
         }
-        channel = future.channel();
-
-    }
-
-    @Override
-    protected void doClose() throws Throwable {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        return boundFuture;
     }
 
     @Override
@@ -79,9 +64,84 @@ public class NettyServer extends AbstractServer {
         return channel != null && channel.isActive();
     }
 
-    private ThreadFactory buildThreadFactory(String name) {
+    @Override
+    public void close() {
+        for (Channel channel : channels()) {
+            try {
+                channel.close();
+            } catch (Throwable e) {
+                throw PredefinedErrorCode.CLOSE_CHANNEL.fail(e, channel.remoteAddress());
+            }
+        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+    }
+
+    @Override
+    public Channel lookupChannel(InetSocketAddress remoteAddress) {
+        for (Channel channel : channels()) {
+            if (NetUtil.isSameAddress(channel.remoteAddress(), remoteAddress)) {
+                return channel;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public ServerConfig config() {
+        return (ServerConfig) config;
+    }
+
+    @Override
+    public Collection<Channel> channels() {
+        return channelManager.activeChannels();
+    }
+
+    public ChannelManageHandler channelManager() {
+        return channelManager;
+    }
+
+    @Override
+    protected void initialBootStrap() {
+        this.channelManager = new ChannelManageHandler(this);
+        super.initialBootStrap();
+    }
+
+    @Override
+    protected void configureOptions(ServerBootstrap bootstrap) {
+        URL url = url();
+        int bossThreads = url.getIntParam(DefaultConfigKeys.CONNECTION_HANDLER_THREADS);
+        int workThreads = url.getIntParam(DefaultConfigKeys.REQUEST_PROCESSOR_THREADS);
+        bossGroup = new NioEventLoopGroup(bossThreads, newThreadFactory("server-boss"));
+        workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
+        bootstrap.group(bossGroup, workerGroup)
+                .localAddress(host(), port())
+                .channel(NioServerSocketChannel.class);
+        configureIfValid(DefaultConfigKeys.ACCEPT_BACKLOG, Integer::parseInt, val -> {
+            bootstrap.option(ChannelOption.SO_BACKLOG, val);
+        });
+        configureIfValid(DefaultConfigKeys.SEND_BUFFER_SIZE, Integer::parseInt, val -> {
+            bootstrap.childOption(ChannelOption.SO_SNDBUF, val);
+        });
+        configureIfValid(DefaultConfigKeys.RECEIVE_BUFFER_SIZE, Integer::parseInt, val -> {
+            bootstrap.childOption(ChannelOption.SO_RCVBUF, val);
+        });
+        configureIfValid(DefaultConfigKeys.NO_DELAY, Boolean::parseBoolean, val -> {
+            bootstrap.childOption(ChannelOption.TCP_NODELAY, val);
+        });
+        configureIfValid(DefaultConfigKeys.KEEP_ALIVE, Boolean::parseBoolean, val -> {
+            bootstrap.childOption(ChannelOption.SO_KEEPALIVE, val);
+        });
+    }
+
+    @Override
+    protected void configureChannelHandler(ServerBootstrap bootstrap) {
+        bootstrap.childHandler(NettySupport.newChannelInitializer(this::configureChannel));
+    }
+
+    private ThreadFactory newThreadFactory(String name) {
         String protocol = url().protocol();
-        name = name + "-" + protocol;
+        name = name + "-(" + protocol + ")";
         return new DefaultThreadFactory(name, false);
     }
 

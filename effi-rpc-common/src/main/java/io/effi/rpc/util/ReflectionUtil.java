@@ -1,8 +1,19 @@
 package io.effi.rpc.util;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -11,11 +22,13 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public final class ReflectionUtil {
 
+    private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
+
     private static final Set<String> OBJECT_METHOD_NAMES;
 
     private static final Set<String> OBJECT_METHOD_SIGNATURES;
 
-    // stores some commonly used annotation instances
+    // stores some commonly used annotation instance
     private static final Map<Class<? extends Annotation>, Annotation> DEFAULT_ANNOTATION_MAP = new LinkedHashMap<>();
 
     static {
@@ -133,7 +146,7 @@ public final class ReflectionUtil {
         // Create an instance of the class
         try {
             return parameterTypes == null
-                    ? type.getConstructor(new Class[]{}).newInstance()
+                    ? type.getConstructor(EMPTY_CLASS_ARRAY).newInstance()
                     : type.getConstructor(parameterTypes).newInstance(args);
         } catch (Exception e) {
             throw new RuntimeException("Create Instance is Failed for " + type.getName(), e);
@@ -339,37 +352,25 @@ public final class ReflectionUtil {
     private static String valueToString(Object value) {
         if (value instanceof String) {
             return "\"" + value + "\"";
-        } else if (value.getClass().isArray()) {
-            switch (value) {
-                case Object[] objects -> {
-                    return Arrays.deepToString(objects);
-                }
-                case boolean[] booleans -> {
-                    return Arrays.toString(booleans);
-                }
-                case byte[] bytes -> {
-                    return Arrays.toString(bytes);
-                }
-                case char[] chars -> {
-                    return Arrays.toString(chars);
-                }
-                case double[] doubles -> {
-                    return Arrays.toString(doubles);
-                }
-                case float[] floats -> {
-                    return Arrays.toString(floats);
-                }
-                case int[] ints -> {
-                    return Arrays.toString(ints);
-                }
-                case long[] longs -> {
-                    return Arrays.toString(longs);
-                }
-                case short[] shorts -> {
-                    return Arrays.toString(shorts);
-                }
-                default -> {
-                }
+        } else if (value != null && value.getClass().isArray()) {
+            if (value instanceof Object[]) {
+                return Arrays.deepToString((Object[]) value);
+            } else if (value instanceof boolean[]) {
+                return Arrays.toString((boolean[]) value);
+            } else if (value instanceof byte[]) {
+                return Arrays.toString((byte[]) value);
+            } else if (value instanceof char[]) {
+                return Arrays.toString((char[]) value);
+            } else if (value instanceof double[]) {
+                return Arrays.toString((double[]) value);
+            } else if (value instanceof float[]) {
+                return Arrays.toString((float[]) value);
+            } else if (value instanceof int[]) {
+                return Arrays.toString((int[]) value);
+            } else if (value instanceof long[]) {
+                return Arrays.toString((long[]) value);
+            } else if (value instanceof short[]) {
+                return Arrays.toString((short[]) value);
             }
         }
         return String.valueOf(value);

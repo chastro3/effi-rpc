@@ -1,7 +1,9 @@
 package io.effi.rpc.transport.endpoint;
 
+import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.util.AssertUtil;
 
 import java.net.InetSocketAddress;
@@ -9,23 +11,19 @@ import java.net.InetSocketAddress;
 /**
  * Provides an abstract implementation of {@link Endpoint}.
  */
-public abstract class AbstractEndpoint implements Endpoint {
+public abstract class AbstractEndpoint extends PlatformSource.Holder implements Endpoint {
 
-    protected URL url;
-
-    protected EffiRpcModule module;
+    protected EndpointConfig config;
 
     protected InetSocketAddress address;
 
-    protected AbstractEndpoint(URL url, EffiRpcModule module) {
-        this.url = AssertUtil.notNull(url, "url");
-        this.module = AssertUtil.notNull(module, "module");
-        this.address = InetSocketAddress.createUnresolved(url.host(), url.port());
-    }
+    protected URL url;
 
-    @Override
-    public EffiRpcModule module() {
-        return module;
+    protected AbstractEndpoint(EndpointConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+        super(platform);
+        this.config = AssertUtil.notNull(config, "config");
+        this.address = AssertUtil.notNull(address, "address");
+        this.url = config.newUrl(address);
     }
 
     @Override

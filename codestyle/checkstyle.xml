@@ -47,12 +47,11 @@
             <property name="allowMissingReturnTag" value="true"/>
         </module>
 
-<!--         <module name="MissingJavadocMethod"> -->
-<!--             <property name="allowMissingPropertyJavadoc" value="true"/> -->
-<!--             <property name="tokens" value="METHOD_DEF,ANNOTATION_FIELD_DEF"/> -->
-<!--             <property name="allowedAnnotations" value="Override,Bean"/> -->
-<!--         </module> -->
-
+        <module name="MissingJavadocMethod">
+            <property name="allowMissingPropertyJavadoc" value="true"/>
+            <property name="tokens" value="METHOD_DEF,ANNOTATION_FIELD_DEF"/>
+            <property name="allowedAnnotations" value="Override,Bean"/>
+        </module>
         <module name="JavadocType">
             <property name="allowUnknownTags" value="true"/>
             <property name="allowMissingParamTags" value="true"/>

@@ -1,44 +1,41 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.config.URL;
+import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.transport.endpoint.Server;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Manage active Channel connections for {@link Server}.
+ * Tracks and manages active {@link Channel} connections for a {@link Server}.
  */
 @Sharable
 public class ChannelManageHandler extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "channelManageHandler";
 
-    private final URL serverUrl;
+    private final Map<String, Channel> activeChannels;
 
-    private final EffiRpcModule module;
-
-    private final Map<String, io.effi.rpc.transport.endpoint.Channel> activeChannels;
-
-    public ChannelManageHandler(Map<String, io.effi.rpc.transport.endpoint.Channel> activeChannels, Server server) {
-        this.activeChannels = AssertUtil.notNull(activeChannels, "activeChannels");
+    public ChannelManageHandler(Server server) {
         AssertUtil.notNull(server, "server");
-        this.serverUrl = server.url();
-        this.module = server.module();
+        this.activeChannels = new ConcurrentHashMap<>();
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        Channel channel = ctx.channel();
-        String remoteAddress = NetUtil.toAddress((InetSocketAddress) channel.remoteAddress());
-        activeChannels.put(remoteAddress, NettyChannel.get(channel));
+        NettyChannel channel = NettyChannel.get(ctx.channel());
+        if (channel != null) {
+            String remoteAddress = NetUtil.toAddress(channel.remoteAddress());
+            activeChannels.put(remoteAddress, channel);
+        }
         super.channelActive(ctx);
     }
 
@@ -47,6 +44,10 @@ public class ChannelManageHandler extends ChannelInboundHandlerAdapter {
         String remoteAddress = NetUtil.toAddress((InetSocketAddress) ctx.channel().remoteAddress());
         activeChannels.remove(remoteAddress);
         super.channelInactive(ctx);
+    }
+
+    public Collection<Channel> activeChannels() {
+        return Collections.unmodifiableCollection(activeChannels.values());
     }
 
 }

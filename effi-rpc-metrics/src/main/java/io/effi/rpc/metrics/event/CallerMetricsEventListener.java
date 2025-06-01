@@ -1,6 +1,6 @@
 package io.effi.rpc.metrics.event;
 
-import io.effi.rpc.event.EventListener;
+import io.effi.rpc.base.event.EventListener;
 import io.effi.rpc.util.AtomicUtil;
 import io.effi.rpc.metrics.CallerMetrics;
 

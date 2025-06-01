@@ -20,7 +20,7 @@ abstract class AbstractLogger implements Logger {
     @Override
     public void trace(Throwable e) {
         if (isTraceEnabled()) {
-            trace(null, e);
+            trace(StringUtil.empty(), e);
         }
     }
 
@@ -40,7 +40,7 @@ abstract class AbstractLogger implements Logger {
     @Override
     public void debug(Throwable e) {
         if (isDebugEnabled()) {
-            debug(null, e);
+            debug(StringUtil.empty(), e);
         }
     }
 
@@ -60,7 +60,7 @@ abstract class AbstractLogger implements Logger {
     @Override
     public void info(Throwable e) {
         if (isInfoEnabled()) {
-            info(null, e);
+            info(StringUtil.empty(), e);
         }
     }
 
@@ -80,7 +80,7 @@ abstract class AbstractLogger implements Logger {
     @Override
     public void warn(Throwable e) {
         if (isWarnEnabled()) {
-            warn(null, e);
+            warn(StringUtil.empty(), e);
         }
     }
 
@@ -100,7 +100,7 @@ abstract class AbstractLogger implements Logger {
     @Override
     public void error(Throwable e) {
         if (isErrorEnabled()) {
-            error(null, e);
+            error(StringUtil.empty(), e);
         }
     }
 

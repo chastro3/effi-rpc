@@ -1,40 +1,46 @@
 package io.effi.rpc.transport.endpoint;
 
+import io.effi.rpc.base.Invoker;
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.transport.WrappedEnvelope;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.contract.Invoker;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.transport.Protocol;
-import io.effi.rpc.transport.WrappedEnvelope;
-import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.util.StringUtil;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Provides an abstract implementation of {@link Channel}.
  */
 public abstract class AbstractChannel extends AbstractAttributes implements Channel {
 
-    protected final URL endpointUrl;
+    protected final Endpoint endpoint;
 
-    protected final EffiRpcModule module;
+    protected final URL url;
 
     protected final Protocol protocol;
 
-    protected AbstractChannel(URL endpointUrl, EffiRpcModule module) {
-        this.endpointUrl = AssertUtil.notNull(endpointUrl, "endpointUrl");
-        this.module = AssertUtil.notNull(module, "module");
-        this.protocol = TransportSupport.getProtocol(endpointUrl.protocol());
+    protected AbstractChannel(Endpoint endpoint, URL url) {
+        this.endpoint = AssertUtil.notNull(endpoint, "endpoint");
+        this.url = AssertUtil.notNull(url, "url");
+        this.protocol = TransportSupport.getProtocol(url.protocol());
     }
 
     @Override
-    public void send(Object message) {
+    public CompletableFuture<Channel> send(Object message) {
         if (message instanceof WrappedEnvelope<?, ?> wrappedEnvelope) {
             Invoker<?> invoker = wrappedEnvelope.context().invoker();
             message = TransportSupport.inIOSerialization(invoker)
                     ? wrappedEnvelope
                     : wrappedEnvelope.encode().envelope();
         }
-        if (isActive()) doSend(message);
+        if (isActive()) {
+            return doSend(message);
+        }
+        return CompletableFuture.completedFuture(this);
     }
 
     @Override
@@ -44,18 +50,18 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
 
     @Override
     public URL url() {
-        return endpointUrl;
+        return url;
     }
 
     @Override
-    public EffiRpcModule module() {
-        return module;
+    public EffiRpcPlatform platform() {
+        return endpoint.platform();
     }
 
     @Override
     public String toString() {
-        return String.format("local=%s, remote=%s, active=%b", localAddress(), remoteAddress(), isActive());
+        return StringUtil.format("local={}, remote={}, active={}", localAddress(), remoteAddress(), isActive());
     }
 
-    protected abstract void doSend(Object message);
+    protected abstract CompletableFuture<Channel> doSend(Object message);
 }

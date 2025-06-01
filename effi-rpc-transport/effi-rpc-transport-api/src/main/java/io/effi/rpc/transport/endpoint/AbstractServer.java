@@ -1,43 +1,21 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.config.transport.ServerConfig;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides an abstract implementation of {@link Server}.
  */
 public abstract class AbstractServer extends AbstractEndpoint implements Server {
 
-    protected Map<String, Channel> activeChannels;
-
-    private boolean isInit = false;
-
-    protected AbstractServer(URL url, EffiRpcModule module) {
-        super(url, module);
-        this.activeChannels = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public void bind() {
-        if (isActive()) {
-            return;
-        }
-        if (!isInit) {
-            doInit();
-            isInit = true;
-        }
-        try {
-            doBind();
-        } catch (Throwable e) {
-            throw PredefinedErrorCode.BIND.fail(e, url().authority());
-        }
+    protected AbstractServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+        super(config, address, platform);
+        initialize();
     }
 
     @Override
@@ -57,12 +35,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
     }
 
     @Override
-    public Collection<Channel> channels() {
-        return activeChannels.values();
-    }
-
-    @Override
-    public Channel findChannel(InetSocketAddress remoteAddress) {
+    public Channel lookupChannel(InetSocketAddress remoteAddress) {
         for (Channel channel : channels()) {
             if (NetUtil.isSameAddress(channel.remoteAddress(), remoteAddress)) {
                 return channel;
@@ -72,13 +45,16 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
     }
 
     @Override
-    public String toString() {
-        return String.format("config=%s, active=%s", url(), isActive());
+    public ServerConfig config() {
+        return (ServerConfig) config;
     }
 
-    protected abstract void doInit();
+    @Override
+    public String toString() {
+        return StringUtil.format("config={}, active={}", url(), isActive());
+    }
 
-    protected abstract void doBind() throws Throwable;
+    protected abstract void initialize();
 
     protected abstract void doClose() throws Throwable;
 

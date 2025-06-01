@@ -3,41 +3,41 @@ package io.effi.rpc.transport.netty;
 import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
+import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.contract.config.EndpointConfig;
-import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.base.ReplyFuture;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.transport.endpoint.Endpoint;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.pool.AbstractChannelPoolHandler;
-import io.netty.channel.pool.ChannelPoolHandler;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
-import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.concurrent.Future;
 
-import java.io.*;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Utility class for netty operations.
+ * Provides netty operations.
  */
 public class NettySupport {
 
-    public static final AttributeKey<URL> REQUEST_URL = AttributeKey.valueOf("requestUrl");
+    private static final AttributeKey<Long> FUTURE_ID = AttributeKey.valueOf("futureId");
 
-    /**
-     * Checks if the given URL config is pooled client.
-     */
-    public static boolean isPooledClient(URL url) {
-        int maxConnections = url.getIntParam(DefaultConfigKeys.MAX_CONNECTIONS);
-        return maxConnections > 1;
-
+    public static <T extends Channel> ChannelInitializer<T> newChannelInitializer(Consumer<T> configure) {
+        return new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(T channel) {
+                configure.accept(channel);
+            }
+        };
     }
-
     /**
      * Converts ByteBuf to byte array.
      */
@@ -49,45 +49,39 @@ public class NettySupport {
         }
     }
 
-    /**
-     * Gets ssl bytes.
-     */
-    public static byte[] getSslBytes(String systemDir, String defaultPath) throws IOException {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        String caPath = System.getProperty(systemDir);
-        InputStream caStream = null;
-        try {
-            if (StringUtil.isBlank(caPath)) {
-                caStream = classLoader.getResourceAsStream(defaultPath);
-            } else {
-                caStream = new FileInputStream(caPath);
-            }
-            if (caStream != null) {
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = caStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, length);
-                }
-                return outputStream.toByteArray();
-            }
-            return null;
-        } finally {
-            if (caStream != null) {
-                caStream.close();
-            }
-        }
+    public static CompletableFuture<io.effi.rpc.transport.endpoint.Channel> wrap(ChannelFuture future, Endpoint endpoint) {
+        return wrapInternal(future, endpoint, ChannelFuture::channel);
     }
 
-    /**
-     * Converts byte array to InputStream.
-     */
-    public static InputStream readBytes(byte[] bytes) {
-        if (bytes == null) {
-            throw new IllegalArgumentException("bytes can't null");
-        }
-        return new ByteArrayInputStream(bytes);
+    public static CompletableFuture<io.effi.rpc.transport.endpoint.Channel> wrap(Future<? extends Channel> future, Endpoint endpoint) {
+        return wrapInternal(future, endpoint, result -> future.getNow());
     }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Future<?>> CompletableFuture<io.effi.rpc.transport.endpoint.Channel> wrapInternal(T future, Endpoint endpoint, java.util.function.Function<T, Channel> channelExtractor) {
+        CompletableFuture<io.effi.rpc.transport.endpoint.Channel> promise = new CompletableFuture<>();
+        future.addListener(result -> {
+            T typedResult = (T) result;
+            if (typedResult.isSuccess()) {
+                try {
+                    Channel channel = channelExtractor.apply(typedResult);
+                    NettyChannel nettyChannel = NettyChannel.get(channel);
+                    if (nettyChannel != null) {
+                        promise.complete(nettyChannel);
+                    } else {
+                        promise.completeExceptionally(wrapChannelException(null, endpoint));
+                    }
+                } catch (Exception e) {
+                    promise.completeExceptionally(wrapChannelException(e, endpoint));
+                }
+            } else {
+                promise.completeExceptionally(wrapChannelException(typedResult.cause(), endpoint));
+            }
+        });
+        long connectTimeout = endpoint.url().getLongParam(DefaultConfigKeys.CONNECT_TIMEOUT);
+        return promise.orTimeout(connectTimeout, TimeUnit.MILLISECONDS);
+    }
+
 
     /**
      * Gets or creates ssl context.
@@ -97,121 +91,35 @@ public class NettySupport {
         return sslEnabled ? creator.get() : null;
     }
 
-    /**
-     * Builds server channel initializer.
-     */
-    public static ChannelInitializer<SocketChannel> buildServerChannelInitializer(NettyEndpointConfig config, ChannelManageHandler channelManager) {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(SocketChannel ch) throws Exception {
-                initServerChannel(ch, config, channelManager);
-            }
-        };
+    public static void bindFutureId(Long futureId, Channel channel) {
+        channel.attr(FUTURE_ID).set(futureId);
     }
 
-    /**
-     * Builds client channel initializer.
-     */
-    public static ChannelInitializer<SocketChannel> buildClientChannelInitializer(NettyEndpointConfig config) {
-        return new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(SocketChannel ch) throws Exception {
-                initClientChannel(ch, config);
-            }
-        };
+    public static void unbindFutureId(Channel channel) {
+        channel.attr(FUTURE_ID).set(null);
     }
 
-    /**
-     * Builds channel pool handler.
-     */
-    public static ChannelPoolHandler buildChannelPoolHandler(NettyEndpointConfig config) {
-        return new AbstractChannelPoolHandler() {
-            @Override
-            public void channelCreated(Channel ch) throws Exception {
-                initClientChannel(ch, config);
-            }
-        };
-    }
-
-    /**
-     * Binds config to current channel.
-     */
-    public static void bindURL(URL url, Channel channel) {
-        channel.attr(REQUEST_URL).set(url);
-    }
-
-    /**
-     * Removes config from current channel.
-     */
-    public static void unbindURL(Channel channel) {
-        Attribute<URL> attr = channel.attr(REQUEST_URL);
-        attr.set(null);
-    }
-
-    /**
-     * Gets config from current channel.
-     */
-    public static URL getBoundChannel(Channel channel) {
-        return channel.attr(REQUEST_URL).get();
-    }
-
-    /**
-     * Initializes client channel.
-     */
-    public static void initClientChannel(Channel channel, NettyEndpointConfig config) {
-        ChannelPipeline pipeline = channel.pipeline();
-        NettyChannel.getOrCreate(channel, config.url(), config.module());
-        SslContext sslContext = config.sslContext();
-        if (sslContext != null)
-            pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
-        addCommonHandlers(pipeline, config);
-    }
-
-    /**
-     * Initializes server channel.
-     */
-    public static void initServerChannel(Channel channel, NettyEndpointConfig config, ChannelManageHandler channelManager) {
-        ChannelPipeline pipeline = channel.pipeline();
-        NettyChannel.getOrCreate(channel, config.url(), config.module());
-        SslContext sslContext = config.sslContext();
-        if (sslContext != null && pipeline.get(HandlerNames.SSL) == null)
-            pipeline.addLast(HandlerNames.SSL, sslContext.newHandler(channel.alloc()));
-        if (channelManager != null)
-            pipeline.addLast(ChannelManageHandler.NAME, channelManager);
-        addCommonHandlers(pipeline, config);
-    }
-
-    /**
-     * Removes all handlers from pipeline.
-     */
-    public static void removeAllHandlers(ChannelPipeline pipeline) {
-        List<String> names = pipeline.names();
-        for (String name : names) {
-            pipeline.remove(name);
-        }
+    public static ReplyFuture getBoundFuture(Channel channel) {
+        Long futureId = channel.attr(FUTURE_ID).get();
+        return futureId == null ? null : ReplyFuture.getFuture(futureId);
     }
 
     /**
      * Builds request config.
      */
-    public static URL buildRequestUrl(URL serverUrl, String path) {
+    public static URL createRequestUrl(NettyChannel channel, String path) {
         URL requestUrl = URL.builder()
                 .type(URLType.REQUEST)
-                .protocol(serverUrl.protocol())
-                .address(serverUrl.address())
+                .protocol(channel.protocol().protocol())
+                .address(channel.localAddress())
                 .path(path)
                 .build();
         requestUrl.addParam(KeyConstant.ONEWAY, Boolean.FALSE.toString());
         return requestUrl;
     }
 
-    private static void addCommonHandlers(ChannelPipeline pipeline, NettyEndpointConfig config) {
-        NettyIdleStateHandler idleStateHandler = new NettyIdleStateHandler(config.url(), config.module());
-        pipeline.addLast(HandlerNames.IDLE_STATE, idleStateHandler);
-        pipeline.addLast(HandlerNames.HEARTBEAT, idleStateHandler.heartBeatHandler());
-        NamedChannelHandler codec = config.codec();
-        pipeline.addLast(codec.name(), codec.handler());
-        List<NamedChannelHandler> handlers = config.handlers();
-        handlers.forEach(handler -> pipeline.addLast(handler.name(), handler.handler()));
+    private static EffiRpcException wrapChannelException(Throwable cause, Endpoint endpoint) {
+        URL url = endpoint.url();
+        return PredefinedErrorCode.GET_CHANNEL.fail(cause, url.authority(), url.protocol());
     }
 }

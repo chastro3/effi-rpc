@@ -1,13 +1,11 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Invoker;
-import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Invoker;
+import io.effi.rpc.base.context.InvocationContext;
 
 /**
- * Represents a repackaged request.
- *
- * @param <T> the type of the invoker
+ * Represents a wrapped request.
  */
 public interface WrappedRequest<T extends Invoker<?>> extends WrappedEnvelope<T, InvocationContext<Envelope.Request, T>> {
 

@@ -1,7 +1,7 @@
 package io.effi.rpc.internal.logging;
 
 /**
- * Provides logger instances based on the given name.
+ * Provides logger instance based on the given name.
  */
 public interface LoggerAdapter {
 

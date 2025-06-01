@@ -1,7 +1,7 @@
 package io.effi.rpc.processor;
 
 import io.effi.rpc.compile.DynamicAccessor;
-import io.effi.rpc.contract.annotation.EffiRpcService;
+import io.effi.rpc.annotation.rpc.EffiRpcService;
 import io.effi.rpc.nativetools.ConditionItem;
 import io.effi.rpc.nativetools.ReflectConfigItem;
 

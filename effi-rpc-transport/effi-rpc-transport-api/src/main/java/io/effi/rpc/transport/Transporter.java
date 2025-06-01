@@ -1,36 +1,49 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.contract.config.ClientConfig;
-import io.effi.rpc.contract.config.ServerConfig;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.spi.Extensible;
+import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.config.transport.ClientConfig;
+import io.effi.rpc.config.transport.ServerConfig;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.util.resoruce.Cleanable;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
 
 /**
- * Creates clients and servers.
+ * Controls and manages endpoint.
  */
-@Extensible
-public interface Transporter {
+public interface Transporter extends Cleanable {
 
     /**
-     * Connects to a remote server.
+     * Returns an existing or newly created server.
      *
-     * @param url    the client configuration
-     * @param module the associated module
-     * @return the connected client
+     * @param config  the server config
+     * @param address the bind address
+     * @param platform  the module
+     * @return server instance
      */
-    Client connect(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcModule module);
+    Server getServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform);
 
     /**
-     * Binds a server to the specified URL.
+     * Returns an existing or newly created client.
      *
-     * @param url    the server configuration
-     * @param module the associated module
-     * @return the bound server
+     * @param config        the client config
+     * @param remoteAddress the remote  address
+     * @param platform        the module
+     * @return client instance
      */
-    Server bind(ServerConfig config, InetSocketAddress address, EffiRpcModule module);
+    Client getClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcPlatform platform);
+
+    /**
+     * Returns all managed servers.
+     */
+    Collection<Server> servers();
+
+    /**
+     * Returns all managed clients.
+     */
+    Collection<Client> clients();
 }
+
 

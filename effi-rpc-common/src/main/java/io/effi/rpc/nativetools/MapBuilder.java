@@ -33,21 +33,23 @@ public final class MapBuilder {
     @SuppressWarnings("unchecked")
     public MapBuilder put(String key, Object value) {
         if (value != null) {
-            switch (value) {
-                case Item item -> map.put(key, item.toMap());
-                case List<?> list -> {
-                    if (!list.isEmpty()) {
-                        if (list.getFirst() instanceof Item) {
-                            map.put(key, Item.toMapList((List<? extends Item>) list));
-                        } else {
-                            map.put(key, value);
-                        }
+            if (value instanceof Item item) {
+                map.put(key, item.toMap());
+            } else if (value instanceof List<?> list) {
+                if (!list.isEmpty()) {
+                    Object first = list.get(0);
+                    if (first instanceof Item) {
+                        map.put(key, Item.toMapList((List<? extends Item>) list));
+                    } else {
+                        map.put(key, value);
                     }
                 }
-                case Boolean b -> {
-                    if (b) map.put(key, true);
+            } else if (value instanceof Boolean b) {
+                if (b) {
+                    map.put(key, true);
                 }
-                default -> map.put(key, value);
+            } else {
+                map.put(key, value);
             }
         }
         return this;

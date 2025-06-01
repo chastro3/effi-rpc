@@ -9,6 +9,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public interface KeyConstant {
 
+    String REQUEST_REMOTE_APPLICATION = "effi-rpc-remote-application";
+
+    String REQUEST_REMOTE_MODULE = "effi-rpc-remote-module";
+
     String UNIQUE_ID = "uniqueId";
 
     String NAME = "name";
@@ -45,23 +49,13 @@ public interface KeyConstant {
 
     String ENABLE_HEALTH_CHECK = "enableHealthCheck";
 
-    String SUBSCRIBES = "subscribes";
-
-    String CA_PATH = "effi-rpc.h2.ca.path";
-
-    String CLIENT_CERT_PATH = "effi-rpc.http.client.cert.path";
-
-    String CLIENT_KEY_PATH = "effi-rpc.http.client.key.path";
-
-    String SERVER_CERT_PATH = "effi-rpc.http.server.cert.path";
-
-    String SERVER_KEY_PATH = "effi-rpc.http.server.key.path";
-
     GenericKey<Long> ATTR_UNIQUE_ID = GenericKey.valueOf(UNIQUE_ID);
 
     GenericKey<AtomicInteger> IDLE_COUNT = GenericKey.valueOf("idleCount");
 
     GenericKey<AtomicInteger> LAST_CALL_INDEX = GenericKey.valueOf("lastCallIndex");
+
+    GenericKey<String> SOURCE_PROTOCOL = GenericKey.valueOf("sourceProtocol");
 
     String TRANSPORTER = "transporter";
 

@@ -1,15 +1,13 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Invoker;
-import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Invoker;
+import io.effi.rpc.base.context.InvocationContext;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Default implementation of {@link WrappedRequest}.
- *
- * @param <I> the type of the invoker
+ * Provides the default implementation of {@link WrappedRequest}.
  */
 public class DefaultWrappedRequest<I extends Invoker<?>>
         extends DefaultWrappedEnvelope<Envelope.Request, I, InvocationContext<Envelope.Request, I>>

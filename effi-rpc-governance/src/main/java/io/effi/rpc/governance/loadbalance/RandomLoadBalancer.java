@@ -1,10 +1,10 @@
 package io.effi.rpc.governance.loadbalance;
 
-import io.effi.rpc.spi.Extension;
+import io.effi.rpc.annotation.spi.Extension;
 import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.Caller;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.context.InvocationContext;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.context.InvocationContext;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;

@@ -1,12 +1,16 @@
 package io.effi.rpc.registry;
 
+import io.effi.rpc.base.ServiceHost;
+import io.effi.rpc.config.registry.RegistryConfig;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.spi.ExtensionLoader;
-import io.effi.rpc.config.URL;
+import io.effi.rpc.util.AssertUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Registers metadata for a given URL using registered metadata handlers.
@@ -16,46 +20,47 @@ import java.util.function.BiConsumer;
  */
 public class RegisterTask implements Runnable {
 
-    private static final List<MetaDataRegister> REGISTER_META_DATA = ExtensionLoader.loadExtensions(MetaDataRegister.class);
+    private static final Logger logger = LoggerFactory.getLogger(RegisterTask.class);
 
-    private final URL url;
+    private static final List<MetaDataRegister> META_DATA_REGISTERS = ExtensionLoader.loadExtensions(MetaDataRegister.class);
 
-    private final BiConsumer<RegisterTask, Map<String, String>> task;
+    private final RegistryConfig config;
 
-    private boolean isFirstRun = true;
+    private final ServiceHost serviceHost;
 
-    public RegisterTask(URL url, BiConsumer<RegisterTask, Map<String, String>> task) {
-        this.url = url;
-        this.task = task;
-        run();
+    private final RegistryService.RegistrationAction registrationAction;
+
+    private final String serviceName;
+
+    public RegisterTask(RegistryConfig config, String serviceName, ServiceHost serviceHost,
+                        RegistryService.RegistrationAction registrationAction) {
+        this.config = AssertUtil.notNull(config, "config");
+        this.serviceName = AssertUtil.notBlank(serviceName, "serviceName");
+        this.serviceHost = AssertUtil.notNull(serviceHost, "serviceHost");
+        this.registrationAction = AssertUtil.notNull(registrationAction, "registrationAction");
     }
 
-    public URL url() {
-        return url;
-    }
-
-    public BiConsumer<RegisterTask, Map<String, String>> task() {
-        return task;
-    }
-
-    public RegisterTask firstRun(boolean firstRun) {
-        isFirstRun = firstRun;
-        return this;
-    }
-
-    public boolean isFirstRun() {
-        return isFirstRun;
+    public CompletableFuture<Void> execute() {
+        Map<String, String> metaData = new HashMap<>();
+        for (MetaDataRegister metaDataRegister : META_DATA_REGISTERS) {
+            metaDataRegister.process(serviceHost, metaData);
+        }
+        return registrationAction.execute(metaData);
     }
 
     @Override
     public void run() {
-        Map<String, String> metaData = new HashMap<>();
-        REGISTER_META_DATA.forEach(metaDataRegister -> metaDataRegister.process(url, metaData));
-        task.accept(this, metaData);
+        execute().exceptionally(ex -> {
+            logger.warn("Failed to periodically register instance '{}' for service '{}' at '{}'", ex, info());
+            return null;
+        });
     }
 
-    @Override
-    public String toString() {
-        return super.toString();
+    private Object[] info() {
+        return new Object[]{
+                serviceHost.id(),
+                serviceName,
+                config.url().authority()};
     }
 }
+

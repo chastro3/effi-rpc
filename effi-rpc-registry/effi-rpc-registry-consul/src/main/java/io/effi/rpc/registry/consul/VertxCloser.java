@@ -1,11 +1,8 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.util.GenericKey;
-import io.effi.rpc.spi.Extension;
-import io.effi.rpc.contract.module.ApplicationConfiguration;
-import io.effi.rpc.contract.module.EffRpcApplication;
-import io.vertx.core.Vertx;
+import io.effi.rpc.component.ApplicationConfiguration;
+import io.effi.rpc.component.EffiRpcApplication;
+import io.effi.rpc.annotation.spi.Extension;
 
 /**
  * Close vertx instance.
@@ -14,8 +11,9 @@ import io.vertx.core.Vertx;
 public class VertxCloser implements ApplicationConfiguration {
 
     @Override
-    public void postStop(EffRpcApplication application) {
-        Object vertx = application.get(GenericKey.valueOf(KeyConstant.VERTX));
-        if (vertx != null) ((Vertx) vertx).close();
+    public void postStop(EffiRpcApplication application) {
+        //todo close vertx instance
+//        Object vertx = application.get(GenericKey.valueOf(KeyConstant.VERTX));
+//        if (vertx != null) ((Vertx) vertx).close();
     }
 }

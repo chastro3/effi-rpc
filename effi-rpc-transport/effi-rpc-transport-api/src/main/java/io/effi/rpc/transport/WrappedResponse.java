@@ -1,13 +1,11 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Invoker;
-import io.effi.rpc.contract.context.ReplyContext;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Invoker;
+import io.effi.rpc.base.context.ReplyContext;
 
 /**
- * Represents a repackaged response.
- *
- * @param <T> the type of the invoker
+ * Represents a wrapped response.
  */
 public interface WrappedResponse<T extends Invoker<?>> extends WrappedEnvelope<T, ReplyContext<Envelope.Response, T>> {
 

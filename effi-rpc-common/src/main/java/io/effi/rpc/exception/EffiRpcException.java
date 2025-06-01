@@ -4,6 +4,7 @@ import io.effi.rpc.util.AssertUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -28,22 +29,25 @@ public class EffiRpcException extends RuntimeException {
             return new EffiRpcException(errorCode, null, args);
         }
         while (true) {
-            switch (wrapped) {
-                case InvocationTargetException e -> wrapped = e.getTargetException();
-                case UndeclaredThrowableException e -> wrapped = e.getUndeclaredThrowable();
-                case ExecutionException e -> wrapped = e.getCause();
-                case EffiRpcException e -> {
-                    return e;
-                }
-                default -> {
-                    return new EffiRpcException(
-                            errorCode,
-                            wrapped.getCause() == null ? wrapped : wrapped.getCause(),
-                            args
-                    );
-                }
+            if (wrapped instanceof InvocationTargetException e) {
+                wrapped = e.getTargetException();
+            } else if (wrapped instanceof UndeclaredThrowableException e) {
+                wrapped = e.getUndeclaredThrowable();
+            } else if (wrapped instanceof ExecutionException e) {
+                wrapped = e.getCause();
+            } else if (wrapped instanceof CompletionException e) {
+                wrapped = e.getCause();
+            } else if (wrapped instanceof EffiRpcException e) {
+                return e;
+            } else {
+                Throwable cause = wrapped.getCause();
+                return new EffiRpcException(errorCode, cause == null ? wrapped : cause, args);
             }
         }
+    }
+
+    public CompletionException toCompletionException() {
+        return new CompletionException(this.getMessage(), this.getCause());
     }
 
     public ErrorCode errorCode() {

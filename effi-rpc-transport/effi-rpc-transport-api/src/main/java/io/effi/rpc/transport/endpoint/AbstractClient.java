@@ -1,10 +1,11 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.constant.Constant;
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.contract.module.EffiRpcModule;
+import io.effi.rpc.config.transport.ClientConfig;
+import io.effi.rpc.util.StringUtil;
+
+import java.net.InetSocketAddress;
 
 /**
  * Provides an abstract implementation of {@link Client}.
@@ -13,37 +14,22 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
 
     protected int connectTimeout;
 
-    protected boolean isInit = false;
-
-    protected AbstractClient(URL url, EffiRpcModule module) {
-        super(url, module);
-        this.connectTimeout = url().getIntParam(DefaultConfigKeys.CONNECT_TIMEOUT.key(), Constant.DEFAULT_CONNECT_TIMEOUT);
+    protected AbstractClient(ClientConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+        super(config, address, platform);
+        this.connectTimeout = url().getIntParam(DefaultConfigKeys.CONNECT_TIMEOUT);
+        initialize();
     }
 
     @Override
-    public void connect() {
-        if (isActive()) {
-            return;
-        }
-        // When reconnecting, there is no need to initialize again
-        if (!isInit) {
-            doInit();
-            isInit = true;
-        }
-        try {
-            doConnect();
-        } catch (Exception e) {
-            throw PredefinedErrorCode.CONNECT.fail(e, url().authority());
-        }
+    public ClientConfig config() {
+        return (ClientConfig) config;
     }
 
     @Override
     public String toString() {
-        return String.format("config=%s, active=%b", url(), isActive());
+        return StringUtil.format("config={}, active={}", url(), isActive());
     }
 
-    protected abstract void doInit();
-
-    protected abstract void doConnect() throws Exception;
+    protected abstract void initialize();
 
 }

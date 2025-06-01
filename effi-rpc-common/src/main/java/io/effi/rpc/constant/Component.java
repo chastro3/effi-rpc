@@ -36,29 +36,10 @@ public interface Component {
      */
     interface Protocol {
 
-        /**
-         * HTTP protocol.
-         */
-        String HTTP = "http";
+        String HTTP_1_1 = "http/1.1";
 
-        /**
-         * HTTPS protocol.
-         */
-        String HTTPS = "https";
+        String HTTP_2 = "http/2.0";
 
-        /**
-         * HTTP/2 protocol over TLS.
-         */
-        String H2 = "h2";
-
-        /**
-         * HTTP/2 protocol without TLS.
-         */
-        String H2C = "h2c";
-
-        /**
-         * gRPC protocol.
-         */
         String GRPC = "grpc";
     }
 

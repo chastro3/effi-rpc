@@ -7,6 +7,18 @@ import java.util.Objects;
  */
 public final class StringUtil {
 
+    private static final String EMPTY = "";
+
+    private static final String[]  EMPTY_ARRAY = new String[0];
+
+    public static String empty(){
+        return EMPTY;
+    }
+
+     public static String[] emptyArray(){
+        return EMPTY_ARRAY;
+    }
+
     /**
      * Checks if a CharSequence is null, empty, or contains only whitespace characters.
      */

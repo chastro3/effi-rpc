@@ -5,19 +5,19 @@ import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.base.ServiceHost;
+import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.config.DefaultConfigKeys;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.config.registry.RegistryConfig;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.registry.AbstractRegistryService;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.contract.module.EffRpcApplication;
-import io.effi.rpc.registry.AbstractRegistryService;
-import io.effi.rpc.registry.RegisterTask;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * Implements {@link io.effi.rpc.registry.RegistryService} using Nacos.
@@ -27,12 +27,19 @@ import java.util.function.BiConsumer;
  */
 public class NacosRegistryService extends AbstractRegistryService {
 
-    private static volatile String NACOS_PROJECT_NAME;
-
     private NamingService namingService;
 
-    protected NacosRegistryService(EffRpcApplication application, URL url) {
-        super(application, url);
+    protected NacosRegistryService(RegistryConfig config) {
+        super(config);
+        String projectName = config.get(DefaultConfigKeys.NACOS_PROJECT_NAME);
+        if (StringUtil.isNotBlank(projectName))
+            // nacos <project.name>
+            System.setProperty("project.name", projectName);
+        try {
+            this.namingService = NamingFactory.createNamingService(config.url().address());
+        } catch (NacosException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -41,69 +48,62 @@ public class NacosRegistryService extends AbstractRegistryService {
     }
 
     @Override
-    public void connect(URL url) {
-        try {
-            namingService = NamingFactory.createNamingService(url.address());
-            isActive();
-        } catch (NacosException e) {
-            throw PredefinedErrorCode.CONNECT.fail(e, url.authority());
-        }
-    }
-
-    @Override
-    public BiConsumer<RegisterTask, Map<String, String>> buildRegisterTask(String serviceName, URL url) {
-        if (NACOS_PROJECT_NAME == null) {
-            synchronized (serviceName) {
-                if (NACOS_PROJECT_NAME == null) {
-                    NACOS_PROJECT_NAME = serviceName;
-                    // nacos <project.name>
-                    System.setProperty("project.name", serviceName);
-                }
-            }
-        }
-        return (registerTask, metaData) -> {
-            Instance instance = new Instance();
-            instance.setInstanceId(instanceId(url));
-            instance.setIp(url.host());
-            instance.setPort(url.port());
+    public RegistrationAction createRegistrationAction(String serviceName, ServiceHost serviceHost) {
+        URL url = serviceHost.url();
+        String instanceId = serviceHost.id();
+        Instance instance = new Instance();
+        instance.setInstanceId(instanceId);
+        instance.setIp(url.host());
+        instance.setPort(url.port());
+        return (metaData) -> {
             instance.setMetadata(metaData);
-            try {
-                namingService.registerInstance(serviceName, instance);
-            } catch (NacosException e) {
-                throw PredefinedErrorCode.REGISTRY_REGISTER.fail(e, serviceName, registryUrl.address());
-            }
-
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    namingService.registerInstance(serviceName, instance);
+                    return null;
+                } catch (Exception e) {
+                    throw new CompletionException(e);
+                }
+            }, getThreadPool(serviceHost.platform()).executor());
         };
     }
 
     @Override
-    protected void doDeregister(String serviceName, URL url) throws Throwable {
-        namingService.deregisterInstance(serviceName, url.host(), url.port());
-    }
-
-    @Override
-    protected List<URL> doDiscover(String serviceName, URL url) throws Throwable {
-        ArrayList<URL> urls = new ArrayList<>();
-        List<Instance> instances = namingService.selectInstances(serviceName, true);
-        for (Instance instance : instances) {
-            String protocol = instance.getMetadata().get(KeyConstant.PROTOCOL);
-            if (!StringUtil.isBlank(protocol) && protocol.equalsIgnoreCase(url.protocol())) {
-                urls.add(instanceToURL(instance));
+    protected CompletableFuture<Void> doDeregister(String serviceName, ServiceHost serviceHost) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                URL url = serviceHost.url();
+                namingService.deregisterInstance(serviceName, url.host(), url.port());
+                return null;
+            } catch (NacosException e) {
+                throw new CompletionException(e);
             }
-        }
-        return urls;
+        }, getThreadPool(serviceHost.platform()).executor());
+
     }
 
     @Override
-    protected void doSubscribe(String serviceName, URL url) throws Throwable {
+    protected CompletableFuture<List<URL>> doDiscover(String serviceName, EffiRpcModule module) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<Instance> instances = namingService.selectInstances(serviceName, true);
+                return instances.stream().map(this::instanceToURL).toList();
+            } catch (NacosException e) {
+                throw new CompletionException(e);
+            }
+        }, getThreadPool(module.platform()).executor());
+    }
+
+    @Override
+    protected void doSubscribe(String serviceName) throws Throwable {
         namingService.subscribe(serviceName, event -> {
             if (event instanceof NamingEvent namingEvent) {
                 List<Instance> instances = namingEvent.getInstances();
-                List<String> healthServerUrls = instances.stream()
+                List<URL> healthServerUrls = instances.stream()
                         .filter(instance -> instance.isHealthy() && instance.getMetadata().containsKey(KeyConstant.PROTOCOL))
-                        .map(instance -> instanceToURL(instance).toString())
+                        .map(this::instanceToURL)
                         .toList();
-                discoverHealthServices.put(serviceName, healthServerUrls);
+                onServicesUpdated(serviceName, healthServerUrls);
             }
         });
     }

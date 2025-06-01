@@ -3,7 +3,7 @@ package io.effi.rpc.util;
 import java.util.function.Supplier;
 
 /**
- * Provides lazy initialization for instances.
+ * Provides lazy initialization for instance.
  */
 public class LazyInitializer<T> {
 

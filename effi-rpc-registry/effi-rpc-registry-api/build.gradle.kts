@@ -1,6 +1,6 @@
 description = "Service registry API definitions."
 dependencies {
-    api(project(":effi-rpc-contract"))
+    api(project(":effi-rpc-base"))
 }
 
 

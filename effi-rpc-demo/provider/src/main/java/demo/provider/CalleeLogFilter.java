@@ -1,10 +1,11 @@
 package demo.provider;
 
-import io.effi.rpc.contract.Callee;
-import io.effi.rpc.contract.Envelope;
-import io.effi.rpc.contract.Result;
-import io.effi.rpc.contract.context.InvocationContext;
-import io.effi.rpc.contract.filter.InvokeFilter;
+import io.effi.rpc.base.Callee;
+import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Result;
+import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.filter.FilterType;
+import io.effi.rpc.base.filter.InvokeFilter;
 
 public class CalleeLogFilter implements InvokeFilter<Envelope.Request, Callee<?>> {
 
@@ -16,5 +17,10 @@ public class CalleeLogFilter implements InvokeFilter<Envelope.Request, Callee<?>
 
     public void ppHlleo(){
         System.out.println("cccc");
+    }
+
+    @Override
+    public FilterType<Envelope.Request, Callee<?>> type() {
+        return FilterType.of(Envelope.Request.class, Callee.class);
     }
 }

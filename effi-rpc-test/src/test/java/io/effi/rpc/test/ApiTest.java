@@ -1,53 +1,90 @@
 package io.effi.rpc.test;
 
+import io.effi.rpc.base.ThreadPool;
+import io.effi.rpc.base.annotation.AnnotationStyle;
+import io.effi.rpc.base.parameter.MethodMapper;
+import io.effi.rpc.base.parameter.ParamVar;
+import io.effi.rpc.boot.AnnotationRemoteClient;
+import io.effi.rpc.boot.AnnotationRemoteService;
+import io.effi.rpc.boot.ComplexRemoteService;
+import io.effi.rpc.boot.DefaultServiceHost;
+import io.effi.rpc.component.EffiRpcApplication;
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.config.registry.DefaultRegistryConfig;
 import io.effi.rpc.constant.Component;
-import io.effi.rpc.contract.annotation.AnnotationCalleeBuilder;
-import io.effi.rpc.contract.annotation.AnnotationStyle;
-import io.effi.rpc.contract.module.EffRpcApplication;
-import io.effi.rpc.contract.module.EffiRpcModule;
-import io.effi.rpc.engine.*;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.nativetools.ConditionItem;
-import io.effi.rpc.nativetools.JsonWriter;
 import io.effi.rpc.nativetools.ReflectConfigItem;
+import io.effi.rpc.protocol.http.arg.api.HttpMethodMapperBuilder;
 import io.effi.rpc.protocol.http.h2.Http2Callee;
-import io.effi.rpc.protocol.http.h2.Http2CalleeBuilder;
+import io.effi.rpc.protocol.http.h2.Http2Caller;
+import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
-import io.effi.rpc.test.filter.CallerReqFilter;
+import io.effi.rpc.protocol.http.support.HttpVersion;
+import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.test.service.HelloClient;
 import io.effi.rpc.test.service.HelloService;
+import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.util.JavaVersion;
+import io.effi.rpc.util.TypeToken;
+import io.netty.handler.codec.http.HttpMethod;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ApiTest {
 
-    EffRpcApplication application = new EffRpcApplication("test");
+    private static final Logger logger = LoggerFactory.getLogger(ApiTest.class);
+
+    EffiRpcApplication application = EffiRpcPlatform.init("effi-rpc-platform")
+            .newApplication("test");
 
     @Test
-    public void serverExport() throws IOException {
-        EffRpcApplication application = new EffRpcApplication("test");
-        EffiRpcModule module = application.newModule();
-        module.registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
-        DefaultServerExporter exporter = DefaultServerExporter.builder()
-                .exportedPort(8090)
-                .module(module)
+    public void serverExport() throws Exception {
+        // 创建一个service host
+        DefaultServiceHost serviceHost = DefaultServiceHost.builder()
+                .exportedAddress("192.168.188.1", 8090)
                 .serverConfig(Http2ServerConfig.defaultConfig())
+                .registryAt(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build())
                 .build();
         ComplexRemoteService<HelloService> remoteService = new ComplexRemoteService<>(new HelloService());
-        Http2Callee<HelloService> hello = new AnnotationCalleeBuilder<>(remoteService, "hello", String.class, int.class)
-                .useStyle(Component.AnnotationStyle.JAX_RS)
-                .build(Http2CalleeBuilder::new);
-        exporter.callee(hello);
-        hello.addFilter(new CallerReqFilter());
-        application.start();
+        MethodMapper<HelloService> methodMapper = new HttpMethodMapperBuilder<>(remoteService, "hello")
+                .mappedParameterType(String.class, ParamVar.source("name"))
+                .build();
+        Http2Callee<HelloService> callee = Http2Callee.builder(methodMapper, new HierarchicalNodeConfig())
+                .path("/hello")
+                .module(application.defaultModule())
+                .compression("xxx")
+                .method(HttpMethod.POST)
+                .addResponseHeader("zzz", "hahah")
+                .serialization("json")
+                .desc("xxx")
+                .threadPool(new ThreadPool("test", Executors.newFixedThreadPool(10)))
+                .build();
+        serviceHost.start().join();
+        new CountDownLatch(1).await();
+        logger.info("service host {}", serviceHost);
+    }
+
+    @Test
+    public void caller(){
+        Http2Caller<String> caller = Http2Caller.<String>builder(new TypeToken<>() {}, new HierarchicalNodeConfig())
+                .path("//hello")
+                .module(application.defaultModule())
+                .compression("xxx")
+                .clientConfig(Http2ClientConfig.defaultConfig())
+                .addRequestHeader("zzz","ahahah")
+                .remoteApplication("provifer")
+                .build();
+        System.out.println(caller);
     }
 
     @Test
@@ -101,12 +138,32 @@ public class ApiTest {
                 .method("<init>", null)
                 .method("hello", List.of("java.lang.String"));
         try  {
-            JsonWriter w = new JsonWriter(new BufferedWriter(new FileWriter("out.json")));
+            // JsonWriter w = new JsonWriter(new BufferedWriter(new FileWriter("out.json")));
             Map<String, Object> data = reflectConfigItem.toMap();
-            w.write(data).flush();
+            //w.write(data).flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void spiTest() {
+        Protocol protocol = ExtensionLoader.loadExtension(Protocol.class, HttpVersion.HTTP_2_0.protocolName());
+        System.out.println(protocol);
+    }
+
+    @Test
+    public void httpMethod() {
+        long start = System.currentTimeMillis();
+        System.out.println(HttpMethod.POST.name());
+        //System.out.println("POST");
+        System.out.println(System.currentTimeMillis() - start + "ms");
+    }
+
+    @Test
+    public void javaVersion() {
+        System.out.println(JavaVersion.get());
+
     }
 
 }
