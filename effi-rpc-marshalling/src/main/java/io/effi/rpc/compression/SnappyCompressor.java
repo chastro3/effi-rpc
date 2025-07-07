@@ -1,6 +1,6 @@
 package io.effi.rpc.compression;
 
-import io.effi.rpc.annotation.spi.Extension;
+import io.effi.rpc.annotation.component.Extension;
 import org.xerial.snappy.Snappy;
 
 import java.io.IOException;

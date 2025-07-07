@@ -1,8 +1,8 @@
 package io.effi.rpc.proxy.cglib;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.annotation.spi.Extension;
 import org.springframework.cglib.proxy.Enhancer;
 
 import static io.effi.rpc.constant.Component.ProxyFactory.CGLIB;

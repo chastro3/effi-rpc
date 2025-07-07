@@ -1,8 +1,8 @@
 package io.effi.rpc.proxy.jdk;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.annotation.spi.Extension;
 
 import java.lang.reflect.Proxy;
 

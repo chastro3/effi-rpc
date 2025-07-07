@@ -1,8 +1,12 @@
 package io.effi.rpc.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Define objects with order values for precedence.
@@ -23,9 +27,23 @@ public interface Ordered {
         if (CollectionUtil.isEmpty(values)) {
             return values;
         }
-        return values.stream()
-                .sorted(Comparator.comparing(Ordered::order))
-                .collect(Collectors.toList());
+        List<T> result = new ArrayList<>(values);
+        result.sort(Comparator.comparingInt(Ordered::order));
+        return result;
+    }
+
+    static <K, V extends Ordered, R> Map<K, R> sort(Map<K, V> map, Function<V, R> mapper) {
+        if (CollectionUtil.isEmpty(map)) {
+            return Collections.emptyMap();
+        }
+        List<Map.Entry<K, V>> entries = new ArrayList<>(map.size());
+        entries.addAll(map.entrySet());
+        entries.sort(Comparator.comparingInt(e -> e.getValue().order()));
+        LinkedHashMap<K, R> result = new LinkedHashMap<>(map.size());
+        for (Map.Entry<K, V> entry : entries) {
+            result.put(entry.getKey(), mapper.apply(entry.getValue()));
+        }
+        return result;
     }
 
     default int order() {

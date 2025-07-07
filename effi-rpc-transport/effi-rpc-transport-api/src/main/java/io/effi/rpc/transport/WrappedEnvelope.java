@@ -1,14 +1,14 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.Invoker;
-import io.effi.rpc.base.context.ExecutorContext;
+import io.effi.rpc.base.CallSide;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.ExchangeContext;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
  * Represents a wrapped envelope.
  */
-public interface WrappedEnvelope<I extends Invoker<?>, C extends ExecutorContext<?, ?, ?>> {
+public interface WrappedEnvelope<I extends CallSide, C extends ExchangeContext<?, ?>> {
 
     /**
      * Returns the context.
@@ -23,7 +23,7 @@ public interface WrappedEnvelope<I extends Invoker<?>, C extends ExecutorContext
     /**
      * Returns the envelope.
      */
-    Envelope envelope();
+    Message envelope();
 
     /**
      * Encodes the envelope.

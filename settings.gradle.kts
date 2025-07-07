@@ -22,6 +22,9 @@ modules {
         module("effi-rpc-http", { it.enablePublish().enableProcessor() })
         module("effi-rpc-grpc", { it.enablePublish().enableProcessor() })
     }
+    module("effi-rpc-integration") {
+        module("effi-rpc-spring-boot-starter", { it.enablePublish().enableProcessor() })
+    }
     module("effi-rpc-registry") {
         module("effi-rpc-registry-api", { it.enablePublish().enableProcessor() })
         module("effi-rpc-registry-consul", { it.enablePublish().enableProcessor() })

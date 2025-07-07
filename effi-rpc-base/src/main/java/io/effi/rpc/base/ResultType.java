@@ -4,7 +4,7 @@ import io.effi.rpc.config.URL;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AssertUtil;
 
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Describes result type.
@@ -17,9 +17,9 @@ public final class ResultType<T> {
 
     public static final ResultType<EffiRpcException> EXCEPTION = new ResultType<>(val -> val instanceof EffiRpcException);
 
-    private final Function<Object, Boolean> matcher;
+    private final Predicate<Object> matcher;
 
-    private ResultType(Function<Object, Boolean> matcher) {
+    private ResultType(Predicate<Object> matcher) {
         this.matcher = matcher;
     }
 
@@ -38,7 +38,7 @@ public final class ResultType<T> {
     }
 
     public boolean match(Object value) {
-        return matcher.apply(value);
+        return matcher.test(value);
     }
 
     public Result createResult(URL url, T value) {

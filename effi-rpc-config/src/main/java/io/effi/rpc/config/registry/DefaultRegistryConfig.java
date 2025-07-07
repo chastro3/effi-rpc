@@ -1,12 +1,17 @@
 package io.effi.rpc.config.registry;
 
+import io.effi.rpc.component.DynamicTagComponent;
 import io.effi.rpc.config.AbstractNamedConfig;
 import io.effi.rpc.config.URL;
+
+import java.util.Set;
 
 /**
  * Provides the default implementation of {@link RegistryConfig}.
  */
 public class DefaultRegistryConfig extends AbstractNamedConfig implements RegistryConfig {
+
+    private final DynamicTagComponent dynamicTagComponent = new DynamicTagComponent();
 
     protected URL url;
 
@@ -19,10 +24,21 @@ public class DefaultRegistryConfig extends AbstractNamedConfig implements Regist
         return new Builder();
     }
 
+    public DefaultRegistryConfig addTags(String... tags) {
+        dynamicTagComponent.addTags(tags);
+        return this;
+    }
+
+    @Override
+    public Set<String> tags() {
+        return dynamicTagComponent.tags();
+    }
+
     @Override
     public URL url() {
         return url;
     }
+
 
     @Override
     public String toString() {

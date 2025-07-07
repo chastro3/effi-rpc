@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.boot.builder.CallerBuilder;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.constant.Component;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
@@ -24,7 +24,7 @@ public abstract class HttpCallerBuilder<T extends HttpCaller<?>, C extends HttpC
     protected HttpCallerBuilder(HttpVersion version, TypeToken<?> returnType, NodeConfig config) {
         super(returnType, config);
         this.version = AssertUtil.notNull(version, "version");
-        if (StringUtil.isBlank(config.get(DefaultConfigKeys.SERIALIZATION))) {
+        if (StringUtil.isBlank(config.get(DefaultConfigNames.SERIALIZATION))) {
             serialization(Component.Serialization.JSON);
         }
     }
@@ -36,7 +36,7 @@ public abstract class HttpCallerBuilder<T extends HttpCaller<?>, C extends HttpC
      * @return This builder instance for fluent chaining.
      */
     public C method(HttpMethod method) {
-        config.set(DefaultConfigKeys.HTTP_METHOD.key(), method.name());
+        config.set(DefaultConfigNames.HTTP_METHOD.realName(), method.name());
         return returnThis();
     }
 

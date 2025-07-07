@@ -1,6 +1,6 @@
 package io.effi.rpc.metrics.event;
 
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.metrics.CalleeMetrics;
 
 /**
@@ -8,7 +8,7 @@ import io.effi.rpc.metrics.CalleeMetrics;
  */
 public class CalleeMetricsEvent extends MetricsEvent<CalleeMetrics> {
 
-    public CalleeMetricsEvent(CalleeMetrics source, InvocationContext<?, ?> context, boolean hasException) {
+    public CalleeMetricsEvent(CalleeMetrics source, CallContext<?, ?> context, boolean hasException) {
         super(source, context, hasException);
     }
 }

@@ -1,19 +1,35 @@
 package io.effi.rpc.protocol.http.arg.annotation.jax;
 
-import io.effi.rpc.base.annotation.*;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.base.Callee;
 import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.annotation.AbstractAnnotationStyleParser;
+import io.effi.rpc.base.annotation.AnnotationConfigParser;
+import io.effi.rpc.base.annotation.AnnotationParameterParser;
+import io.effi.rpc.base.annotation.AnnotationParameterWrapper;
+import io.effi.rpc.base.annotation.AnnotationStyleParser;
+import io.effi.rpc.base.annotation.Body;
 import io.effi.rpc.base.parameter.Argument;
 import io.effi.rpc.base.parameter.Header;
 import io.effi.rpc.base.parameter.ParamVar;
 import io.effi.rpc.base.parameter.PathVar;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpUtil;
-import io.effi.rpc.annotation.spi.Extension;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpMethod;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -58,21 +74,21 @@ public class JaxRsStyleParser extends AbstractAnnotationStyleParser<HttpRequest<
     @Override
     protected List<AnnotationConfigParser<Class<?>, ?>> typeConfigParsers() {
         return List.of(
-                new AnnotationConfigParser<>(Path.class, DefaultConfigKeys.PATH, Path::value)
+                new AnnotationConfigParser<>(Path.class, DefaultConfigNames.PATH, Path::value)
         );
     }
 
     @Override
     protected List<AnnotationConfigParser<Method, ?>> methodConfigParsers() {
         return List.of(
-                new AnnotationConfigParser<>(Path.class, DefaultConfigKeys.PATH, Path::value),
-                new AnnotationConfigParser<>(GET.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.GET.name()),
-                new AnnotationConfigParser<>(POST.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.POST.name()),
-                new AnnotationConfigParser<>(PUT.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.PUT.name()),
-                new AnnotationConfigParser<>(DELETE.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.DELETE.name()),
-                new AnnotationConfigParser<>(PATCH.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.PATCH.name()),
-                new AnnotationConfigParser<>(HEAD.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.HEAD.name()),
-                new AnnotationConfigParser<>(OPTIONS.class, DefaultConfigKeys.HTTP_METHOD, v -> HttpMethod.OPTIONS.name())
+                new AnnotationConfigParser<>(Path.class, DefaultConfigNames.PATH, Path::value),
+                new AnnotationConfigParser<>(GET.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.GET.name()),
+                new AnnotationConfigParser<>(POST.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.POST.name()),
+                new AnnotationConfigParser<>(PUT.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.PUT.name()),
+                new AnnotationConfigParser<>(DELETE.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.DELETE.name()),
+                new AnnotationConfigParser<>(PATCH.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.PATCH.name()),
+                new AnnotationConfigParser<>(HEAD.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.HEAD.name()),
+                new AnnotationConfigParser<>(OPTIONS.class, DefaultConfigNames.HTTP_METHOD, v -> HttpMethod.OPTIONS.name())
         );
     }
 
@@ -88,15 +104,15 @@ public class JaxRsStyleParser extends AbstractAnnotationStyleParser<HttpRequest<
         return Header.target(Map.of(headerParam.value(), String.valueOf(arg)));
     }
 
-    private Object getPathOrDefault(HttpRequest<ByteBuf> request, PathParam pathParam, AnnotatedElement element, Callee<?> callee) {
+    private Object getPathOrDefault(HttpRequest<ByteBuf> request, PathParam pathParam, AnnotatedElement element, Callee callee) {
         return getParameterOfDefault(element, () -> HttpUtil.findPathForVar(request.url(), pathParam.value(), callee));
     }
 
-    private Object getParamOrDefault(HttpRequest<ByteBuf> request, QueryParam queryParam, AnnotatedElement element, Callee<?> callee) {
+    private Object getParamOrDefault(HttpRequest<ByteBuf> request, QueryParam queryParam, AnnotatedElement element, Callee callee) {
         return getParameterOfDefault(element, () -> HttpUtil.findParamForVar(request.url(), queryParam.value()));
     }
 
-    private Object getHeaderOrDefault(HttpRequest<ByteBuf> request, HeaderParam headerParam, AnnotatedElement element, Callee<?> callee) {
+    private Object getHeaderOrDefault(HttpRequest<ByteBuf> request, HeaderParam headerParam, AnnotatedElement element, Callee callee) {
         return getParameterOfDefault(element, () -> request.headers().get(headerParam.value()));
     }
 

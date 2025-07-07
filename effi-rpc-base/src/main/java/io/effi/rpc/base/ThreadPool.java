@@ -2,7 +2,6 @@ package io.effi.rpc.base;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.Identifiable;
 import io.effi.rpc.util.resoruce.Closeable;
@@ -17,7 +16,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  * providing lifecycle management and execution capabilities.
  */
 @ScopedComponent(scope = PLATFORM)
-public class ThreadPool extends PlatformSource.Holder implements PlatformSource, Closeable, Identifiable {
+public class ThreadPool extends EffiRpcPlatform.Holder implements Closeable, Identifiable {
 
     private final String name;
 

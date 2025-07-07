@@ -1,6 +1,6 @@
 package io.effi.rpc.util;
 
-import io.effi.rpc.constant.SystemKey;
+import io.effi.rpc.constant.SystemKeys;
 
 /**
  * Parses the current Java version and exposes it as an integer constant.
@@ -11,7 +11,7 @@ public final class JavaVersion {
     private static final int CURRENT;
 
     static {
-        String v = System.getProperty(SystemKey.JAVA_VERSION);
+        String v = System.getProperty(SystemKeys.JAVA_VERSION);
         int major;
         if (v.startsWith("1.")) {
             major = v.charAt(2) - '0';

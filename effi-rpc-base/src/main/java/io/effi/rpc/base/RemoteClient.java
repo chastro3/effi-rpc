@@ -3,7 +3,7 @@ package io.effi.rpc.base;
 /**
  * Wraps a client interface and manages its internal callers.
  */
-public interface RemoteClient<T> extends InvokerContainer<Caller<?>> {
+public interface RemoteClient<T> extends CallSideContainer<Caller<?>> {
 
     /**
      * Returns the type of the client interface.

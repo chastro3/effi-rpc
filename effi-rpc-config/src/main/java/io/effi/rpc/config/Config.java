@@ -1,5 +1,7 @@
 package io.effi.rpc.config;
 
+import io.effi.rpc.util.StringUtil;
+
 import java.util.Map;
 
 /**
@@ -8,9 +10,9 @@ import java.util.Map;
 public interface Config {
 
     /**
-     * Retrieves the value by config key.
+     * Sets the value by config key.
      */
-    String get(ConfigKey key);
+    void set(ConfigName key, String value);
 
     /**
      * Retrieves the value by string key.
@@ -22,10 +24,13 @@ public interface Config {
      */
     String getOrDefault(String key, String defaultValue);
 
-    /**
-     * Sets the value by config key.
-     */
-    void set(ConfigKey key, String value);
+    default String[] split(ConfigName key) {
+        String value = get(key);
+        String separator = key.separator();
+        return (StringUtil.isBlank(value) || StringUtil.isBlank(separator))
+                ? StringUtil.emptyArray()
+                : value.split(key.separator());
+    }
 
     /**
      * Sets the value by string key.
@@ -52,8 +57,13 @@ public interface Config {
      */
     Object owner();
 
-    default void set(ConfigKey key, Object value) {
-        set(key.key(), value);
+    /**
+     * Retrieves the value by config key.
+     */
+    String get(ConfigName key);
+
+    default void set(ConfigName key, Object value) {
+        set(key.realName(), value);
     }
 
     default void set(String key, Object value) {
@@ -62,6 +72,24 @@ public interface Config {
             set(key, value.toString());
         } else {
             throw new IllegalArgumentException("Unsupported type: " + value.getClass().getName());
+        }
+    }
+
+    /**
+     * Provides access to the {@link Config}.
+     */
+    interface Provider {
+        default String getConfig(ConfigName key) {
+            return config().get(key);
+        }
+
+        /**
+         * Returns the associated {@link Config}.
+         */
+        Config config();
+
+        default String[] splitConfig(ConfigName key) {
+            return config().split(key);
         }
     }
 }

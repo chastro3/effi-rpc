@@ -1,8 +1,8 @@
 package io.effi.rpc.base.annotation;
 
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.Config;
-import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.spi.ExtensionLoader;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.Map;
@@ -30,7 +30,7 @@ public class AnnotationStyle {
 
     public static AnnotationStyle getInstance(Config config) {
         if (config == null) return UNKNOWN;
-        return getInstance(config.get(DefaultConfigKeys.ANNOTATION_STYLE));
+        return getInstance(config.get(DefaultConfigNames.ANNOTATION_STYLE));
     }
 
     public static AnnotationStyle getInstance(String name) {
@@ -43,7 +43,8 @@ public class AnnotationStyle {
                 style = annotationStyles.get(name);
                 if (style == null) {
                     try {
-                        AnnotationStyleParser parser = ExtensionLoader.loadExtension(AnnotationStyleParser.class, name);
+                        AnnotationStyleParser parser = EffiRpcPlatform.getInstance()
+                                .getExtension(AnnotationStyleParser.class, name);
                         style = new AnnotationStyle(name, parser);
                         annotationStyles.put(name, style);
                     } catch (Exception ignored) {

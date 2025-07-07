@@ -1,7 +1,6 @@
 package io.effi.rpc.compression;
 
-import io.effi.rpc.annotation.spi.Extension;
-
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.util.FileUtil;
 
 import java.io.ByteArrayInputStream;

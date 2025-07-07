@@ -2,40 +2,40 @@ package io.effi.rpc.boot;
 
 import io.effi.rpc.base.Caller;
 import io.effi.rpc.base.CompletableReplyFuture;
-import io.effi.rpc.base.Envelope;
 import io.effi.rpc.base.Locator;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.ReplyFuture;
-import io.effi.rpc.base.ResultType;
-import io.effi.rpc.base.context.InvocationContext;
-import io.effi.rpc.base.filter.ChosenFilter;
-import io.effi.rpc.base.filter.Filter;
-import io.effi.rpc.base.filter.FilterChain;
-import io.effi.rpc.base.filter.FilterType;
-import io.effi.rpc.base.filter.InvokeFilter;
-import io.effi.rpc.base.filter.ReplyFilter;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.base.context.ImmutableInterceptorChain;
+import io.effi.rpc.base.context.ImmutableStageChain;
+import io.effi.rpc.base.context.Interceptor;
+import io.effi.rpc.base.context.InterceptorChain;
+import io.effi.rpc.base.context.StageChain;
 import io.effi.rpc.boot.builder.CallerBuilder;
-import io.effi.rpc.component.MultiComponent;
-import io.effi.rpc.component.TagComponent;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.boot.stage.CallInterceptStage;
+import io.effi.rpc.boot.stage.ChosenInterceptStage;
+import io.effi.rpc.boot.stage.FutureResultStage;
+import io.effi.rpc.boot.stage.LocatorStage;
+import io.effi.rpc.boot.stage.ReplyInterceptStage;
+import io.effi.rpc.boot.stage.ReplyResultStage;
+import io.effi.rpc.boot.util.CallInterceptorClassifyHandler;
+import io.effi.rpc.boot.util.ChosenInterceptorClassifyHandler;
+import io.effi.rpc.boot.util.ExecutionUnitClassifier;
+import io.effi.rpc.boot.util.ReplyInterceptorClassifyHandler;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.constant.Tags;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.governance.faulttolerance.DefaultFailureHandler;
 import io.effi.rpc.metrics.CallerMetrics;
 import io.effi.rpc.metrics.MetricsSupport;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.Messages;
-import io.effi.rpc.util.Ordered;
 import io.effi.rpc.util.StringUtil;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,22 +44,31 @@ import java.util.function.Function;
 /**
  * Provides an abstract implementation of {@link Caller}.
  */
-public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFuture<R>, CallerBuilder<?, ?>> implements Caller<R> {
+@SuppressWarnings({"rawtypes", "unchecked"})
+public abstract class AbstractCaller<R> extends AbstractCallSide<CallerBuilder> implements Caller<R> {
+
+    private static final String[] DEFAULT_CALL_STAGE_CHAIN = new String[]{
+            CallInterceptStage.NAME, LocatorStage.NAME, ChosenInterceptStage.NAME, FutureResultStage.NAME
+    };
+
+    private static final String[] DEFAULT_REPLY_STAGE_CHAIN = new String[]{
+            ReplyInterceptStage.NAME, ReplyResultStage.NAME
+    };
 
     protected Locator locator;
 
     protected ClientConfig clientConfig;
 
-    protected List<ChosenFilter<?, ?>> chosenFilters;
+    protected InterceptorChain chosenInterceptorChain;
 
-    protected List<RegistryConfig> registryConfigs;
+    protected StageChain replyStageChain;
 
+    protected InterceptorChain replyInterceptorChain;
 
-    protected AbstractCaller(NodeConfig config, CallerBuilder<?, ?> builder) {
+    protected AbstractCaller(NodeConfig config, CallerBuilder builder) {
         super(config, builder);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public CompletableFuture<R> call(Object... args) throws EffiRpcException {
         return (CompletableFuture<R>) startCall(args, CompletableReplyFuture::new)
@@ -67,17 +76,11 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
                 .completableFuture();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public R blockingCall(Object... args) throws EffiRpcException {
         return (R) startCall(args, CompletableReplyFuture::new)
                 .failureHandler(DefaultFailureHandler.getInstance())
                 .get();
-    }
-
-    @Override
-    public CompletableFuture<R> invoke(Object... args) throws EffiRpcException {
-        return call(args);
     }
 
     @Override
@@ -91,8 +94,18 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
     }
 
     @Override
-    public List<RegistryConfig> registryConfigs() {
-        return Collections.unmodifiableList(registryConfigs);
+    public InterceptorChain chosenInterceptorChain() {
+        return chosenInterceptorChain;
+    }
+
+    @Override
+    public StageChain replyStageChain() {
+        return replyStageChain;
+    }
+
+    @Override
+    public InterceptorChain replyInterceptorChain() {
+        return replyInterceptorChain;
     }
 
     @Override
@@ -100,150 +113,141 @@ public abstract class AbstractCaller<R> extends AbstractInvoker<CompletableFutur
         return TransportSupport.sendRequest(protocol, doCall(future));
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public void addFilters(Collection<Filter> filters) {
-        if (CollectionUtil.isNotEmpty(filters)) {
-            Class<? extends Envelope.Request> supportedRequestType = protocol.supportedRequestType();
-            Class<? extends Envelope.Response> supportedResponseType = protocol.supportedResponseType();
-            List<InvokeFilter<?, ?>> addedInvokeFilters = new ArrayList<>();
-            List<ChosenFilter<?, ?>> addedChosenFilters = new ArrayList<>();
-            List<ReplyFilter<?, ?>> addedReplyFilters = new ArrayList<>();
-            for (Filter<?, ?, ?> filter : filters) {
-                FilterType<?, ?> type = FilterType.extract(filter);
-                Class<? extends Envelope> envelopeType = type.envelopeType();
-                if (type.invokerType().isAssignableFrom(getClass())) {
-                    if (filter instanceof InvokeFilter<?, ?> invokeFilter) {
-                        if (envelopeType.isAssignableFrom(supportedRequestType)) {
-                            addedInvokeFilters.add(invokeFilter);
-                        }
-                    } else if (filter instanceof ChosenFilter<?, ?> chosenFilter) {
-                        if (envelopeType.isAssignableFrom(supportedRequestType)) {
-                            addedChosenFilters.add(chosenFilter);
-                        }
-                    } else if (filter instanceof ReplyFilter<?, ?> replyFilter) {
-                        if (envelopeType.isAssignableFrom(supportedResponseType)) {
-                            addedReplyFilters.add(replyFilter);
-                        }
-                    } else {
-                        throw new IllegalArgumentException(Messages.unSupport("filter", filter.getClass()));
-                    }
-                }
-            }
-            CollectionUtil.addUnique(invokeFilters, addedInvokeFilters);
-            CollectionUtil.addUnique(chosenFilters, addedChosenFilters);
-            CollectionUtil.addUnique(replyFilters, addedReplyFilters);
-        }
-    }
-
-    @Override
-    protected void initialize(NodeConfig config, CallerBuilder<?, ?> builder) {
+    protected void initialize(NodeConfig config, CallerBuilder builder) {
         super.initialize(config, builder);
-        this.chosenFilters = new ArrayList<>();
-        this.registryConfigs = new ArrayList<>();
         this.returnType = builder.returnType();
         this.locator = checkLocator(builder);
         this.clientConfig = checkClientConfig(builder);
     }
 
     @Override
-    protected void onInitialized(NodeConfig config, CallerBuilder<?, ?> builder) {
+    protected void onInitialized(NodeConfig config, CallerBuilder builder) {
         super.onInitialized(config, builder);
         module.register(Caller.class, this);
-        addConfiguredRegistryConfigs();
         set(KeyConstant.LAST_CALL_INDEX, new AtomicInteger(-1));
         set(CallerMetrics.GENERIC_KEY, new CallerMetrics());
         tryPreloadDiscoveries();
     }
 
-    protected <T extends ReplyFuture> T startCall(Object[] args, Function<InvocationContext<Envelope.Request, Caller<?>>, T> futureCreator) {
-        Envelope.Request request = protocol.createRequest(this, args);
-        InvocationContext<Envelope.Request, Caller<?>> context = new InvocationContext<>(module, request, this, args);
+    @Override
+    protected void configureStageChain(CallerBuilder builder) {
+        StageChain callChain = builder.callStageChain();
+        StageChain replyChain = builder.replyStageChain();
+        if (callChain == null) {
+            String[] callStageChain = splitConfig(DefaultConfigNames.CALL_STAGE_CHAIN);
+            if (CollectionUtil.isEmpty(callStageChain)) {
+                callStageChain = defaultCallStageChain();
+            }
+            AssertUtil.condition(CollectionUtil.isNotEmpty(callStageChain), "call stage chain cannot be empty");
+            callChain = ImmutableStageChain.of(module(), callStageChain);
+        }
+        if (replyChain == null) {
+            String[] replyStageChain = splitConfig(DefaultConfigNames.REPLY_STAGE_CHAIN);
+            if (CollectionUtil.isEmpty(replyStageChain)) {
+                replyStageChain = defaultReplyStageChain();
+            }
+            AssertUtil.condition(CollectionUtil.isNotEmpty(replyStageChain), "reply stage chain cannot be empty");
+            replyChain = ImmutableStageChain.of(module(), replyStageChain);
+        }
+        this.callStageChain = callChain;
+        this.replyStageChain = replyChain;
+    }
+
+    @Override
+    protected void configureInterceptorChain(CallerBuilder builder) {
+        InterceptorChain callChain = builder.callInterceptorChain();
+        InterceptorChain chosenChain = builder.chosenInterceptorChain();
+        InterceptorChain replyChain = builder.replyInterceptorChain();
+        if (callChain == null || chosenChain == null || replyChain == null) {
+            List<String> callNames = callChain == null ? new ArrayList<>() : null;
+            List<String> chosenNames = chosenChain == null ? new ArrayList<>() : null;
+            List<String> replyNames = replyChain == null ? new ArrayList<>() : null;
+            ExecutionUnitClassifier<Interceptor> filterClassifier = new ExecutionUnitClassifier<>(this, protocol);
+            if (callChain == null)
+                filterClassifier.handler(CallInterceptorClassifyHandler.of((name, filter) -> callNames.add(name)));
+            if (chosenChain == null)
+                filterClassifier.handler(ChosenInterceptorClassifyHandler.of((name, filter) -> chosenNames.add(name)));
+            if (replyChain == null)
+                filterClassifier.handler(ReplyInterceptorClassifyHandler.of((name, filter) -> replyNames.add(name)));
+            filterClassifier.classify(lookupConfiguredInterceptors());
+            if (callChain == null) {
+                tryAddStageInterceptor(callStageChain, CallInterceptStage.NAME, callNames);
+                callChain = ImmutableInterceptorChain.of(module(), StringUtil.toArray(callNames));
+            }
+            if (chosenChain == null) {
+                tryAddStageInterceptor(callStageChain, ChosenInterceptStage.NAME, chosenNames);
+                chosenChain = ImmutableInterceptorChain.of(module(), StringUtil.toArray(chosenNames));
+            }
+            if (replyChain == null) {
+                tryAddStageInterceptor(replyStageChain, ReplyInterceptStage.NAME, replyNames);
+                replyChain = ImmutableInterceptorChain.of(module(), StringUtil.toArray(replyNames));
+            }
+        }
+        this.callInterceptorChain = callChain;
+        this.chosenInterceptorChain = chosenChain;
+        this.replyInterceptorChain = replyChain;
+    }
+
+    @Override
+    protected String[] defaultCallStageChain() {
+        return DEFAULT_CALL_STAGE_CHAIN;
+    }
+    protected String[] defaultReplyStageChain() {
+        return DEFAULT_REPLY_STAGE_CHAIN;
+    }
+
+    private Locator checkLocator(CallerBuilder builder) {
+        Locator locator = builder.locator();
+        if (locator != null) return locator;
+        String address = config.get(DefaultConfigNames.ADDRESS);
+        if (StringUtil.isNotBlank(address)) {
+            locator = DirectLocator.of(address);
+        } else {
+            String remoteApplication = config.get(DefaultConfigNames.REMOTE_APPLICATION);
+            if (StringUtil.isNotBlank(remoteApplication)) {
+                locator = new RegistryLocator(this, remoteApplication, builder.registryConfigs());
+            }
+        }
+        AssertUtil.condition(locator != null, "No locator available for '{}'", id());
+        return locator;
+    }
+
+    private ClientConfig checkClientConfig(CallerBuilder builder) {
+        ClientConfig clientConfig = builder.clientConfig();
+        if (clientConfig != null) return clientConfig;
+        String clientConfigName = getConfig(DefaultConfigNames.CLIENT_CONFIG);
+        String defaultClientConfigName = ClientConfig.defaultKey(protocol());
+        if (StringUtil.isBlank(clientConfigName)) {
+            clientConfig = platform().lookup(ClientConfig.class, defaultClientConfigName);
+        } else {
+            clientConfig = platform().lookup(ClientConfig.class, clientConfigName);
+            if (clientConfig == null) {
+                clientConfig = platform().lookup(ClientConfig.class, defaultClientConfigName);
+            }
+        }
+        if (clientConfig == null) {
+            throw new IllegalStateException("No client config available for '" + id() + "'");
+        }
+        return clientConfig;
+    }
+
+    protected <T extends ReplyFuture> T startCall(Object[] args, Function<CallContext<Message.Request, Caller<?>>, T> futureCreator) {
+        Message.Request request = protocol.createRequest(this, args);
+        CallContext<Message.Request, Caller<?>> context = new CallContext<>(module, request, this, args);
         return callWithFuture(futureCreator.apply(context));
     }
 
     private <T extends ReplyFuture> T doCall(T future) {
         var context = future.context();
         MetricsSupport.recordStartTime(context);
-        // Chain of nested invocations for address resolution and filter execution
-        var rpcContext = context.executor(() -> {
-            var filterContext = context.executor(() -> {
-                InetSocketAddress remoteAddress = locator().locate(context);
-                context.envelope().url().address(remoteAddress);
-                var chosenContext = context.executor(() -> {
-                    future.whenComplete(replyContext -> {
-                        replyContext = replyContext.executor(replyContext::result);
-                        FilterChain.execute(replyContext, Ordered.sort(this.replyFilters));
-                    });
-                    return ResultType.FUTURE.createResult(context.envelope().url(), future);
-                });
-                return FilterChain.execute(chosenContext, Ordered.sort(this.chosenFilters));
-            });
-            return FilterChain.execute(filterContext, Ordered.sort(this.invokeFilters));
-        });
-        rpcContext.execute();
+        callStageChain().proceed(context);
         return future;
-    }
-
-    private ClientConfig checkClientConfig(CallerBuilder<?, ?> builder) {
-        ClientConfig clientConfig = builder.clientConfig();
-        if (clientConfig != null) return clientConfig;
-        String clientConfigName = get(DefaultConfigKeys.CLIENT_CONFIG);
-        String defaultClientConfigName = ClientConfig.defaultKey(protocol());
-        MultiComponent<ClientConfig> clientConfigComponent = platform().getMultiComponent(ClientConfig.class);
-        if (clientConfigComponent != null) {
-            TagComponent<ClientConfig> component = null;
-            if (StringUtil.isBlank(clientConfigName)) {
-                component = clientConfigComponent.lookup(defaultClientConfigName);
-            } else {
-                component = clientConfigComponent.lookup(clientConfigName);
-                if (component == null) {
-                    component = clientConfigComponent.lookup(defaultClientConfigName);
-                }
-            }
-            if (component != null) {
-                clientConfig = component.component();
-            }
-            if (clientConfig == null) {
-                throw new IllegalStateException("No client config available for '" + id() + "'");
-            }
-        }
-        return clientConfig;
-    }
-
-    private Locator checkLocator(CallerBuilder<?, ?> builder) {
-        Locator locator = builder.locator();
-        if (locator != null) return locator;
-        String address = config.get(DefaultConfigKeys.ADDRESS);
-        if (StringUtil.isNotBlank(address)) {
-            locator = DirectLocator.getInstance(address);
-        } else {
-            String remoteApplication = config.get(DefaultConfigKeys.REMOTE_APPLICATION);
-            if (StringUtil.isNotBlank(remoteApplication)) {
-                locator = RegistryLocator.getInstance(remoteApplication);
-            }
-        }
-        if (locator == null) {
-            throw new IllegalStateException("No locator available for '" + id() + "'");
-        }
-        return locator;
-    }
-
-    private void addConfiguredRegistryConfigs() {
-        List<String> registryConfigNames = getCascaded(DefaultConfigKeys.REGISTRIES);
-        Collection<RegistryConfig> platformRegistryConfigs = platform().listOf(RegistryConfig.class, Tags.CONSUMER, Tags.FORCE_ACTIVE);
-        for (RegistryConfig registryConfig : platformRegistryConfigs) {
-            CollectionUtil.addUnique(registryConfigs, registryConfig);
-        }
-        for (String registryConfigName : registryConfigNames) {
-            RegistryConfig registryConfig = module.lookup(RegistryConfig.class, registryConfigName);
-            if (registryConfig != null) CollectionUtil.addUnique(registryConfigs, registryConfig);
-        }
     }
 
     private void tryPreloadDiscoveries() {
         if (locator instanceof RegistryLocator registryLocator) {
-            registryLocator.preloadDiscoveries(this);
+            registryLocator.preloadDiscoveries();
         }
     }
 

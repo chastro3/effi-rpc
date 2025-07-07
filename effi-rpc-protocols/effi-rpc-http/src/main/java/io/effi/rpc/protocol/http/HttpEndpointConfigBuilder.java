@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.config.transport.EndpointConfigBuilder;
 
@@ -16,7 +16,7 @@ public interface HttpEndpointConfigBuilder<T extends EndpointConfig, C extends H
      * Applies to both HTTP requests and responses.
      */
     default C maxMessageSize(int maxMessageSize) {
-        config().set(DefaultConfigKeys.MAX_MESSAGE_SIZE, maxMessageSize);
+        config().set(DefaultConfigNames.MAX_MESSAGE_SIZE, maxMessageSize);
         return returnThis();
     }
 
@@ -26,7 +26,7 @@ public interface HttpEndpointConfigBuilder<T extends EndpointConfig, C extends H
      * Controls how tracing information is collected and propagated.
      */
     default C tracingPolicy(String tracingPolicy) {
-        config().set(DefaultConfigKeys.TRACING_POLICY, tracingPolicy);
+        config().set(DefaultConfigNames.TRACING_POLICY, tracingPolicy);
         return returnThis();
     }
 
@@ -36,7 +36,7 @@ public interface HttpEndpointConfigBuilder<T extends EndpointConfig, C extends H
      * Defines the initial size of the buffer used during HTTP request decoding.
      */
     default C decoderInitialBufferSize(int decoderInitialBufferSize) {
-        config().set(DefaultConfigKeys.DECODER_INITIAL_BUFFER_SIZE, decoderInitialBufferSize);
+        config().set(DefaultConfigNames.DECODER_INITIAL_BUFFER_SIZE, decoderInitialBufferSize);
         return returnThis();
     }
 }

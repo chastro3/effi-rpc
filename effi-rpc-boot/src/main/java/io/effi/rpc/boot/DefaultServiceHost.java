@@ -1,21 +1,19 @@
 package io.effi.rpc.boot;
 
 import io.effi.rpc.base.ServiceHost;
+import io.effi.rpc.boot.builder.ServiceHostBuilder;
 import io.effi.rpc.component.EffiRpcApplication;
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.config.Config;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.config.transport.ServerConfig;
 import io.effi.rpc.constant.Tags;
-import io.effi.rpc.boot.builder.ServiceHostBuilder;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryFactory;
 import io.effi.rpc.registry.RegistryService;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.endpoint.Server;
@@ -36,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
  * Provide the default implementation of the {@link ServiceHost} that exports the server configuration
  * and registers it with registries.
  */
-public class DefaultServiceHost extends PlatformSource.Holder implements ServiceHost {
+public class DefaultServiceHost extends EffiRpcPlatform.Holder implements ServiceHost {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultServiceHost.class);
 
@@ -126,24 +124,23 @@ public class DefaultServiceHost extends PlatformSource.Holder implements Service
     }
 
     protected CompletableFuture<Void>[] doRegister() {
-        List<RegistryConfig> registryConfigs = new ArrayList<>(this.registryConfigs);
-        Collection<RegistryConfig> platformRegistryConfigs = platform.listOf(RegistryConfig.class, Tags.PROVIDER, Tags.FORCE_ACTIVE);
-        CollectionUtil.addUnique(registryConfigs, platformRegistryConfigs);
-        if (CollectionUtil.isEmpty(registryConfigs)) {
-            logger.warn("No available registry config(s)");
-            return ObjectUtil.emptyFutureArray();
-        } else {
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-            for (RegistryConfig registryConfig : registryConfigs) {
-                RegistryFactory registryFactory = ExtensionLoader.loadExtension(RegistryFactory.class, registryConfig.type());
-                RegistryService registryService = registryFactory.getService(registryConfig);
-                for (EffiRpcApplication application : platform.applications()) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (EffiRpcApplication application : platform.applications()) {
+            Collection<RegistryConfig> activeRegistryConfigs = application.listOf(RegistryConfig.class, (name, item) -> item.hasTags(Tags.PROVIDER, Tags.FORCE_ACTIVE));
+            Collection<RegistryConfig> registryConfigs = CollectionUtil.merge(activeRegistryConfigs, this.registryConfigs);
+            if (CollectionUtil.isEmpty(registryConfigs)) {
+                logger.warn("No available registry config(s)");
+            } else {
+                for (RegistryConfig registryConfig : registryConfigs) {
+                    RegistryFactory registryFactory = application.getExtension(RegistryFactory.class, registryConfig.type());
+                    RegistryService registryService = registryFactory.getService(registryConfig);
                     CompletableFuture<Void> future = registryService.register(application.name(), this);
                     if (future != null) futures.add(future);
                 }
             }
-            return futures.toArray(ObjectUtil.emptyFutureArray());
         }
+        return futures.isEmpty() ? ObjectUtil.emptyFutureArray() : futures.toArray(ObjectUtil.emptyFutureArray());
+
     }
 
     @Override

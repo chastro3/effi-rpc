@@ -1,9 +1,9 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.config.URL;
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.protocol.http.FutureBinder;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.transport.TransportSupport;
@@ -48,7 +48,7 @@ public final class Http1ClientHandler extends FutureBinder {
     }
 
     @Override
-    protected boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, InvocationContext<Envelope.Request, Caller<?>> context) throws Exception {
+    protected boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, CallContext<Message.Request, Caller<?>> context) throws Exception {
         if (msg instanceof FullHttpResponse fullHttpResponse) {
             msg = H1Support.fromFullHttpResponse(fullHttpResponse, context);
             ctx.fireChannelRead(msg);

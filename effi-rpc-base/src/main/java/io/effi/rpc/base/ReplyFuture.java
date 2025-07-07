@@ -1,6 +1,6 @@
 package io.effi.rpc.base;
 
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.base.context.ReplyContext;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.constant.KeyConstant;
@@ -22,16 +22,16 @@ public abstract class ReplyFuture {
 
     private static final AtomicLong INCREASE = new AtomicLong(0);
 
-    protected final List<Consumer<ReplyContext<Envelope.Response, Caller<?>>>> completedConsumers = new ArrayList<>();
+    protected final List<Consumer<ReplyContext<Message.Response, Caller<?>>>> completedConsumers = new ArrayList<>();
 
     protected final long id;
 
-    protected InvocationContext<Envelope.Request, Caller<?>> context;
+    protected CallContext<Message.Request, Caller<?>> context;
 
-    protected ReplyFuture(InvocationContext<Envelope.Request, Caller<?>> context) {
+    protected ReplyFuture(CallContext<Message.Request, Caller<?>> context) {
         this.id = INCREASE.incrementAndGet();
         context.set(KeyConstant.ATTR_UNIQUE_ID, id);
-        context.envelope().url().set(KeyConstant.ATTR_UNIQUE_ID, id);
+        context.message().url().set(KeyConstant.ATTR_UNIQUE_ID, id);
         this.context = context;
         FUTURES.put(id, this);
     }
@@ -67,7 +67,7 @@ public abstract class ReplyFuture {
      *
      * @param context the context to complete the future with.
      */
-    public void complete(ReplyContext<Envelope.Response, Caller<?>> context) {
+    public void complete(ReplyContext<Message.Response, Caller<?>> context) {
         if (!completed()) {
             invokeCompletedConsumers(context);
             Result result = context.result();
@@ -83,12 +83,12 @@ public abstract class ReplyFuture {
         removeFuture(id);
     }
 
-    public InvocationContext<Envelope.Request, Caller<?>> context() {
-        return context;
+    private void invokeCompletedConsumers(ReplyContext<Message.Response, Caller<?>> context) {
+        completedConsumers.forEach(consumer -> consumer.accept(context));
     }
 
-    public void whenComplete(Consumer<ReplyContext<Envelope.Response, Caller<?>>> consumer) {
-        completedConsumers.add(consumer);
+    public CallContext<Message.Request, Caller<?>> context() {
+        return context;
     }
 
     /**
@@ -102,8 +102,8 @@ public abstract class ReplyFuture {
 
     protected abstract void doCompleteExceptionally(EffiRpcException e);
 
-    private void invokeCompletedConsumers(ReplyContext<Envelope.Response, Caller<?>> context) {
-        completedConsumers.forEach(consumer -> consumer.accept(context));
+    public void whenComplete(Consumer<ReplyContext<Message.Response, Caller<?>>> consumer) {
+        completedConsumers.add(consumer);
     }
 }
 

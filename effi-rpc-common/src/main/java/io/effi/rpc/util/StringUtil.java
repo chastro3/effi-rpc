@@ -1,5 +1,9 @@
 package io.effi.rpc.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -46,6 +50,63 @@ public final class StringUtil {
      */
     public static boolean equals(CharSequence c1, CharSequence c2) {
         return CharSequence.compare(c1, c2) == 0;
+    }
+
+    public static String[] reverse(String[] array) {
+        if (CollectionUtil.isEmpty(array)) return array;
+        int i = 0, j = array.length - 1;
+        while (i < j) {
+            String temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            i++;
+            j--;
+        }
+        return array;
+    }
+
+    public static String[] toArray(List<String> values) {
+        if (CollectionUtil.isEmpty(values)) return EMPTY_ARRAY;
+        return values.toArray(EMPTY_ARRAY);
+    }
+
+    public static String[] deduplicate(String[] array) {
+        final int n = array.length;
+        if (n <= 1) return array;
+        LinkedHashSet<String> seen = new LinkedHashSet<>(n);
+        for (int i = 0; i < n; i++) {
+            seen.add(array[i]);
+        }
+        return seen.toArray(EMPTY_ARRAY);
+    }
+
+    /**
+     * Concatenates any number of String, String[], or Collection into a single String[].
+     */
+    public static String[] concat(Object... parts) {
+        if (parts == null) return emptyArray();
+        List<String> result = new ArrayList<>(parts.length);
+        for (Object part : parts) {
+            if (part == null) {
+                continue;
+            }
+            if (part instanceof String s) {
+                result.add(s);
+            } else if (part instanceof String[] arr) {
+                for (String s : arr) {
+                    if (s != null) result.add(s);
+                }
+            } else if (part instanceof Collection<?> col) {
+                for (Object o : col) {
+                    if (o instanceof String s) {
+                        result.add(s);
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("Unsupported type: " + part.getClass());
+            }
+        }
+        return result.toArray(EMPTY_ARRAY);
     }
 
     /**

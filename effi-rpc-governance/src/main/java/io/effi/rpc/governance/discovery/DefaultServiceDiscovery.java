@@ -1,9 +1,10 @@
 package io.effi.rpc.governance.discovery;
 
-import io.effi.rpc.annotation.spi.Extension;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.component.EffiRpcApplication;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.constant.Component;
@@ -11,7 +12,6 @@ import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryFactory;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.ObjectUtil;
 
@@ -30,17 +30,15 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
     private static final Logger logger = LoggerFactory.getLogger(DefaultServiceDiscovery.class);
 
     @Override
-    public List<URL> discover(String serviceName, InvocationContext<Envelope.Request, Caller<?>> context, List<RegistryConfig> registryConfigs) {
-        if (CollectionUtil.isEmpty(registryConfigs)) {
-            logger.warn("Registry config(s) is empty");
-        }
+    public List<URL> discover(String serviceName, CallContext<Message.Request, Caller<?>> context, List<RegistryConfig> registryConfigs) {
         List<URL> availableServiceUrls = new ArrayList<>();
-        URL url = context.envelope().url();
+        URL url = context.message().url();
         int size = registryConfigs.size();
+        EffiRpcApplication application = context.module().application();
         CompletableFuture<List<URL>>[] futures = ObjectUtil.newFutureArray(size);
         for (int i = 0; i < size; i++) {
             RegistryConfig registryConfig = registryConfigs.get(i);
-            var registryService = ExtensionLoader.loadExtension(RegistryFactory.class, registryConfig.type())
+            var registryService = application.getExtension(RegistryFactory.class, registryConfig.type())
                     .getService(registryConfig);
             futures[i] = registryService.discover(serviceName, context.module());
         }

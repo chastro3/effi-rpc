@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.effi.rpc.config.DefaultConfigKeys.IDLE_TRIGGER_INTERVAL;
+import static io.effi.rpc.config.DefaultConfigNames.IDLE_TRIGGER_INTERVAL;
 import static io.netty.channel.ChannelHandler.Sharable;
 
 /**

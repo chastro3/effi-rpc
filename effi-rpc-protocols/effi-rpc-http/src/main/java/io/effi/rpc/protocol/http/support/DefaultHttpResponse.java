@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Provides the default implementation of {@link HttpResponse}.
  */
-public class DefaultHttpResponse<BODY> extends DefaultHttpEnvelope<BODY> implements HttpResponse<BODY> {
+public class DefaultHttpResponse<BODY> extends DefaultHttpMessage<BODY> implements HttpResponse<BODY> {
 
     private final int statusCode;
 
@@ -32,7 +32,7 @@ public class DefaultHttpResponse<BODY> extends DefaultHttpEnvelope<BODY> impleme
     /**
      * Builds {@link DefaultHttpResponse} instance.
      */
-    public static class Builder<BODY> extends DefaultHttpEnvelope.Builder<BODY, HttpResponse<BODY>, Builder<BODY>> {
+    public static class Builder<BODY> extends DefaultHttpMessage.Builder<BODY, HttpResponse<BODY>, Builder<BODY>> {
 
         private int statusCode;
 

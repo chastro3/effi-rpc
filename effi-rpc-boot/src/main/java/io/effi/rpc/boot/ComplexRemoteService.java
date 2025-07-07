@@ -1,19 +1,22 @@
 package io.effi.rpc.boot;
 
-import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.compile.DynamicAccessor;
+import io.effi.rpc.base.CallSideContainer;
 import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.InvokerContainer;
 import io.effi.rpc.base.RemoteService;
-import io.effi.rpc.util.*;
+import io.effi.rpc.compile.DynamicAccessor;
+import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.ObjectUtil;
+import io.effi.rpc.util.ReflectionUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 
 /**
  * Provide the default implementation of {@link RemoteService}.
  */
-public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>> implements RemoteService<T> {
+public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> implements RemoteService<T> {
 
     protected Class<T> serviceType;
 
@@ -47,10 +50,10 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
         this.config = checkConfig(config);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Callee<?> getCallee(String protocol, String path) {
-        String key = InvokerContainer.invokerKey(protocol, path);
-        return getInvoker(key);
+    public <R> R invokeCallee(Callee callee, Object... args) {
+        return (R) methodAccess.invoke(service, callee.methodIndex(), args);
     }
 
     @Override
@@ -68,24 +71,24 @@ public class ComplexRemoteService<T> extends AbstractInvokerContainer<Callee<?>>
         return name;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <R> R invokeCallee(Callee<T> callee, Object... args) {
-        return (R) methodAccess.invoke(service, callee.methodIndex(), args);
-    }
-
-    @Override
-    public RemoteService<T> addCallee(Callee<?> callee) {
+    public RemoteService<T> addCallee(Callee callee) {
         String path = callee.queryPath() == null ? "" : callee.queryPath().path();
-        String key = InvokerContainer.invokerKey(callee.protocol(), path);
+        String key = CallSideContainer.invokerKey(callee.protocol(), path);
         addInvoker(key, callee);
         return this;
     }
 
     @Override
-    public int getCalleeIndex(Callee<?> callee) {
+    public int getCalleeIndex(Callee callee) {
         Method method = callee.method();
-        return methodAccess.getMethodIndex(method.getName(), method.getParameterTypes());
+        return methodAccess.findMethodIndex(method.getName(), method.getParameterTypes());
+    }
+
+    @Override
+    public Callee getCallee(String protocol, String path) {
+        String key = CallSideContainer.invokerKey(protocol, path);
+        return getInvoker(key);
     }
 
     @Override

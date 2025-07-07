@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.codec;
 
 import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
@@ -17,7 +17,7 @@ import io.netty.buffer.ByteBuf;
 public class HttpServerCodec extends AbstractServerCodec<HttpResponse<Object>, HttpRequest<ByteBuf>> {
 
     @Override
-    protected Envelope.Response encodeResponse(WrappedResponse<Callee<?>> wrappedResponse, HttpResponse<Object> response) throws Exception {
+    protected Message.Response encodeResponse(WrappedResponse<Callee> wrappedResponse, HttpResponse<Object> response) throws Exception {
         return response.body(HttpUtil.encodeBody(response));
     }
 

@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
@@ -35,11 +35,11 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof Envelope.Response response) {
+        if (msg instanceof Message.Response response) {
             NettyChannel channel = NettyChannel.get(ctx.channel());
             if (channel != null) TransportSupport.handleResponse(response, channel);
         } else {
-            logger.warn(Messages.onlySupport(Envelope.Response.class));
+            logger.warn(Messages.onlySupport(Message.Response.class));
         }
     }
 
@@ -54,7 +54,7 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
         if (msg instanceof WrappedRequest<?> wrappedRequest) {
             addFailedListener(promise, wrappedRequest.channel(), ReplyFuture.getFuture(wrappedRequest.request().url()));
             super.write(ctx, wrappedRequest.encode().request(), promise);
-        } else if (msg instanceof Envelope.Request request) {
+        } else if (msg instanceof Message.Request request) {
             addFailedListener(promise, NettyChannel.get(ctx.channel()), ReplyFuture.getFuture(request.url()));
             super.write(ctx, msg, promise);
         } else {
@@ -68,7 +68,7 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
                 if (replyFuture != null) {
                     EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());
                     logger.error(exception.getMessage());
-                    replyFuture.context().invoker().threadPool().execute(() -> replyFuture.complete(exception));
+                    replyFuture.context().callSide().threadPool().execute(() -> replyFuture.complete(exception));
                 } else {
                     logger.warn("ReplyFuture is null, cannot complete with exception.");
                 }

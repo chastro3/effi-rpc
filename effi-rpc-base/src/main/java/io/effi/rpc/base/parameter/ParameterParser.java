@@ -1,14 +1,14 @@
 package io.effi.rpc.base.parameter;
 
 import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 
 import java.lang.reflect.Parameter;
 
 /**
  * Parses parameters from a request.
  */
-public interface ParameterParser<REQ extends Envelope.Request> {
+public interface ParameterParser<REQ extends Message.Request> {
 
     /**
      * Parses a parameter from the given request.
@@ -18,7 +18,7 @@ public interface ParameterParser<REQ extends Envelope.Request> {
      * @param callee    the callee handling the request
      * @return the parsed object
      */
-    Object parse(REQ req, Parameter parameter, Callee<?> callee);
+    Object parse(REQ req, Parameter parameter, Callee callee);
 
     /**
      * Checks if the parameter is supported by this parser.

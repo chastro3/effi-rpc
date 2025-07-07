@@ -1,6 +1,6 @@
 package io.effi.rpc.compression;
 
-import io.effi.rpc.annotation.spi.Extensible;
+import io.effi.rpc.annotation.component.Extensible;
 
 import static io.effi.rpc.constant.Component.Compression.GZIP;
 

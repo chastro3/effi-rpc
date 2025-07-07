@@ -19,19 +19,79 @@ import java.util.function.Predicate;
 /**
  * Provides common collection operations.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class CollectionUtil {
 
-    private static final String[] EMPTY_STRING_ARRAY = new String[0];
+    private static final Map.Entry[] EMPTY_ENTRY_ARRAY = new Map.Entry[0];
 
+    public static <K, V> Map.Entry<K, V>[] emptyEntryArray() {
+        return EMPTY_ENTRY_ARRAY;
+    }
 
+    /**
+     * Converts an array to a hash set.
+     */
+    public static <T> Set<T> toHashSet(T[] array) {
+        if (isEmpty(array)) {
+            return Collections.emptySet();
+        }
+        if (array.length == 1) {
+            return Collections.singleton(array[0]);
+        }
+        Set<T> set;
+        if (array.length <= 20) {
+            set = new HashSet<>();
+        } else {
+            int capacity = (int) (array.length / 0.75f) + 1;
+            set = new HashSet<>(capacity);
+        }
+        for (T s : array) {
+            if (s != null) {
+                set.add(s);
+            }
+        }
+        return set;
+    }
+
+    /**
+     * Converts an array to a linked hash set.
+     */
+    public static <T> Set<T> toLinkedHashSet(T[] array) {
+        if (isEmpty(array)) {
+            return Collections.emptySet();
+        }
+        if (array.length == 1) {
+            return Collections.singleton(array[0]);
+        }
+        Set<T> set;
+        if (array.length <= 20) {
+            set = new LinkedHashSet<>();
+        } else {
+            int capacity = (int) (array.length / 0.75f) + 1;
+            set = new LinkedHashSet<>(capacity);
+        }
+        for (T s : array) {
+            if (s != null) {
+                set.add(s);
+            }
+        }
+        return set;
+    }
+
+    /**
+     * Returns an unmodifiable view of a filtered and mapped collection.
+     */
     public static <T, R> Collection<R> unmodifiable(Collection<T> source, Predicate<T> predicate, Function<T, R> mapper) {
         if (isEmpty(source)) {
             return Collections.emptyList();
         }
         List<R> result = new ArrayList<>();
         for (T item : source) {
-            if (predicate.test(item)) {
+            if (predicate != null) {
+                if (predicate.test(item)) {
+                    result.add(mapper.apply(item));
+                }
+            } else {
                 result.add(mapper.apply(item));
             }
         }
@@ -41,16 +101,46 @@ public final class CollectionUtil {
         return Collections.unmodifiableList(result);
     }
 
-    public static <T, R> Map<String, R> unmodifiable(Map<String, T> source, Predicate<T> predicate, Function<T, R> mapper) {
+    /**
+     * Returns an unmodifiable view of a filtered map.
+     */
+    public static <T> Map<String, T> unmodifiable(Map<String, T> source, BiPredicate<String, T> predicate) {
+        if (isEmpty(source) || predicate == null) {
+            return source;
+        }
+        Map<String, T> result = new LinkedHashMap<>();
+        for (Map.Entry<String, T> entry : source.entrySet()) {
+            String key = entry.getKey();
+            T value = entry.getValue();
+            if (predicate.test(key, value)) {
+                result.put(key, value);
+            }
+        }
+        if (isEmpty(result)) {
+            return Collections.emptyMap();
+        }
+        return Collections.unmodifiableMap(result);
+    }
+
+    /**
+     * Returns an unmodifiable view of a filtered and mapped map.
+     */
+    public static <T, R> Map<String, R> unmodifiable(Map<String, T> source, BiPredicate<String, T> predicate, Function<T, R> mapper) {
         if (isEmpty(source)) {
             return Collections.emptyMap();
         }
         Map<String, R> result = new LinkedHashMap<>();
         for (Map.Entry<String, T> entry : source.entrySet()) {
+            String key = entry.getKey();
             T value = entry.getValue();
-            if (predicate.test(value)) {
-                result.put(entry.getKey(), mapper.apply(value));
+            if (predicate != null) {
+                if (predicate.test(key, value)) {
+                    result.put(key, mapper.apply(value));
+                }
+            } else {
+                result.put(key, mapper.apply(value));
             }
+
         }
         if (isEmpty(result)) {
             return Collections.emptyMap();
@@ -65,6 +155,9 @@ public final class CollectionUtil {
         addUnique(list, Arrays.asList(elements));
     }
 
+    /**
+     * Adds unique elements to the list.
+     */
     public static <E> void addUnique(List<E> list, Collection<E> elements) {
         if (isEmpty(elements)) return;
         Set<E> set = new HashSet<>();
@@ -75,14 +168,21 @@ public final class CollectionUtil {
         }
     }
 
-    public static String[] deduplicate(String[] array) {
-        final int n = array.length;
-        if (n <= 1) return array;
-        LinkedHashSet<String> seen = new LinkedHashSet<>(n);
-        for (int i = 0; i < n; i++) {
-            seen.add(array[i]);
+
+    /**
+     * Merges multiple collections into a single set.
+     * <p>
+     * Duplicates are eliminated. Returns an empty list if input is empty.
+     * </p>
+     */
+    @SafeVarargs
+    public static <E> Collection<E> merge(Collection<E>... collections) {
+        if (isEmpty(collections)) return Collections.emptyList();
+        Set<E> set = new HashSet<>();
+        for (Collection<E> collection : collections) {
+            set.addAll(collection);
         }
-        return seen.toArray(EMPTY_STRING_ARRAY);
+        return set;
     }
 
 

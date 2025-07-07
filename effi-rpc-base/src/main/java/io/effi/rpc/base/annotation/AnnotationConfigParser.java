@@ -1,7 +1,7 @@
 package io.effi.rpc.base.annotation;
 
 import io.effi.rpc.config.Config;
-import io.effi.rpc.config.ConfigKey;
+import io.effi.rpc.config.ConfigName;
 import io.effi.rpc.util.CollectionUtil;
 
 import java.lang.annotation.Annotation;
@@ -18,8 +18,8 @@ public class AnnotationConfigParser<T extends AnnotatedElement, A extends Annota
     private final KVMapper<A>[] kvMappers;
 
 
-    public AnnotationConfigParser(Class<A> type, ConfigKey configKey, Function<A, String> valueGetter) {
-        this(type, new KVMapper<>(configKey, valueGetter));
+    public AnnotationConfigParser(Class<A> type, ConfigName configName, Function<A, String> valueGetter) {
+        this(type, new KVMapper<>(configName, valueGetter));
     }
 
     @SafeVarargs

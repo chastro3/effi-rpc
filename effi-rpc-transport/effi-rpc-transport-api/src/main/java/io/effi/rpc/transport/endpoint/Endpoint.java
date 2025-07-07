@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.component.PlatformSource;
-import io.effi.rpc.config.URLSource;
+import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.util.resoruce.Closeable;
 
@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 /**
  * Represents an endpoint with host, port, and address details.
  */
-public interface Endpoint extends URLSource, PlatformSource, Closeable {
+public interface Endpoint extends URL.Provider, EffiRpcPlatform.Provider, Closeable {
 
     /**
      * Returns host name or IP address.

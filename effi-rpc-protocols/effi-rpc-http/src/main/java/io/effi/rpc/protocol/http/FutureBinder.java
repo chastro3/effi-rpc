@@ -1,11 +1,11 @@
 package io.effi.rpc.protocol.http;
 
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.ReplyFuture;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.ReplyFuture;
-import io.effi.rpc.base.context.InvocationContext;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,5 +50,5 @@ public abstract class FutureBinder extends ChannelDuplexHandler {
 
     protected abstract void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception;
 
-    protected abstract boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, InvocationContext<Envelope.Request, Caller<?>> context) throws Exception;
+    protected abstract boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, CallContext<Message.Request, Caller<?>> context) throws Exception;
 }

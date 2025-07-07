@@ -1,10 +1,10 @@
 package io.effi.rpc.boot.registry;
 
+import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.base.ServiceHost;
 import io.effi.rpc.constant.Component;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.base.ServiceHost;
 import io.effi.rpc.registry.MetaDataRegister;
-import io.effi.rpc.annotation.spi.Extension;
 
 import java.util.Map;
 

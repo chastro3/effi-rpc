@@ -1,7 +1,7 @@
 package io.effi.rpc.base.event;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.component.PlatformSource;
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.util.resoruce.Closeable;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Kind.SINGLE;
@@ -11,7 +11,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  * Dispatches events and manages event listeners.
  */
 @ScopedComponent(scope = PLATFORM, kind = SINGLE)
-public interface EventDispatcher extends Closeable, PlatformSource {
+public interface EventDispatcher extends Closeable, EffiRpcPlatform.Provider {
 
     /**
      * Registers a listener for the specified event type.

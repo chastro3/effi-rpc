@@ -4,11 +4,10 @@ import io.effi.rpc.base.ServiceHost;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.util.AssertUtil;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,7 +21,7 @@ public class RegisterTask implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(RegisterTask.class);
 
-    private static final List<MetaDataRegister> META_DATA_REGISTERS = ExtensionLoader.loadExtensions(MetaDataRegister.class);
+    private final Collection<MetaDataRegister> metaDataRegisters;
 
     private final RegistryConfig config;
 
@@ -38,11 +37,14 @@ public class RegisterTask implements Runnable {
         this.serviceName = AssertUtil.notBlank(serviceName, "serviceName");
         this.serviceHost = AssertUtil.notNull(serviceHost, "serviceHost");
         this.registrationAction = AssertUtil.notNull(registrationAction, "registrationAction");
+        this.metaDataRegisters = serviceHost.platform()
+                .getApplication(serviceName)
+                .extensionsOf(MetaDataRegister.class);
     }
 
     public CompletableFuture<Void> execute() {
         Map<String, String> metaData = new HashMap<>();
-        for (MetaDataRegister metaDataRegister : META_DATA_REGISTERS) {
+        for (MetaDataRegister metaDataRegister : metaDataRegisters) {
             metaDataRegister.process(serviceHost, metaData);
         }
         return registrationAction.execute(metaData);

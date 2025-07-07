@@ -1,23 +1,23 @@
 package io.effi.rpc.boot;
 
-import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.annotation.rpc.EffiRpcCallee;
+import io.effi.rpc.annotation.rpc.EffiRpcService;
 import io.effi.rpc.base.RemoteService;
 import io.effi.rpc.base.annotation.AnnotationStyle;
 import io.effi.rpc.base.annotation.AnnotationStyleParser;
-import io.effi.rpc.annotation.rpc.EffiRpcCallee;
-import io.effi.rpc.annotation.rpc.EffiRpcService;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcModule;
 import io.effi.rpc.base.parameter.MethodMapper;
 import io.effi.rpc.base.parameter.ParameterMapper;
 import io.effi.rpc.base.parameter.ParameterParser;
+import io.effi.rpc.component.EffiRpcApplication;
+import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.config.DefaultConfigNames;
+import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -97,13 +97,13 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
     }
 
     private EffiRpcModule getModule(HierarchicalNodeConfig config, EffiRpcApplication application) {
-        String moduleName = config.get(DefaultConfigKeys.MODULE);
+        String moduleName = config.get(DefaultConfigNames.MODULE);
         EffiRpcModule module = application.getModule(moduleName);
         return module == null ? application.defaultModule() : module;
     }
 
     private List<Protocol> getSupportedProtocols(HierarchicalNodeConfig config) {
-        String protocolNames = config.get(DefaultConfigKeys.PROTOCOL);
+        String protocolNames = config.get(DefaultConfigNames.PROTOCOL);
         if (StringUtil.isBlank(protocolNames)) {
             return Collections.emptyList();
         }
@@ -117,8 +117,7 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
     }
 
     private EffiRpcService checkServiceAnnotation(Class<T> targetType) {
-        EffiRpcService serviceAnnotation = targetType.getAnnotation(EffiRpcService.class);
-        return AssertUtil.notNull(serviceAnnotation, "the target type is missing @EffiRpcService");
+        return AssertUtil.notAnnotation(targetType, EffiRpcService.class);
     }
 
 }

@@ -1,6 +1,6 @@
 package io.effi.rpc.metrics;
 
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.metrics.constant.MetricsKey;
 
 /**
@@ -14,7 +14,7 @@ public class MetricsSupport {
      * @param context The invocation context to record the start time for.
      * @return The recorded start time in nanoseconds.
      */
-    public static long recordStartTime(InvocationContext<?, ?> context) {
+    public static long recordStartTime(CallContext<?, ?> context) {
         long start = System.nanoTime();
         context.set(MetricsKey.START_TIME, start);
         return start;
@@ -26,7 +26,7 @@ public class MetricsSupport {
      * @param context The invocation context to record the end time for.
      * @return The recorded end time in nanoseconds.
      */
-    public static long recordEndTime(InvocationContext<?, ?> context) {
+    public static long recordEndTime(CallContext<?, ?> context) {
         long end = System.nanoTime();
         context.set(MetricsKey.END_TIME, end);
         return end;
@@ -38,7 +38,7 @@ public class MetricsSupport {
      * @param context The invocation context to record the start time for.
      * @return The recorded serialization end time in nanoseconds.
      */
-    public static long recordSerializeStartTime(InvocationContext<?, ?> context) {
+    public static long recordSerializeStartTime(CallContext<?, ?> context) {
         long start = System.nanoTime();
         context.set(MetricsKey.SERIALIZE_START_TIME, start);
         return start;
@@ -50,7 +50,7 @@ public class MetricsSupport {
      * @param context The invocation context to record the end time for.
      * @return The recorded serialization end time in nanoseconds.
      */
-    public static long recordSerializeEndTime(InvocationContext<?, ?> context) {
+    public static long recordSerializeEndTime(CallContext<?, ?> context) {
         long end = System.nanoTime();
         context.set(MetricsKey.SERIALIZE_END_TIME, end);
         return end;
@@ -62,7 +62,7 @@ public class MetricsSupport {
      * @param context The invocation context to record the start time for.
      * @return The recorded deserialization end time in nanoseconds.
      */
-    public static long recordDeserializeStartTime(InvocationContext<?, ?> context) {
+    public static long recordDeserializeStartTime(CallContext<?, ?> context) {
         long start = System.nanoTime();
         context.set(MetricsKey.DESERIALIZE_START_TIME, start);
         return start;
@@ -74,7 +74,7 @@ public class MetricsSupport {
      * @param context The invocation context to record the end time for.
      * @return The recorded deserialization end time in nanoseconds.
      */
-    public static long recordDeserializeEndTime(InvocationContext<?, ?> context) {
+    public static long recordDeserializeEndTime(CallContext<?, ?> context) {
         long end = System.nanoTime();
         context.set(MetricsKey.DESERIALIZE_END_TIME, end);
         return end;
@@ -86,7 +86,7 @@ public class MetricsSupport {
      * @param context The invocation context to retrieve the start time for.
      * @return The start time in nanoseconds.
      */
-    public static long getStartTime(InvocationContext<?, ?> context) {
+    public static long getStartTime(CallContext<?, ?> context) {
         return context.get(MetricsKey.START_TIME);
     }
 }

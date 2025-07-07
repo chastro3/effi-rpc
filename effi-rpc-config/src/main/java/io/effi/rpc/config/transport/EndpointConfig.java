@@ -1,6 +1,5 @@
 package io.effi.rpc.config.transport;
 
-import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.config.NamedConfig;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.util.StringUtil;
@@ -10,7 +9,7 @@ import java.net.InetSocketAddress;
 /**
  * Defines configuration for endpoint.
  */
-public interface EndpointConfig extends NamedConfig, PlatformSource {
+public interface EndpointConfig extends NamedConfig {
 
     /**
      * Returns the protocol of the endpoint.

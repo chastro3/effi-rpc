@@ -1,8 +1,8 @@
 package io.effi.rpc.base;
 
-import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.base.context.ReplyContext;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.util.StringUtil;
@@ -25,7 +25,7 @@ public class CompletableReplyFuture extends ReplyFuture {
 
     private FailureHandler failureHandler;
 
-    public CompletableReplyFuture(InvocationContext<Envelope.Request, Caller<?>> context) {
+    public CompletableReplyFuture(CallContext<Message.Request, Caller<?>> context) {
         super(context);
         this.completableFuture = new CompletableFuture<>().whenComplete((v, e) -> remove());
     }
@@ -36,17 +36,17 @@ public class CompletableReplyFuture extends ReplyFuture {
     }
 
     @Override
-    public void startTimeout() {
-        String timeoutStr = context.invoker().get(DefaultConfigKeys.TIMEOUT);
-        if (StringUtil.isNotBlank(timeoutStr)) {
-            completableFuture.orTimeout(Long.parseLong(timeoutStr), TimeUnit.MILLISECONDS);
+    public void whenComplete(Consumer<ReplyContext<Message.Response, Caller<?>>> consumer) {
+        if (errorCount.get() == 0) {
+            completedConsumers.add(consumer);
         }
     }
 
     @Override
-    public void whenComplete(Consumer<ReplyContext<Envelope.Response, Caller<?>>> consumer) {
-        if (errorCount.get() == 0) {
-            completedConsumers.add(consumer);
+    public void startTimeout() {
+        String timeoutStr = context.callSide().getConfig(DefaultConfigNames.TIMEOUT);
+        if (StringUtil.isNotBlank(timeoutStr)) {
+            completableFuture.orTimeout(Long.parseLong(timeoutStr), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -72,7 +72,7 @@ public class CompletableReplyFuture extends ReplyFuture {
             return completableFuture.join();
         } catch (CompletionException e) {
             if (e.getCause() instanceof TimeoutException) {
-                String timeout = context().invoker().get(DefaultConfigKeys.TIMEOUT);
+                String timeout = context().callSide().getConfig(DefaultConfigNames.TIMEOUT);
                 throw PredefinedErrorCode.TIMEOUT.fail(e, timeout, id());
             }
             throw PredefinedErrorCode.CALL_CALLER.fail(e.getCause(), toString());

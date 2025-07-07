@@ -1,15 +1,11 @@
 package io.effi.rpc.base.repository;
 
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.component.MultiComponent;
 import org.intellij.lang.annotations.Language;
 
 /**
  * RouterConfig Manager.
  */
-public class RouterConfigRepository extends MultiComponent<Object> {
-    public RouterConfigRepository(EffiRpcModule module) {
-    }
+public class RouterConfigRepository {
 
     /**
      * Register a new router config bye call config regex and target config regex.

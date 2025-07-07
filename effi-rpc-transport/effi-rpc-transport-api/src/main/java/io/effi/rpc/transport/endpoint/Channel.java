@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.config.URLSource;
-import io.effi.rpc.component.PlatformSource;
+import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.util.Attributes;
 import io.effi.rpc.util.resoruce.Closeable;
@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Handles message transmission over a communication channel.
  */
-public interface Channel extends Attributes, PlatformSource, URLSource, Closeable {
+public interface Channel extends Attributes, EffiRpcPlatform.Provider, URL.Provider, Closeable {
 
     /**
      * Sends a message through this channel.

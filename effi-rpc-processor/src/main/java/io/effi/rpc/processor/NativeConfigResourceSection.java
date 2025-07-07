@@ -1,7 +1,7 @@
 package io.effi.rpc.processor;
 
 import io.effi.rpc.constant.Constant;
-import io.effi.rpc.constant.SystemKey;
+import io.effi.rpc.constant.SystemKeys;
 import io.effi.rpc.nativetools.JsonWriter;
 import io.effi.rpc.nativetools.NativeConfig;
 
@@ -41,8 +41,8 @@ public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Help
     }
 
     private String getModulePath() {
-        String groupId = processingEnv().getOptions().get(SystemKey.GROUP_ID);
-        String artifactId = processingEnv().getOptions().get(SystemKey.ARTIFACT_ID);
+        String groupId = processingEnv().getOptions().get(SystemKeys.GROUP_ID);
+        String artifactId = processingEnv().getOptions().get(SystemKeys.ARTIFACT_ID);
         if (groupId == null || artifactId == null) {
             return "";
         }

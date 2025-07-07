@@ -2,8 +2,7 @@ package io.effi.rpc.base;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformSource;
-import io.effi.rpc.config.URLSource;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.config.transport.ServerConfig;
 import io.effi.rpc.util.Identifiable;
@@ -19,7 +18,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  * Exposes the service through a specified {@link EffiRpcPlatform}.
  */
 @ScopedComponent(scope = PLATFORM)
-public interface ServiceHost extends URLSource, PlatformSource, Identifiable, Closeable, Comparable<ServiceHost> {
+public interface ServiceHost extends URL.Provider, EffiRpcPlatform.Provider, Identifiable, Closeable, Comparable<ServiceHost> {
 
     /**
      * Returns the server configuration.

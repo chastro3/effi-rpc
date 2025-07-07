@@ -1,7 +1,7 @@
 package io.effi.rpc.metrics.event;
 
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.base.event.AbstractEvent;
-import io.effi.rpc.base.context.InvocationContext;
 import io.effi.rpc.metrics.constant.MetricsKey;
 
 /**
@@ -20,7 +20,7 @@ public class MetricsEvent<T> extends AbstractEvent<T> {
 
     private final long executeDuration;
 
-    public MetricsEvent(T source, InvocationContext<?, ?> context, boolean hasException) {
+    public MetricsEvent(T source, CallContext<?, ?> context, boolean hasException) {
         super(source);
         this.hasException = hasException;
         Long startTime = context.get(MetricsKey.START_TIME);

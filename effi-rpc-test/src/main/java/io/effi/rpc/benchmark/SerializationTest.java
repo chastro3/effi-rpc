@@ -1,9 +1,9 @@
 package io.effi.rpc.benchmark;
 
 import io.effi.rpc.benchmark.model.ParentObject;
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.constant.Component;
 import io.effi.rpc.serialization.Serializer;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.util.TypeToken;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -43,8 +43,9 @@ public class SerializationTest {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        jsonSerializer = ExtensionLoader.loadExtension(Serializer.class, Component.Serialization.JSON);
-        msgpackSerializer = ExtensionLoader.loadExtension(Serializer.class, Component.Serialization.MSGPACK);
+        EffiRpcPlatform platform = EffiRpcPlatform.getInstance();
+        jsonSerializer = platform.getExtension(Serializer.class, Component.Serialization.JSON);
+        msgpackSerializer = platform.getExtension(Serializer.class, Component.Serialization.MSGPACK);
 
         List<ParentObject> objList = ParentObject.getObjList();
         TypeToken<List<ParentObject>> typeToken = new TypeToken<>() {

@@ -1,7 +1,6 @@
 package io.effi.rpc.base;
 
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.constant.Constant;
 
 import java.util.concurrent.Executors;
@@ -11,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Implements {@link Scheduler} using {@link ScheduledExecutorService}.
  */
-public class ScheduledThreadPool extends PlatformSource.Holder implements Scheduler {
+public class ScheduledThreadPool extends EffiRpcPlatform.Holder implements Scheduler {
 
     private final ScheduledExecutorService executorService;
 

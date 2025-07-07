@@ -1,11 +1,11 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 
 /**
  * Represents an HTTP request.
  */
-public interface HttpRequest<BODY> extends HttpEnvelope<BODY>, Envelope.Request {
+public interface HttpRequest<BODY> extends HttpMessage<BODY>, Message.Request {
 
     static <BODY> DefaultHttpRequest.Builder<BODY> builder() {
         return new DefaultHttpRequest.Builder<>();

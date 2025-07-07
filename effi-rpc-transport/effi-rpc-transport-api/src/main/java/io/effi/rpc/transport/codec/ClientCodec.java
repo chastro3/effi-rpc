@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.codec;
 
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.ReplyFuture;
 import io.effi.rpc.transport.WrappedRequest;
 import io.effi.rpc.transport.WrappedResponse;
@@ -18,7 +18,7 @@ public interface ClientCodec {
      * @param wrappedRequest the wrapped request
      * @return the encoded request
      */
-    Envelope.Request encode(WrappedRequest<Caller<?>> wrappedRequest);
+    Message.Request encode(WrappedRequest<Caller<?>> wrappedRequest);
 
     /**
      * Decodes a response into a wrapped response.
@@ -28,7 +28,7 @@ public interface ClientCodec {
      * @param future   the associated future
      * @return the decoded wrapped response
      */
-    WrappedResponse<Caller<?>> decode(Channel channel, Envelope.Response response, ReplyFuture future);
+    WrappedResponse<Caller<?>> decode(Channel channel, Message.Response response, ReplyFuture future);
 
 }
 

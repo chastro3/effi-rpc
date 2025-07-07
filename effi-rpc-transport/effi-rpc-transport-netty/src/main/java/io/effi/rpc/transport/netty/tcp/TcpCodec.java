@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.netty.tcp;
 
-import io.effi.rpc.constant.Constant;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.URL;
+import io.effi.rpc.constant.Constant;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -22,7 +22,7 @@ public final class TcpCodec {
     private final URL endpointUrl;
 
     public TcpCodec(URL url, boolean isServer) {
-        String maxMessageKey = isServer ? DefaultConfigKeys.SERVER_MAX_RECEIVE_SIZE.key() : DefaultConfigKeys.CLIENT_MAX_RECEIVE_SIZE.key();
+        String maxMessageKey = isServer ? DefaultConfigNames.SERVER_MAX_RECEIVE_SIZE.realName() : DefaultConfigNames.CLIENT_MAX_RECEIVE_SIZE.realName();
         int maxReceiveSize = url.getIntParam(maxMessageKey, Constant.DEFAULT_MAX_MESSAGE_SIZE);
         endpointUrl = url;
         encoder = new NettyEncoder();

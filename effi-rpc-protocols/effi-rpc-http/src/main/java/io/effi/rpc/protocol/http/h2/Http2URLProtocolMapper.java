@@ -1,10 +1,10 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.config.URLProtocolMapper;
-import io.effi.rpc.annotation.spi.Extension;
 
-import static io.effi.rpc.constant.Constant.HTTP;
 import static io.effi.rpc.constant.Component.Protocol.HTTP_2;
+import static io.effi.rpc.constant.Constant.HTTP;
 
 /**
  * Supports {@link URLProtocolMapper} for HTTP/2.0 protocol.

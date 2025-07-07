@@ -1,16 +1,16 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.base.Callee;
 import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.parameter.MethodMapper;
 import io.effi.rpc.component.EffiRpcModule;
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.base.parameter.MethodMapper;
 import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.config.transport.ServerConfig;
 import io.effi.rpc.protocol.http.HttpProtocol;
 import io.effi.rpc.protocol.http.support.HttpVersion;
-import io.effi.rpc.annotation.spi.Extension;
 import io.effi.rpc.transport.AbstractTransporter;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -32,7 +32,7 @@ public class Http2Protocol extends HttpProtocol {
     }
 
     @Override
-    public <T> Callee<T> createCallee(MethodMapper<T> methodMapper, NodeConfig config, EffiRpcModule module) {
+    public <T> Callee createCallee(MethodMapper<T> methodMapper, NodeConfig config, EffiRpcModule module) {
         return Http2Callee.builder(methodMapper, config).module(module).build();
     }
 

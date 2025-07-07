@@ -1,7 +1,6 @@
 package io.effi.rpc.base.event;
 
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.ObjectUtil;
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Provides an abstract implementation of {@link EventDispatcher}.
  */
-public abstract class AbstractEventDispatcher extends PlatformSource.Holder implements EventDispatcher {
+public abstract class AbstractEventDispatcher extends EffiRpcPlatform.Holder implements EventDispatcher {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 

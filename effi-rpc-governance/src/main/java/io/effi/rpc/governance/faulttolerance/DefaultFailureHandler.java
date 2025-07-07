@@ -1,9 +1,8 @@
 package io.effi.rpc.governance.faulttolerance;
 
 import io.effi.rpc.base.CompletableReplyFuture;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.spi.ExtensionLoader;
 
 /**
  * Provides a default implementation of {@link CompletableReplyFuture.FailureHandler}.
@@ -22,8 +21,11 @@ public final class DefaultFailureHandler implements CompletableReplyFuture.Failu
 
     @Override
     public void handle(CompletableReplyFuture future, EffiRpcException e) {
-        String name = future.context().invoker().get(DefaultConfigKeys.FAULT_TOLERANCE);
-        FaultTolerance faultTolerance = ExtensionLoader.loadExtension(FaultTolerance.class, name);
+        String name = future.context().callSide().getConfig(DefaultConfigNames.FAULT_TOLERANCE);
+        FaultTolerance faultTolerance = future.context()
+                .module()
+                .application()
+                .getExtension(FaultTolerance.class, name);
         try {
             faultTolerance.operation(future, e);
         } catch (EffiRpcException finalE) {

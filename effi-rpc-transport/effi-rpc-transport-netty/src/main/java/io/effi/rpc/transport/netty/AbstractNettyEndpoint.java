@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.ConfigKey;
+import io.effi.rpc.config.ConfigName;
 import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.transport.endpoint.AbstractEndpoint;
 import io.effi.rpc.transport.endpoint.Endpoint;
@@ -70,7 +70,7 @@ public abstract class AbstractNettyEndpoint<E extends Endpoint, B> extends Abstr
         configureChannelHandler(bootstrap);
     }
 
-    protected <V> void configureIfValid(ConfigKey key, Function<String, V> converter, Consumer<V> consumer) {
+    protected <V> void configureIfValid(ConfigName key, Function<String, V> converter, Consumer<V> consumer) {
         String value = url.getParam(key);
         try {
             V val = (value != null) ? converter.apply(value) : null;

@@ -25,7 +25,7 @@ public class Provider {
                     start();
                 }
                 if (command.equals("stop")) {
-                    EffiRpcPlatform.currentPlatform().stop();
+                    EffiRpcPlatform.getInstance().stop();
                 }
             }
         }
@@ -45,9 +45,8 @@ public class Provider {
                 .serviceHost(http2ServerConfig, 8090)
                 .serviceHost(http2ServerConfig, 8090)
                 .serviceHost(Http1ServerConfig.defaultConfig(), 8091)
-                .registry(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build(), Tags.PROVIDER, Tags.FORCE_ACTIVE)
+                .registry(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build().addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE))
                 //.registry(DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").tag(RegistryConfig.Tag.PROVIDER, RegistryConfig.Tag.FORCE_ACTIVE).build())
-                .filter("calleeLog", new CalleeLogFilter())
                 .service(new HelloService())
                 .start();
         System.out.println(bootstrap);

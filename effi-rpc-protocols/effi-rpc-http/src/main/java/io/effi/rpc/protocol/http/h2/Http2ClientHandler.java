@@ -14,10 +14,10 @@
  */
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.config.URL;
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.config.URL;
 import io.effi.rpc.protocol.http.FutureBinder;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
@@ -60,7 +60,7 @@ public final class Http2ClientHandler extends FutureBinder {
     }
 
     @Override
-    protected boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, InvocationContext<Envelope.Request, Caller<?>> context) throws Exception {
+    protected boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, CallContext<Message.Request, Caller<?>> context) throws Exception {
         Http2ResponseStream responseStream = null;
         if (msg instanceof Http2HeadersFrame headersFrame) {
             responseStream = H2Support.getOrCreateResponseStream(ctx, headersFrame.stream());

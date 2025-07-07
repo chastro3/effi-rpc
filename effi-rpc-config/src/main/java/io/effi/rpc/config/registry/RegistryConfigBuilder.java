@@ -1,7 +1,7 @@
 package io.effi.rpc.config.registry;
 
 import io.effi.rpc.config.Config;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.NamedConfigBuilder;
 import io.effi.rpc.config.URL;
 
@@ -28,7 +28,7 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
      * Sets the connection timeout.
      */
     public C connectTimeout(int connectTimeout) {
-        config.set(DefaultConfigKeys.CONNECT_TIMEOUT, connectTimeout);
+        config.set(DefaultConfigNames.CONNECT_TIMEOUT, connectTimeout);
         return returnThis();
     }
 
@@ -36,7 +36,7 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
      * Sets the number of retry attempts.
      */
     public C retries(int retries) {
-        config.set(DefaultConfigKeys.RETRIES, retries);
+        config.set(DefaultConfigNames.RETRIES, retries);
         return returnThis();
     }
 
@@ -44,7 +44,7 @@ public abstract class RegistryConfigBuilder<T extends RegistryConfig, C extends 
      * Sets the heartbeat send interval.
      */
     public C heartbeatInterval(int heartbeatInterval) {
-        config.set(DefaultConfigKeys.HEARTBEAT_INTERVAL, heartbeatInterval);
+        config.set(DefaultConfigNames.HEARTBEAT_INTERVAL, heartbeatInterval);
         return returnThis();
     }
 

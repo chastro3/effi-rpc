@@ -1,16 +1,20 @@
 package io.effi.rpc.governance.router;
 
+import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.component.EffiRpcModule;
 import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.constant.Component;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.context.InvocationContext;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.annotation.spi.Extension;
 import io.effi.rpc.util.StringUtil;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,8 +25,8 @@ import java.util.stream.Collectors;
 public class DefaultRouter implements Router {
 
     @Override
-    public List<URL> route(InvocationContext<?, Caller<?>> context, List<URL> urls) {
-        URL url = context.envelope().url();
+    public List<URL> route(CallContext<?, Caller<?>> context, List<URL> urls) {
+        URL url = context.message().url();
         // filter by group
         String group = url.getParam(KeyConstant.GROUP);
         if (!StringUtil.isBlank(group)) {

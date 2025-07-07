@@ -1,12 +1,12 @@
 package io.effi.rpc.protocol.http.arg.api;
 
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.base.Callee;
 import io.effi.rpc.base.parameter.Argument;
 import io.effi.rpc.base.parameter.ParamVar;
 import io.effi.rpc.base.parameter.ParameterParser;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpUtil;
+import io.effi.rpc.util.AssertUtil;
 import io.netty.buffer.ByteBuf;
 
 import java.lang.reflect.Parameter;
@@ -23,7 +23,7 @@ public class HttpParamParser implements ParameterParser<HttpRequest<ByteBuf>> {
     }
 
     @Override
-    public Object parse(HttpRequest<ByteBuf> request, Parameter parameter, Callee<?> callee) {
+    public Object parse(HttpRequest<ByteBuf> request, Parameter parameter, Callee callee) {
         return HttpUtil.findParamForVar(request.url(), paramVar.get().get());
     }
 }

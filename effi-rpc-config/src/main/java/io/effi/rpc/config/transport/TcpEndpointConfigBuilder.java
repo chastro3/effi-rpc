@@ -1,6 +1,6 @@
 package io.effi.rpc.config.transport;
 
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 
 /**
  * Builds {@link EndpointConfig} instance and defines configuration for TCP.
@@ -15,7 +15,7 @@ public interface TcpEndpointConfigBuilder<T extends EndpointConfig, C extends Tc
      * When {@code false}, enables Nagle to reduce packet count, which may increase latency.
      */
     default C noDelay(boolean noDelay) {
-        config().set(DefaultConfigKeys.NO_DELAY, noDelay);
+        config().set(DefaultConfigNames.NO_DELAY, noDelay);
         return returnThis();
     }
 
@@ -23,7 +23,7 @@ public interface TcpEndpointConfigBuilder<T extends EndpointConfig, C extends Tc
      * Enable or disable TCP keep-alive.
      */
     default C keepAlive(boolean keepAlive) {
-        config().set(DefaultConfigKeys.KEEP_ALIVE, keepAlive);
+        config().set(DefaultConfigNames.KEEP_ALIVE, keepAlive);
         return returnThis();
     }
 
@@ -31,7 +31,7 @@ public interface TcpEndpointConfigBuilder<T extends EndpointConfig, C extends Tc
      * Sets the idle count threshold for closing connections.
      */
     default C idleCountThreshold(int ideCountThreshold) {
-        config().set(DefaultConfigKeys.IDLE_COUNT_THRESHOLD, ideCountThreshold);
+        config().set(DefaultConfigNames.IDLE_COUNT_THRESHOLD, ideCountThreshold);
         return returnThis();
     }
 
@@ -39,7 +39,7 @@ public interface TcpEndpointConfigBuilder<T extends EndpointConfig, C extends Tc
      * Sets the interval for triggering idle connections.
      */
     default C idleTriggerInterval(int idleTriggerInterval) {
-        config().set(DefaultConfigKeys.IDLE_TRIGGER_INTERVAL, idleTriggerInterval);
+        config().set(DefaultConfigNames.IDLE_TRIGGER_INTERVAL, idleTriggerInterval);
         return returnThis();
     }
 
@@ -47,7 +47,7 @@ public interface TcpEndpointConfigBuilder<T extends EndpointConfig, C extends Tc
      * Enable or disable SSL/TLS.
      */
     default C ssl(boolean ssl) {
-        config().set(DefaultConfigKeys.SSL, ssl);
+        config().set(DefaultConfigNames.SSL, ssl);
         return returnThis();
     }
 

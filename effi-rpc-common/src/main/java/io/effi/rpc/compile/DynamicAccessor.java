@@ -50,11 +50,13 @@ public abstract class DynamicAccessor {
         throw new IllegalArgumentException("No methods found in class");
     }
 
-    public int getMethodIndex(String methodName, Class<?>... paramTypes) {
-        if (CollectionUtil.isNotEmpty(methodNames)) {
-            if (CollectionUtil.isEmpty(paramTypes)) paramTypes = null;
-            for (int i = 0, n = methodNames.length; i < n; i++)
-                if (methodNames[i].equals(methodName) && Arrays.equals(paramTypes, parameterTypes[i])) return i;
+    public int findMethodIndex(String methodName, Class<?>... paramTypes) {
+        if (CollectionUtil.isEmpty(methodNames)) {
+            throw new IllegalStateException("No methods generated in this accessor");
+        }
+        if (CollectionUtil.isEmpty(paramTypes)) paramTypes = null;
+        for (int i = 0, n = methodNames.length; i < n; i++) {
+            if (methodNames[i].equals(methodName) && Arrays.equals(paramTypes, parameterTypes[i])) return i;
         }
         throw new IllegalArgumentException("Unable to find public method: " + methodName + " " + Arrays.toString(paramTypes));
     }

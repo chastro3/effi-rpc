@@ -1,16 +1,23 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.base.ServiceHost;
+import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.base.ServiceHost;
-import io.effi.rpc.component.EffiRpcModule;
 import io.effi.rpc.registry.AbstractRegistryService;
 import io.effi.rpc.util.NetUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.ext.consul.*;
+import io.vertx.ext.consul.CheckOptions;
+import io.vertx.ext.consul.CheckStatus;
+import io.vertx.ext.consul.ConsulClient;
+import io.vertx.ext.consul.ConsulClientOptions;
+import io.vertx.ext.consul.Service;
+import io.vertx.ext.consul.ServiceEntry;
+import io.vertx.ext.consul.ServiceOptions;
+import io.vertx.ext.consul.Watch;
 
 import java.util.List;
 import java.util.Map;
@@ -54,7 +61,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
                 .setId(instanceId)
                 .setAddress(url.host())
                 .setPort(url.port());
-        int heartbeatInterval = config.getIntParam(DefaultConfigKeys.HEARTBEAT_INTERVAL);
+        int heartbeatInterval = config.getIntParam(DefaultConfigNames.HEARTBEAT_INTERVAL);
         CheckOptions checkOpts = new CheckOptions()
                 .setId(instanceId)
                 .setTtl((heartbeatInterval * 2) + "ms")
@@ -107,7 +114,7 @@ public class ConsulRegistryService extends AbstractRegistryService {
     }
 
     private ConsulClient createConsulClient(RegistryConfig config) {
-        int connectTimeout = config.getIntParam(DefaultConfigKeys.CONNECT_TIMEOUT);
+        int connectTimeout = config.getIntParam(DefaultConfigNames.CONNECT_TIMEOUT);
         URL url = config.url();
         ConsulClientOptions options = new ConsulClientOptions()
                 .setHost(url.host())

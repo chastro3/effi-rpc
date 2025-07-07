@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.annotation.spi.Extension;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.config.URLProtocolMapper;
 
 import static io.effi.rpc.constant.Component.Protocol.HTTP_1_1;

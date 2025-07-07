@@ -1,8 +1,6 @@
 package io.effi.rpc.boot;
 
 import io.effi.rpc.base.ServiceHost;
-import io.effi.rpc.base.filter.Filter;
-import io.effi.rpc.component.ApplicationSource;
 import io.effi.rpc.component.EffiRpcApplication;
 import io.effi.rpc.component.EffiRpcModule;
 import io.effi.rpc.component.EffiRpcPlatform;
@@ -15,7 +13,7 @@ import io.effi.rpc.util.CollectionUtil;
 /**
  * Bootstrap class for initializing and configuring EffiRpc framework.
  */
-public class EffiRpcBootstrap extends ApplicationSource.Holder implements ApplicationSource {
+public class EffiRpcBootstrap extends EffiRpcApplication.Holder {
 
     private static final Logger logger = LoggerFactory.getLogger(EffiRpcBootstrap.class);
 
@@ -35,7 +33,7 @@ public class EffiRpcBootstrap extends ApplicationSource.Holder implements Applic
      * @return a new instance of EffiRpcBootstrap
      */
     public static EffiRpcBootstrap newInstance(String applicationName) {
-        return newInstance(EffiRpcPlatform.currentPlatform(), applicationName);
+        return newInstance(EffiRpcPlatform.getInstance(), applicationName);
     }
 
     /**
@@ -100,13 +98,8 @@ public class EffiRpcBootstrap extends ApplicationSource.Holder implements Applic
      * @param registryConfig the registry configuration
      * @return the updated EffiRpcBootstrap instance
      */
-    public EffiRpcBootstrap registry(RegistryConfig registryConfig, String... tags) {
-        platform().register(RegistryConfig.class, registryConfig, tags);
-        return this;
-    }
-
-    public EffiRpcBootstrap filter(String name, Filter<?, ?, ?> filter) {
-        platform().register(Filter.class, name, filter);
+    public EffiRpcBootstrap registry(RegistryConfig registryConfig) {
+        application().register(RegistryConfig.class, registryConfig);
         return this;
     }
 

@@ -1,16 +1,18 @@
 package io.effi.rpc.base.annotation;
 
-import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.annotation.spi.Extensible;
+import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.base.parameter.ParameterMapper;
 import io.effi.rpc.base.parameter.ParameterParser;
+import io.effi.rpc.config.NodeConfig;
 
 import java.lang.reflect.Method;
+
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
  * Parses annotation-based classes.
  */
-@Extensible
+@Extensible(scope = PLATFORM)
 public interface AnnotationStyleParser {
 
     /**

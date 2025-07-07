@@ -7,6 +7,8 @@ dependencies {
     implementation("org.slf4j:slf4j-api")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.5.16")
+    implementation(project(":effi-rpc-integration:effi-rpc-spring-boot-starter"))
+    implementation("org.springframework.boot:spring-boot-starter-web")
 }
 
 plugins {

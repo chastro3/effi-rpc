@@ -1,5 +1,6 @@
 package io.effi.rpc.util;
 
+import java.lang.annotation.Annotation;
 import java.util.Objects;
 
 /**
@@ -15,12 +16,28 @@ public final class AssertUtil {
     }
 
     /**
+     * Checks if the annotation is present.
+     */
+    public static <T extends Annotation> T notAnnotation(Class<?> type, Class<T> annotationType) {
+        T annotation = type.getAnnotation(annotationType);
+        condition(annotation != null, "Missing @{} on '{}'", annotationType.getSimpleName(), type.getName());
+        return annotation;
+    }
+
+    /**
      * Checks if the condition is true with a custom message.
      */
     public static void condition(boolean condition, String message) {
         if (!condition) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    /**
+     * Checks if the condition is true with a custom message.
+     */
+    public static void condition(boolean condition, String message, Object... args) {
+        condition(condition, StringUtil.format(message, args));
     }
 
     /**

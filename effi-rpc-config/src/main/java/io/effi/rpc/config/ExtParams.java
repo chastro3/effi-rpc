@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Manages extension parameters.
  */
-public interface ExtParams extends BaseParams, ConfigSource {
+public interface ExtParams extends BaseParams, Config.Provider {
 
     @Override
     default ExtParams addParam(String key, String value) {
@@ -40,31 +40,31 @@ public interface ExtParams extends BaseParams, ConfigSource {
     }
 
     /**
-     * Retrieves a parameter value by key.
+     * Retrieves a boolean parameter value.
      */
-    default String getParam(ConfigKey configKey) {
-        return config().get(configKey);
+    default boolean getBooleanParam(ConfigName configName) {
+        return Boolean.parseBoolean(getParam(configName));
     }
 
     /**
-     * Retrieves a boolean parameter value.
+     * Retrieves a parameter value by key.
      */
-    default boolean getBooleanParam(ConfigKey configKey) {
-        return Boolean.parseBoolean(getParam(configKey));
+    default String getParam(ConfigName configName) {
+        return config().get(configName);
     }
 
     /**
      * Retrieves an int parameter value.
      */
-    default int getIntParam(ConfigKey configKey) {
-        return Integer.parseInt(getParam(configKey));
+    default int getIntParam(ConfigName configName) {
+        return Integer.parseInt(getParam(configName));
     }
 
     /**
      * Retrieves a long parameter value.
      */
-    default long getLongParam(ConfigKey configKey) {
-        return Long.parseLong(getParam(configKey));
+    default long getLongParam(ConfigName configName) {
+        return Long.parseLong(getParam(configName));
     }
 
 }

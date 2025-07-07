@@ -48,6 +48,6 @@ public abstract class AbstractAttributes implements Attributes {
 
     @Override
     public String toString() {
-        return attributes.toString();
+        return "attributes=" + attributes.size();
     }
 }

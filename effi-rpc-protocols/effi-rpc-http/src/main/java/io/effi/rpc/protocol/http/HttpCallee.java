@@ -1,9 +1,9 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.base.Callee;
 import io.effi.rpc.boot.AbstractCallee;
+import io.effi.rpc.config.DefaultConfigNames;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.util.StringUtil;
@@ -12,7 +12,7 @@ import io.netty.handler.codec.http.HttpMethod;
 /**
  * Provides a standard http implementation of {@link Callee}.
  */
-public abstract class HttpCallee<T> extends AbstractCallee<T> {
+public abstract class HttpCallee extends AbstractCallee {
 
     protected HttpVersion version;
 
@@ -23,7 +23,7 @@ public abstract class HttpCallee<T> extends AbstractCallee<T> {
     protected HttpCallee(NodeConfig config, HttpCalleeBuilder<?, ?> builder) {
         super(config, builder);
         this.version = builder.version();
-        String method = config.get(DefaultConfigKeys.HTTP_METHOD);
+        String method = config.get(DefaultConfigNames.HTTP_METHOD);
         this.httpMethod = StringUtil.isNotBlank(method) ? HttpMethod.valueOf(method) : HttpMethod.POST;
         this.responseHeaders = builder.responseHeaders();
     }

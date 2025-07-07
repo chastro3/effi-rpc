@@ -40,7 +40,8 @@ public final class LoggerFactory {
             try {
                 // Try to create a LoggerAdapter instance
                 LoggerAdapter loggerAdapter = creator.call();
-                loggerAdapter.getLogger(LoggerFactory.class.getName()).debug("Using LoggerAdapter: {}", simpleClassName(loggerAdapter));
+                loggerAdapter.getLogger(LoggerFactory.class.getName())
+                        .debug("Using LoggerAdapter: {}", simpleClassName(loggerAdapter));
                 return loggerAdapter;
             } catch (Throwable ignored) {
                 // Ignore any exceptions and try the next adapter

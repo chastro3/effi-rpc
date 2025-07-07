@@ -1,11 +1,11 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.context.InvocationContext;
 import io.effi.rpc.protocol.http.HttpCaller;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
@@ -16,7 +16,13 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http2.*;
+import io.netty.handler.codec.http2.DefaultHttp2DataFrame;
+import io.netty.handler.codec.http2.DefaultHttp2HeadersFrame;
+import io.netty.handler.codec.http2.Http2FrameStream;
+import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2Settings;
+import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
+import io.netty.handler.codec.http2.Http2StreamFrame;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
@@ -117,13 +123,13 @@ public class H2Support {
     /**
      * Converts from netty's http2 stream.
      */
-    public static HttpResponse<ByteBuf> fromHttp2ResponseStream(Http2ResponseStream responseStream, InvocationContext<Envelope.Request, Caller<?>> context) {
-        HttpCaller<?> httpCaller = (HttpCaller<?>) context.invoker();
+    public static HttpResponse<ByteBuf> fromHttp2ResponseStream(Http2ResponseStream responseStream, CallContext<Message.Request, Caller<?>> context) {
+        HttpCaller<?> httpCaller = (HttpCaller<?>) context.callSide();
         return HttpResponse.<ByteBuf>builder()
                 .version(HttpVersion.HTTP_2_0)
                 .method(httpCaller.httpMethod())
                 .statusCode(responseStream.statusCode())
-                .url(context.envelope().url())
+                .url(context.message().url())
                 .headers(responseStream.headers())
                 .body(responseStream.body())
                 .build();
@@ -146,11 +152,11 @@ public class H2Support {
      * Builds http2 settings.
      */
     public static Http2Settings createHttp2Settings(URL url) {
-        int initialWindows = url.getIntParam(DefaultConfigKeys.INITIAL_WINDOW_SIZE);
-        long maxConcurrentStreams = url.getLongParam(DefaultConfigKeys.MAX_CONCURRENT_STREAMS);
-        int maxFrameSize = url.getIntParam(DefaultConfigKeys.MAX_FRAME_SIZE);
-        int maxHeaderListSize = url.getIntParam(DefaultConfigKeys.MAX_HEADER_LIST_SIZE);
-        long headerTableSize = url.getLongParam(DefaultConfigKeys.HEADER_TABLE_SIZE);
+        int initialWindows = url.getIntParam(DefaultConfigNames.INITIAL_WINDOW_SIZE);
+        long maxConcurrentStreams = url.getLongParam(DefaultConfigNames.MAX_CONCURRENT_STREAMS);
+        int maxFrameSize = url.getIntParam(DefaultConfigNames.MAX_FRAME_SIZE);
+        int maxHeaderListSize = url.getIntParam(DefaultConfigNames.MAX_HEADER_LIST_SIZE);
+        long headerTableSize = url.getLongParam(DefaultConfigNames.HEADER_TABLE_SIZE);
         Http2Settings settings = new Http2Settings();
         settings.initialWindowSize(initialWindows);
         settings.maxConcurrentStreams(maxConcurrentStreams);
@@ -158,7 +164,7 @@ public class H2Support {
         settings.maxHeaderListSize(maxHeaderListSize);
         settings.headerTableSize(headerTableSize);
         if (URLType.CLIENT.match(url)) {
-            boolean pushEnabled = url.getBooleanParam(DefaultConfigKeys.PUSH_ENABLED);
+            boolean pushEnabled = url.getBooleanParam(DefaultConfigNames.PUSH_ENABLED);
             settings.pushEnabled(pushEnabled);
         }
         return settings;

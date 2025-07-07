@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.util.StringUtil;
 
@@ -16,7 +16,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
 
     protected AbstractClient(ClientConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
         super(config, address, platform);
-        this.connectTimeout = url().getIntParam(DefaultConfigKeys.CONNECT_TIMEOUT);
+        this.connectTimeout = url().getIntParam(DefaultConfigNames.CONNECT_TIMEOUT);
         initialize();
     }
 

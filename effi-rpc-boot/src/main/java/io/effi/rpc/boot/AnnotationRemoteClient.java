@@ -2,23 +2,22 @@ package io.effi.rpc.boot;
 
 import io.effi.rpc.annotation.rpc.EffiRpcCaller;
 import io.effi.rpc.annotation.rpc.EffiRpcClient;
-import io.effi.rpc.base.annotation.AnnotationParameterWrapper;
-import io.effi.rpc.base.annotation.AnnotationStyle;
-import io.effi.rpc.base.annotation.AnnotationStyleParser;
-import io.effi.rpc.config.DefaultConfigKeys;
-import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.base.Caller;
 import io.effi.rpc.base.RemoteClient;
 import io.effi.rpc.base.RpcType;
+import io.effi.rpc.base.annotation.AnnotationParameterWrapper;
+import io.effi.rpc.base.annotation.AnnotationStyle;
+import io.effi.rpc.base.annotation.AnnotationStyleParser;
+import io.effi.rpc.base.parameter.ParameterMapper;
 import io.effi.rpc.component.EffiRpcApplication;
 import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.base.parameter.ParameterMapper;
+import io.effi.rpc.config.DefaultConfigNames;
+import io.effi.rpc.config.HierarchicalNodeConfig;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.proxy.InvocationHandler;
 import io.effi.rpc.proxy.ProxyFactory;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.Protocol;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.util.AssertUtil;
@@ -42,7 +41,7 @@ import static io.effi.rpc.boot.AnnotationSupport.checkAnnotationStyle;
 /**
  * Provide the annotation implementation of {@link RemoteClient}.
  */
-public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?>> implements RemoteClient<T>, InvocationHandler {
+public class AnnotationRemoteClient<T> extends AbstractCallSideContainer<Caller<?>> implements RemoteClient<T>, InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationRemoteClient.class);
 
@@ -57,13 +56,14 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
     private Map<Method, MethodCaller> methodCallerMap;
 
     public AnnotationRemoteClient(Class<T> targetType, EffiRpcApplication application) {
+        // todo 修改成module
         AssertUtil.notNull(application, "application");
         this.clientAnnotation = checkClientAnnotation(targetType);
         this.targetType = targetType;
         this.config = parseConfig(clientAnnotation, application);
         this.annotationStyle = checkAnnotationStyle(targetType, config);
         parseCaller(application);
-        this.proxy = createProxy();
+        this.proxy = createProxy(application);
     }
 
     @Override
@@ -87,8 +87,7 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
     private EffiRpcClient checkClientAnnotation(Class<T> targetType) {
         AssertUtil.notNull(targetType, "targetType");
         AssertUtil.condition(targetType.isInterface(), "the target type must be an interface");
-        EffiRpcClient clientAnnotation = targetType.getAnnotation(EffiRpcClient.class);
-        return AssertUtil.notNull(clientAnnotation, "the target is missing @EffiRpcClient");
+        return AssertUtil.notAnnotation(targetType, EffiRpcClient.class);
     }
 
     private NodeConfig parseConfig(EffiRpcClient effiRpcClient, EffiRpcApplication application) {
@@ -119,18 +118,16 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
         }
     }
 
-    private EffiRpcModule getModule(HierarchicalNodeConfig config, EffiRpcApplication application) {
-        String moduleName = config.get(DefaultConfigKeys.MODULE);
-        EffiRpcModule module = application.getModule(moduleName);
-        return module == null ? application.defaultModule() : module;
+    private T createProxy(EffiRpcApplication application) {
+        String proxyName = config.get(DefaultConfigNames.PROXY);
+        ProxyFactory proxyFactory = application.platform().getExtension(ProxyFactory.class, proxyName);
+        return proxyFactory.createProxy(targetType, this);
     }
 
-    private Protocol getProtocol(HierarchicalNodeConfig config) {
-        String protocolName = config.get(DefaultConfigKeys.PROTOCOL);
-        if (StringUtil.isBlank(protocolName)) {
-            return null;
-        }
-        return TransportSupport.getProtocol(protocolName);
+    private EffiRpcModule getModule(HierarchicalNodeConfig config, EffiRpcApplication application) {
+        String moduleName = config.get(DefaultConfigNames.MODULE);
+        EffiRpcModule module = application.getModule(moduleName);
+        return module == null ? application.defaultModule() : module;
     }
 
     private ReturnTypeWrapper getReturnType(Method method) {
@@ -160,10 +157,12 @@ public class AnnotationRemoteClient<T> extends AbstractInvokerContainer<Caller<?
         return parameterMappers;
     }
 
-    private T createProxy() {
-        String proxyName = config.get(DefaultConfigKeys.PROXY);
-        ProxyFactory proxyFactory = ExtensionLoader.loadExtension(ProxyFactory.class, proxyName);
-        return proxyFactory.createProxy(targetType, this);
+    private Protocol getProtocol(HierarchicalNodeConfig config) {
+        String protocolName = config.get(DefaultConfigNames.PROTOCOL);
+        if (StringUtil.isBlank(protocolName)) {
+            return null;
+        }
+        return TransportSupport.getProtocol(protocolName);
     }
 
     @Override

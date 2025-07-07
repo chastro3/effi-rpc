@@ -3,129 +3,142 @@ package io.effi.rpc.boot.builder;
 import io.effi.rpc.base.Caller;
 import io.effi.rpc.base.Locator;
 import io.effi.rpc.base.RemoteClient;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.base.context.InterceptorChain;
+import io.effi.rpc.base.context.StageChain;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.TypeToken;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Builds {@link Caller} instance and defines configuration.
  */
-public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder<T, C>>
-        extends InvokerBuilder<T, C> {
+public abstract class CallerBuilder<T extends Caller<?>, C extends CallerBuilder<T, C>> extends CallSideBuilder<T, C> {
 
     protected Locator locator;
 
     protected ClientConfig clientConfig;
 
+    protected List<RegistryConfig> registryConfigs;
+
+    protected InterceptorChain chosenInterceptorChain;
+
+    protected StageChain replyStageChain;
+
+    protected InterceptorChain replyInterceptorChain;
+
     protected CallerBuilder(TypeToken<?> returnType, NodeConfig config) {
         super(config);
-        this.returnType = AssertUtil.notNull(returnType, "returnType");
+        this.replyType = AssertUtil.notNull(returnType, "returnType");
+        this.registryConfigs = new ArrayList<>();
     }
 
-    /**
-     * Sets direct address.
-     */
     public C directAddress(String address) {
-        config.set(DefaultConfigKeys.ADDRESS.key(), address);
+        config.set(DefaultConfigNames.ADDRESS.realName(), address);
         return returnThis();
     }
 
-    /**
-     * Sets direct address.
-     */
     public C directAddress(InetSocketAddress address) {
         return directAddress(NetUtil.toAddress(address));
     }
 
-    /**
-     * Sets remote application.
-     */
     public C remoteApplication(String applicationName) {
-        config.set(DefaultConfigKeys.REMOTE_APPLICATION, applicationName);
+        config.set(DefaultConfigNames.REMOTE_APPLICATION, applicationName);
         return returnThis();
     }
 
-    /**
-     * Sets remote module.
-     */
+    public C registryConfigs(RegistryConfig... registryConfigs) {
+        if (CollectionUtil.isNotEmpty(registryConfigs)) {
+            CollectionUtil.addUnique(this.registryConfigs, registryConfigs);
+        }
+        return returnThis();
+    }
+
     public C remoteModule(String moduleName) {
-        config.set(DefaultConfigKeys.REMOTE_MODULE, moduleName);
+        config.set(DefaultConfigNames.REMOTE_MODULE, moduleName);
         return returnThis();
     }
 
-    /**
-     * Sets container.
-     */
     public C container(RemoteClient<?> client) {
         this.container = client;
         return returnThis();
     }
 
-    /**
-     * Sets service locator.
-     */
     public C locator(Locator locator) {
         this.locator = locator;
         return returnThis();
     }
 
-    /**
-     * Sets client configuration.
-     */
     public C clientConfig(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         return returnThis();
     }
 
-    /**
-     * Sets retry attempts.
-     */
+    public C chosenInterceptorChain(InterceptorChain chain) {
+        this.chosenInterceptorChain = chain;
+        return returnThis();
+    }
+
+    public C replyStageChain(StageChain chain) {
+        this.replyStageChain = chain;
+        return returnThis();
+    }
+
+    public C replyInterceptorChain(InterceptorChain chain) {
+        this.replyInterceptorChain = chain;
+        return returnThis();
+    }
+
     public C retries(int retries) {
-        config.set(DefaultConfigKeys.RETRIES, String.valueOf(retries));
+        config.set(DefaultConfigNames.RETRIES, String.valueOf(retries));
         return returnThis();
     }
 
-    /**
-     * Sets load balancing strategy.
-     */
     public C loadBalance(String loadBalance) {
-        config.set(DefaultConfigKeys.LOAD_BALANCE, loadBalance);
+        config.set(DefaultConfigNames.LOAD_BALANCE, loadBalance);
         return returnThis();
     }
 
-    /**
-     * Sets fault tolerance strategy.
-     */
     public C faultTolerance(String faultTolerance) {
-        config.set(DefaultConfigKeys.FAULT_TOLERANCE, faultTolerance);
+        config.set(DefaultConfigNames.FAULT_TOLERANCE, faultTolerance);
         return returnThis();
     }
 
-    /**
-     * Sets call timeout.
-     */
     public C timeout(int timeout) {
-        config.set(DefaultConfigKeys.TIMEOUT, String.valueOf(timeout));
+        config.set(DefaultConfigNames.TIMEOUT, String.valueOf(timeout));
         return returnThis();
     }
 
-    /**
-     * Returns the locator.
-     */
     public Locator locator() {
         return locator;
     }
 
-    /**
-     * Returns the client config.
-     */
     public ClientConfig clientConfig() {
         return clientConfig;
+    }
+
+    public List<RegistryConfig> registryConfigs() {
+        return registryConfigs;
+    }
+
+    public InterceptorChain chosenInterceptorChain() {
+        return chosenInterceptorChain;
+    }
+
+    public StageChain replyStageChain() {
+        return replyStageChain;
+    }
+
+    public InterceptorChain replyInterceptorChain() {
+        return replyInterceptorChain;
     }
 }
 

@@ -1,15 +1,16 @@
 package io.effi.rpc.serialization;
 
-import io.effi.rpc.annotation.spi.Extensible;
+import io.effi.rpc.annotation.component.Extensible;
 
 import java.lang.reflect.Type;
 
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 import static io.effi.rpc.constant.Component.Serialization.KRYO;
 
 /**
  * Serializes and deserializes objects.
  */
-@Extensible(KRYO)
+@Extensible(value = KRYO, scope = PLATFORM)
 public interface Serializer {
 
     /**

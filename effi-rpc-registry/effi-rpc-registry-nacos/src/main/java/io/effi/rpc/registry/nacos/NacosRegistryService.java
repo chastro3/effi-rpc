@@ -7,7 +7,7 @@ import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import io.effi.rpc.base.ServiceHost;
 import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.constant.KeyConstant;
@@ -31,7 +31,7 @@ public class NacosRegistryService extends AbstractRegistryService {
 
     protected NacosRegistryService(RegistryConfig config) {
         super(config);
-        String projectName = config.get(DefaultConfigKeys.NACOS_PROJECT_NAME);
+        String projectName = config.getConfig(DefaultConfigNames.NACOS_PROJECT_NAME);
         if (StringUtil.isNotBlank(projectName))
             // nacos <project.name>
             System.setProperty("project.name", projectName);

@@ -1,12 +1,12 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
  * Represents an HTTP response.
  */
-public interface HttpResponse<BODY> extends HttpEnvelope<BODY>, Envelope.Response {
+public interface HttpResponse<BODY> extends HttpMessage<BODY>, Message.Response {
 
     static <BODY> DefaultHttpResponse.Builder<BODY> builder() {
         return new DefaultHttpResponse.Builder<>();

@@ -1,11 +1,22 @@
 package io.effi.rpc.config;
 
-import io.effi.rpc.spi.ExtensionLoader;
-import io.effi.rpc.util.*;
+import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.util.AbstractAttributes;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.FluentBuilder;
+import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.util.Replicable;
+import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.collection.LazyList;
 
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a URL with protocol, address, path segments, and query parameters.
@@ -13,17 +24,7 @@ import java.util.*;
  */
 public class URL extends AbstractAttributes implements Replicable<URL>, ExtParams {
 
-    private static Map<String, String> PROTOCOL_MAPPING;
-
-    static {
-        List<URLProtocolMapper> mappers = ExtensionLoader.loadExtensions(URLProtocolMapper.class);
-        if (CollectionUtil.isNotEmpty(mappers)) {
-            PROTOCOL_MAPPING = new HashMap<>(mappers.size());
-            for (URLProtocolMapper mapper : mappers) {
-                PROTOCOL_MAPPING.put(mapper.supported(), mapper.mapped());
-            }
-        }
-    }
+    private static final Map<String, String> PROTOCOL_MAPPING = loadProtocolMapping();
 
     private final List<String> paths = new LazyList<>(ArrayList::new);
 
@@ -55,9 +56,7 @@ public class URL extends AbstractAttributes implements Replicable<URL>, ExtParam
      * Parses a URL string into a {@link URL} object.
      */
     public static URL valueOf(String url) {
-        if (StringUtil.isBlank(url)) {
-            throw new IllegalArgumentException("Url is blank");
-        }
+        AssertUtil.notBlank(url, "url");
 
         // Find the position of the question mark
         int questionMarkIndex = url.indexOf('?');
@@ -223,16 +222,17 @@ public class URL extends AbstractAttributes implements Replicable<URL>, ExtParam
         return path() + (StringUtil.isBlank(queryParam) ? "" : ("?" + queryParam));
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("(").append(protocol).append(") ");
-        sb.append(authority()).append(queryPath());
-
-        if (!attributes.isEmpty()) {
-            sb.append(", attributes={").append(super.toString()).append("}");
+    private static Map<String, String> loadProtocolMapping() {
+        Collection<URLProtocolMapper> mappers = EffiRpcPlatform.getInstance()
+                .extensionsOf(URLProtocolMapper.class);
+        Map<String, String> map = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(mappers)) {
+            map = new HashMap<>(mappers.size());
+            for (URLProtocolMapper mapper : mappers) {
+                map.put(mapper.supported(), mapper.mapped());
+            }
         }
-        return sb.toString();
+        return Collections.unmodifiableMap(map);
     }
 
 
@@ -251,6 +251,29 @@ public class URL extends AbstractAttributes implements Replicable<URL>, ExtParam
     @Override
     public Config config() {
         return params;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("(").append(protocol).append(") ");
+        sb.append(authority()).append(queryPath());
+        if (!attributes.isEmpty()) {
+            sb.append(", ").append(super.toString());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Provides access to the {@link URL}.
+     */
+    public interface Provider {
+
+        /**
+         * Returns the associated {@link URL}.
+         */
+        URL url();
+
     }
 
     /**

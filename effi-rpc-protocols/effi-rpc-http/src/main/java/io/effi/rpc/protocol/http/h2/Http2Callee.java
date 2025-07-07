@@ -10,28 +10,28 @@ import io.effi.rpc.protocol.http.support.HttpVersion;
 /**
  * Implements {@link Callee} using http2.
  */
-public class Http2Callee<T> extends HttpCallee<T> {
+public class Http2Callee extends HttpCallee {
 
-    Http2Callee(NodeConfig config, Builder<T> builder) {
+    Http2Callee(NodeConfig config, Builder builder) {
         super(config, builder);
     }
 
-    public static <T> Builder<T> builder(MethodMapper<T> methodMapper, NodeConfig config) {
-        return new Builder<>(methodMapper, config);
+    public static Builder builder(MethodMapper<?> methodMapper, NodeConfig config) {
+        return new Builder(methodMapper, config);
     }
 
     /**
      * Builds {@link Http2Callee} instance.
      */
-    public static class Builder<T> extends HttpCalleeBuilder<Http2Callee<T>, Builder<T>> {
+    public static class Builder extends HttpCalleeBuilder<Http2Callee, Builder> {
 
         public Builder(MethodMapper<?> methodMapper, NodeConfig config) {
             super(HttpVersion.HTTP_2_0, methodMapper, config);
         }
 
         @Override
-        protected Http2Callee<T> build(NodeConfig config) {
-            return new Http2Callee<>(config, this);
+        protected Http2Callee build(NodeConfig config) {
+            return new Http2Callee(config, this);
         }
 
     }

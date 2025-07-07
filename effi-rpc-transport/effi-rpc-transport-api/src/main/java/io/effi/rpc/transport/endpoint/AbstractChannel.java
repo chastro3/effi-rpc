@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.base.Invoker;
+import io.effi.rpc.base.CallSide;
 import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.transport.Protocol;
@@ -32,8 +32,8 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
     @Override
     public CompletableFuture<Channel> send(Object message) {
         if (message instanceof WrappedEnvelope<?, ?> wrappedEnvelope) {
-            Invoker<?> invoker = wrappedEnvelope.context().invoker();
-            message = TransportSupport.inIOSerialization(invoker)
+            CallSide callSide = wrappedEnvelope.context().callSide();
+            message = TransportSupport.inIOSerialization(callSide)
                     ? wrappedEnvelope
                     : wrappedEnvelope.encode().envelope();
         }

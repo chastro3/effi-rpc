@@ -1,8 +1,8 @@
 package io.effi.rpc.registry.consul;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ApplicationConfiguration;
 import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.annotation.spi.Extension;
 
 /**
  * Close vertx instance.

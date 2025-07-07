@@ -1,9 +1,9 @@
 package io.effi.rpc.boot;
 
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
 import io.effi.rpc.base.Locator;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.NetUtil;
 
@@ -16,21 +16,21 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DirectLocator implements Locator {
 
-    private static final Map<String, DirectLocator> RESOURCES = new ConcurrentHashMap<>();
+    private static final Map<String, DirectLocator> CACHE = new ConcurrentHashMap<>();
 
     private final InetSocketAddress remoteAddress;
 
     private DirectLocator(InetSocketAddress remoteAddress) {
-        this.remoteAddress = AssertUtil.notNull(remoteAddress, "remote address");
+        this.remoteAddress = remoteAddress;
     }
 
-    public static DirectLocator getInstance(String address) {
+    public static DirectLocator of(String address) {
         AssertUtil.notNull(address, "address");
-        return RESOURCES.computeIfAbsent(address, k -> new DirectLocator(NetUtil.toInetSocketAddress(address)));
+        return CACHE.computeIfAbsent(address, k -> new DirectLocator(NetUtil.toInetSocketAddress(address)));
     }
 
     @Override
-    public InetSocketAddress locate(InvocationContext<Envelope.Request, Caller<?>> context) {
+    public InetSocketAddress locate(CallContext<Message.Request, Caller<?>> context) {
         return remoteAddress;
     }
 }

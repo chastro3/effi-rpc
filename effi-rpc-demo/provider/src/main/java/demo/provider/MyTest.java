@@ -1,9 +1,9 @@
 package demo.provider;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.compile.DynamicAccessor;
 import io.effi.rpc.compression.Compressor;
 import io.effi.rpc.serialization.Serializer;
-import io.effi.rpc.annotation.spi.Extension;
 
 import java.lang.reflect.Type;
 
@@ -35,6 +35,6 @@ public class MyTest implements Serializer, Compressor {
 
     public static void main(String[] args) {
         DynamicAccessor dynamicAccessor = DynamicAccessor.get(EmptyClass.class);
-        System.out.println(dynamicAccessor.getMethodIndex("hhh"));
+        System.out.println(dynamicAccessor.findMethodIndex("hhh"));
     }
 }

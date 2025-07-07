@@ -1,8 +1,12 @@
 package io.effi.rpc.compression;
 
-import io.effi.rpc.annotation.spi.Extension;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.util.FileUtil;
-import net.jpountz.lz4.*;
+import net.jpountz.lz4.LZ4BlockInputStream;
+import net.jpountz.lz4.LZ4BlockOutputStream;
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4FastDecompressor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

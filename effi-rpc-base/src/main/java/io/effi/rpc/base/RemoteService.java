@@ -2,9 +2,9 @@ package io.effi.rpc.base;
 
 /**
  *
- * Wraps a remote service and manages its internal callees.
+ * Wraps a remote service and manages its internal callee(s).
  */
-public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
+public interface RemoteService<T> extends CallSideContainer<Callee> {
 
     /**
      * Returns the wrapped service.
@@ -29,7 +29,7 @@ public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
      * @param <R>    the return type of {@link Callee#invoke(Object...)}
      * @return the result of the invocation
      */
-    <R> R invokeCallee(Callee<T> callee, Object... args);
+    <R> R invokeCallee(Callee callee, Object... args);
 
     /**
      * Adds a callee to the service.
@@ -37,7 +37,7 @@ public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
      * @param callee the callee to add
      * @return the updated remote service instance
      */
-    RemoteService<T> addCallee(Callee<?> callee);
+    RemoteService<T> addCallee(Callee callee);
 
     /**
      * Retrieves the index of the specified callee.
@@ -45,7 +45,7 @@ public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
      * @param callee the callee whose index is to be retrieved
      * @return the index of the callee
      */
-    int getCalleeIndex(Callee<?> callee);
+    int getCalleeIndex(Callee callee);
 
     /**
      * Retrieves the callee for the specified protocol and path.
@@ -54,7 +54,7 @@ public interface RemoteService<T> extends InvokerContainer<Callee<?>> {
      * @param path     the path used by the callee
      * @return the callee for the given protocol and path
      */
-    Callee<?> getCallee(String protocol, String path);
+    Callee getCallee(String protocol, String path);
 }
 
 

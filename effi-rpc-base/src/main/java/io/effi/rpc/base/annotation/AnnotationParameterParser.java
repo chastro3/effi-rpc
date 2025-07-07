@@ -1,9 +1,9 @@
 package io.effi.rpc.base.annotation;
 
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.parameter.ParameterParser;
+import io.effi.rpc.util.AssertUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
@@ -11,7 +11,7 @@ import java.lang.reflect.Parameter;
 /**
  * Parses method parameters annotated with a specific annotation from the given request.
  */
-public class AnnotationParameterParser<T extends Annotation, REQ extends Envelope.Request> implements ParameterParser<REQ> {
+public class AnnotationParameterParser<T extends Annotation, REQ extends Message.Request> implements ParameterParser<REQ> {
 
     protected final Class<T> type;
 
@@ -23,7 +23,7 @@ public class AnnotationParameterParser<T extends Annotation, REQ extends Envelop
     }
 
     @Override
-    public Object parse(REQ request, Parameter parameter, Callee<?> callee) {
+    public Object parse(REQ request, Parameter parameter, Callee callee) {
         if (supported(parameter)) {
             T annotation = parameter.getAnnotation(type);
             return handler.handle(request, annotation, parameter, callee);

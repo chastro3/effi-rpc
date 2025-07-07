@@ -1,6 +1,6 @@
 package io.effi.rpc.lifecycle;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Defines lifecycle phases and their corresponding transitions.
@@ -15,13 +15,13 @@ public enum LifecyclePhase {
         }
 
         @Override
-        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(List<T> configurations, L lifecycle) {
+        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(Collection<T> configurations, L lifecycle) {
             configurations.forEach(configuration -> configuration.preInit(lifecycle));
         }
 
 
         @Override
-        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(List<T> configurations, L lifecycle) {
+        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(Collection<T> configurations, L lifecycle) {
             configurations.forEach(configuration -> configuration.postInit(lifecycle));
         }
     },
@@ -33,12 +33,12 @@ public enum LifecyclePhase {
         }
 
         @Override
-        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(List<T> configurations, L lifecycle) {
+        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(Collection<T> configurations, L lifecycle) {
             configurations.forEach(configuration -> configuration.preStart(lifecycle));
         }
 
         @Override
-        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(List<T> configurations, L lifecycle) {
+        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(Collection<T> configurations, L lifecycle) {
             configurations.forEach(configuration -> configuration.postStart(lifecycle));
         }
     },
@@ -50,12 +50,12 @@ public enum LifecyclePhase {
         }
 
         @Override
-        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(List<T> configurations, L lifecycle) {
+        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(Collection<T> configurations, L lifecycle) {
             configurations.forEach(configuration -> configuration.preStop(lifecycle));
         }
 
         @Override
-        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(List<T> configurations, L lifecycle) {
+        <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(Collection<T> configurations, L lifecycle) {
             configurations.forEach(configuration -> configuration.postStop(lifecycle));
         }
     };
@@ -66,7 +66,7 @@ public enum LifecyclePhase {
         this.next = next;
     }
 
-    public <L extends Lifecycle, T extends LifecycleConfiguration<L>> void execute(List<T> configurations, L lifecycle, Runnable action) {
+    public <L extends Lifecycle, T extends LifecycleConfiguration<L>> void execute(Collection<T> configurations, L lifecycle, Runnable action) {
         pre(configurations, lifecycle);
         action.run();
         post(configurations, lifecycle);
@@ -79,8 +79,8 @@ public enum LifecyclePhase {
         return next;
     }
 
-    abstract <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(List<T> configurations, L lifecycle);
+    abstract <L extends Lifecycle, T extends LifecycleConfiguration<L>> void pre(Collection<T> configurations, L lifecycle);
 
 
-    abstract <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(List<T> configurations, L lifecycle);
+    abstract <L extends Lifecycle, T extends LifecycleConfiguration<L>> void post(Collection<T> configurations, L lifecycle);
 }

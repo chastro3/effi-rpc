@@ -4,14 +4,13 @@ import io.effi.rpc.base.Callee;
 import io.effi.rpc.base.annotation.Body;
 import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.Config;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLUtil;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.serialization.Serializer;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
@@ -38,7 +37,7 @@ public final class HttpUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpUtil.class);
 
-    private static final String IDENTIFY = "effi-rpc/" + EffiRpcPlatform.currentPlatform().version();
+    private static final String IDENTIFY = "effi-rpc/" + EffiRpcPlatform.getInstance().version();
 
     private static final String ACCEPT_TYPE = String.join(",", Arrays.stream(MediaType.values()).map(MediaType::contentType).toList());
 
@@ -63,14 +62,14 @@ public final class HttpUtil {
         );
     }
 
-    public static Object getBody(HttpRequest<ByteBuf> request, Body body, Parameter parameter, Callee<?> callee) {
+    public static Object getBody(HttpRequest<ByteBuf> request, Body body, Parameter parameter, Callee callee) {
         byte[] bodyBytes = NettySupport.getBytes(request.body());
         CharSequence contentType = request.headers().get(HttpHeaderNames.CONTENT_TYPE.toString());
         Type type = parameter.getParameterizedType();
         return decodeBody(contentType, bodyBytes, type);
     }
 
-    public static String findPathForVar(URL requestUrl, String pathVarKey, Callee<?> callee) {
+    public static String findPathForVar(URL requestUrl, String pathVarKey, Callee callee) {
         if (requestUrl == null || StringUtil.isBlank(pathVarKey)) {
             return null;
         }
@@ -123,7 +122,7 @@ public final class HttpUtil {
         CharSequence contentType = headers.get(HttpHeaderNames.CONTENT_TYPE);
         MediaType mediaType;
         if (StringUtil.isBlank(contentType)) {
-            String serialization = config.get(DefaultConfigKeys.SERIALIZATION);
+            String serialization = config.get(DefaultConfigNames.SERIALIZATION);
             mediaType = MediaType.fromSerialization(serialization);
             if (mediaType == null)
                 throw new IllegalArgumentException("unsupported serialization ['" + serialization + "'] convert to MediaType");
@@ -141,7 +140,7 @@ public final class HttpUtil {
      * @param envelope The HTTP envelope containing the body to encode.
      * @return The encoded byte array of the body.
      */
-    public static byte[] encodeBody(HttpEnvelope<?> envelope) {
+    public static byte[] encodeBody(HttpMessage<?> envelope) {
         CharSequence charSequence = envelope.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (envelope instanceof HttpResponse<?> response
                 && !response.isSuccess()
@@ -221,7 +220,7 @@ public final class HttpUtil {
         if (mediaType == null) {
             throw new UnsupportedOperationException("Unsupported content type: " + contentType + "'s serialization");
         }
-        return ExtensionLoader.loadExtension(Serializer.class, mediaType.serialization());
+        return EffiRpcPlatform.getInstance().getExtension(Serializer.class, mediaType.serialization());
     }
 
 }

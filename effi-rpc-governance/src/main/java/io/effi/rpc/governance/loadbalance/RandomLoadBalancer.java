@@ -1,10 +1,10 @@
 package io.effi.rpc.governance.loadbalance;
 
-import io.effi.rpc.annotation.spi.Extension;
-import io.effi.rpc.config.URL;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.config.URL;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -22,7 +22,7 @@ import static io.effi.rpc.constant.Component.LoadBalance.RANDOM;
 public class RandomLoadBalancer extends AbstractLoadBalancer {
 
     @Override
-    protected URL doChoose(InvocationContext<Envelope.Request, Caller<?>> context, List<URL> urls) {
+    protected URL doChoose(CallContext<Message.Request, Caller<?>> context, List<URL> urls) {
         int index = ThreadLocalRandom.current().nextInt(urls.size());
         return urls.get(index);
     }

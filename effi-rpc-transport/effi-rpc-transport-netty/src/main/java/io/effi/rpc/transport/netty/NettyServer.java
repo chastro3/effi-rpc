@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.transport.ServerConfig;
 import io.effi.rpc.exception.PredefinedErrorCode;
@@ -110,26 +110,26 @@ public class NettyServer extends AbstractNettyEndpoint<NettyServer, ServerBootst
     @Override
     protected void configureOptions(ServerBootstrap bootstrap) {
         URL url = url();
-        int bossThreads = url.getIntParam(DefaultConfigKeys.CONNECTION_HANDLER_THREADS);
-        int workThreads = url.getIntParam(DefaultConfigKeys.REQUEST_PROCESSOR_THREADS);
+        int bossThreads = url.getIntParam(DefaultConfigNames.CONNECTION_HANDLER_THREADS);
+        int workThreads = url.getIntParam(DefaultConfigNames.REQUEST_PROCESSOR_THREADS);
         bossGroup = new NioEventLoopGroup(bossThreads, newThreadFactory("server-boss"));
         workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
         bootstrap.group(bossGroup, workerGroup)
                 .localAddress(host(), port())
                 .channel(NioServerSocketChannel.class);
-        configureIfValid(DefaultConfigKeys.ACCEPT_BACKLOG, Integer::parseInt, val -> {
+        configureIfValid(DefaultConfigNames.ACCEPT_BACKLOG, Integer::parseInt, val -> {
             bootstrap.option(ChannelOption.SO_BACKLOG, val);
         });
-        configureIfValid(DefaultConfigKeys.SEND_BUFFER_SIZE, Integer::parseInt, val -> {
+        configureIfValid(DefaultConfigNames.SEND_BUFFER_SIZE, Integer::parseInt, val -> {
             bootstrap.childOption(ChannelOption.SO_SNDBUF, val);
         });
-        configureIfValid(DefaultConfigKeys.RECEIVE_BUFFER_SIZE, Integer::parseInt, val -> {
+        configureIfValid(DefaultConfigNames.RECEIVE_BUFFER_SIZE, Integer::parseInt, val -> {
             bootstrap.childOption(ChannelOption.SO_RCVBUF, val);
         });
-        configureIfValid(DefaultConfigKeys.NO_DELAY, Boolean::parseBoolean, val -> {
+        configureIfValid(DefaultConfigNames.NO_DELAY, Boolean::parseBoolean, val -> {
             bootstrap.childOption(ChannelOption.TCP_NODELAY, val);
         });
-        configureIfValid(DefaultConfigKeys.KEEP_ALIVE, Boolean::parseBoolean, val -> {
+        configureIfValid(DefaultConfigNames.KEEP_ALIVE, Boolean::parseBoolean, val -> {
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, val);
         });
     }

@@ -22,7 +22,7 @@ public class HttpBodyParser implements ParameterParser<HttpRequest<ByteBuf>> {
     }
 
     @Override
-    public Object parse(HttpRequest<ByteBuf> request, Parameter parameter, Callee<?> callee) {
+    public Object parse(HttpRequest<ByteBuf> request, Parameter parameter, Callee callee) {
         if (body != null && !request.isInstance()) {
             Type type = parameter.getParameterizedType();
             return HttpUtil.decodeBody(request, type);

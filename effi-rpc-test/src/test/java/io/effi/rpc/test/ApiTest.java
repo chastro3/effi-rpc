@@ -23,7 +23,6 @@ import io.effi.rpc.protocol.http.h2.Http2Caller;
 import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 import io.effi.rpc.protocol.http.support.HttpVersion;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.test.service.HelloClient;
 import io.effi.rpc.test.service.HelloService;
 import io.effi.rpc.transport.Protocol;
@@ -44,7 +43,7 @@ public class ApiTest {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiTest.class);
 
-    EffiRpcApplication application = EffiRpcPlatform.init("effi-rpc-platform")
+    EffiRpcApplication application = EffiRpcPlatform.getInstance()
             .newApplication("test");
 
     @Test
@@ -59,7 +58,7 @@ public class ApiTest {
         MethodMapper<HelloService> methodMapper = new HttpMethodMapperBuilder<>(remoteService, "hello")
                 .mappedParameterType(String.class, ParamVar.source("name"))
                 .build();
-        Http2Callee<HelloService> callee = Http2Callee.builder(methodMapper, new HierarchicalNodeConfig())
+        Http2Callee callee = Http2Callee.builder(methodMapper, new HierarchicalNodeConfig())
                 .path("/hello")
                 .module(application.defaultModule())
                 .compression("xxx")
@@ -148,7 +147,7 @@ public class ApiTest {
 
     @Test
     public void spiTest() {
-        Protocol protocol = ExtensionLoader.loadExtension(Protocol.class, HttpVersion.HTTP_2_0.protocolName());
+        Protocol protocol = EffiRpcPlatform.getInstance().getExtension(Protocol.class, HttpVersion.HTTP_2_0.protocolName());
         System.out.println(protocol);
     }
 

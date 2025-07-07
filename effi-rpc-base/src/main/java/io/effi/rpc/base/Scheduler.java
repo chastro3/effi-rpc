@@ -1,7 +1,7 @@
 package io.effi.rpc.base;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.component.PlatformSource;
+import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.util.resoruce.Closeable;
 
 import java.util.concurrent.TimeUnit;
@@ -13,7 +13,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  * Manages disposable or periodic tasks.
  */
 @ScopedComponent(scope = PLATFORM, kind = SINGLE)
-public interface Scheduler extends Closeable, PlatformSource {
+public interface Scheduler extends Closeable, EffiRpcPlatform.Provider {
 
     /**
      * Schedules a disposable task.

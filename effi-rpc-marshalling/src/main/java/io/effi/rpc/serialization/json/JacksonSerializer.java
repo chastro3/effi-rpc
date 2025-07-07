@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
-import io.effi.rpc.annotation.spi.Extension;
 
 import java.lang.reflect.Type;
 

@@ -1,13 +1,14 @@
 package io.effi.rpc.proxy;
 
-import io.effi.rpc.annotation.spi.Extensible;
+import io.effi.rpc.annotation.component.Extensible;
 
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 import static io.effi.rpc.constant.Component.ProxyFactory.JDK;
 
 /**
  * Creates proxy instance for specified interfaces or objects.
  */
-@Extensible(JDK)
+@Extensible(value = JDK, scope = PLATFORM)
 public interface ProxyFactory {
 
     /**

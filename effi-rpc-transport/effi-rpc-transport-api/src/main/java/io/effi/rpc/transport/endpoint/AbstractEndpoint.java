@@ -1,7 +1,6 @@
 package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformSource;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.util.AssertUtil;
@@ -11,7 +10,7 @@ import java.net.InetSocketAddress;
 /**
  * Provides an abstract implementation of {@link Endpoint}.
  */
-public abstract class AbstractEndpoint extends PlatformSource.Holder implements Endpoint {
+public abstract class AbstractEndpoint extends EffiRpcPlatform.Holder implements Endpoint {
 
     protected EndpointConfig config;
 

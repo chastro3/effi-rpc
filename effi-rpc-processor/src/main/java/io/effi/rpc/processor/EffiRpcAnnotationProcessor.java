@@ -1,8 +1,8 @@
 package io.effi.rpc.processor;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.annotation.rpc.EffiRpcClient;
 import io.effi.rpc.annotation.rpc.EffiRpcService;
-import io.effi.rpc.annotation.spi.Extension;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -11,16 +11,17 @@ import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.effi.rpc.constant.SystemKey.ARTIFACT_ID;
-import static io.effi.rpc.constant.SystemKey.GROUP_ID;
-import static io.effi.rpc.constant.SystemKey.NATIVE_BUILD;
-import static io.effi.rpc.constant.SystemKey.VERSION;
+import static io.effi.rpc.constant.SystemKeys.ARTIFACT_ID;
+import static io.effi.rpc.constant.SystemKeys.GROUP_ID;
+import static io.effi.rpc.constant.SystemKeys.NATIVE_BUILD;
+import static io.effi.rpc.constant.SystemKeys.VERSION;
 
 /**
  * Processes Effi-RPC annotations.
@@ -45,6 +46,7 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         processors = List.of(
+                new ExtensibleHandler(processingEnv),
                 new ExtensionHandler(processingEnv),
                 new RemoteServiceHandler(processingEnv),
                 new RemoteClientHandler(processingEnv),
@@ -58,16 +60,18 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (AnnotationHandler<? extends Annotation> processor : processors) {
-            processor.handle(roundEnv);
-        }
-        if (roundEnv.processingOver()) {
-            try {
-                resourceCollector.write();
-            } catch (IOException e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+        try {
+            for (AnnotationHandler<? extends Annotation> processor : processors) {
+                processor.handle(roundEnv);
             }
+            if (roundEnv.processingOver()) {
+                resourceCollector.write();
+            }
+        } catch (Throwable e) {
+            processingEnv.getMessager()
+                    .printMessage(Diagnostic.Kind.ERROR, stackTraceAsString(e));
         }
+
         return false;
     }
 
@@ -80,4 +84,11 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         return supportedAnnotation;
     }
+
+    private String stackTraceAsString(Throwable e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+
 }

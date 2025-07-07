@@ -1,17 +1,18 @@
 package io.effi.rpc.base.parameter;
 
+import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.Result;
-import io.effi.rpc.annotation.spi.Extensible;
 
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 import static io.effi.rpc.constant.Component.DEFAULT;
 
 /**
  * Parses and converts response into result object.
  */
-@Extensible(DEFAULT)
-public interface ReplyParser<RESP extends Envelope.Response> {
+@Extensible(value = DEFAULT, scope = PLATFORM)
+public interface ReplyParser<RESP extends Message.Response> {
 
     /**
      * Parses the given response and return a resolved result.

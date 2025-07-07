@@ -1,8 +1,8 @@
 package io.effi.rpc.proxy.bytebuddy;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.annotation.spi.Extension;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;

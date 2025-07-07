@@ -1,11 +1,11 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.base.ReplyFuture;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.config.URLType;
 import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.base.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.transport.endpoint.Endpoint;
@@ -78,7 +78,7 @@ public class NettySupport {
                 promise.completeExceptionally(wrapChannelException(typedResult.cause(), endpoint));
             }
         });
-        long connectTimeout = endpoint.url().getLongParam(DefaultConfigKeys.CONNECT_TIMEOUT);
+        long connectTimeout = endpoint.url().getLongParam(DefaultConfigNames.CONNECT_TIMEOUT);
         return promise.orTimeout(connectTimeout, TimeUnit.MILLISECONDS);
     }
 
@@ -87,7 +87,7 @@ public class NettySupport {
      * Gets or creates ssl context.
      */
     public static SslContext getOrCreateSslContext(EndpointConfig config, Supplier<SslContext> creator) {
-        boolean sslEnabled = config.getBooleanParam(DefaultConfigKeys.SSL.key(), false);
+        boolean sslEnabled = config.getBooleanParam(DefaultConfigNames.SSL.realName(), false);
         return sslEnabled ? creator.get() : null;
     }
 

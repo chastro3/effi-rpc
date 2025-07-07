@@ -1,14 +1,13 @@
 package io.effi.rpc.base;
 
 import io.effi.rpc.config.URL;
-import io.effi.rpc.config.URLSource;
 
 /**
  * Represents the result of an invocation.
  *
  * @see ResultType
  */
-public interface Result extends URLSource {
+public interface Result extends URL.Provider {
 
     /**
      * Returns the result type.
@@ -39,6 +38,18 @@ public interface Result extends URLSource {
      */
     default <T> T as(ResultType<T> resultType) {
         return resultType.extract(this);
+    }
+
+    /**
+     * Provides access to the {@link Result}.
+     */
+    @FunctionalInterface
+    interface Provider {
+
+        /**
+         * Returns the associated {@link Result}.
+         */
+        Result result();
     }
 
 }

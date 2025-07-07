@@ -1,10 +1,10 @@
 package io.effi.rpc.governance.loadbalance;
 
+import io.effi.rpc.base.Caller;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
 import io.effi.rpc.config.URL;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.context.InvocationContext;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import static io.effi.rpc.exception.PredefinedErrorCode.NOT_FOUND_SERVICE;
 public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     @Override
-    public URL select(InvocationContext<Envelope.Request, Caller<?>> context, List<URL> urls) {
+    public URL select(CallContext<Message.Request, Caller<?>> context, List<URL> urls) {
         if (CollectionUtil.isEmpty(urls)) {
-            throw NOT_FOUND_SERVICE.fail(null, context.envelope().url());
+            throw NOT_FOUND_SERVICE.fail(null, context.message().url());
         }
         if (urls.size() == 1) {
             return urls.get(0);
@@ -26,6 +26,6 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         return doChoose(context, urls);
     }
 
-    protected abstract URL doChoose(InvocationContext<Envelope.Request, Caller<?>> context, List<URL> urls);
+    protected abstract URL doChoose(CallContext<Message.Request, Caller<?>> context, List<URL> urls);
 
 }

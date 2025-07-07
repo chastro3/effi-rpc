@@ -1,13 +1,13 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.Invoker;
-import io.effi.rpc.base.context.InvocationContext;
+import io.effi.rpc.base.CallSide;
+import io.effi.rpc.base.Message;
+import io.effi.rpc.base.context.CallContext;
 
 /**
  * Represents a wrapped request.
  */
-public interface WrappedRequest<T extends Invoker<?>> extends WrappedEnvelope<T, InvocationContext<Envelope.Request, T>> {
+public interface WrappedRequest<T extends CallSide> extends WrappedEnvelope<T, CallContext<Message.Request, T>> {
 
     /**
      * Encodes the request.
@@ -15,11 +15,11 @@ public interface WrappedRequest<T extends Invoker<?>> extends WrappedEnvelope<T,
     @Override
     WrappedRequest<T> encode();
 
-    @Override
-    Envelope.Request envelope();
-
-    default Envelope.Request request() {
+    default Message.Request request() {
         return envelope();
     }
+
+    @Override
+    Message.Request envelope();
 }
 

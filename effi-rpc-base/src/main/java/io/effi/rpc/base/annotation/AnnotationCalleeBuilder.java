@@ -7,7 +7,6 @@ import io.effi.rpc.base.parameter.ParameterMapper;
 import io.effi.rpc.base.parameter.ParameterParser;
 import io.effi.rpc.config.HierarchicalNodeConfig;
 import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.spi.ExtensionLoader;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.Builder;
 
@@ -50,9 +49,9 @@ public class AnnotationCalleeBuilder<S> {
      * @return the constructed Callee instance
      * @throws IllegalArgumentException if the style is not set or is invalid
      */
-    public <T extends Callee<S>> T build(BiFunction<MethodMapper<S>, NodeConfig, Builder<T>> builder) {
+    public <T extends Callee> T build(BiFunction<MethodMapper<S>, NodeConfig, Builder<T>> builder) {
         AssertUtil.notBlank(style, "style");
-        AnnotationStyleParser methodParser = ExtensionLoader.loadExtension(AnnotationStyleParser.class, style);
+        AnnotationStyleParser methodParser = AnnotationStyle.getInstance(style).parser();
         HierarchicalNodeConfig serviceConfig = new HierarchicalNodeConfig(remoteService);
         methodParser.parseType(remoteService.serviceType(), serviceConfig);
         ParameterMapper<ParameterParser<?>>[] parameterMappers = methodParser.parseCalleeParameterMapper(method);

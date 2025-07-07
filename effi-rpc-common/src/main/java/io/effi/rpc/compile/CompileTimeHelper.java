@@ -16,8 +16,11 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
@@ -31,6 +34,8 @@ import java.util.function.Predicate;
  * Handles types, elements, annotations, and bytecode operations.
  */
 public class CompileTimeHelper {
+
+    private static final Type OBJECT_TYPE = Type.getObjectType("java/lang/Object");
 
     private final ProcessingEnvironment processingEnv;
 
@@ -181,19 +186,65 @@ public class CompileTimeHelper {
                 return Type.DOUBLE_TYPE;
             case VOID:
                 return Type.VOID_TYPE;
+
             case ARRAY:
                 ArrayType at = (ArrayType) mirror;
                 Type elem = asAsmType(at.getComponentType());
                 return Type.getType("[" + elem.getDescriptor());
+
             case DECLARED:
                 DeclaredType dt = (DeclaredType) mirror;
-                String qName = ((TypeElement) types.asElement(dt)).getQualifiedName().toString();
-                String internal = qName.replace('.', '/');
-                return Type.getObjectType(internal);
+                Element e = dt.asElement();
+                if (e instanceof TypeElement) {
+                    String qName = ((TypeElement) e).getQualifiedName().toString();
+                    String internal = qName.replace('.', '/');
+                    return Type.getObjectType(internal);
+                }
+                throw new IllegalStateException("Unknown DECLARED element: " + e);
+
+            case TYPEVAR:
+                TypeVariable tv = (TypeVariable) mirror;
+                TypeMirror upper = tv.getUpperBound();
+                if (upper != null && upper.getKind() != TypeKind.NONE) {
+                    return asAsmType(upper);
+                } else {
+                    return OBJECT_TYPE;
+                }
+
+            case INTERSECTION:
+                IntersectionType it = (IntersectionType) mirror;
+                List<? extends TypeMirror> bounds = it.getBounds();
+                if (!bounds.isEmpty()) {
+                    return asAsmType(bounds.get(0));
+                } else {
+                    return OBJECT_TYPE;
+                }
+
+            case WILDCARD:
+                WildcardType wt = (WildcardType) mirror;
+                TypeMirror extendsBound = wt.getExtendsBound();
+                if (extendsBound != null) {
+                    return asAsmType(extendsBound);
+                } else {
+                    return OBJECT_TYPE;
+                }
+
+            case NULL:
+                throw new IllegalArgumentException("NULL kind is not supported for ASM generation");
+
+            case NONE:
+                throw new IllegalArgumentException("NONE kind is not supported for ASM generation");
+
+            case ERROR:
+                throw new IllegalStateException("Encountered ERROR type: " + mirror);
+            case UNION:
+                throw new IllegalArgumentException("UNION kind is not supported for ASM generation");
+
             default:
-                throw new IllegalArgumentException("Unsupported kind: " + mirror.getKind());
+                throw new IllegalArgumentException("Unsupported TypeKind: " + mirror.getKind());
         }
     }
+
 
     /**
      * Returns the ASM method descriptor for a method.

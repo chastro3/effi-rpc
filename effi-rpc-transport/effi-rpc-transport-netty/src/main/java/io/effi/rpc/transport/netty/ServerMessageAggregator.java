@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -31,11 +31,11 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof Envelope.Request request) {
+        if (msg instanceof Message.Request request) {
             NettyChannel channel = NettyChannel.get(ctx.channel());
             if (channel != null) TransportSupport.handleRequest(request, channel);
         } else {
-            logger.warn(Messages.onlySupport(Envelope.Request.class));
+            logger.warn(Messages.onlySupport(Message.Request.class));
         }
     }
 
@@ -50,7 +50,7 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
         addFailedListener(ctx.channel(), msg, promise);
         if (msg instanceof WrappedResponse<?> wrappedResponse) {
             super.write(ctx, wrappedResponse.encode().response(), promise);
-        } else if (msg instanceof Envelope.Response) {
+        } else if (msg instanceof Message.Response) {
             super.write(ctx, msg, promise);
         } else {
             logger.warn(Messages.onlySupport(WrappedResponse.class));
@@ -58,7 +58,7 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
     }
 
     private void addFailedListener(Channel channel, Object msg, ChannelPromise promise) {
-        if (msg instanceof WrappedResponse<?> || msg instanceof Envelope.Response) {
+        if (msg instanceof WrappedResponse<?> || msg instanceof Message.Response) {
             promise.addListener(future -> {
                 if (!future.isSuccess()) {
                     EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());

@@ -1,32 +1,34 @@
 package io.effi.rpc.base.context;
 
-import io.effi.rpc.base.Envelope;
-import io.effi.rpc.base.Invoker;
+import io.effi.rpc.base.CallSide;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.Result;
 import io.effi.rpc.util.AssertUtil;
 
 /**
- * Represents the context for an RPC reply.
+ * Represents the reply context.
  * <p>
- * For the client, occurs after the response is received and parsed,but before the result is returned.
- * For the server, occurs after the target method is invoked,but before the response is sent.
+ * For the client, occurs after the response is received and parsed, but before the result is returned.<br>
+ * For the server, occurs after the target method is invoked, but before the response is sent.
  * </p>
+ *
+ * @param <T> the response message type
+ * @param <I> the call side type
  */
-public class ReplyContext<T extends Envelope.Response, I extends Invoker<?>>
-        extends ExecutorContext<T, I, ReplyContext<T, I>> {
+public class ReplyContext<T extends Message.Response, I extends CallSide> extends ExchangeContext<T, I> {
 
-    private final InvocationContext<?, I> invocationContext;
+    private final CallContext<?, I> callContext;
 
     private final Result result;
 
-    public ReplyContext(InvocationContext<?, I> invocationContext, T response, Result result) {
-        super(invocationContext.module(), response, invocationContext.invoker());
-        this.invocationContext = invocationContext;
+    public ReplyContext(CallContext<?, I> callContext, T response, Result result) {
+        super(callContext.module(), response, callContext.callSide());
         this.result = AssertUtil.notNull(result, "result");
+        this.callContext = callContext;
     }
 
-    public InvocationContext<?, I> invocationContext() {
-        return invocationContext;
+    public CallContext<?, I> callContext() {
+        return callContext;
     }
 
     public Result result() {

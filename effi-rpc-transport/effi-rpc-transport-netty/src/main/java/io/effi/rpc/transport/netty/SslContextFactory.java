@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.transport.CertificateConfig;
 import io.effi.rpc.config.transport.EndpointConfig;
 import io.effi.rpc.exception.PredefinedErrorCode;
@@ -8,7 +8,13 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.collection.LazyMap;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
-import io.netty.handler.ssl.*;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.OpenSsl;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
+import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -104,7 +110,7 @@ public class SslContextFactory {
     }
 
     private static boolean sslEnabled(EndpointConfig config) {
-        return config.getBooleanParam(DefaultConfigKeys.SSL);
+        return config.getBooleanParam(DefaultConfigNames.SSL);
     }
 
     private static String sslContextKey(String[] supportedProtocols, String name) {

@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.codec;
 
 import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.transport.WrappedRequest;
 import io.effi.rpc.transport.WrappedResponse;
 import io.effi.rpc.transport.endpoint.Channel;
@@ -17,7 +17,7 @@ public interface ServerCodec {
      * @param wrappedResponse the wrapped response
      * @return the encoded response
      */
-    Envelope.Response encode(WrappedResponse<Callee<?>> wrappedResponse);
+    Message.Response encode(WrappedResponse<Callee> wrappedResponse);
 
     /**
      * Decodes a request into a wrapped request.
@@ -27,7 +27,7 @@ public interface ServerCodec {
      * @param callee   the associated callee
      * @return the decoded wrapped request
      */
-    WrappedRequest<Callee<?>> decode(Channel channel, Envelope.Request request, Callee<?> callee);
+    WrappedRequest<Callee> decode(Channel channel, Message.Request request, Callee callee);
 
 }
 

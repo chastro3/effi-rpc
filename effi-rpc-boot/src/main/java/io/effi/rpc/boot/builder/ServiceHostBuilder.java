@@ -3,12 +3,11 @@ package io.effi.rpc.boot.builder;
 import io.effi.rpc.base.ServiceHost;
 import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.Config;
-import io.effi.rpc.config.ConfigSource;
-import io.effi.rpc.config.DefaultConfigKeys;
+import io.effi.rpc.config.DefaultConfigNames;
 import io.effi.rpc.config.FlatConfig;
 import io.effi.rpc.config.registry.RegistryConfig;
 import io.effi.rpc.config.transport.ServerConfig;
-import io.effi.rpc.constant.SystemKey;
+import io.effi.rpc.constant.SystemKeys;
 import io.effi.rpc.util.FluentBuilder;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
@@ -19,7 +18,7 @@ import java.net.InetSocketAddress;
  * Builds {@link ServiceHost} instance and defines configuration.
  */
 public abstract class ServiceHostBuilder<T extends ServiceHost, C extends ServiceHostBuilder<T, C>>
-        implements FluentBuilder<T, C>, ConfigSource {
+        implements FluentBuilder<T, C>, Config.Provider {
 
     protected final Config config = new FlatConfig();
 
@@ -59,7 +58,7 @@ public abstract class ServiceHostBuilder<T extends ServiceHost, C extends Servic
      * Sets the weight(used for load balancing).
      */
     public C weight(int weight) {
-        config.set(DefaultConfigKeys.WEIGHT, weight);
+        config.set(DefaultConfigNames.WEIGHT, weight);
         return returnThis();
     }
 
@@ -93,7 +92,7 @@ public abstract class ServiceHostBuilder<T extends ServiceHost, C extends Servic
      */
     public C exportedPort(int port) {
         if (NetUtil.isValidPort(port)) {
-            String configIp = System.getProperty(SystemKey.LOCAL_IP);
+            String configIp = System.getProperty(SystemKeys.LOCAL_IP);
             String ip = StringUtil.isBlankOrDefault(configIp, NetUtil.defaultHost());
             return exportedAddress(ip, port);
         }

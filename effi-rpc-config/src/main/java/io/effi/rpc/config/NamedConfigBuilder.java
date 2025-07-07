@@ -6,7 +6,7 @@ import io.effi.rpc.util.FluentBuilder;
  * Builds {@link NamedConfig} instance and defines configuration.
  */
 public abstract class NamedConfigBuilder<T, C extends NamedConfigBuilder<T, C>>
-        implements FluentBuilder<T, C>, ConfigSource {
+        implements FluentBuilder<T, C>, Config.Provider {
 
     protected String name;
 

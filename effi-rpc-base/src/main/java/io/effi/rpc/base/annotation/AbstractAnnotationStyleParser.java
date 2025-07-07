@@ -1,9 +1,9 @@
 package io.effi.rpc.base.annotation;
 
-import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.base.Envelope;
+import io.effi.rpc.base.Message;
 import io.effi.rpc.base.parameter.ParameterMapper;
 import io.effi.rpc.base.parameter.ParameterParser;
+import io.effi.rpc.config.NodeConfig;
 import io.effi.rpc.util.CollectionUtil;
 
 import java.lang.reflect.Method;
@@ -14,7 +14,7 @@ import java.util.List;
  * todo 异步解析
  * Provides an abstract implementation of {@link AnnotationStyleParser}.
  */
-public abstract class AbstractAnnotationStyleParser<REQ extends Envelope.Request> implements AnnotationStyleParser {
+public abstract class AbstractAnnotationStyleParser<REQ extends Message.Request> implements AnnotationStyleParser {
 
     protected AnnotationConfigParser<Class<?>, ?>[] typeAnnotationConfigParsers;
 

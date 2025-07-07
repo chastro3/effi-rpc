@@ -30,8 +30,8 @@ public class FlatConfig implements Config {
     }
 
     @Override
-    public String get(ConfigKey key) {
-        return getOrDefault(key.key(), key.defaultValue());
+    public String get(ConfigName key) {
+        return getOrDefault(key.realName(), key.defaultValue());
     }
 
     @Override
@@ -45,8 +45,8 @@ public class FlatConfig implements Config {
     }
 
     @Override
-    public void set(ConfigKey key, String value) {
-        set(key.key(), value);
+    public void set(ConfigName key, String value) {
+        set(key.realName(), value);
     }
 
     @Override

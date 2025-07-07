@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Provides the default implementation of {@link HttpRequest}.
  */
-public class DefaultHttpRequest<BODY> extends DefaultHttpEnvelope<BODY> implements HttpRequest<BODY> {
+public class DefaultHttpRequest<BODY> extends DefaultHttpMessage<BODY> implements HttpRequest<BODY> {
 
     public DefaultHttpRequest(HttpVersion version, HttpMethod method, URL url,
                               Iterable<? extends Map.Entry<? extends CharSequence, ? extends CharSequence>> headers, BODY body) {
@@ -24,7 +24,7 @@ public class DefaultHttpRequest<BODY> extends DefaultHttpEnvelope<BODY> implemen
     /**
      * Builds {@link DefaultHttpRequest} instance.
      */
-    public static class Builder<BODY> extends DefaultHttpEnvelope.Builder<BODY, HttpRequest<BODY>, Builder<BODY>> {
+    public static class Builder<BODY> extends DefaultHttpMessage.Builder<BODY, HttpRequest<BODY>, Builder<BODY>> {
 
         @Override
         public HttpRequest<BODY> build() {

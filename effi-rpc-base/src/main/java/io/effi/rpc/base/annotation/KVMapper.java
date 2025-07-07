@@ -1,6 +1,6 @@
 package io.effi.rpc.base.annotation;
 
-import io.effi.rpc.config.ConfigKey;
+import io.effi.rpc.config.ConfigName;
 
 import java.lang.annotation.Annotation;
 import java.util.function.Function;
@@ -12,4 +12,4 @@ import java.util.function.Function;
  * @param key         the configuration key
  * @param valueGetter the function extracting the value from the annotation
  */
-public record KVMapper<T extends Annotation>(ConfigKey key, Function<T, String> valueGetter) {}
+public record KVMapper<T extends Annotation>(ConfigName key, Function<T, String> valueGetter) {}

@@ -1,8 +1,8 @@
 package io.effi.rpc.governance.faulttolerance;
 
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.base.CompletableReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.annotation.spi.Extension;
 
 import static io.effi.rpc.constant.Component.FaultTolerance.FAIL_FAST;
 

@@ -30,29 +30,29 @@ public class HierarchicalNodeConfig extends FlatConfig implements NodeConfig {
     }
 
     @Override
-    public String get(ConfigKey configKey) {
-        String key = configKey.key();
-        ConfigKey.Strategy strategy = configKey.strategy();
+    public String get(ConfigName configName) {
+        String key = configName.realName();
+        ConfigName.Strategy strategy = configName.strategy();
         String value = null;
-        if (strategy == ConfigKey.Strategy.SELF_PREFERRED) {
+        if (strategy == ConfigName.Strategy.SELF_PREFERRED) {
             value = getSelfPreferred(key);
-        } else if (strategy == ConfigKey.Strategy.PARENT_PREFERRED) {
+        } else if (strategy == ConfigName.Strategy.PARENT_PREFERRED) {
             value = getParentPreferred(key);
-        } else if (strategy == ConfigKey.Strategy.CASCADED) {
+        } else if (strategy == ConfigName.Strategy.CASCADED) {
             List<String> values = getCascaded(key);
             if (CollectionUtil.isNotEmpty(values)) {
-                value = String.join(configKey.separator(), values);
+                value = String.join(configName.separator(), values);
             }
         } else {
             value = get(key);
         }
-        return StringUtil.isBlank(value) ? configKey.defaultValue() : value;
+        return StringUtil.isBlank(value) ? configName.defaultValue() : value;
     }
 
     @Override
-    public List<String> getCascaded(ConfigKey configKey) {
-        return configKey.strategy() == ConfigKey.Strategy.CASCADED
-                ? getCascaded(configKey.key())
+    public List<String> getCascaded(ConfigName configName) {
+        return configName.strategy() == ConfigName.Strategy.CASCADED
+                ? getCascaded(configName.realName())
                 : Collections.emptyList();
     }
 

@@ -1,6 +1,7 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
+import io.effi.rpc.boot.AnnotationRemoteClient;
 import io.effi.rpc.component.EffiRpcApplication;
 import io.effi.rpc.component.EffiRpcPlatform;
 import io.effi.rpc.config.registry.DefaultRegistryConfig;
@@ -9,7 +10,6 @@ import io.effi.rpc.config.transport.CertificateConfig;
 import io.effi.rpc.config.transport.ClientConfig;
 import io.effi.rpc.config.transport.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
-import io.effi.rpc.boot.AnnotationRemoteClient;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.h1.Http1ClientConfig;
@@ -36,7 +36,7 @@ public class Consumer {
                     send();
                 }
                 if (command.equals("stop")) {
-                    EffiRpcPlatform.currentPlatform().stop();
+                    EffiRpcPlatform.getInstance().stop();
                 }
             }
         }
@@ -76,7 +76,7 @@ public class Consumer {
     }
 
     private static void send() {
-        EffiRpcApplication application = EffiRpcPlatform.currentPlatform()
+        EffiRpcApplication application = EffiRpcPlatform.getInstance()
                 .newApplication("consumer");
         CertificateConfig certificateConfig = DefaultCertificateConfig.builder()
                 .name("client-cert")
@@ -91,8 +91,8 @@ public class Consumer {
                 .build();
         application.platform()
                 .register(ClientConfig.class, http2ClientConfig)
-                .register(ClientConfig.class, Http1ClientConfig.builder().name("hello-client").ssl(false).certificate(certificateConfig).protocol(HTTP_1_1).build())
-                .register(RegistryConfig.class, DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build(), Tags.CONSUMER, Tags.FORCE_ACTIVE)
+                .register(ClientConfig.class, Http1ClientConfig.builder().name("hello-client").ssl(false).certificate(certificateConfig).protocol(HTTP_1_1).build());
+        application.register(RegistryConfig.class, DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build().addTags(Tags.CONSUMER, Tags.FORCE_ACTIVE))
                 .register(RegistryConfig.class, DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").build());
         AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         HelloClient helloClient = remoteCaller.get();

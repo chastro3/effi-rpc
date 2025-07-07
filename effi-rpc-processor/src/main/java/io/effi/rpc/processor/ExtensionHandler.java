@@ -1,7 +1,7 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.annotation.spi.Extensible;
-import io.effi.rpc.annotation.spi.Extension;
+import io.effi.rpc.annotation.component.Extensible;
+import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.nativetools.ConditionItem;
 import io.effi.rpc.nativetools.ReflectConfigItem;
 import io.effi.rpc.util.CollectionUtil;
@@ -41,7 +41,8 @@ public class ExtensionHandler extends AnnotationHandler<Extension> {
                 // Get interfaces from @Extension#interfaces()
                 List<Name> supportedInterfaces = getSupportedInterfaces(extensionMirror);
                 // Get need generate interfaces.
-                Set<Name> neededInterfaces = helper().getAllInterfaceNames(typeElement, item -> isSupportedInterface(item, supportedInterfaces));
+                Set<Name> neededInterfaces = helper().getAllInterfaceNames(typeElement,
+                        item -> isSupportedInterface(item, supportedInterfaces));
                 for (Name interfaceName : neededInterfaces) {
                     String interfaceNameStr = interfaceName.toString();
                     extensionResourceSection.add(interfaceNameStr, extensionName);
@@ -74,7 +75,8 @@ public class ExtensionHandler extends AnnotationHandler<Extension> {
     }
 
     private boolean isSupportedInterface(TypeElement typeElement, List<Name> supportedInterfaces) {
-        boolean hasExtensible = typeElement.getAnnotation(Extensible.class) != null;
+        Extensible extensible = typeElement.getAnnotation(Extensible.class);
+        boolean hasExtensible = extensible != null;
         if (CollectionUtil.isEmpty(supportedInterfaces)) return hasExtensible;
         return supportedInterfaces.contains(typeElement.getQualifiedName()) && hasExtensible;
     }
