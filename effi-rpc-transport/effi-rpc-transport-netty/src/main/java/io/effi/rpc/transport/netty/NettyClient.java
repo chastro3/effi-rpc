@@ -1,59 +1,56 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.transport.ClientConfig;
-import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.async.Future;
+import io.effi.rpc.async.Promise;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.config.ConfigNames;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.util.LazySingleton;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Implements {@link Client} using Netty.
+ * <p>
+ * Provides Netty-based client implementation with channel management,
+ * connection handling, and protocol support.
  */
-public class NettyClient extends AbstractNettyEndpoint<NettyClient, Bootstrap> implements Client {
+public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
 
     public static final GenericKey<NioEventLoopGroup> EVENT_LOOP_GROUP_KEY = GenericKey.valueOf("nio-event-loop-group");
 
-    protected static NioEventLoopGroup NIO_EVENT_LOOP_GROUP;
+    protected final LazySingleton<Promise<NettyChannel>> channelFuture = LazySingleton.from(
+            () -> NettyChannel.wrapWhenActive(bootstrap.connect(), this)
+    );
 
-    private final Object lock = new Object();
-
-    protected volatile CompletableFuture<Channel> connectedFuture;
-
-    public NettyClient(ClientConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
-        super(config, address, platform, new Bootstrap());
+    public NettyClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
+        super(config, remoteAddress, platform, new Bootstrap());
     }
 
     @Override
-    public CompletableFuture<Channel> getChannel() {
-        if (connectedFuture == null) {
-            synchronized (lock) {
-                if (connectedFuture == null) {
-                    connectedFuture = NettySupport.wrap(bootstrap.connect(), this);
-                    connectedFuture.thenAccept(channel -> {
-                        this.channel = (NettyChannel) channel;
-                    });
-                }
-            }
-        }
-        return connectedFuture;
+    public Future<NettyChannel> fetchChannel() {
+        return channelFuture.ensure();
+    }
+
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return address;
     }
 
     @Override
     public boolean isActive() {
-        return channel != null && channel.isActive();
+        return isActive(channelFuture);
     }
 
     @Override
     public void close() {
-        if (channel != null) channel.close();
+        if (isActive()) fetchChannel().result().close();
     }
 
     @Override
@@ -62,21 +59,22 @@ public class NettyClient extends AbstractNettyEndpoint<NettyClient, Bootstrap> i
     }
 
     protected void configureOptions(Bootstrap bootstrap) {
-        int connectTimeout = url().getIntParam(DefaultConfigNames.CONNECT_TIMEOUT);
-        bootstrap.group(getNioEventLoopGroup())
+        int connectTimeout = config.getConfig(ConfigNames.CONNECT_TIMEOUT);
+        NioEventLoopGroup platformEventLoopGroup = platform.externalComponent(EVENT_LOOP_GROUP_KEY);
+        bootstrap.group(platformEventLoopGroup)
                 .channel(NioSocketChannel.class)
-                .remoteAddress(socketAddress())
+                .remoteAddress(remoteAddress())
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
-        configureIfValid(DefaultConfigNames.SEND_BUFFER_SIZE, Integer::parseInt, val -> {
+        configureIfValid(ConfigNames.SEND_BUFFER_SIZE, val -> {
             bootstrap.option(ChannelOption.SO_SNDBUF, val);
         });
-        configureIfValid(DefaultConfigNames.RECEIVE_BUFFER_SIZE, Integer::parseInt, val -> {
+        configureIfValid(ConfigNames.RECEIVE_BUFFER_SIZE, val -> {
             bootstrap.option(ChannelOption.SO_RCVBUF, val);
         });
-        configureIfValid(DefaultConfigNames.NO_DELAY, Boolean::parseBoolean, val -> {
+        configureIfValid(ConfigNames.TCP_NO_DELAY, val -> {
             bootstrap.option(ChannelOption.TCP_NODELAY, val);
         });
-        configureIfValid(DefaultConfigNames.KEEP_ALIVE, Boolean::parseBoolean, val -> {
+        configureIfValid(ConfigNames.TCP_KEEP_ALIVE, val -> {
             bootstrap.option(ChannelOption.SO_KEEPALIVE, val);
         });
     }
@@ -86,11 +84,5 @@ public class NettyClient extends AbstractNettyEndpoint<NettyClient, Bootstrap> i
         bootstrap.handler(NettySupport.newChannelInitializer(this::configureChannel));
     }
 
-    private static NioEventLoopGroup getNioEventLoopGroup() {
-        if (NIO_EVENT_LOOP_GROUP == null) {
-            NIO_EVENT_LOOP_GROUP = EffiRpcPlatform.getInstance().lookupWrapped(EVENT_LOOP_GROUP_KEY);
-        }
-        return NIO_EVENT_LOOP_GROUP;
-    }
 }
 

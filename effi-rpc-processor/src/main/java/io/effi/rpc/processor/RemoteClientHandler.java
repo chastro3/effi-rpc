@@ -1,7 +1,7 @@
 package io.effi.rpc.processor;
 
 import io.effi.rpc.annotation.rpc.EffiRpcClient;
-import io.effi.rpc.nativetools.ProxyConfigItem;
+import io.effi.rpc.nativetools.ProxyConfig;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -10,7 +10,7 @@ import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
 /**
- * Handles the processing of the {@link EffiRpcClient} annotation.
+ * Handles the {@link EffiRpcClient} annotation.
  */
 public class RemoteClientHandler extends AnnotationHandler<EffiRpcClient> {
 
@@ -20,11 +20,11 @@ public class RemoteClientHandler extends AnnotationHandler<EffiRpcClient> {
 
     @Override
     protected void handle(Set<? extends Element> elements, RoundEnvironment roundEnv) {
-        ProxyConfigResourceSection section = getResourceSection(ProxyConfigResourceSection.class);
+        ProxyConfigResourceSection section = resourceSection(ProxyConfigResourceSection.class);
         for (Element element : elements) {
             if (element instanceof TypeElement typeElement) {
-                String interfaceName = helper().getQualifiedClassName(typeElement);
-                section.nativeConfig().addItem(new ProxyConfigItem().addInterface(interfaceName));
+                String interfaceName = helper().qualifiedNameOf(typeElement);
+                section.nativeConfig().addItem(new ProxyConfig.Item().addInterface(interfaceName));
             }
         }
     }

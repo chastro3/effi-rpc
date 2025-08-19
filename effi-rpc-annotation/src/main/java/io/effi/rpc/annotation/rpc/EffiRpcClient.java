@@ -56,12 +56,12 @@ public @interface EffiRpcClient {
     /**
      * Applies filters.
      */
-    String[] filters() default {};
+    String[] interceptor() default "";
 
     /**
      * Registers registries.
      */
-    String[] registries() default {};
+    String[] registry() default "";
 
     /**
      * Specifies serialization type.
@@ -94,9 +94,9 @@ public @interface EffiRpcClient {
     String loadBalance() default "";
 
     /**
-     * Defines fault tolerance policy.
+     * Defines fault handle policy.
      */
-    String faultTolerance() default "";
+    String failureHandler() default "";
 
     /**
      * Sets serialization threshold.

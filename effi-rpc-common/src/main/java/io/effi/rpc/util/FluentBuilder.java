@@ -1,16 +1,19 @@
 package io.effi.rpc.util;
 
 /**
- * Builds an instance of {@link T} with fluent method chaining support.
+ * Builds instances of specified types with fluent method chaining.
+ * <p>
+ * Extends the basic builder pattern with self-returning methods
+ * to enable fluent API usage and method chaining.
  */
-public interface FluentBuilder<T, C extends FluentBuilder<T, C>> extends Builder<T> {
+public interface FluentBuilder<T, SELF extends FluentBuilder<T, SELF>> extends Builder<T> {
 
     /**
      * Returns this instance.
      */
     @SuppressWarnings("unchecked")
-    default C returnThis() {
-        return (C) this;
+    default SELF self() {
+        return (SELF) this;
     }
 }
 

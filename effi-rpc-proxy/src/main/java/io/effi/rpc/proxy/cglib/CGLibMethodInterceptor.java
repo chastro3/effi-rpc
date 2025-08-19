@@ -11,7 +11,6 @@ import java.util.concurrent.Callable;
  * Adapts CGLIB's {@link MethodInterceptor} to handle method invocations on proxies.
  * <p>
  * Delegates method calls to a user-defined {@link InvocationHandler}.
- * </p>
  */
 public class CGLibMethodInterceptor implements MethodInterceptor {
 

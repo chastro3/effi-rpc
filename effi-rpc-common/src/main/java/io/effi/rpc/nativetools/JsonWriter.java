@@ -139,6 +139,7 @@ public class JsonWriter implements Closeable {
         out.flush();
     }
 
+    @Override
     public void close() throws IOException {
         out.close();
     }

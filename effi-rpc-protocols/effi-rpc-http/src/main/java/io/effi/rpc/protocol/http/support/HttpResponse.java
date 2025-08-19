@@ -1,16 +1,12 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.base.Message;
+import io.effi.rpc.context.Response;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
  * Represents an HTTP response.
  */
-public interface HttpResponse<BODY> extends HttpMessage<BODY>, Message.Response {
-
-    static <BODY> DefaultHttpResponse.Builder<BODY> builder() {
-        return new DefaultHttpResponse.Builder<>();
-    }
+public interface HttpResponse extends HttpMessage, Response {
 
     /**
      * Returns the HTTP response status code.
@@ -18,21 +14,8 @@ public interface HttpResponse<BODY> extends HttpMessage<BODY>, Message.Response 
     int statusCode();
 
     @Override
-    default String code() {
-        return String.valueOf(statusCode());
-    }
-
-    @Override
-    default String message() {
-        return HttpResponseStatus.valueOf(statusCode()).reasonPhrase();
-    }
-
-    @Override
-    default boolean isSuccess() {
+    default boolean succeeded() {
         return statusCode() == HttpResponseStatus.OK.code();
     }
-
-    @Override
-    <NEW> HttpResponse<NEW> body(NEW body);
 }
 

@@ -1,23 +1,17 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.parameter.Argument;
-import io.effi.rpc.base.parameter.Body;
-import io.effi.rpc.base.parameter.Header;
-import io.effi.rpc.base.parameter.ParamVar;
-import io.effi.rpc.base.parameter.PathVar;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.parameter.Argument;
+import io.effi.rpc.context.parameter.Body;
+import io.effi.rpc.context.parameter.Header;
+import io.effi.rpc.context.parameter.ParamVar;
+import io.effi.rpc.context.parameter.PathVar;
 import io.effi.rpc.config.QueryPath;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.config.URLType;
-import io.effi.rpc.config.URLUtil;
-import io.effi.rpc.constant.Constant;
+import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.StringUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +19,7 @@ import java.util.Map;
  */
 public class HttpInvocation {
 
-    private final URL requestUrl;
+    private final SmartURL requestSmartUrl;
 
     private final Map<String, String> headers;
 
@@ -33,7 +27,7 @@ public class HttpInvocation {
 
     public HttpInvocation(Caller<?> caller, Object[] args) {
         ArgumentGroup grouped = groupArguments(args);
-        this.requestUrl = createUrl(caller, grouped.pathVars, grouped.paramVars);
+        this.requestSmartUrl = createUrl(caller, grouped.pathVars, grouped.paramVars);
         this.headers = grouped.headers;
         this.body = grouped.body;
     }
@@ -62,44 +56,28 @@ public class HttpInvocation {
         return new ArgumentGroup(pathVars, paramVars, headers, body);
     }
 
-    private URL createUrl(Caller<?> caller, Map<String, String> pathVars, Map<String, String> paramVars) {
+    private SmartURL createUrl(Caller<?> caller, Map<String, String> pathVars, Map<String, String> paramVars) {
         QueryPath queryPath = caller.queryPath();
-        URL.Builder urlBuilder = URL.builder()
-                .type(URLType.REQUEST)
-                .protocol(caller.protocol())
-                .address(Constant.UNKNOWN_ADDRESS);
+        SmartURL.Builder urlBuilder = SmartURL.builder()
+                .scheme(caller.protocol().name())
+                .withQueryParams(paramVars);
         if (queryPath != null) {
-            urlBuilder.paths(resolvePaths(queryPath.paths(), pathVars));
-            if (CollectionUtil.isNotEmpty(queryPath.queryParams())) {
-                urlBuilder.params(queryPath.queryParams());
-            }
-            if (CollectionUtil.isNotEmpty(paramVars)) {
-                urlBuilder.params(paramVars);
+            String[] realPath = queryPath.render(pathVars);
+            if (CollectionUtil.isEmpty(realPath)) {
+                urlBuilder.path(QueryPath.empty());
+            } else {
+                urlBuilder.path(QueryPath.valueOf(Arrays.asList(realPath)));
             }
         }
-
         return urlBuilder.build();
-    }
-
-    private List<String> resolvePaths(List<String> paths, Map<String, String> pathVars) {
-        // todo path 解析和匹配
-        if (CollectionUtil.isEmpty(paths)) {
-            return Collections.emptyList();
-        }
-        List<String> resolved = new ArrayList<>(paths.size());
-        for (String path : paths) {
-            String var = URLUtil.getVar(path);
-            resolved.add(!StringUtil.isBlank(var) ? pathVars.getOrDefault(var, path) : path);
-        }
-        return resolved;
     }
 
     public Map<String, String> headers() {
         return headers;
     }
 
-    public URL requestUrl() {
-        return requestUrl;
+    public SmartURL requestUrl() {
+        return requestSmartUrl;
     }
 
     public Object body() {

@@ -1,12 +1,14 @@
 package io.effi.rpc.util;
 
 /**
- * Defines contract for providing unique identifier.
+ * Provides unique identification capabilities for objects.
+ * <p>
+ * Enables objects to have a unique identifier for tracking and referencing purposes.
  */
 public interface Identifiable {
 
     /**
-     * Returns the unique identifier for this instance.
+     * Returns the unique identifier of this instance.
      */
     String id();
 }

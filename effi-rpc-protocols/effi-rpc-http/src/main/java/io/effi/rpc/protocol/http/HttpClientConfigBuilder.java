@@ -1,30 +1,21 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.config.NamedConfigBuilder;
-import io.effi.rpc.config.transport.CertificateConfig;
-import io.effi.rpc.config.transport.ClientConfigBuilder;
-import io.effi.rpc.config.transport.TcpEndpointConfigBuilder;
-import io.effi.rpc.config.transport.TrafficShapingConfig;
+import io.effi.rpc.component.transport.CertificateConfig;
+import io.effi.rpc.component.transport.ClientConfigBuilder;
+import io.effi.rpc.component.transport.TcpEndpointConfigBuilder;
+import io.effi.rpc.config.IdentifiableConfigBuilder;
 
 /**
  * Builds {@link HttpClientConfig} instance and defines configuration.
  */
-public abstract class HttpClientConfigBuilder<T extends HttpClientConfig, C extends HttpClientConfigBuilder<T, C>>
-        extends NamedConfigBuilder<T, C> implements ClientConfigBuilder<T, C>, TcpEndpointConfigBuilder<T, C>, HttpEndpointConfigBuilder<T, C> {
-
-    protected TrafficShapingConfig trafficShapingConfig;
+public abstract class HttpClientConfigBuilder<T extends HttpClientConfig, SELF extends HttpClientConfigBuilder<T, SELF>>
+        extends IdentifiableConfigBuilder<T, SELF> implements ClientConfigBuilder<T, SELF>, TcpEndpointConfigBuilder<T, SELF>, HttpEndpointConfigBuilder<T, SELF> {
 
     protected CertificateConfig certificateConfig;
 
     @Override
-    public C trafficShapingOptions(TrafficShapingConfig trafficShapingConfig) {
-        this.trafficShapingConfig = trafficShapingConfig;
-        return returnThis();
-    }
-
-    @Override
-    public C certificate(CertificateConfig certificateConfig) {
+    public SELF certificate(CertificateConfig certificateConfig) {
         this.certificateConfig = certificateConfig;
-        return returnThis();
+        return self();
     }
 }

@@ -5,7 +5,7 @@ import org.xerial.snappy.Snappy;
 
 import java.io.IOException;
 
-import static io.effi.rpc.constant.Component.Compression.SNAPPY;
+import static io.effi.rpc.config.ConfigValues.Compression.SNAPPY;
 
 /**
  * Implements {@link Compressor} using Snappy.

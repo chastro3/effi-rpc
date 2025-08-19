@@ -9,7 +9,7 @@ import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
 /**
- * Handles the processing of the {@link ScopedComponent} annotation.
+ * Handles the {@link ScopedComponent} annotation.
  */
 public class ScopedComponentHandler extends AnnotationHandler<ScopedComponent> {
 
@@ -19,10 +19,10 @@ public class ScopedComponentHandler extends AnnotationHandler<ScopedComponent> {
 
     @Override
     protected void handle(Set<? extends Element> elements, RoundEnvironment roundEnv) {
-        ScopedComponentResourceSection resourceSection = getResourceSection(ScopedComponentResourceSection.class);
+        ScopedComponentResourceSection resourceSection = resourceSection(ScopedComponentResourceSection.class);
         for (Element element : elements) {
             if (element instanceof TypeElement typeElement) {
-                String type = helper().getQualifiedClassName(typeElement);
+                String type = helper().qualifiedNameOf(typeElement);
                 ScopedComponent component = typeElement.getAnnotation(ScopedComponent.class);
                 resourceSection.add(type, component.scope().name(), component.kind().name());
             }

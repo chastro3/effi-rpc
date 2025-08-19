@@ -1,8 +1,7 @@
 package io.effi.rpc.transport.netty.tcp;
 
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.constant.Constant;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -19,12 +18,12 @@ public final class TcpCodec {
 
     private final ChannelHandler decoder;
 
-    private final URL endpointUrl;
+    private final SmartURL endpointSmartUrl;
 
-    public TcpCodec(URL url, boolean isServer) {
-        String maxMessageKey = isServer ? DefaultConfigNames.SERVER_MAX_RECEIVE_SIZE.realName() : DefaultConfigNames.CLIENT_MAX_RECEIVE_SIZE.realName();
-        int maxReceiveSize = url.getIntParam(maxMessageKey, Constant.DEFAULT_MAX_MESSAGE_SIZE);
-        endpointUrl = url;
+    public TcpCodec(SmartURL smartUrl, boolean isServer) {
+        String maxMessageKey = isServer ? ConfigNames.SERVER_MAX_RECEIVE_SIZE.name() : ConfigNames.CLIENT_MAX_RECEIVE_SIZE.name();
+        int maxReceiveSize = Integer.parseInt(smartUrl.getQueryParam(maxMessageKey));
+        endpointSmartUrl = smartUrl;
         encoder = new NettyEncoder();
         decoder = new NettyDecoder(maxReceiveSize);
     }
@@ -37,8 +36,8 @@ public final class TcpCodec {
         return decoder;
     }
 
-    public URL endpointUrl() {
-        return endpointUrl;
+    public SmartURL endpointUrl() {
+        return endpointSmartUrl;
     }
 
     static class NettyEncoder extends MessageToByteEncoder<Object> {

@@ -43,7 +43,7 @@ public @interface EffiRpcService {
     /**
      * Applies filters.
      */
-    String[] filters() default {};
+    String[] interceptor() default "";
 
     /**
      * Adds service description.

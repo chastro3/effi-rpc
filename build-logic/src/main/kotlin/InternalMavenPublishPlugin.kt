@@ -130,12 +130,12 @@ class InternalMavenPublishPlugin : Plugin<Project> {
             val root = asNode()
             root.children()
                 .filterIsInstance<Node>()
-                .firstOrNull { getNodeName(it) == "dependencyManagement" }
+                .firstOrNull { findNodeName(it) == "dependencyManagement" }
                 ?.let { root.remove(it) }
         }
     }
 
-    private fun getNodeName(node: Node): String {
+    private fun findNodeName(node: Node): String {
         return when (val name = node.name()) {
             is QName -> name.localPart
             is String -> name

@@ -1,7 +1,11 @@
 package io.effi.rpc.annotation.rpc;
 
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Configures an RPC caller (consumer) method.
@@ -49,12 +53,12 @@ public @interface EffiRpcCaller {
     /**
      * Applies filters.
      */
-    String[] filters() default {};
+    String[] interceptor() default "";
 
     /**
      * Registers registries.
      */
-    String[] registries() default {};
+    String[] registry() default "";
 
     /**
      * Specifies serialization type.
@@ -87,9 +91,9 @@ public @interface EffiRpcCaller {
     String loadBalance() default "";
 
     /**
-     * Defines fault tolerance policy.
+     * Defines failure handle policy.
      */
-    String faultTolerance() default "";
+    String failureHandler() default "";
 
     /**
      * Sets serialization threshold.

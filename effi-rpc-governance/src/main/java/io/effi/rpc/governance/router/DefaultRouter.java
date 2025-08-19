@@ -1,13 +1,13 @@
 package io.effi.rpc.governance.router;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.context.CallContext;
-import io.effi.rpc.component.EffiRpcModule;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.config.RouterConfig;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.constant.Component;
+import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.Collection;
@@ -18,37 +18,40 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static io.effi.rpc.config.ConfigValues.DEFAULT;
+
 /**
  * Provides the default implementation of {@link Router}.
  */
-@Extension(Component.DEFAULT)
+@Extension(DEFAULT)
 public class DefaultRouter implements Router {
 
     @Override
-    public List<URL> route(CallContext<?, Caller<?>> context, List<URL> urls) {
-        URL url = context.message().url();
+    public List<ServiceInstance> route(CallContext<?, Caller<?>> context, List<ServiceInstance> instances) {
+        SmartURL smartUrl = context.message().url();
+        Caller<?> caller = context.peer();
         // filter by group
-        String group = url.getParam(KeyConstant.GROUP);
+        String group = caller.getConfig(KeyConstant.GROUP);
         if (!StringUtil.isBlank(group)) {
-            urls = urls.stream().filter(item -> Objects.equals(item.getParam(KeyConstant.GROUP), group)).collect(Collectors.toList());
+            instances = instances.stream().filter(item -> Objects.equals(caller.getConfig(KeyConstant.GROUP), group)).collect(Collectors.toList());
         }
         // filter by router rule
-        EffiRpcModule module = context.module();
+        ScopedModule module = context.module();
         Collection<RouterConfig> routerConfigs = Collections.emptyList();
-        LinkedList<URL> result = new LinkedList<>();
+        LinkedList<ServiceInstance> result = new LinkedList<>();
         boolean hadConfig = false;
         for (RouterConfig routerConfig : routerConfigs) {
             Pattern urlPattern = Pattern.compile(routerConfig.urlRegex());
-            if (urlPattern.matcher(url.toString()).find()) {
+            if (urlPattern.matcher(smartUrl.toString()).find()) {
                 hadConfig = true;
-                for (URL serviceUrl : urls) {
+                for (ServiceInstance instance : instances) {
                     Pattern targetPattern = Pattern.compile(routerConfig.matchTargetRegex());
-                    if (targetPattern.matcher(serviceUrl.toString()).find()) {
-                        result.add(serviceUrl);
+                    if (targetPattern.matcher(instance.toString()).find()) {
+                        result.add(instance);
                     }
                 }
             }
         }
-        return hadConfig ? result : urls;
+        return hadConfig ? result : instances;
     }
 }

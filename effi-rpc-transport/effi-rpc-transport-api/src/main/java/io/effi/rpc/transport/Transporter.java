@@ -1,8 +1,8 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.transport.ClientConfig;
-import io.effi.rpc.config.transport.ServerConfig;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.resoruce.Cleanable;
@@ -11,29 +11,32 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 
 /**
- * Controls and manages endpoint.
+ * Manages transport endpoints including clients and servers.
+ * <p>
+ * Provides transporter functionality for creating and managing
+ * network endpoints with server and client support.
  */
 public interface Transporter extends Cleanable {
 
     /**
-     * Returns an existing or newly created server.
+     * Supplies a server for the given configuration and address.
      *
-     * @param config  the server config
-     * @param address the bind address
-     * @param platform  the module
-     * @return server instance
+     * @param config   the server configuration
+     * @param address  the bind address
+     * @param platform the module
+     * @return the supplied server
      */
-    Server getServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform);
+    Server supplyServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform);
 
     /**
-     * Returns an existing or newly created client.
+     * Supplies a client for the given configuration and remote address.
      *
-     * @param config        the client config
-     * @param remoteAddress the remote  address
-     * @param platform        the module
-     * @return client instance
+     * @param config        the client configuration
+     * @param remoteAddress the remote server address
+     * @param platform      the module
+     * @return the supplied client
      */
-    Client getClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcPlatform platform);
+    Client supplyClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform);
 
     /**
      * Returns all managed servers.

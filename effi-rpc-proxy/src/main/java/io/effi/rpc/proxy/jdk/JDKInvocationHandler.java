@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
  * Adapts JDK's {@link java.lang.reflect.InvocationHandler} to handle method invocations on proxies.
  * <p>
  * Delegates calls to a user-defined {@link InvocationHandler}.
- * </p>
  */
 public class JDKInvocationHandler implements java.lang.reflect.InvocationHandler {
 

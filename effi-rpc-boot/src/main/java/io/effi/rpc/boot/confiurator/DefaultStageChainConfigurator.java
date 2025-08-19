@@ -1,0 +1,73 @@
+package io.effi.rpc.boot.confiurator;
+
+import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.context.ConfigurablePeer;
+import io.effi.rpc.context.ConfigurableCallee;
+import io.effi.rpc.context.ConfigurableCaller;
+import io.effi.rpc.context.ImmutableStageChain;
+import io.effi.rpc.context.Stage;
+import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
+import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
+import io.effi.rpc.boot.confiurator.stage.FutureResultStage;
+import io.effi.rpc.boot.confiurator.stage.InvokeCalleeStage;
+import io.effi.rpc.boot.confiurator.stage.LocatorStage;
+import io.effi.rpc.boot.confiurator.stage.ReplyInterceptStage;
+import io.effi.rpc.boot.confiurator.stage.ReplyResultStage;
+
+import static io.effi.rpc.boot.confiurator.DefaultStageChainConfigurator.NAME;
+
+@Extension(value = NAME, primary = true)
+public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChainConfigurator, ScopedModule.Acceptor {
+
+    public static final String NAME = ConfigNames.DEFAULT;
+
+    private Stage.Chain defaultCallerCallChain;
+
+    private Stage.Chain defaultCalleeCallChain;
+
+    private Stage.Chain defaultCallerReplyChain;
+
+    private Stage.Chain defaultCalleeReplyChain;
+
+    @Override
+    public void accept(ScopedModule module) {
+        initializeDefaultStageChain(module);
+    }
+
+    @Override
+    public void configure(ConfigurablePeer peer) {
+        if (peer instanceof ConfigurableCaller<?> caller) {
+            if (caller.callStageChain() == null) {
+                caller.withCallStageChain(defaultCallerCallChain);
+            }
+            if (caller.replyStageChain() == null) {
+                caller.withReplyStageChain(defaultCallerReplyChain);
+            }
+        } else if (peer instanceof ConfigurableCallee callee) {
+            if (callee.callStageChain() == null) {
+                callee.withCallStageChain(defaultCalleeCallChain);
+            }
+            if (callee.replyStageChain() == null) {
+                callee.withReplyStageChain(defaultCalleeReplyChain);
+            }
+        }
+    }
+
+    private void initializeDefaultStageChain(ScopedModule module) {
+        String[] callerCallChainNames = {
+                CallInterceptStage.NAME, LocatorStage.NAME, ChosenInterceptStage.NAME, FutureResultStage.NAME
+        };
+        String[] calleeCallChainNames = new String[]{
+                CallInterceptStage.NAME, InvokeCalleeStage.NAME
+        };
+        String[] replyChainNames = {
+                ReplyInterceptStage.NAME, ReplyResultStage.NAME
+        };
+        defaultCallerCallChain = ImmutableStageChain.of(module, callerCallChainNames);
+        defaultCalleeCallChain = ImmutableStageChain.of(module, calleeCallChainNames);
+        defaultCallerReplyChain = ImmutableStageChain.of(module, replyChainNames);
+        defaultCalleeReplyChain = defaultCallerReplyChain;
+    }
+}

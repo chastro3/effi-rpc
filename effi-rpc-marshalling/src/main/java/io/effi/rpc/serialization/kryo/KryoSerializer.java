@@ -6,9 +6,12 @@ import com.esotericsoftware.kryo.io.Output;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.constant.Component.Serialization.KRYO;
+import static io.effi.rpc.config.ConfigValues.Serialization.KRYO;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Kryo.
@@ -30,20 +33,18 @@ public class KryoSerializer extends AbstractSerializer {
     });
 
     @Override
-    protected byte[] doSerialize(Object input) throws Exception {
-        try (Output output = new Output(BUFFER_SIZE, -1)) { // 使用自定义的缓冲区大小
+    protected void doSerialize(Object obj, OutputStream out) throws IOException {
+        try (Output output = new Output(out, BUFFER_SIZE)) {
             Kryo kryo = kryoThreadLocal.get();
-            kryo.writeClassAndObject(output, input);
-            return output.toBytes();
+            kryo.writeClassAndObject(output, obj);
         }
     }
 
     @Override
-    protected Object doDeserialize(byte[] bytes, Type type) throws Exception {
-        try (Input input = new Input(bytes)) {
+    protected Object doDeserialize(InputStream in, Type type) throws IOException {
+        try (Input input = new Input(in)) {
             Kryo kryo = kryoThreadLocal.get();
             return kryo.readClassAndObject(input);
         }
     }
-
 }

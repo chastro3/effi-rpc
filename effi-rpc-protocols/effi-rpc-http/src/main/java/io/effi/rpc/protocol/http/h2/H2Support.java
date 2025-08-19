@@ -1,18 +1,17 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Message;
-import io.effi.rpc.base.context.CallContext;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.config.URLType;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Request;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.protocol.http.HttpCaller;
-import io.effi.rpc.protocol.http.support.HttpRequest;
-import io.effi.rpc.protocol.http.support.HttpResponse;
-import io.effi.rpc.protocol.http.support.HttpVersion;
+import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
+import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.transport.netty.NettyChannel;
+import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -57,7 +56,7 @@ public class H2Support {
      */
     public static Http2RequestStream getOrCreateRequestStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
         String streamKey = REQUEST_STREAM_PREFIX + stream.id();
-        NettyChannel nettyChannel = NettyChannel.get(ctx.channel());
+        NettyChannel nettyChannel = NettyChannel.ensure(ctx.channel());
         return getOrCreateStream(streamKey, ctx, () -> new Http2RequestStream(nettyChannel, stream));
     }
 
@@ -96,75 +95,75 @@ public class H2Support {
     /**
      * Converts to netty's http2 stream frames.
      */
-    public static Http2StreamFrame[] toHttp2StreamFrames(HttpRequest<byte[]> request) {
-        URL url = request.url();
+    public static Http2StreamFrame[] toHttp2StreamFrames(HttpDuplexRequest request) {
+        SmartURL smartUrl = request.url();
         // build http2 headers
         Http2Headers http2Headers = ((NettyHttp2Headers) request.headers()).headers();
-        http2Headers.scheme(url.standardProtocol());
+        http2Headers.scheme(request.version().schema());
         http2Headers.method(request.method().name());
-        http2Headers.path(url.queryPath());
+        http2Headers.path(smartUrl.queryPath());
         // wrapper http2 body
-        ByteBuf data = Unpooled.wrappedBuffer(request.body());
-        return toHttp2StreamFrames(http2Headers, data);
+        return toHttp2StreamFrames(http2Headers, NettySupport.toByteBuf(request.outputStream()));
     }
 
     /**
      * Converts to netty's http2 stream frames.
      */
-    public static Http2StreamFrame[] toHttp2StreamFrames(HttpResponse<byte[]> response) {
+    public static Http2StreamFrame[] toHttp2StreamFrames(HttpDuplexResponse response) {
         // build http2 headers
         Http2Headers http2Headers = ((NettyHttp2Headers) response.headers()).headers();
         http2Headers.status(HttpResponseStatus.valueOf(response.statusCode()).codeAsText());
         // wrapper http2 body
-        ByteBuf data = Unpooled.wrappedBuffer(response.body());
-        return toHttp2StreamFrames(http2Headers, data);
+        return toHttp2StreamFrames(http2Headers, NettySupport.toByteBuf(response.outputStream()));
     }
 
     /**
      * Converts from netty's http2 stream.
      */
-    public static HttpResponse<ByteBuf> fromHttp2ResponseStream(Http2ResponseStream responseStream, CallContext<Message.Request, Caller<?>> context) {
-        HttpCaller<?> httpCaller = (HttpCaller<?>) context.callSide();
-        return HttpResponse.<ByteBuf>builder()
-                .version(HttpVersion.HTTP_2_0)
+    public static HttpDuplexResponse fromHttp2ResponseStream(Http2ResponseStream responseStream, ChannelHandlerContext ctx, CallContext<Request, Caller<?>> context) {
+        HttpCaller<?> httpCaller = (HttpCaller<?>) context.peer();
+        return HttpDuplexResponse.builder()
+                .version(Http2Protocol.VERSION)
                 .method(httpCaller.httpMethod())
                 .statusCode(responseStream.statusCode())
                 .url(context.message().url())
                 .headers(responseStream.headers())
-                .body(responseStream.body())
-                .build();
+                .build()
+                .withChannel(NettyChannel.ensure(ctx.channel()))
+                .withInput(NettySupport.newInputStream(responseStream.body()));
     }
 
     /**
      * Converts from netty's http2 stream.
      */
-    public static HttpRequest<ByteBuf> fromHtt2RequestStream(Http2RequestStream requestStream) {
-        return HttpRequest.<ByteBuf>builder()
-                .version(HttpVersion.HTTP_2_0)
+    public static HttpDuplexRequest fromHtt2RequestStream(Http2RequestStream requestStream, ChannelHandlerContext ctx) {
+        return HttpDuplexRequest.builder()
+                .version(Http2Protocol.VERSION)
                 .method(requestStream.method())
                 .url(requestStream.url())
                 .headers(requestStream.headers)
-                .body(requestStream.body())
-                .build();
+                .build()
+                .withChannel(NettyChannel.ensure(ctx.channel()))
+                .withInput(NettySupport.newInputStream(requestStream.body()));
     }
 
     /**
      * Builds http2 settings.
      */
-    public static Http2Settings createHttp2Settings(URL url) {
-        int initialWindows = url.getIntParam(DefaultConfigNames.INITIAL_WINDOW_SIZE);
-        long maxConcurrentStreams = url.getLongParam(DefaultConfigNames.MAX_CONCURRENT_STREAMS);
-        int maxFrameSize = url.getIntParam(DefaultConfigNames.MAX_FRAME_SIZE);
-        int maxHeaderListSize = url.getIntParam(DefaultConfigNames.MAX_HEADER_LIST_SIZE);
-        long headerTableSize = url.getLongParam(DefaultConfigNames.HEADER_TABLE_SIZE);
+    public static Http2Settings createHttp2Settings(EndpointConfig config, boolean isClient) {
+        int initialWindows = config.getConfig(ConfigNames.INITIAL_WINDOW_SIZE);
+        long maxConcurrentStreams = config.getConfig(ConfigNames.MAX_CONCURRENT_STREAMS);
+        int maxFrameSize = config.getConfig(ConfigNames.MAX_FRAME_SIZE);
+        int maxHeaderListSize = config.getConfig(ConfigNames.MAX_HEADER_LIST_SIZE);
+        long headerTableSize = config.getConfig(ConfigNames.HEADER_TABLE_SIZE);
         Http2Settings settings = new Http2Settings();
         settings.initialWindowSize(initialWindows);
         settings.maxConcurrentStreams(maxConcurrentStreams);
         settings.maxFrameSize(maxFrameSize);
         settings.maxHeaderListSize(maxHeaderListSize);
         settings.headerTableSize(headerTableSize);
-        if (URLType.CLIENT.match(url)) {
-            boolean pushEnabled = url.getBooleanParam(DefaultConfigNames.PUSH_ENABLED);
+        if (isClient) {
+            boolean pushEnabled = config.getConfig(ConfigNames.PUSH_ENABLED);
             settings.pushEnabled(pushEnabled);
         }
         return settings;

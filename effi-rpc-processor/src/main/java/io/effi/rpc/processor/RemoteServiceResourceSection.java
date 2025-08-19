@@ -6,7 +6,6 @@ import io.effi.rpc.compile.GeneratedInfo;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -30,8 +29,8 @@ public class RemoteServiceResourceSection extends Helper implements ResourceSect
     @Override
     public void write() throws IOException {
         for (TypeElement type : remoteServices) {
-            GeneratedInfo generatedInfo = DynamicAccessorGenerator.fromTypeElement(type, helper());
-            FileObject fo = filer().createResource(StandardLocation.CLASS_OUTPUT, generatedInfo.pkg(), generatedInfo.name() + ".class", type);
+            GeneratedInfo generatedInfo = DynamicAccessorGenerator.from(type, helper());
+            FileObject fo = helper().createOutputFile(generatedInfo.pkg(), generatedInfo.name() + ".class", type);
             try (OutputStream os = fo.openOutputStream()) {
                 os.write(generatedInfo.data());
             }

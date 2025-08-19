@@ -9,7 +9,7 @@ import io.netty.handler.codec.http2.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Handle http2 frames,Then generate full http2 stream message.
+ * Handle http2 frames,Then generate full http2 stream 
  */
 public abstract class Http2MessageStream {
 
@@ -90,7 +90,7 @@ public abstract class Http2MessageStream {
     }
 
     /**
-     * Check whether the current HTTP 2 stream has been read.
+     * Check if the current HTTP 2 stream has been read.
      *
      * @return
      */

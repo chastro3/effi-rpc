@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static io.effi.rpc.constant.Component.Compression.LZ4;
+import static io.effi.rpc.config.ConfigValues.Compression.LZ4;
 
 /**
  * Implements {@link Compressor} using Lz4.

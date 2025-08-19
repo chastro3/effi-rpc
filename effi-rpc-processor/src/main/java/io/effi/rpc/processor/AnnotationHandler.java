@@ -7,7 +7,7 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Provides an abstract class for handling annotation.
+ * Provides abstract functionality for handling annotations during compilation.
  */
 public abstract class AnnotationHandler<T extends Annotation> extends Helper {
 
@@ -25,18 +25,18 @@ public abstract class AnnotationHandler<T extends Annotation> extends Helper {
         handle(elements, roundEnv);
     }
 
-    void setResourceCollector(ResourceCollector resourceCollector) {
+    public Class<T> type() {
+        return annotationType;
+    }
+
+    protected <R extends ResourceSection> R resourceSection(Class<R> type) {
+        return resourceCollector.section(type);
+    }
+
+    void withResourceCollector(ResourceCollector resourceCollector) {
         this.resourceCollector = resourceCollector;
     }
 
     protected abstract void handle(Set<? extends Element> elements, RoundEnvironment roundEnv);
-
-    protected <R extends ResourceSection> R getResourceSection(Class<R> type) {
-        return resourceCollector.section(type);
-    }
-
-    public Class<T> type() {
-        return annotationType;
-    }
 
 }

@@ -5,8 +5,8 @@ import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
 import org.springframework.cglib.proxy.Enhancer;
 
-import static io.effi.rpc.constant.Component.ProxyFactory.CGLIB;
-import static io.effi.rpc.util.ClassUtil.getClassLoader;
+import static io.effi.rpc.config.ConfigValues.ProxyFactory.CGLIB;
+import static io.effi.rpc.util.ClassUtil.findClassLoader;
 
 /**
  * Implements {@link io.effi.rpc.proxy.ProxyFactory} using Cglib.
@@ -18,7 +18,7 @@ public class CGLibProxyFactory extends AbstractProxyFactory {
     @SuppressWarnings("unchecked")
     protected <T> T doCreateProxy(Class<T> interfaceClass, InvocationHandler handler) throws Exception {
         Enhancer enhancer = new Enhancer();
-        enhancer.setClassLoader(getClassLoader(interfaceClass));
+        enhancer.setClassLoader(findClassLoader(interfaceClass));
         enhancer.setSuperclass(interfaceClass);
         enhancer.setCallback(new CGLibMethodInterceptor(interfaceClass, handler));
         return (T) enhancer.create();
@@ -28,7 +28,7 @@ public class CGLibProxyFactory extends AbstractProxyFactory {
     @SuppressWarnings("unchecked")
     protected <T> T doCreateProxy(T target, InvocationHandler handler) throws Exception {
         Enhancer enhancer = new Enhancer();
-        enhancer.setClassLoader(getClassLoader(target.getClass()));
+        enhancer.setClassLoader(findClassLoader(target.getClass()));
         enhancer.setSuperclass(target.getClass());
         enhancer.setCallback(new CGLibMethodInterceptor(target, handler));
         return (T) enhancer.create();

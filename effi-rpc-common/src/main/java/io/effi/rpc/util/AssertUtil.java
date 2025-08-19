@@ -1,7 +1,8 @@
 package io.effi.rpc.util;
 
 import java.lang.annotation.Annotation;
-import java.util.Objects;
+
+import static io.effi.rpc.util.StringUtil.format;
 
 /**
  * Provides assertion operations.
@@ -9,50 +10,30 @@ import java.util.Objects;
 public final class AssertUtil {
 
     /**
-     * Checks if the condition is true.
-     */
-    public static void condition(boolean condition) {
-        condition(condition, null);
-    }
-
-    /**
      * Checks if the annotation is present.
      */
-    public static <T extends Annotation> T notAnnotation(Class<?> type, Class<T> annotationType) {
+    public static <T extends Annotation> T requireAnnotation(Class<?> type, Class<T> annotationType) {
         T annotation = type.getAnnotation(annotationType);
-        condition(annotation != null, "Missing @{} on '{}'", annotationType.getSimpleName(), type.getName());
+        if (annotation == null) {
+            throw new IllegalArgumentException("Missing required annotation @"
+                    + annotationType.getSimpleName() + "on " + type.getName());
+        }
         return annotation;
     }
 
     /**
      * Checks if the condition is true with a custom message.
      */
-    public static void condition(boolean condition, String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
+    public static void valid(boolean condition, String message, Object... args) {
+        valid(condition, format(message, args));
     }
 
     /**
      * Checks if the condition is true with a custom message.
      */
-    public static void condition(boolean condition, String message, Object... args) {
-        condition(condition, StringUtil.format(message, args));
-    }
-
-    /**
-     * Checks that the object is not null.
-     */
-    public static <T> T notNull(T object) {
-        return Objects.requireNonNull(object);
-    }
-
-    /**
-     * Checks that each object is not null.
-     */
-    public static void notNull(Object... objects) {
-        for (Object object : objects) {
-            notNull(object);
+    public static void valid(boolean condition, String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
         }
     }
 
@@ -61,7 +42,7 @@ public final class AssertUtil {
      */
     public static <T> T notNull(T object, String name) {
         if (object == null) {
-            throw new IllegalArgumentException(Messages.notNull(StringUtil.isBlankOrDefault(name, "object")));
+            throw new IllegalArgumentException("Parameter '" + name + "' cannot be null.");
         }
         return object;
     }
@@ -71,25 +52,9 @@ public final class AssertUtil {
      */
     public static String notBlank(String str, String name) {
         if (StringUtil.isBlank(str)) {
-            throw new IllegalArgumentException(Messages.notBlank(StringUtil.isBlankOrDefault(name, "object")));
+            throw new IllegalArgumentException("Parameter '" + name + "' cannot be blank.");
         }
         return str;
-    }
-
-    /**
-     * Checks if two objects are equal.
-     */
-    public static void equals(Object expected, Object actual) {
-        equals(expected, actual, null);
-    }
-
-    /**
-     * Checks if two objects are equal with a custom message.
-     */
-    public static void equals(Object expected, Object actual, String message) {
-        if (!Objects.equals(expected, actual)) {
-            throw new AssertionError(message);
-        }
     }
 
     private AssertUtil() {

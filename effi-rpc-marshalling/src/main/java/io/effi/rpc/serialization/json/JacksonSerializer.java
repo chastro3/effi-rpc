@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.constant.Component.Serialization.JSON;
+import static io.effi.rpc.config.ConfigValues.Serialization.JSON;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Jackson.
@@ -32,25 +35,19 @@ public class JacksonSerializer extends AbstractSerializer {
     }
 
     @Override
-    protected byte[] doSerialize(Object input) throws Exception {
-        return jsonMapper.writeValueAsBytes(input);
+    protected void doSerialize(Object obj, OutputStream out) throws IOException {
+        jsonMapper.writeValue(out, obj);
     }
 
     @Override
-    protected Object doDeserialize(byte[] bytes, Type type) throws Exception {
+    protected Object doDeserialize(InputStream in, Type type) throws IOException {
         if (type == String.class || type == Object.class) {
-            return jsonMapper.readValue(bytes, String.class);
+            return jsonMapper.readValue(in, String.class);
         }
-        return jsonMapper.readValue(bytes, jsonMapper.constructType(type));
+        return jsonMapper.readValue(in, jsonMapper.constructType(type));
     }
 
-    /**
-     * Gets used {@link JsonMapper}.
-     *
-     * @return
-     */
     public JsonMapper jsonMapper() {
         return jsonMapper;
     }
-
 }

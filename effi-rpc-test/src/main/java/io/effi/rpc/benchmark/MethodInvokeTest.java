@@ -53,7 +53,7 @@ public class MethodInvokeTest {
         methodHandle = MethodHandles.lookup()
                 .findVirtual(Target.class, "hello", MethodType.methodType(Object.class, String.class));
 
-        dynamicAccessor = DynamicAccessor.get(Target.class);
+        dynamicAccessor = DynamicAccessor.fetch(Target.class);
         methodIndex = dynamicAccessor.findMethodIndex("hello", String.class);
 
     }

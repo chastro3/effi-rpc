@@ -1,18 +1,19 @@
 package io.effi.rpc.boot.registry;
 
 import com.sun.management.OperatingSystemMXBean;
-import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.ServiceHost;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.boot.DefaultServiceHost;
-import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.boot.ApplicationServiceRegistrar;
+import io.effi.rpc.boot.ServerLauncher;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.context.Callee;
+import io.effi.rpc.transport.endpoint.ChannelTracker;
 
 import java.lang.management.ManagementFactory;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * SystemInfo.
+ * SystemInfo.  todo 待优化
  */
 public class DefaultRegistryMetaData {
 
@@ -32,7 +33,7 @@ public class DefaultRegistryMetaData {
 
     }
 
-    public DefaultRegistryMetaData(ServiceHost serviceHost) {
+    public DefaultRegistryMetaData(ScopedApplication application) {
         // Get the server CPU usage
         cpuUsage = round(OS_BEAN.getCpuLoad());
         loadAverage = round(OS_BEAN.getSystemLoadAverage());
@@ -42,20 +43,21 @@ public class DefaultRegistryMetaData {
         long usedMemory = totalMemory - freeMemory;
         memoryUsage = round((double) usedMemory / totalMemory);
         int activeService = 0;
-        if (serviceHost != null) {
-            for (EffiRpcApplication application : serviceHost.platform().applications()) {
-                for (EffiRpcModule module : application.modules()) {
-                    activeService += module.sizeOf(Callee.class);
-                }
-            }
-            services = activeService;
-            if (serviceHost instanceof DefaultServiceHost defaultServerExporter) {
-                    Server server = defaultServerExporter.server();
-                    if (server != null) {
-                        connections = server.channels().size();
-                    }
-                }
+        for (ScopedModule module : application.modules()) {
+            activeService += module.componentCount(Callee.class);
         }
+        services = activeService;
+        ApplicationServiceRegistrar serviceRegistrar = application.singleComponent(ApplicationServiceRegistrar.class);
+        AtomicInteger activeConnection = new AtomicInteger();
+        for (ServerLauncher serverLauncher : serviceRegistrar.serverLaunchers()) {
+            serverLauncher.server()
+                    .ifPresent(server -> {
+                        if (server instanceof ChannelTracker channelTracker) {
+                            activeConnection.addAndGet(channelTracker.size());
+                        }
+                    });
+        }
+        connections = activeConnection.get();
     }
 
     /**

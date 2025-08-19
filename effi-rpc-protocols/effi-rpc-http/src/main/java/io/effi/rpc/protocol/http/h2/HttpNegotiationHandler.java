@@ -1,5 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.util.AssertUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.ssl.ApplicationProtocolNames;
@@ -9,6 +10,7 @@ import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
  * Handles HTTP protocol negotiation and configures the channel
  * based on whether the client uses HTTP/2 or HTTP/1.1.
  */
+@NativeConfig.Reflect(typeReached = Http2Protocol.class, queryAllPublicMethods = true)
 public class HttpNegotiationHandler extends ApplicationProtocolNegotiationHandler {
 
     private final HttpCombineChannelConfigurer configurer;

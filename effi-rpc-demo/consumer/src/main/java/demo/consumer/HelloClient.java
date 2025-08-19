@@ -3,8 +3,8 @@ package demo.consumer;
 import demo.consumer.model.ParentObject;
 import io.effi.rpc.annotation.rpc.EffiRpcCaller;
 import io.effi.rpc.annotation.rpc.EffiRpcClient;
-import io.effi.rpc.base.annotation.Body;
-import io.effi.rpc.constant.Component;
+import io.effi.rpc.context.annotation.Body;
+import io.effi.rpc.config.ConfigValues;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -16,10 +16,10 @@ import java.util.concurrent.CompletableFuture;
 
 @EffiRpcClient(
         remoteApplication = "provider",
-        protocol = Component.Protocol.HTTP_1_1,
+        protocol = ConfigValues.Protocol.HTTP_1_1,
         clientConfig = "hello-client",
         path = "service",
-        style = Component.AnnotationStyle.JAX_RS
+        style = ConfigValues.AnnotationStyle.JAX_RS
 )
 public interface HelloClient {
 
@@ -29,14 +29,14 @@ public interface HelloClient {
 
     @POST
     @Path("helloList")
-    @EffiRpcCaller(path = "helloList", protocol = Component.Protocol.HTTP_1_1, style = Component.AnnotationStyle.JAX_RS)
+    @EffiRpcCaller(path = "helloList", protocol = ConfigValues.Protocol.HTTP_1_1, style = ConfigValues.AnnotationStyle.JAX_RS)
     List<ParentObject> helloList(@QueryParam("name") String name,
                                  @HeaderParam("content-type11") String contentType,
                                  @Body List<ParentObject> list);
 
     @POST
     @Path("helloList")
-    @EffiRpcCaller(path = "helloList", protocol = Component.Protocol.HTTP_2, style = Component.AnnotationStyle.JAX_RS, clientConfig = "h2-client")
+    @EffiRpcCaller(path = "helloList", protocol = ConfigValues.Protocol.HTTP_2, style = ConfigValues.AnnotationStyle.JAX_RS, clientConfig = "h2-client")
     CompletableFuture<List<ParentObject>> helloListAsync(@QueryParam("name") String name,
                                                          @HeaderParam("content-type111") String contentType,
                                                          @Body List<ParentObject> list);

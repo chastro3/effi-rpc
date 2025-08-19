@@ -1,8 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.transport.ClientConfig;
+import io.effi.rpc.async.Promise;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.config.ConfigNames;
 import io.effi.rpc.transport.endpoint.Client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -10,23 +11,25 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.FixedChannelPool;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
 
 /**
- * Implements of {@link Client} using Netty, with a fixed channel pool for efficient connection reuse.
+ * Implements of {@link Client} using Netty with fixed channel pools for connection reuse.
+ * <p>
+ * Provides Netty-based client implementation with connection pooling
+ * for efficient resource management and connection reuse.
  */
 public class NettyPoolClient extends NettyClient {
 
     protected FixedChannelPool channelPool;
 
-    public NettyPoolClient(ClientConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
-        super(config, address, platform);
+    public NettyPoolClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
+        super(config, remoteAddress, platform);
     }
 
     @Override
     protected void configureChannelHandler(Bootstrap bootstrap) {
-        int maxConnections = url().getIntParam(DefaultConfigNames.MAX_CONNECTIONS);
-        channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
+        int maxConnections = config().getConfig(ConfigNames.MAX_CONNECTIONS);
+        this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
             @Override
             public void channelCreated(Channel ch) throws Exception {
                 configureChannel(ch);
@@ -35,8 +38,8 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public CompletableFuture<io.effi.rpc.transport.endpoint.Channel> getChannel() {
-        return NettySupport.wrap(channelPool.acquire(), this);
+    public Promise<NettyChannel> fetchChannel() {
+        return NettyChannel.wrap(channelPool.acquire());
     }
 
     @Override

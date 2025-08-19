@@ -1,8 +1,10 @@
 package io.effi.rpc.internal.logging;
 
 /**
- * Logs messages at various levels.
- * <p><em>For internal use only.</em></p>
+ * Logs messages at various levels with formatting support.
+ * <p>
+ * Provides a unified logging interface with level-based logging methods
+ * and parameterized message formatting for internal use.
  */
 public interface Logger {
 

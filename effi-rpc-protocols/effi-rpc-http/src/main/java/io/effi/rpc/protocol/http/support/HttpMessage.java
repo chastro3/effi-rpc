@@ -1,13 +1,12 @@
 package io.effi.rpc.protocol.http.support;
 
-import io.effi.rpc.base.Message;
-import io.netty.buffer.ByteBuf;
+import io.effi.rpc.context.Message;
 import io.netty.handler.codec.http.HttpMethod;
 
 /**
- * Represents an HTTP envelope containing protocol version, headers, method, and body content.
+ * Represents an HTTP message containing protocol version, headers, method, and body content.
  */
-public interface HttpMessage<BODY> extends Message {
+public interface HttpMessage extends Message {
 
     /**
      * Returns the HTTP version.
@@ -25,19 +24,9 @@ public interface HttpMessage<BODY> extends Message {
     HttpHeaders headers();
 
     /**
-     * Returns the message body.
+     * Returns the HTTP body.
      */
-    BODY body();
-
-    /**
-     * Replaces the body and returns a new envelope with the updated body.
-     */
-    <NEW> HttpMessage<NEW> body(NEW body);
-
-    @Override
-    default boolean isInstance() {
-        return !(body() instanceof ByteBuf) && !(body() instanceof byte[]);
-    }
+    <T> T body();
 }
 
 

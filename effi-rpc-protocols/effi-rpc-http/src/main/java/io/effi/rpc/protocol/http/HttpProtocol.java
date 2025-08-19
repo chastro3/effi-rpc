@@ -1,35 +1,46 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Message;
-import io.effi.rpc.base.Result;
-import io.effi.rpc.base.ResultType;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.constant.Component;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.ProtocolStack;
+import io.effi.rpc.config.ConfigValues;
 import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.Interaction;
+import io.effi.rpc.context.Request;
+import io.effi.rpc.context.Response;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
+import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
+import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
 import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.transport.AbstractProtocol;
+import io.effi.rpc.transport.TransportProtocol;
+import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
+import io.effi.rpc.transport.codec.DefaultClientExchangeContextCodec;
+import io.effi.rpc.transport.codec.DefaultServerExchangeContextCodec;
+import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.transport.message.InputMessage;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.Messages;
 import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.util.StringUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
 
 /**
- * Provides a standard http implementation of {@link io.effi.rpc.transport.Protocol}.
+ * Provides a standard http implementation of {@link TransportProtocol}.
  */
 public abstract class HttpProtocol extends AbstractProtocol {
 
@@ -40,22 +51,22 @@ public abstract class HttpProtocol extends AbstractProtocol {
     private final HttpVersion version;
 
     protected HttpProtocol(HttpVersion version) {
-        super(version.protocolName(), new HttpServerCodec(), new HttpClientCodec());
-        this.version = version;
+        this.version = AssertUtil.notNull(version, "version");
+        initialize(version().name(), ProtocolStack.TCP, createServerCodec(), createClientCodec());
     }
 
     @Override
-    public Message.Request createRequest(Caller<?> caller, Object[] args) {
+    public Request createRequest(Caller<?> caller, Object[] args) {
         if (caller instanceof HttpCaller<?> httpCaller) {
             HttpInvocation argumentWrapper = new HttpInvocation(caller, args);
-            HttpHeaders headers = version().createHeaders();
+            HttpHeaders headers = version().newHeaders();
             headers.add(REGULAR_REQUEST_HEADERS.entrySet());
             Map<String, String> argumentHeaders = argumentWrapper.headers();
             if (CollectionUtil.isNotEmpty(argumentHeaders)) {
                 headers.add(argumentHeaders.entrySet());
             }
-            HttpUtil.setContentType(headers, caller.config());
-            return HttpRequest.builder()
+            HttpUtil.addContentType(headers, caller.config());
+            return HttpDuplexRequest.builder()
                     .version(version)
                     .method(httpCaller.httpMethod())
                     .url(argumentWrapper.requestUrl())
@@ -68,18 +79,18 @@ public abstract class HttpProtocol extends AbstractProtocol {
 
 
     @Override
-    public Message.Response createResponse(Callee callee, Result result) {
+    public Response createResponse(Callee callee, Interaction.Result result) {
         if (callee instanceof HttpCallee httpCallee) {
             int statusCode = 200;
-            Object value = result.value();
-            if (result.hasException()) {
-                value = result.as(ResultType.EXCEPTION).getCause().getMessage();
+            Object value = result.result();
+            if (!result.succeeded()) {
+                value = result.cause().getMessage();
                 statusCode = 500;
             }
-            HttpHeaders headers = version().createHeaders();
+            HttpHeaders headers = version().newHeaders();
             headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
-            HttpUtil.setContentType(headers, callee.config());
-            return HttpResponse.builder()
+            HttpUtil.addContentType(headers, callee.config());
+            return HttpDuplexResponse.builder()
                     .version(version)
                     .method(httpCallee.httpMethod())
                     .statusCode(statusCode)
@@ -92,34 +103,39 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
-    public EffiRpcModule getModule(Message.Request request, Channel channel) {
-        HttpRequest<?> httpRequest = (HttpRequest<?>) request;
+    public ScopedModule lookupModule(InputMessage inputMessage) {
+        HttpDuplexRequest httpRequest = (HttpDuplexRequest) inputMessage;
+        ScopedPlatform platform = inputMessage.channel()
+                .platform();
+        if (platform.applications().size() == 1) {
+            ScopedApplication application = platform.applications().iterator().next();
+            if (application.modules().size() == 1) {
+                return application.modules().iterator().next();
+            }
+        }
         HttpHeaders headers = httpRequest.headers();
-        CharSequence applicationName = headers.get(KeyConstant.REQUEST_REMOTE_APPLICATION);
-        if (StringUtil.isBlank(applicationName)) {
-            applicationName = Component.DEFAULT;
-        }
-        CharSequence moduleName = headers.get(KeyConstant.REQUEST_REMOTE_MODULE);
-        if (StringUtil.isBlank(moduleName)) {
-            moduleName = Component.DEFAULT;
-        }
-        return channel.platform()
-                .getApplication(applicationName.toString())
-                .getModule(moduleName.toString());
+        String defaultName = ConfigValues.DEFAULT;
+        // todo 优化没有application直接报错并返回给客户端
+        CharSequence applicationName = headers.getOrDefault(KeyConstant.REQUEST_REMOTE_APPLICATION, defaultName);
+        CharSequence moduleName = headers.getOrDefault(KeyConstant.REQUEST_REMOTE_MODULE, defaultName);
+        return inputMessage.channel()
+                .platform()
+                .lookupApplication(applicationName.toString())
+                .lookupModule(moduleName.toString());
     }
 
     @Override
-    public void sendCalleeNotFound(Message.Request request, Channel channel) {
-        HttpResponse<byte[]> httpResponse = create404Response(request, channel);
-        channel.send(httpResponse);
+    public void sendCalleeNotFound(InputMessage inputMessage) {
+        //        HttpResponse httpResponse = create404Response(request, channel);
+        //        channel.send(httpResponse);
     }
 
-    private HttpResponse<byte[]> create404Response(Message.Request request, Channel channel) {
-        EffiRpcException ex = PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().uri());
-        HttpHeaders headers = version().createHeaders();
+    private HttpResponse create404Response(Request request, Channel channel) {
+        EffiRpcException ex = PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().baseUrl());
+        HttpHeaders headers = version().newHeaders();
         headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
         headers.set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-        return HttpResponse.<byte[]>builder()
+        return HttpDuplexResponse.builder()
                 .version(version)
                 .method(HttpMethod.GET)
                 .statusCode(404)
@@ -130,17 +146,39 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
-    public Class<? extends Message.Request> supportedRequestType() {
+    public Class<? extends Request> requestType() {
         return HttpRequest.class;
     }
 
     @Override
-    public Class<? extends Message.Response> supportedResponseType() {
+    public Class<? extends Response> responseType() {
         return HttpResponse.class;
     }
 
     public HttpVersion version() {
         return version;
+    }
+
+    private ClientExchangeContextCodec createClientCodec() {
+        HttpClientCodec clientCodec = new HttpClientCodec();
+        return new DefaultClientExchangeContextCodec<HttpRequest, HttpResponse>()
+                .withEncoder(clientCodec)
+                .withDecoder(clientCodec)
+                .withResultExtractor(this::extractResult);
+    }
+
+    private ServerExchangeContextCodec createServerCodec() {
+        HttpServerCodec serverCodec = new HttpServerCodec();
+        return new DefaultServerExchangeContextCodec<HttpResponse, HttpRequest>()
+                .withEncoder(serverCodec)
+                .withDecoder(serverCodec);
+    }
+
+    private Interaction.Result extractResult(HttpResponse response) {
+        if (response.succeeded()) {
+            return Interaction.Result.success(response.url(), response.body());
+        }
+        return Interaction.Result.failure(response.url(), response.cause());
     }
 
 }

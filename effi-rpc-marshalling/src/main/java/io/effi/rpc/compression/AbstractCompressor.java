@@ -1,35 +1,28 @@
 package io.effi.rpc.compression;
 
-import io.effi.rpc.exception.PredefinedErrorCode;
-
 import java.io.IOException;
 
 /**
  * Provides an abstract implementation of {@link Compressor}.
  */
 public abstract class AbstractCompressor implements Compressor {
+
+    private static final byte[] EMPTY_ARRAY = new byte[0];
+
     @Override
-    public byte[] compress(byte[] data) {
+    public byte[] compress(byte[] data) throws IOException {
         if (data == null || data.length == 0) {
-            return new byte[0];
+            return EMPTY_ARRAY;
         }
-        try {
-            return doCompress(data);
-        } catch (IOException e) {
-            throw PredefinedErrorCode.COMPRESS.fail(e);
-        }
+        return doCompress(data);
     }
 
     @Override
-    public byte[] decompress(byte[] compressedData) {
+    public byte[] decompress(byte[] compressedData) throws IOException {
         if (compressedData == null || compressedData.length == 0) {
-            return new byte[0];
+            return EMPTY_ARRAY;
         }
-        try {
-            return doDecompress(compressedData);
-        } catch (IOException e) {
-            throw PredefinedErrorCode.DECOMPRESS.fail(e);
-        }
+        return doDecompress(compressedData);
     }
 
     protected abstract byte[] doCompress(byte[] data) throws IOException;

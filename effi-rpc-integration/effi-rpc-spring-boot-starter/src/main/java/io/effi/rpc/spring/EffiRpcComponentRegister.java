@@ -1,7 +1,7 @@
 package io.effi.rpc.spring;
 
 
-import io.effi.rpc.component.ScopedComponentDescriptor;
+import io.effi.rpc.component.ComponentDescriptor;
 import io.effi.rpc.component.ScopedContext;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -25,14 +25,14 @@ public class EffiRpcComponentRegister implements ApplicationContextAware, BeanPo
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Class<?> beanType = AopUtils.getTargetClass(bean);
-        List<Class<?>> scopedComponentTypes = ScopedContext.findMatchingScopedComponentTypes(beanType);
+        List<Class<?>> scopedComponentTypes = ComponentDescriptor.findSupportedComponentTypes(beanType);
         if (!scopedComponentTypes.isEmpty()) {
             for (Class<?> scopedComponentType : scopedComponentTypes) {
-                ScopedComponentDescriptor descriptor = ScopedContext.getScopedComponentDescriptor(scopedComponentType);
+                ComponentDescriptor descriptor = ComponentDescriptor.lookup(scopedComponentType);
                 Map<String, ? extends ScopedContext> beansOfType = applicationContext.getBeansOfType(descriptor.scopedContextType());
                 for (ScopedContext scopedContext : beansOfType.values()) {
                     if (!(bean instanceof ScopedContext))
-                        scopedContext.register((Class<Object>) scopedComponentType, beanName, bean);
+                        scopedContext.registry().register((Class<Object>) scopedComponentType, beanName, bean);
                 }
             }
         }

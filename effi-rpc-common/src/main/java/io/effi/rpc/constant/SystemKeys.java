@@ -5,7 +5,7 @@ package io.effi.rpc.constant;
  */
 public interface SystemKeys {
 
-    String LOCAL_IP = "effi-rpc.local.ip";
+    String LOCAL_HOST = "effi-rpc.local.host";
 
     String PRINT_HEARTBEAT_LOG = "effi-rpc.print.heartbeat.log";
 

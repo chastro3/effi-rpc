@@ -1,44 +1,21 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.config.URL;
-import io.effi.rpc.transport.endpoint.Endpoint;
-import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.netty.channel.Channel;
 
 /**
- * Configures the channel for {@link Endpoint}.
+ * Configures netty {@link Channel} using the provided {@link EndpointConfig}.
+ * <p>
+ * Provides channel configuration functionality for applying endpoint
+ * configurations to netty channels during initialization.
  */
-public abstract class ChannelConfigurer<E extends Endpoint> {
-
-    protected E endpoint;
-
-    protected ChannelConfigurer(E endpoint) {
-        this.endpoint = AssertUtil.notNull(endpoint, "endpoint");
-    }
+public interface ChannelConfigurer {
 
     /**
-     * Configures the channel to connect with the given endpoint using the provided URL.
-     * <p>
-     * It is recommended to use the {@code url} parameter for configuration, not
-     * {@link Endpoint#url()}. For example, when HTTP2 is compatible with HTTP1.1,
-     * {@link Endpoint#url()} contains HTTP2-specific configuration, whereas the
-     * {@code url} parameter provides HTTP1.1 configuration details.
+     * Configures the given channel using the provided endpoint configuration.
      *
-     * @param channel  the channel to be configured
-     * @param endpoint the target endpoint
-     * @param url      the URL with HTTP1.1 connection details
+     * @param channel the channel to configure
+     * @param config the configuration to apply
      */
-    public void configure(Channel channel, URL url) {
-        initChannel(channel, url);
-        doConfigure(channel, url);
-    }
-
-    protected abstract void doConfigure(Channel channel, URL url);
-
-    protected void initChannel(Channel channel, URL url) {
-        NettyChannel.init(channel, endpoint, url);
-    }
+    void configure(Channel channel, EndpointConfig config);
 }
-
-
-

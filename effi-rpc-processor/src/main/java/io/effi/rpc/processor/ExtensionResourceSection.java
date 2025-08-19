@@ -1,12 +1,22 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.constant.Constant;
+import io.effi.rpc.constant.ResourcePath;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
-import javax.tools.StandardLocation;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -24,17 +34,17 @@ public class ExtensionResourceSection extends Helper implements ResourceSection 
     @Override
     public void write() throws IOException {
         for (Map.Entry<String, Set<String>> entry : extensionEntries.entrySet()) {
-            String path = Constant.SPI_FIX_PATH + entry.getKey();
+            String path = ResourcePath.SPI_SERVICES_DIR + entry.getKey();
             Set<String> merged = new LinkedHashSet<>(entry.getValue());
             FileObject resource;
             try {
-                FileObject existing = filer().getResource(StandardLocation.CLASS_OUTPUT, "", path);
+                FileObject existing = helper().findOutputFile(path);
                 try (InputStream in = existing.openInputStream()) {
                     merged.addAll(readServiceFile(in));
                 }
             } catch (IOException ignored) {
             }
-            resource = filer().createResource(StandardLocation.CLASS_OUTPUT, "", path);
+            resource = helper().createOutputFile(path);
             try (OutputStream out = resource.openOutputStream()) {
                 writeServiceFile(merged, out);
             }

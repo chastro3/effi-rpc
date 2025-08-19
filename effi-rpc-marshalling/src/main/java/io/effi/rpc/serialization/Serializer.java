@@ -2,34 +2,39 @@ package io.effi.rpc.serialization;
 
 import io.effi.rpc.annotation.component.Extensible;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
-import static io.effi.rpc.constant.Component.Serialization.KRYO;
+import static io.effi.rpc.config.ConfigValues.Serialization.KRYO;
 
 /**
- * Serializes and deserializes objects.
+ * Serializes and deserializes objects using various serialization formats.
+ * <p>
+ * Provides serialization functionality for converting objects to and from
+ * byte streams with platform-scoped extensibility.
  */
 @Extensible(value = KRYO, scope = PLATFORM)
 public interface Serializer {
 
     /**
-     * Serializes the given object into a byte array.
+     * Serializes the given object to the output stream.
      *
-     * @param input the object to serialize
-     * @return the serialized byte array
+     * @param obj the object to serialize
+     * @param out the output stream to write to
      */
-    byte[] serialize(Object input);
+    void serialize(Object obj, OutputStream out) throws IOException;
 
     /**
-     * Deserializes the given byte array into an object of the specified type.
+     * Deserializes an object from the input stream with the given type.
      *
-     * @param bytes the byte array to deserialize
-     * @param type  the target type
-     * @param <T>   the object type
+     * @param in the input stream to read from
+     * @param type the target type to deserialize to
      * @return the deserialized object
      */
-    <T> T deserialize(byte[] bytes, Type type);
+    <T> T deserialize(InputStream in, Type type) throws IOException;
 }
 
 

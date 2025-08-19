@@ -1,15 +1,20 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.config.transport.ServerConfig;
+import io.effi.rpc.async.Promise;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.ServerConfig;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.Channel;
+import io.effi.rpc.transport.endpoint.ChannelTracker;
 import io.effi.rpc.transport.endpoint.Server;
+import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.NetUtil;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -17,69 +22,66 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 
 /**
  * Implements {@link Server} using Netty.
+ * <p>
+ * Provides Netty-based server implementation with channel management,
+ * connection handling, and protocol support.
  */
-public class NettyServer extends AbstractNettyEndpoint<NettyServer, ServerBootstrap> implements Server {
+public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Server, ChannelTracker {
 
-    private final Object lock = new Object();
+    private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
     protected NioEventLoopGroup bossGroup;
 
     protected NioEventLoopGroup workerGroup;
 
-    protected volatile CompletableFuture<Void> boundFuture;
+    protected final LazySingleton<Promise<NettyChannel>> serverChannelFuture = LazySingleton.from(
+            () -> NettyChannel.wrapWhenActive(bootstrap.bind(), this)
+    );
 
-    protected ChannelManageHandler channelManager;
+    protected Map<ChannelId, Channel> activeChannels = new ConcurrentHashMap<>();
 
-    public NettyServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+    public NettyServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform) {
         super(config, address, platform, new ServerBootstrap());
     }
 
     @Override
-    public CompletableFuture<Void> bind() {
-        if (boundFuture == null) {
-            synchronized (lock) {
-                if (boundFuture == null) {
-                    ChannelFuture future = bootstrap.bind();
-                    boundFuture = new CompletableFuture<>();
-                    future.addListener(v -> {
-                        if (future.isSuccess()) {
-                            boundFuture.complete(null);
-                        } else {
-                            boundFuture.completeExceptionally(future.cause());
-                        }
-                    });
-                }
-            }
-        }
-        return boundFuture;
+    public Promise<NettyChannel> bind() {
+        return serverChannelFuture.ensure();
     }
 
     @Override
     public boolean isActive() {
-        return channel != null && channel.isActive();
+        return isActive(serverChannelFuture);
     }
 
     @Override
     public void close() {
-        for (Channel channel : channels()) {
-            try {
-                channel.close();
-            } catch (Throwable e) {
-                throw PredefinedErrorCode.CLOSE_CHANNEL.fail(e, channel.remoteAddress());
+        if (isActive()) {
+            for (Channel channel : activeChannels.values()) {
+                try {
+                    channel.close();
+                } catch (Throwable e) {
+                    EffiRpcException failed = PredefinedErrorCode.CLOSE_CHANNEL
+                            .fail(e, channel.remoteAddress());
+                    logger.error(failed.getMessage(), e);
+                }
             }
+            serverChannelFuture.ensure().result().close();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
     }
 
     @Override
     public Channel lookupChannel(InetSocketAddress remoteAddress) {
-        for (Channel channel : channels()) {
+        for (Channel channel : activeChannels.values()) {
             if (NetUtil.isSameAddress(channel.remoteAddress(), remoteAddress)) {
                 return channel;
             }
@@ -93,43 +95,57 @@ public class NettyServer extends AbstractNettyEndpoint<NettyServer, ServerBootst
     }
 
     @Override
-    public Collection<Channel> channels() {
-        return channelManager.activeChannels();
-    }
-
-    public ChannelManageHandler channelManager() {
-        return channelManager;
+    public InetSocketAddress localAddress() {
+        return address;
     }
 
     @Override
-    protected void initialBootStrap() {
-        this.channelManager = new ChannelManageHandler(this);
-        super.initialBootStrap();
+    public Collection<Channel> channels() {
+        return list();
+    }
+
+    @Override
+    public void add(Channel channel) {
+        activeChannels.put(((NettyChannel) channel).channel().id(), channel);
+    }
+
+    @Override
+    public void remove(Channel channel) {
+        activeChannels.remove(((NettyChannel) channel).channel().id());
+    }
+
+    @Override
+    public Collection<Channel> list() {
+        return Collections.unmodifiableCollection(activeChannels.values());
+    }
+
+    @Override
+    public int size() {
+        return activeChannels.size();
     }
 
     @Override
     protected void configureOptions(ServerBootstrap bootstrap) {
-        URL url = url();
-        int bossThreads = url.getIntParam(DefaultConfigNames.CONNECTION_HANDLER_THREADS);
-        int workThreads = url.getIntParam(DefaultConfigNames.REQUEST_PROCESSOR_THREADS);
+        int bossThreads = config.getConfig(ConfigNames.CONNECTION_HANDLER_THREADS);
+        int workThreads = config.getConfig(ConfigNames.REQUEST_PROCESSOR_THREADS);
         bossGroup = new NioEventLoopGroup(bossThreads, newThreadFactory("server-boss"));
         workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
         bootstrap.group(bossGroup, workerGroup)
-                .localAddress(host(), port())
+                .localAddress(localAddress())
                 .channel(NioServerSocketChannel.class);
-        configureIfValid(DefaultConfigNames.ACCEPT_BACKLOG, Integer::parseInt, val -> {
+        configureIfValid(ConfigNames.ACCEPT_BACKLOG, val -> {
             bootstrap.option(ChannelOption.SO_BACKLOG, val);
         });
-        configureIfValid(DefaultConfigNames.SEND_BUFFER_SIZE, Integer::parseInt, val -> {
+        configureIfValid(ConfigNames.SEND_BUFFER_SIZE, val -> {
             bootstrap.childOption(ChannelOption.SO_SNDBUF, val);
         });
-        configureIfValid(DefaultConfigNames.RECEIVE_BUFFER_SIZE, Integer::parseInt, val -> {
+        configureIfValid(ConfigNames.RECEIVE_BUFFER_SIZE, val -> {
             bootstrap.childOption(ChannelOption.SO_RCVBUF, val);
         });
-        configureIfValid(DefaultConfigNames.NO_DELAY, Boolean::parseBoolean, val -> {
+        configureIfValid(ConfigNames.TCP_NO_DELAY, val -> {
             bootstrap.childOption(ChannelOption.TCP_NODELAY, val);
         });
-        configureIfValid(DefaultConfigNames.KEEP_ALIVE, Boolean::parseBoolean, val -> {
+        configureIfValid(ConfigNames.TCP_KEEP_ALIVE, val -> {
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, val);
         });
     }
@@ -140,9 +156,8 @@ public class NettyServer extends AbstractNettyEndpoint<NettyServer, ServerBootst
     }
 
     private ThreadFactory newThreadFactory(String name) {
-        String protocol = url().protocol();
+        String protocol = protocol().name();
         name = name + "-(" + protocol + ")";
         return new DefaultThreadFactory(name, false);
     }
-
 }

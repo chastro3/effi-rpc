@@ -1,6 +1,13 @@
 package io.effi.rpc.util;
 
-import java.net.*;
+import io.effi.rpc.constant.SystemKeys;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 /**
@@ -60,6 +67,7 @@ public final class NetUtil {
      * Checks if the given string is a valid IP address (IPv4 or IPv6).
      */
     public static boolean isValidIP(String ip) {
+        if (StringUtil.isBlank(ip)) return false;
         return isValidIPv4(ip) || isValidIPv6(ip);
     }
 
@@ -113,11 +121,27 @@ public final class NetUtil {
     }
 
     /**
+     * Resolves the given address if it is unresolved.
+     */
+    public static InetSocketAddress resolveIfUnresolved(InetSocketAddress address) {
+        if (!address.isUnresolved()) {
+            return address;
+        }
+        try {
+            InetAddress resolved = InetAddress.getByName(address.getHostString());
+            return new InetSocketAddress(resolved, address.getPort());
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Failed to resolve host: " + address.getHostString(), e);
+        }
+    }
+
+
+    /**
      * Converts an InetSocketAddress to its string representation.
      */
     public static String toAddress(InetSocketAddress address) {
         return (isLoopbackAddress(address.getHostString())
-                ? toAddress(defaultHost(), address.getPort())
+                ? toAddress(localHost(), address.getPort())
                 : toAddress(address.getHostString(), address.getPort()));
     }
 
@@ -164,44 +188,40 @@ public final class NetUtil {
     /**
      *  Gets the local host address.
      */
-    public static String defaultHost() {
-        if (LOCAL_HOST != null) {
-            return LOCAL_HOST;
+    public static String localHost() {
+        if (LOCAL_HOST != null) return LOCAL_HOST;
+        String configuredHost = System.getProperty(SystemKeys.LOCAL_HOST);
+        if (isValidIP(configuredHost)) {
+            return LOCAL_HOST = configuredHost;
         }
-
-        InetAddress localAddress = getFirstLocalAddress();
+        InetAddress localAddress = findFirstIPv4();
         if (localAddress != null) {
-            return localAddress.getHostAddress();
+            LOCAL_ADDRESS = localAddress;
+            return LOCAL_HOST = localAddress.getHostAddress();
         }
         return null;
     }
 
-    private static InetAddress getFirstLocalAddress() {
-        if (LOCAL_ADDRESS != null) {
-            return LOCAL_ADDRESS;
-        }
+    private static InetAddress findFirstIPv4() {
         try {
-            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-            while (networkInterfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = networkInterfaces.nextElement();
-                // Exclude loopback interfaces and disabled interfaces
-                if (networkInterface.isUp() && !networkInterface.isLoopback() && !networkInterface.isVirtual()) {
-                    Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
-                    while (inetAddresses.hasMoreElements()) {
-                        InetAddress inetAddress = inetAddresses.nextElement();
-                        // Exclude loopback addresses and IPv6 addresses
-                        if (!inetAddress.isLoopbackAddress() && !inetAddress.getHostAddress().contains(":")) {
-                            LOCAL_ADDRESS = inetAddress;
-                            LOCAL_HOST = inetAddress.getHostAddress();
-                            return LOCAL_ADDRESS;
-                        }
-                    }
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (!networkInterface.isUp() || networkInterface.isLoopback() || networkInterface.isVirtual()) continue;
+                Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress address = addresses.nextElement();
+                    if (isUsableIP(address)) return address;
                 }
             }
         } catch (SocketException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to get local host", e);
         }
         return null;
+    }
+
+    private static boolean isUsableIP(InetAddress address) {
+        return address != null && !address.isLoopbackAddress() && address instanceof Inet4Address;
     }
 
     private NetUtil() {

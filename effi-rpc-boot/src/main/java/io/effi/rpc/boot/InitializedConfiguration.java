@@ -1,28 +1,24 @@
 package io.effi.rpc.boot;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.base.ScheduledThreadPool;
-import io.effi.rpc.base.Scheduler;
-import io.effi.rpc.base.ServiceHost;
-import io.effi.rpc.base.ThreadPool;
-import io.effi.rpc.base.event.DisruptorEventDispatcher;
-import io.effi.rpc.base.event.EventDispatcher;
-import io.effi.rpc.component.ApplicationConfiguration;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformConfiguration;
-import io.effi.rpc.constant.Constant;
+import io.effi.rpc.component.ComponentRegistry;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.event.DisruptorEventDispatcher;
+import io.effi.rpc.component.event.EventDispatcher;
+import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.context.metrics.event.CalleeMetricsEvent;
+import io.effi.rpc.context.metrics.event.CalleeMetricsEventListener;
+import io.effi.rpc.context.metrics.event.CallerMetricsEvent;
+import io.effi.rpc.context.metrics.event.CallerMetricsEventListener;
 import io.effi.rpc.executor.RpcThreadPool;
-import io.effi.rpc.metrics.event.CalleeMetricsEvent;
-import io.effi.rpc.metrics.event.CalleeMetricsEventListener;
-import io.effi.rpc.metrics.event.CallerMetricsEvent;
-import io.effi.rpc.metrics.event.CallerMetricsEventListener;
-import io.effi.rpc.transport.heartbeat.IdleEvent;
-import io.effi.rpc.transport.heartbeat.IdleEventListener;
-import io.effi.rpc.transport.heartbeat.RefreshIdleCountEvent;
-import io.effi.rpc.transport.heartbeat.RefreshIdleCountEventListener;
+import io.effi.rpc.transport.idle.IdleEvent;
+import io.effi.rpc.transport.idle.IdleEventListener;
+import io.effi.rpc.transport.idle.RefreshIdleCountEvent;
+import io.effi.rpc.transport.idle.RefreshIdleCountEventListener;
 
-import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -36,35 +32,40 @@ public class InitializedConfiguration {
      * Initializes the application.Registers default event listeners for various events.
      */
     @Extension(NAME)
-    public static class PlatformInitializedConfiguration implements PlatformConfiguration {
+    public static class PlatformInitializedListener implements ScopedPlatform.Listener {
         @Override
-        public void preInit(EffiRpcPlatform platform) {
-            platform.register(Scheduler.class, new ScheduledThreadPool(platform)).register(EventDispatcher.class, new DisruptorEventDispatcher(platform));
-            EventDispatcher eventDispatcher = platform.lookup(EventDispatcher.class);
+        public void onInitializing(ScopedPlatform platform) {
+            ComponentRegistry registry = platform.registry();
+            registry.register(Scheduler.class, new Scheduler())
+                    .register(EventDispatcher.class, new DisruptorEventDispatcher(platform));
+            EventDispatcher eventDispatcher = platform.singleComponent(EventDispatcher.class);
             eventDispatcher.registerListener(RefreshIdleCountEvent.class, new RefreshIdleCountEventListener());
             eventDispatcher.registerListener(IdleEvent.class, new IdleEventListener());
             eventDispatcher.registerListener(CallerMetricsEvent.class, new CallerMetricsEventListener());
             eventDispatcher.registerListener(CalleeMetricsEvent.class, new CalleeMetricsEventListener());
-            String serverHybrid = Constant.DEFAULT_SERVER_HYBRID_THREAD_POOL;
+            String serverHybrid = ConfigNames.CALLEE_THREAD_POOL.defaultValue();
             ExecutorService serverHybridExecutor = RpcThreadPool.defaultIOExecutor(serverHybrid);
-            String clientHybrid = Constant.DEFAULT_CLIENT_HYBRID_THREAD_POOL;
+            String clientHybrid = ConfigNames.THREAD_POOL.defaultValue();
             ExecutorService clientHybridExecutor = RpcThreadPool.defaultCPUExecutor(clientHybrid);
-            platform.register(ThreadPool.class, new ThreadPool(serverHybrid, serverHybridExecutor))
+            registry.register(ThreadPool.class, new ThreadPool(serverHybrid, serverHybridExecutor))
                     .register(ThreadPool.class, new ThreadPool(clientHybrid, clientHybridExecutor));
         }
+
+
     }
 
     /**
      * Starts the application.
      */
     @Extension(NAME)
-    public static class ApplicationInitializedConfiguration implements ApplicationConfiguration {
+    public static class ApplicationInitializedListener implements ScopedApplication.Listener {
         @Override
-        public void postStart(EffiRpcApplication application) {
-            Collection<ServiceHost> serviceHosts = application.platform().listOf(ServiceHost.class, (name, item) -> !item.isActive());
-            for (ServiceHost serviceHost : serviceHosts) {
-                    serviceHost.start();
+        public void onStarted(ScopedApplication application) {
+            ApplicationServiceRegistrar applicationServiceRegistrar = application.singleComponent(ApplicationServiceRegistrar.class);
+            if (applicationServiceRegistrar == null) {
+                applicationServiceRegistrar = new ApplicationServiceRegistrar(application);
             }
+            applicationServiceRegistrar.register();
         }
     }
 }

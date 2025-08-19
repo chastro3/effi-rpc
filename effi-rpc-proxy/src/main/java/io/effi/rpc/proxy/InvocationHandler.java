@@ -4,7 +4,10 @@ import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 /**
- * Handles method invocations on a proxy instance.
+ * Handles method invocations on proxy instances.
+ * <p>
+ * Provides invocation handler functionality for intercepting and processing
+ * method calls on proxy instances with support for invoking the original method.
  */
 @FunctionalInterface
 public interface InvocationHandler {

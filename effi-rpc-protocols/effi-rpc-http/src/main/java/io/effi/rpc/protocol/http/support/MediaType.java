@@ -2,7 +2,9 @@ package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.util.StringUtil;
 
-import static io.effi.rpc.constant.Component.Serialization.*;
+import static io.effi.rpc.config.ConfigValues.Serialization.JSON;
+import static io.effi.rpc.config.ConfigValues.Serialization.MSGPACK;
+import static io.effi.rpc.config.ConfigValues.Serialization.PROTOBUF;
 
 /**
  * Maps content types to corresponding serialization formats.

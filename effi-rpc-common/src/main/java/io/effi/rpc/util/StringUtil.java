@@ -13,13 +13,19 @@ public final class StringUtil {
 
     private static final String EMPTY = "";
 
-    private static final String[]  EMPTY_ARRAY = new String[0];
+    private static final String[] EMPTY_ARRAY = new String[0];
 
-    public static String empty(){
+    /**
+     * Returns an empty string.
+     */
+    public static String empty() {
         return EMPTY;
     }
 
-     public static String[] emptyArray(){
+    /**
+     * Returns an empty array if the input array is null.
+     */
+    public static String[] emptyArray() {
         return EMPTY_ARRAY;
     }
 
@@ -52,6 +58,9 @@ public final class StringUtil {
         return CharSequence.compare(c1, c2) == 0;
     }
 
+    /**
+     * Reverses an array of strings.
+     */
     public static String[] reverse(String[] array) {
         if (CollectionUtil.isEmpty(array)) return array;
         int i = 0, j = array.length - 1;
@@ -65,11 +74,17 @@ public final class StringUtil {
         return array;
     }
 
+    /**
+     * Converts a List to an array.
+     */
     public static String[] toArray(List<String> values) {
         if (CollectionUtil.isEmpty(values)) return EMPTY_ARRAY;
         return values.toArray(EMPTY_ARRAY);
     }
 
+    /**
+     * Removes duplicate elements from an array.
+     */
     public static String[] deduplicate(String[] array) {
         final int n = array.length;
         if (n <= 1) return array;
@@ -113,7 +128,7 @@ public final class StringUtil {
      * Formats a message by replacing placeholders ({}) with provided arguments.
      */
     public static String format(String message, Object... args) {
-        if (StringUtil.isBlank(message) || args == null || args.length == 0) {
+        if (StringUtil.isBlank(message) || CollectionUtil.isEmpty(args)) {
             return message;
         }
         StringBuilder result = new StringBuilder(message.length() + args.length * 10);

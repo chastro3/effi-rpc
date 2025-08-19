@@ -38,7 +38,7 @@ public @interface EffiRpcCallee {
     /**
      * Applies filters.
      */
-    String[] filters() default {};
+    String[] interceptor() default "";
 
     /**
      * Describes callee.

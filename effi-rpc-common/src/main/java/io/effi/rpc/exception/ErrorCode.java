@@ -3,28 +3,41 @@ package io.effi.rpc.exception;
 import io.effi.rpc.util.StringUtil;
 
 /**
- * Represents an error code and its associated message.
+ * Represents error codes with associated messages and formatting capabilities.
+ * <p>
+ * Provides a structured way to define error codes along with their messages,
+ * supporting message formatting and exception creation.
  */
 public interface ErrorCode {
 
     /**
-     * Gets the error code.
+     * Returns the error code.
      */
     String code();
 
     /**
-     * Gets the error message.
+     * Returns the error message.
      */
     String message();
 
     /**
-     * Formats the error message with the provided arguments.
+     * Renders the message using the provided arguments.
      *
-     * @param args arguments to format the message
+     * @param args the arguments to format the message
      * @return the formatted message
      */
-    default String convert(Object... args) {
+    default String render(Object... args) {
         return StringUtil.format(message(), args);
+    }
+
+    /**
+     * Creates an {@link EffiRpcException} with this error code and the provided arguments.
+     *
+     * @param args the arguments to format the message
+     * @return the created exception
+     */
+    default EffiRpcException fail(Throwable cause, Object... args) {
+        return EffiRpcException.wrap(this, cause, args);
     }
 }
 

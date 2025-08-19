@@ -3,13 +3,14 @@ package io.effi.rpc.serialization.jdk;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.constant.Component.Serialization.JDK;
+import static io.effi.rpc.config.ConfigValues.Serialization.JDK;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Jdk.
@@ -18,20 +19,18 @@ import static io.effi.rpc.constant.Component.Serialization.JDK;
 public class JdkSerializer extends AbstractSerializer {
 
     @Override
-    protected byte[] doSerialize(Object input) throws Exception {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream)) {
-            objectOutputStream.writeObject(input);
-            return outputStream.toByteArray();
+    protected void doSerialize(Object obj, OutputStream out) throws IOException {
+        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(out)) {
+            objectOutputStream.writeObject(obj);
         }
     }
 
     @Override
-    protected Object doDeserialize(byte[] bytes, Type type) throws Exception {
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
+    protected Object doDeserialize(InputStream in, Type type) throws IOException {
+        try (ObjectInputStream objectInputStream = new ObjectInputStream(in)) {
             return objectInputStream.readObject();
+        } catch (Exception e) {
+            throw new IOException(e);
         }
     }
-
 }

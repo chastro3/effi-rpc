@@ -2,22 +2,21 @@ package io.effi.rpc.boot;
 
 import io.effi.rpc.annotation.rpc.EffiRpcCallee;
 import io.effi.rpc.annotation.rpc.EffiRpcService;
-import io.effi.rpc.base.RemoteService;
-import io.effi.rpc.base.annotation.AnnotationStyle;
-import io.effi.rpc.base.annotation.AnnotationStyleParser;
-import io.effi.rpc.base.parameter.MethodMapper;
-import io.effi.rpc.base.parameter.ParameterMapper;
-import io.effi.rpc.base.parameter.ParameterParser;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.transport.Protocol;
-import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.DefaultHierarchicalConfig;
+import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.context.RemoteService;
+import io.effi.rpc.context.annotation.AnnotationStyle;
+import io.effi.rpc.context.annotation.AnnotationStyleParser;
+import io.effi.rpc.context.parameter.MethodMapper;
+import io.effi.rpc.context.parameter.ParameterMapper;
+import io.effi.rpc.context.parameter.ParameterParser;
+import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -36,16 +35,16 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
 
     private final AnnotationStyle annotationStyle;
 
-    public AnnotationRemoteService(T service, EffiRpcApplication application) {
+    public AnnotationRemoteService(T service, ScopedApplication application) {
         this(service, null, application);
     }
 
-    public AnnotationRemoteService(T service, Class<T> serviceType, EffiRpcApplication application) {
+    public AnnotationRemoteService(T service, Class<T> serviceType, ScopedApplication application) {
         AssertUtil.notNull(application, "application");
         AssertUtil.notNull(service, "service");
         serviceType = checkServiceType(service, serviceType);
-        EffiRpcService rpcService = checkServiceAnnotation(serviceType);
-        NodeConfig config = parseConfig(rpcService, application);
+        EffiRpcService rpcService = ensureServiceAnnotation(serviceType);
+        HierarchicalConfig config = parseConfig(rpcService, application);
         initialize(rpcService.value(), service, serviceType, config);
         this.annotationStyle = checkAnnotationStyle(serviceType, config);
         this.serviceAnnotation = rpcService;
@@ -60,31 +59,31 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return annotationStyle;
     }
 
-    private NodeConfig parseConfig(EffiRpcService effiRpcService, EffiRpcApplication application) {
-        HierarchicalNodeConfig config = new HierarchicalNodeConfig(this, application.providerConfig());
+    private HierarchicalConfig parseConfig(EffiRpcService effiRpcService, ScopedApplication application) {
+        DefaultHierarchicalConfig config = new DefaultHierarchicalConfig(this, application.calleeConfig());
         return AnnotationSupport.fillConfig(effiRpcService, config);
     }
 
-    private void parseCallee(EffiRpcApplication application) {
+    private void parseCallee(ScopedApplication application) {
         List<Method> methods = AnnotationSupport.filterMethods(serviceType.getDeclaredMethods());
         for (Method method : methods) {
-            HierarchicalNodeConfig calleeConfig = parseCalleeConfig(method);
+            DefaultHierarchicalConfig calleeConfig = parseCalleeConfig(method);
             MethodMapper<T> methodMapper = getMethodMapper(calleeConfig, method);
-            EffiRpcModule module = getModule(calleeConfig, application);
-            List<Protocol> supportedProtocols = getSupportedProtocols(calleeConfig);
+            ScopedModule module = getModule(calleeConfig, application);
+            List<TransportProtocol> supportedProtocols = getSupportedProtocols(calleeConfig, application);
             if (CollectionUtil.isNotEmpty(supportedProtocols)) {
                 supportedProtocols.forEach(protocol -> protocol.createCallee(methodMapper, calleeConfig, module));
             }
         }
     }
 
-    private HierarchicalNodeConfig parseCalleeConfig(Method method) {
-        HierarchicalNodeConfig config = new HierarchicalNodeConfig(null, config());
+    private DefaultHierarchicalConfig parseCalleeConfig(Method method) {
+        DefaultHierarchicalConfig config = new DefaultHierarchicalConfig(null, config());
         EffiRpcCallee effiRpcCallee = method.getAnnotation(EffiRpcCallee.class);
         return AnnotationSupport.fillConfig(effiRpcCallee, config);
     }
 
-    private MethodMapper<T> getMethodMapper(HierarchicalNodeConfig config, Method method) {
+    private MethodMapper<T> getMethodMapper(DefaultHierarchicalConfig config, Method method) {
         AnnotationStyleParser methodAnnotationStyleParser = annotationStyleParserForMethod(config, annotationStyle);
         ParameterMapper<ParameterParser<?>>[] parameterMappers;
         if (methodAnnotationStyleParser != null && methodAnnotationStyleParser.supported(method)) {
@@ -96,28 +95,28 @@ public class AnnotationRemoteService<T> extends ComplexRemoteService<T> {
         return new MethodMapper<>(this, method, parameterMappers);
     }
 
-    private EffiRpcModule getModule(HierarchicalNodeConfig config, EffiRpcApplication application) {
-        String moduleName = config.get(DefaultConfigNames.MODULE);
-        EffiRpcModule module = application.getModule(moduleName);
+    private ScopedModule getModule(DefaultHierarchicalConfig config, ScopedApplication application) {
+        String moduleName = config.get(ConfigNames.MODULE);
+        ScopedModule module = application.lookupModule(moduleName);
         return module == null ? application.defaultModule() : module;
     }
 
-    private List<Protocol> getSupportedProtocols(HierarchicalNodeConfig config) {
-        String protocolNames = config.get(DefaultConfigNames.PROTOCOL);
-        if (StringUtil.isBlank(protocolNames)) {
+    private List<TransportProtocol> getSupportedProtocols(DefaultHierarchicalConfig config, ScopedApplication application) {
+        String[] protocolNames = config.get(ConfigNames.SUPPORTED_PROTOCOL);
+        if (CollectionUtil.isEmpty(protocolNames)) {
             return Collections.emptyList();
         }
-        String[] protocols = protocolNames.split(",");
-        List<Protocol> result = new ArrayList<>();
-        for (String protocolName : protocols) {
-            Protocol protocol = TransportSupport.getProtocol(protocolName);
+        List<TransportProtocol> result = new ArrayList<>();
+        ScopedPlatform platform = application.platform();
+        for (String protocolName : protocolNames) {
+            TransportProtocol protocol = platform.namedExtension(TransportProtocol.class, protocolName);
             result.add(protocol);
         }
         return result;
     }
 
-    private EffiRpcService checkServiceAnnotation(Class<T> targetType) {
-        return AssertUtil.notAnnotation(targetType, EffiRpcService.class);
+    private EffiRpcService ensureServiceAnnotation(Class<T> targetType) {
+        return AssertUtil.requireAnnotation(targetType, EffiRpcService.class);
     }
 
 }

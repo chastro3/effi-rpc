@@ -32,26 +32,6 @@ public class Messages {
     public static String parseFile(String path) {
         return "Failed to parse '" + path + "'";
     }
-
-    /**
-     * Generates a message indicating the specified name cannot be null.
-     */
-    public static String notNull(String name) {
-        if (name != null) {
-            return name + " cannot be null";
-        }
-        return "Invalid name";
-    }
-
-    /**
-     * Generates a message indicating the specified name cannot be blank.
-     */
-    public static String notBlank(String name) {
-        if (StringUtil.isNotBlank(name)) {
-            return name + " cannot be blank";
-        }
-        return "Invalid name";
-    }
 }
 
 

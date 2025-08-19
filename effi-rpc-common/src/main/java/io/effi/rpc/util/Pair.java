@@ -3,7 +3,10 @@ package io.effi.rpc.util;
 import java.util.Objects;
 
 /**
- * Immutable pair that can be used as a key in maps or sets.
+ * Represents immutable pairs of values that can be used as keys.
+ * <p>
+ * Provides a generic container for two related values with proper
+ * equality, hashing, and comparison semantics for use in collections.
  */
 public final class Pair<L, R> implements Comparable<Pair<L, R>> {
 

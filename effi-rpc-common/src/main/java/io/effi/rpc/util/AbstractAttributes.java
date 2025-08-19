@@ -1,7 +1,5 @@
 package io.effi.rpc.util;
 
-import io.effi.rpc.util.collection.LazyMap;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -12,11 +10,13 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public abstract class AbstractAttributes implements Attributes {
 
-    protected Map<GenericKey<?>, Object> attributes = new LazyMap<>(ConcurrentHashMap::new);
+    private final Object lock = new Object();
+
+    private volatile Map<GenericKey<?>, Object> attributes;
 
     @Override
     public <T> T get(GenericKey<T> key) {
-        return (T) attributes.get(key);
+        return (T) delayedAttributes().get(key);
     }
 
     @Override
@@ -27,27 +27,37 @@ public abstract class AbstractAttributes implements Attributes {
 
     @Override
     public <T> T computeIfAbsent(GenericKey<T> key, Supplier<T> creator) {
-        return (T) attributes.computeIfAbsent(key, k -> creator.get());
+        return (T) delayedAttributes().computeIfAbsent(key, k -> creator.get());
     }
 
     @Override
     public <T> T set(GenericKey<T> key, T value) {
-        return (T) attributes.computeIfAbsent(key, k -> value);
+        return (T) delayedAttributes().computeIfAbsent(key, k -> value);
     }
 
     @Override
     public Attributes remove(GenericKey<?> key) {
-        attributes.remove(key);
+        delayedAttributes().remove(key);
         return this;
     }
 
     @Override
     public void clear() {
-        attributes.clear();
+        if (attributes != null)
+            attributes.clear();
     }
 
     @Override
     public String toString() {
-        return "attributes=" + attributes.size();
+        return "attributes=" + (attributes == null ? 0 : attributes.size());
+    }
+
+    protected Map<GenericKey<?>, Object> delayedAttributes() {
+        Map<GenericKey<?>, Object> result = attributes;
+        if (result != null) return result;
+        synchronized (lock) {
+            result = attributes;
+            return result != null ? result : (attributes = new ConcurrentHashMap<>());
+        }
     }
 }

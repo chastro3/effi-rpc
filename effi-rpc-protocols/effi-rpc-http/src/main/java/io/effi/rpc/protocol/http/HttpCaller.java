@@ -1,12 +1,15 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.boot.AbstractCaller;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.ConfigValues;
+import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.support.AbstractCaller;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpVersion;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
+import io.effi.rpc.util.TypeCapture;
 import io.netty.handler.codec.http.HttpMethod;
 
 /**
@@ -20,12 +23,13 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
 
     protected HttpHeaders requestHeaders;
 
-    protected HttpCaller(NodeConfig config, HttpCallerBuilder<?, ?> builder) {
-        super(config, builder);
-        this.version = builder.version();
-        String method = config.get(DefaultConfigNames.HTTP_METHOD);
+    @SuppressWarnings("rawtypes")
+    protected HttpCaller(Builder builder) {
+        super(builder);
+        this.version = builder.version;
+        String method = config.get(ConfigNames.HTTP_METHOD);
         this.httpMethod = StringUtil.isNotBlank(method) ? HttpMethod.valueOf(method) : HttpMethod.POST;
-        this.requestHeaders = builder.requestHeaders();
+        this.requestHeaders = builder.requestHeaders;
     }
 
     /**
@@ -47,5 +51,59 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
      */
     public HttpHeaders requestHeaders() {
         return requestHeaders;
+    }
+
+    /**
+     * Builds {@link HttpCaller} instance and defines configuration.
+     */
+    public abstract static class Builder<T extends HttpCaller<?>, C extends Builder<T, C>>
+            extends AbstractCaller.Builder<T, C> {
+
+        protected HttpVersion version;
+
+        protected volatile HttpHeaders requestHeaders;
+
+        protected Builder(HttpVersion version, TypeCapture<?> returnType, HierarchicalConfig config) {
+            super(returnType, version.name(), config);
+            this.version = AssertUtil.notNull(version, "version");
+            if (StringUtil.isBlank(config.get(ConfigNames.SERIALIZATION))) {
+                serialization(ConfigValues.Serialization.JSON);
+            }
+        }
+
+        /**
+         * Sets the HTTP method for the callee.
+         *
+         * @param method the HTTP method to set (e.g., GET, POST).
+         * @return This builder instance for fluent chaining.
+         */
+        public C method(HttpMethod method) {
+            config.set(ConfigNames.HTTP_METHOD, method.name());
+            return self();
+        }
+
+        /**
+         * Adds a single request header to the caller.
+         *
+         * @param key   the header key.
+         * @param value the header value.
+         */
+        public C addRequestHeader(CharSequence key, CharSequence value) {
+            if (!StringUtil.isBlank(key) && !StringUtil.isBlank(value)) {
+                delayedRequestHeaders().add(key, value);
+            }
+            return self();
+        }
+
+        protected HttpHeaders delayedRequestHeaders() {
+            if (requestHeaders == null) {
+                synchronized (this) {
+                    if (requestHeaders == null) {
+                        requestHeaders = version.newHeaders();
+                    }
+                }
+            }
+            return requestHeaders;
+        }
     }
 }

@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.nativetools.NativeConfig;
+import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpRequest;
-import io.effi.rpc.protocol.http.support.HttpResponse;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -15,15 +15,14 @@ import static io.netty.channel.ChannelHandler.Sharable;
 /**
  * Http2 Server Handler.
  */
+@NativeConfig.Reflect(typeReached = Http2Protocol.class, queryAllPublicMethods = true)
 @Sharable
 public final class Http2ServerHandler extends ChannelDuplexHandler {
 
-    @SuppressWarnings("unchecked")
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof HttpResponse<?> response) {
-            HttpResponse<byte[]> httpResponse = (HttpResponse<byte[]>) response;
-            Http2StreamFrame[] frames = H2Support.toHttp2StreamFrames(httpResponse);
+        if (msg instanceof HttpDuplexResponse response) {
+            Http2StreamFrame[] frames = H2Support.toHttp2StreamFrames(response);
             for (Http2StreamFrame frame : frames) {
                 ctx.write(frame, ctx.newPromise());
             }
@@ -46,7 +45,7 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
             super.channelRead(ctx, msg);
         }
         if (requestStream != null && requestStream.endStream()) {
-            HttpRequest<ByteBuf> httpRequest = H2Support.fromHtt2RequestStream(requestStream);
+            HttpRequest httpRequest = H2Support.fromHtt2RequestStream(requestStream, ctx);
             ctx.fireChannelRead(httpRequest);
             H2Support.removeRequestStream(ctx, requestStream);
         }

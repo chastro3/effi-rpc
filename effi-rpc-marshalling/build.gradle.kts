@@ -3,7 +3,7 @@ plugins {
 }
 description = "Data serialization and compression support."
 dependencies {
-    api(project(":effi-rpc-config"))
+    api(project(":effi-rpc-component"))
     // serialization
     compileOnly("com.fasterxml.jackson.core:jackson-databind")
     compileOnly("com.esotericsoftware:kryo")

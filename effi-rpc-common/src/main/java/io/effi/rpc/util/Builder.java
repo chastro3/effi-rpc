@@ -1,7 +1,10 @@
 package io.effi.rpc.util;
 
 /**
- * Builds an instance of type {@link T}.
+ * Builds instances of specified types.
+ * <p>
+ * Provides a standardized interface for constructing objects
+ * through a build method that returns the configured instance.
  */
 public interface Builder<T> {
 

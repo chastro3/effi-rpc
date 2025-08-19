@@ -6,19 +6,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static io.effi.rpc.annotation.component.ScopedComponent.Kind;
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope;
+
 /**
  * Marks a type as an SPI interface for extension loading.
  *
- * @see ExtensionLoader
+ * @see io.effi.rpc.component.extension.ExtensionLoader
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@ScopedComponent
+@ScopedComponent(kind = Kind.MULTI)
 public @interface Extensible {
 
     /**
-     * Specifies the default implementation class name.
+     * Specifies the primary implementation class name.
      */
     String value() default "";
 
@@ -30,7 +33,7 @@ public @interface Extensible {
     /**
      * Specifies the scope of the extension.
      */
-    ScopedComponent.Scope scope() default ScopedComponent.Scope.PLATFORM;
+    Scope scope() default Scope.PLATFORM;
 
     /**
      * Indicates if lazy loading is enabled for the extension.

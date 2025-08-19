@@ -3,6 +3,7 @@ plugins {
 }
 description = "Manage dependency versions."
 
+val jspecifyVersion = "1.0.0"
 val jetbrainsVersion = "24.1.0"
 val junitVersion = "5.10.0"
 val vertxVersion = "4.5.14"
@@ -31,6 +32,7 @@ dependencies {
     api(platform("com.google.protobuf:protobuf-bom:$protobufBufVersion"))
 
     constraints {
+        api("org.jspecify:jspecify:$jspecifyVersion")
         api("org.jetbrains:annotations:$jetbrainsVersion")
         api("commons-logging:commons-logging:$jclVersion")
         api("org.ow2.asm:asm:$asmVersion")
@@ -43,7 +45,7 @@ dependencies {
         api("org.lz4:lz4-java:$lz4Version")
         api("org.xerial.snappy:snappy-java:$snappyVersion")
         rootProject.subprojects.forEach({
-            if (it.isPublishEnabled() && it.name != project.name)
+            if (it.publishEnabled() && it.name != project.name)
                 api("${it.group}:${it.name}:${it.version}")
         })
     }

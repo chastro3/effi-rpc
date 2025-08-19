@@ -1,32 +1,30 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.base.CallSide;
-import io.effi.rpc.base.CallSideContainer;
-import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.Message;
-import io.effi.rpc.base.ReplyFuture;
-import io.effi.rpc.base.Result;
-import io.effi.rpc.base.ThreadPool;
-import io.effi.rpc.base.context.ReplyContext;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.URL;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.Interaction;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.PeerContainer;
+import io.effi.rpc.context.ReplyContext;
+import io.effi.rpc.context.Request;
+import io.effi.rpc.context.Response;
+import io.effi.rpc.context.metrics.CalleeMetrics;
+import io.effi.rpc.context.metrics.CallerMetrics;
+import io.effi.rpc.context.support.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
-import io.effi.rpc.metrics.CalleeMetrics;
-import io.effi.rpc.metrics.CallerMetrics;
-import io.effi.rpc.transport.codec.ClientCodec;
-import io.effi.rpc.transport.codec.ServerCodec;
+import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
+import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
-import io.effi.rpc.transport.endpoint.Client;
-import io.effi.rpc.util.AssertUtil;
-
-import java.net.InetSocketAddress;
-import java.util.concurrent.TimeoutException;
+import io.effi.rpc.transport.message.EncodableOutputMessage;
+import io.effi.rpc.transport.message.InputMessage;
 
 /**
  * Provides transport layer operations.
@@ -35,23 +33,23 @@ public class TransportSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(TransportSupport.class);
 
-    public static Protocol getProtocol(String name) {
-        AssertUtil.notBlank(name, "name");
-        return EffiRpcPlatform.getInstance()
-                .getExtension(Protocol.class, name);
+    public static TransportProtocol findProtocol(Peer peer) {
+        if (peer.protocol() instanceof TransportProtocol transportProtocol) {
+            return transportProtocol;
+        }
+        return peer.platform().namedComponent(TransportProtocol.class, peer.protocol().name());
     }
 
-    public static boolean inIOSerialization(CallSide callSide) {
+    public static boolean inIOSerialization(Peer peer) {
         try {
-            String value = callSide.getConfig(DefaultConfigNames.SERIALIZATION_THRESHOLD);
-            long serializationThreshold = Long.parseLong(value);
-            if (serializationThreshold == 0) return true;
+            Long serializationThreshold = peer.getConfig(ConfigNames.SERIALIZATION_THRESHOLD);
+            if (serializationThreshold == null || serializationThreshold <= 0) return true;
             double averageSerializationTime;
-            if (callSide instanceof Caller<?>) {
-                CallerMetrics callerMetrics = callSide.get(CallerMetrics.GENERIC_KEY);
+            if (peer instanceof Caller<?>) {
+                CallerMetrics callerMetrics = peer.get(CallerMetrics.GENERIC_KEY);
                 averageSerializationTime = callerMetrics.averageSerializationTime().get();
             } else {
-                CalleeMetrics calleeMetrics = callSide.get(CalleeMetrics.GENERIC_KEY);
+                CalleeMetrics calleeMetrics = peer.get(CalleeMetrics.GENERIC_KEY);
                 averageSerializationTime = calleeMetrics.averageSerializationTime().get();
             }
             return averageSerializationTime < serializationThreshold;
@@ -60,103 +58,71 @@ public class TransportSupport {
         }
     }
 
-    public static <T extends ReplyFuture> T sendRequest(Protocol protocol, T future) {
-        var context = future.context();
-        Caller<?> caller = context.callSide();
-        URL requestUrl = context.message().url();
-        // todo 优化重复创建逻辑
-        InetSocketAddress remoteAddress = InetSocketAddress.createUnresolved(requestUrl.host(), requestUrl.port());
-        Client client = protocol.transporter().getClient(caller.clientConfig(), remoteAddress, context.platform());
-        client.getChannel().whenComplete((channel, e) -> {
-            if (e != null) {
-                EffiRpcException fail = PredefinedErrorCode.GET_CHANNEL.fail(e, requestUrl.host(), requestUrl.protocol());
-                future.complete(fail);
-            } else {
-                channel.send(new DefaultWrappedRequest<>(context, channel))
-                        .whenComplete((v, t) -> {
-                            if (t != null) {
-                                EffiRpcException fail;
-                                if (t instanceof TimeoutException) {
-                                    String timeout = caller.getConfig(DefaultConfigNames.TIMEOUT);
-                                    fail = PredefinedErrorCode.TIMEOUT.fail(t, timeout, future.id());
-                                } else {
-                                    fail = PredefinedErrorCode.CHANNEL_WRITE.fail(t, requestUrl.toString());
-                                }
-                                future.complete(fail);
-                            } else {
-                                future.startTimeout();
-                            }
-                        });
-            }
-        });
-        return future;
-    }
-
-    public static void handleRequest(Message.Request request, Channel channel) {
-        URL url = request.url();
-        EffiRpcModule module = channel.protocol().getModule(request, channel);
-        Callee callee = module.lookup(Callee.class, CallSideContainer.invokerKey(url.protocol(), url.path()));
+    public static void handleRequest(InputMessage inputMessage) {
+        SmartURL smartUrl = inputMessage.url();
+        Channel channel = inputMessage.channel();
+        TransportProtocol protocol = channel.protocol();
+        ScopedModule module = protocol.lookupModule(inputMessage);
+        Callee callee = module.namedComponent(Callee.class, PeerContainer.invokerKey(smartUrl.scheme(), smartUrl.path()));
         // todo send to client
         if (callee == null) {
-            channel.protocol().sendCalleeNotFound(request, channel);
+            protocol.sendCalleeNotFound(inputMessage);
         } else {
             callee.threadPool().execute(() -> {
-                ServerCodec serverCodec = channel.protocol().serverCodec();
-                WrappedRequest<Callee> wrappedRequest = serverCodec.decode(channel, request, callee);
-                var invocationContext = wrappedRequest.context();
-                Result result = callee.callStageChain().proceed(invocationContext);
-                Message.Response response = channel.protocol().createResponse(callee, result);
-                var replyContext = new ReplyContext<>(invocationContext, response, result);
-                // var replyContext = callee.invokeWithContext(wrappedRequest.context());
-                if (wrappedRequest.request().needReply()) {
-                    channel.send(new DefaultWrappedResponse<>(replyContext, channel));
+                ServerExchangeContextCodec serverCodec = protocol.serverCodec();
+                CallContext<Request, Callee> callContext = serverCodec.decode(inputMessage, callee);
+                Interaction.Result result = callee.callStageChain().proceed(callContext);
+                Response response = protocol.createResponse(callee, result);
+                var replyContext = new ReplyContext<>(callContext, response, result);
+                callee.replyStageChain().proceed(replyContext);
+                if (callContext.message().needReply()) {
+                    var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
+                    channel.send(outputMessage);
                 }
-            }).exceptionally(e -> {
-                logger.error(e);
-                return null;
+            }).onComplete(res -> {
+                if (res.failed()) logger.error(res.cause());
             });
         }
     }
 
-    public static void handleResponse(Message.Response response, Channel channel) {
-        ReplyFuture future = ReplyFuture.getFuture(response.url());
-        Protocol protocol = channel.protocol();
+    public static void handleResponse(InputMessage inputMessage) {
+        ReplyFuture future = ReplyFuture.lookup(inputMessage.url());
+        Channel channel = inputMessage.channel();
+        TransportProtocol protocol = channel.protocol();
         if (future != null) {
-            ClientCodec clientCodec = protocol.clientCodec();
-            Caller<?> caller = future.context().callSide();
+            ClientExchangeContextCodec clientCodec = protocol.clientCodec();
+            Caller<?> caller = future.context().peer();
             ThreadPool threadPool = caller.threadPool();
             try {
                 if (inIODeserialization(caller)) {
-                    WrappedResponse<Caller<?>> wrappedResponse = clientCodec.decode(channel, response, future);
-                    threadPool.execute(() -> future.complete(wrappedResponse.context()))
-                            .exceptionally(e -> {
-                                logger.error(e);
-                                return null;
+                    ReplyContext<Response, Caller<?>> replyContext = clientCodec.decode(inputMessage, caller);
+                    threadPool.execute(() -> future.complete(replyContext))
+                            .onComplete(res -> {
+                                if (res.failed()) logger.error(res.cause());
                             });
                 } else {
                     threadPool.execute(() -> {
-                        WrappedResponse<Caller<?>> wrappedResponse = clientCodec.decode(channel, response, future);
-                        future.complete(wrappedResponse.context());
+                        ReplyContext<Response, Caller<?>> replyContext = clientCodec.decode(inputMessage, caller);
+                        future.complete(replyContext);
                     });
                 }
             } catch (Exception e) {
-                EffiRpcException exception = PredefinedErrorCode.CHANNEL_READ.fail(e, channel.url().address());
-                threadPool.execute(() -> future.complete(exception));
+                EffiRpcException exception = PredefinedErrorCode.CHANNEL_READ.fail(e, channel.remoteAddress());
+                threadPool.execute(() -> future.failure(exception));
             }
         }
     }
 
-    public static boolean inIODeserialization(CallSide callSide) {
+    public static boolean inIODeserialization(Peer peer) {
         try {
-            String value = callSide.getConfig(DefaultConfigNames.DESERIALIZATION_THRESHOLD);
-            long deserializationThreshold = Long.parseLong(value);
-            if (deserializationThreshold == 0) return true;
+            Long deserializationThreshold = peer.getConfig(ConfigNames.DESERIALIZATION_THRESHOLD);
+            if (deserializationThreshold == null || deserializationThreshold <= 0) return true;
             double averageDeserializationTime;
-            if (callSide instanceof Caller<?>) {
-                CallerMetrics callerMetrics = callSide.get(CallerMetrics.GENERIC_KEY);
+            if (peer instanceof Caller<?>) {
+                CallerMetrics callerMetrics = peer.get(CallerMetrics.GENERIC_KEY);
                 averageDeserializationTime = callerMetrics.averageDeserializationTime().get();
             } else {
-                CalleeMetrics calleeMetrics = callSide.get(CalleeMetrics.GENERIC_KEY);
+                CalleeMetrics calleeMetrics = peer.get(CalleeMetrics.GENERIC_KEY);
                 averageDeserializationTime = calleeMetrics.averageDeserializationTime().get();
             }
             return averageDeserializationTime < deserializationThreshold;

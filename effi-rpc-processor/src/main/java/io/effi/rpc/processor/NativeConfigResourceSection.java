@@ -1,13 +1,12 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.constant.Constant;
+import io.effi.rpc.constant.ResourcePath;
 import io.effi.rpc.constant.SystemKeys;
 import io.effi.rpc.nativetools.JsonWriter;
 import io.effi.rpc.nativetools.NativeConfig;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 
 /**
@@ -22,14 +21,14 @@ public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Help
     protected NativeConfigResourceSection(ProcessingEnvironment processingEnv, T nativeConfig) {
         super(processingEnv);
         this.nativeConfig = nativeConfig;
-        this.modulePath = getModulePath();
+        this.modulePath = findModulePath();
     }
 
     @Override
     public void write() throws IOException {
         if (nativeConfig.hasResource()) {
-            String filePath = Constant.NATIVE_IMAGE_PREFIX + modulePath + "generated/" + nativeConfig.name();
-            FileObject resource = filer().createResource(StandardLocation.CLASS_OUTPUT, "", filePath);
+            String filePath = ResourcePath.NATIVE_IMAGE_DIR + modulePath + "generated/" + nativeConfig.name();
+            FileObject resource = helper().createOutputFile(filePath);
             try (JsonWriter jsonWriter = new JsonWriter(resource.openWriter())) {
                 jsonWriter.write(nativeConfig.toJsonConfig());
             }
@@ -40,7 +39,7 @@ public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Help
         return nativeConfig;
     }
 
-    private String getModulePath() {
+    private String findModulePath() {
         String groupId = processingEnv().getOptions().get(SystemKeys.GROUP_ID);
         String artifactId = processingEnv().getOptions().get(SystemKeys.ARTIFACT_ID);
         if (groupId == null || artifactId == null) {

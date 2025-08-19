@@ -1,7 +1,8 @@
 package io.effi.rpc.serialization;
 
-import io.effi.rpc.exception.PredefinedErrorCode;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 
 /**
@@ -10,33 +11,22 @@ import java.lang.reflect.Type;
 public abstract class AbstractSerializer implements Serializer {
 
     @Override
-    public byte[] serialize(Object input) {
-        if (input == null) {
-            return new byte[0];
-        }
-        try {
-            return doSerialize(input);
-        } catch (Exception e) {
-            throw PredefinedErrorCode.SERIALIZE.fail(e, input.getClass());
+    public void serialize(Object obj, OutputStream out) throws IOException {
+        if (obj != null) {
+            doSerialize(obj, out);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T deserialize(byte[] bytes, Type type) {
-        if (bytes == null || bytes.length == 0) {
-            return null;
-        }
-        try {
-            return (T) doDeserialize(bytes, type);
-        } catch (Exception e) {
-            throw PredefinedErrorCode.DESERIALIZE.fail(e, type);
-        }
+    public <T> T deserialize(InputStream in, Type type) throws IOException {
+        if (in == null) return null;
+        return (T) doDeserialize(in, type);
     }
 
-    protected abstract byte[] doSerialize(Object input) throws Exception;
+    protected abstract void doSerialize(Object obj, OutputStream out) throws IOException;
 
-    protected abstract Object doDeserialize(byte[] bytes, Type type) throws Exception;
+    protected abstract Object doDeserialize(InputStream in, Type type) throws IOException;
 
 }
 

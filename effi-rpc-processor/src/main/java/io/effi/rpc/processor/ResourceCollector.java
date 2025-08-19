@@ -15,7 +15,7 @@ public class ResourceCollector implements ResourceSection {
 
     public ResourceCollector(ProcessingEnvironment processingEnv, List<AnnotationHandler<?>> annotationHandlers) {
         for (AnnotationHandler<?> annotationHandler : annotationHandlers) {
-            annotationHandler.setResourceCollector(this);
+            annotationHandler.withResourceCollector(this);
         }
         sections.put(ExtensionResourceSection.class, new ExtensionResourceSection(processingEnv));
         sections.put(RemoteServiceResourceSection.class, new RemoteServiceResourceSection(processingEnv));
@@ -24,8 +24,9 @@ public class ResourceCollector implements ResourceSection {
         sections.put(ScopedComponentResourceSection.class, new ScopedComponentResourceSection(processingEnv));
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends ResourceSection> T section(Class<T> type) {
-        return type.cast(sections.get(type));
+        return (T) sections.get(type);
     }
 
     @Override

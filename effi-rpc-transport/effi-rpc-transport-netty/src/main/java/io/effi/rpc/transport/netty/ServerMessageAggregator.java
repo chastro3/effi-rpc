@@ -1,12 +1,15 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.base.Message;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.transport.TransportSupport;
-import io.effi.rpc.transport.WrappedResponse;
-import io.effi.rpc.util.LazyInitializer;
+import io.effi.rpc.transport.message.EncodableOutputMessage;
+import io.effi.rpc.transport.message.InputMessage;
+import io.effi.rpc.transport.message.OutputMessage;
+import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.Messages;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -22,20 +25,21 @@ import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
  * - Decodes inbound messages into response.
  * - Encodes outbound request into messages.
  */
+@NativeConfig.Reflect(typeReached = NettyChannel.class, queryAllPublicMethods = true)
 @Sharable
 public final class ServerMessageAggregator extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerMessageAggregator.class);
 
-    private static final LazyInitializer<NamedChannelHandler> LAZY_INITIALIZER = new LazyInitializer<>(() -> new NamedChannelHandler("serverMessageAggregator", new ServerMessageAggregator()));
+    private static final LazySingleton<NamedChannelHandler> LAZY_INITIALIZER =
+            LazySingleton.from(() -> new NamedChannelHandler("serverMessageAggregator", new ServerMessageAggregator()));
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof Message.Request request) {
-            NettyChannel channel = NettyChannel.get(ctx.channel());
-            if (channel != null) TransportSupport.handleRequest(request, channel);
+        if (msg instanceof InputMessage inputMessage) {
+            TransportSupport.handleRequest(inputMessage);
         } else {
-            logger.warn(Messages.onlySupport(Message.Request.class));
+            logger.warn(Messages.onlySupport(Request.class));
         }
     }
 
@@ -48,17 +52,17 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         addFailedListener(ctx.channel(), msg, promise);
-        if (msg instanceof WrappedResponse<?> wrappedResponse) {
-            super.write(ctx, wrappedResponse.encode().response(), promise);
-        } else if (msg instanceof Message.Response) {
-            super.write(ctx, msg, promise);
+        if (msg instanceof EncodableOutputMessage<?> outputMessage) {
+            super.write(ctx, outputMessage.encode(), promise);
+        } else if (msg instanceof OutputMessage outputMessage) {
+            super.write(ctx, outputMessage, promise);
         } else {
-            logger.warn(Messages.onlySupport(WrappedResponse.class));
+            logger.warn(Messages.onlySupport(OutputMessage.class));
         }
     }
 
     private void addFailedListener(Channel channel, Object msg, ChannelPromise promise) {
-        if (msg instanceof WrappedResponse<?> || msg instanceof Message.Response) {
+        if (msg instanceof OutputMessage) {
             promise.addListener(future -> {
                 if (!future.isSuccess()) {
                     EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());
@@ -69,7 +73,7 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
     }
 
     public static NamedChannelHandler getInstance() {
-        return LAZY_INITIALIZER.get(false);
+        return LAZY_INITIALIZER.ensure();
     }
 
     private ServerMessageAggregator() {

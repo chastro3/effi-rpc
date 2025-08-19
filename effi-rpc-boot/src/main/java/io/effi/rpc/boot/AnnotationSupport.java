@@ -4,13 +4,13 @@ import io.effi.rpc.annotation.rpc.EffiRpcCallee;
 import io.effi.rpc.annotation.rpc.EffiRpcCaller;
 import io.effi.rpc.annotation.rpc.EffiRpcClient;
 import io.effi.rpc.annotation.rpc.EffiRpcService;
-import io.effi.rpc.base.annotation.AnnotationStyle;
-import io.effi.rpc.base.annotation.AnnotationStyleParser;
-import io.effi.rpc.base.annotation.UnParse;
+import io.effi.rpc.context.annotation.AnnotationStyle;
+import io.effi.rpc.context.annotation.AnnotationStyleParser;
+import io.effi.rpc.context.annotation.UnParse;
 import io.effi.rpc.config.Config;
-import io.effi.rpc.config.DefaultConfigNames;
-import io.effi.rpc.config.NodeConfig;
-import io.effi.rpc.util.Messages;
+import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.util.NumberUtil;
 import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.util.StringUtil;
 
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public final class AnnotationSupport {
 
-    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, NodeConfig config) {
+    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalConfig config) {
         AnnotationStyle annotationStyle = AnnotationStyle.getInstance(config);
         AnnotationStyleParser parser = annotationStyle.parser();
         if (parser != null)
@@ -45,7 +45,7 @@ public final class AnnotationSupport {
 
     public static AnnotationStyleParser annotationStyleParserForMethod(Config config,
                                                                        AnnotationStyle annotationStyle) {
-        String style = config.get(DefaultConfigNames.ANNOTATION_STYLE);
+        String style = config.get(ConfigNames.ANNOTATION_STYLE);
         if (StringUtil.isBlank(style)) return annotationStyle.parser();
         return Objects.equals(style, annotationStyle.name())
                 ? annotationStyle.parser()
@@ -54,135 +54,87 @@ public final class AnnotationSupport {
 
     public static <C extends Config> C fillConfig(EffiRpcCaller caller, C config) {
         if (caller != null && config != null) {
-            fillKV(config, DefaultConfigNames.PATH, caller.path());
-            fillKV(config, DefaultConfigNames.ANNOTATION_STYLE, caller.style());
-            fillKV(config, DefaultConfigNames.PROTOCOL, caller.protocol());
-            fillKV(config, DefaultConfigNames.REMOTE_APPLICATION, caller.remoteApplication());
-            fillKV(config, DefaultConfigNames.REMOTE_MODULE, caller.remoteModule());
-            fillKV(config, DefaultConfigNames.CLIENT_CONFIG, caller.clientConfig());
-            fillKV(config, DefaultConfigNames.ADDRESS, caller.address());
-            fillKV(config, DefaultConfigNames.INTERCEPTOR, caller.filters());
-            fillKV(config, DefaultConfigNames.REGISTRY, caller.registries());
-            fillKV(config, DefaultConfigNames.SERIALIZATION, caller.serialization());
-            fillKV(config, DefaultConfigNames.COMPRESSION, caller.compression());
-            fillKV(config, DefaultConfigNames.MODULE, caller.module());
-            fillKV(config, DefaultConfigNames.LOAD_BALANCE, caller.loadBalance());
-            fillKV(config, DefaultConfigNames.FAULT_TOLERANCE, caller.faultTolerance());
-            fillKV(config, DefaultConfigNames.CALLER_THREAD_POOL, caller.threadPool());
-            fillKV(config, DefaultConfigNames.TIMEOUT, caller.timeout());
-            fillKV(config, DefaultConfigNames.RETRIES, caller.retries());
-            fillKV(config, DefaultConfigNames.SERIALIZATION_THRESHOLD, caller.serializationThreshold());
-            fillKV(config, DefaultConfigNames.DESERIALIZATION_THRESHOLD, caller.deserializationThreshold());
+            config.set(ConfigNames.PATH, caller.path());
+            config.set(ConfigNames.ANNOTATION_STYLE, caller.style());
+            config.set(ConfigNames.PROTOCOL, caller.protocol());
+            config.set(ConfigNames.REMOTE_APPLICATION, caller.remoteApplication());
+            config.set(ConfigNames.REMOTE_MODULE, caller.remoteModule());
+            config.set(ConfigNames.CLIENT_CONFIG, caller.clientConfig());
+            config.set(ConfigNames.ADDRESS, caller.address());
+            config.set(ConfigNames.INTERCEPTOR, caller.interceptor());
+            config.set(ConfigNames.REGISTRY, caller.registry());
+            config.set(ConfigNames.SERIALIZATION, caller.serialization());
+            config.set(ConfigNames.COMPRESSION, caller.compression());
+            config.set(ConfigNames.MODULE, caller.module());
+            config.set(ConfigNames.LOAD_BALANCE, caller.loadBalance());
+            config.set(ConfigNames.FAILURE_HANDLER, caller.failureHandler());
+            config.set(ConfigNames.THREAD_POOL, caller.threadPool());
+            config.set(ConfigNames.TIMEOUT, caller.timeout());
+            config.set(ConfigNames.RETRIES, caller.retries());
+            config.set(ConfigNames.SERIALIZATION_THRESHOLD, caller.serializationThreshold());
+            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, caller.deserializationThreshold());
         }
         return config;
     }
 
-    private static <T> void fillKV(Config config, DefaultConfigNames key, T value) {
-        if (value == null) {
-            return;
-        }
-
-        if (value instanceof String strValue) {
-            if (StringUtil.isNotBlank(strValue)) {
-                config.set(key.realName(), strValue);
-            }
-        } else if (value instanceof Integer intValue) {
-            if (intValue > 0) {
-                config.set(key.realName(), String.valueOf(intValue));
-            }
-        } else if (value instanceof Long longValue) {
-            if (longValue > 0) {
-                config.set(key.realName(), String.valueOf(longValue));
-            }
-        } else if (value instanceof Double doubleValue) {
-            if (doubleValue > 0) {
-                config.set(key.realName(), String.valueOf(doubleValue));
-            }
-        } else if (value instanceof String[] strArray) {
-            if (strArray.length > 0) {
-                config.set(key.realName(), String.join(",", strArray));
-            }
-        } else if (value instanceof int[] intArray) {
-            if (intArray.length > 0) {
-                config.set(key.realName(), Arrays.stream(intArray)
-                        .mapToObj(String::valueOf)
-                        .collect(Collectors.joining(",")));
-            }
-        } else if (value instanceof long[] longArray) {
-            if (longArray.length > 0) {
-                config.set(key.realName(), Arrays.stream(longArray)
-                        .mapToObj(String::valueOf)
-                        .collect(Collectors.joining(",")));
-            }
-        } else if (value instanceof double[] doubleArray) {
-            if (doubleArray.length > 0) {
-                config.set(key.realName(), Arrays.stream(doubleArray)
-                        .mapToObj(String::valueOf)
-                        .collect(Collectors.joining(",")));
-            }
-        } else {
-            throw new IllegalArgumentException(Messages.unSupport(key.realName(), value.getClass()));
-        }
-    }
-
     public static <C extends Config> C fillConfig(EffiRpcClient client, C config) {
         if (client != null && config != null) {
-            fillKV(config, DefaultConfigNames.PROXY, client.proxy());
-            fillKV(config, DefaultConfigNames.PATH, client.path());
-            fillKV(config, DefaultConfigNames.ANNOTATION_STYLE, client.style());
-            fillKV(config, DefaultConfigNames.PROTOCOL, client.protocol());
-            fillKV(config, DefaultConfigNames.REMOTE_APPLICATION, client.remoteApplication());
-            fillKV(config, DefaultConfigNames.REMOTE_MODULE, client.remoteModule());
-            fillKV(config, DefaultConfigNames.CLIENT_CONFIG, client.clientConfig());
-            fillKV(config, DefaultConfigNames.ADDRESS, client.address());
-            fillKV(config, DefaultConfigNames.INTERCEPTOR, client.filters());
-            fillKV(config, DefaultConfigNames.REGISTRY, client.registries());
-            fillKV(config, DefaultConfigNames.SERIALIZATION, client.serialization());
-            fillKV(config, DefaultConfigNames.COMPRESSION, client.compression());
-            fillKV(config, DefaultConfigNames.MODULE, client.module());
-            fillKV(config, DefaultConfigNames.LOAD_BALANCE, client.loadBalance());
-            fillKV(config, DefaultConfigNames.FAULT_TOLERANCE, client.faultTolerance());
-            fillKV(config, DefaultConfigNames.CALLER_THREAD_POOL, client.threadPool());
-            fillKV(config, DefaultConfigNames.TIMEOUT, client.timeout());
-            fillKV(config, DefaultConfigNames.RETRIES, client.retries());
-            fillKV(config, DefaultConfigNames.SERIALIZATION_THRESHOLD, client.serializationThreshold());
-            fillKV(config, DefaultConfigNames.DESERIALIZATION_THRESHOLD, client.deserializationThreshold());
+            config.set(ConfigNames.PROXY, client.proxy());
+            config.set(ConfigNames.PATH, client.path());
+            config.set(ConfigNames.ANNOTATION_STYLE, client.style());
+            config.set(ConfigNames.PROTOCOL, client.protocol());
+            config.set(ConfigNames.REMOTE_APPLICATION, client.remoteApplication());
+            config.set(ConfigNames.REMOTE_MODULE, client.remoteModule());
+            config.set(ConfigNames.CLIENT_CONFIG, client.clientConfig());
+            config.set(ConfigNames.ADDRESS, client.address());
+            config.set(ConfigNames.INTERCEPTOR, client.interceptor());
+            config.set(ConfigNames.REGISTRY, client.registry());
+            config.set(ConfigNames.SERIALIZATION, client.serialization());
+            config.set(ConfigNames.COMPRESSION, client.compression());
+            config.set(ConfigNames.MODULE, client.module());
+            config.set(ConfigNames.LOAD_BALANCE, client.loadBalance());
+            config.set(ConfigNames.FAILURE_HANDLER, client.failureHandler());
+            config.set(ConfigNames.THREAD_POOL, client.threadPool());
+            config.set(ConfigNames.TIMEOUT, client.timeout());
+            config.set(ConfigNames.RETRIES, client.retries());
+            config.set(ConfigNames.SERIALIZATION_THRESHOLD, client.serializationThreshold());
+            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, client.deserializationThreshold());
         }
         return config;
     }
 
     public static <C extends Config> C fillConfig(EffiRpcCallee callee, C config) {
         if (callee != null && config != null) {
-            fillKV(config, DefaultConfigNames.PATH, callee.path());
-            fillKV(config, DefaultConfigNames.ANNOTATION_STYLE, callee.style());
-            fillKV(config, DefaultConfigNames.PROTOCOL, callee.protocol());
-            fillKV(config, DefaultConfigNames.EXCLUDED_PORT, callee.excludedPort());
-            fillKV(config, DefaultConfigNames.MODULE, callee.module());
-            fillKV(config, DefaultConfigNames.INTERCEPTOR, callee.filters());
-            fillKV(config, DefaultConfigNames.CALLEE_DESC, callee.desc());
-            fillKV(config, DefaultConfigNames.SERIALIZATION, callee.serialization());
-            fillKV(config, DefaultConfigNames.COMPRESSION, callee.compression());
-            fillKV(config, DefaultConfigNames.CALLEE_THREAD_POOL, callee.threadPool());
-            fillKV(config, DefaultConfigNames.SERIALIZATION_THRESHOLD, callee.serializationThreshold());
-            fillKV(config, DefaultConfigNames.DESERIALIZATION_THRESHOLD, callee.deserializationThreshold());
+            config.set(ConfigNames.PATH, callee.path());
+            config.set(ConfigNames.ANNOTATION_STYLE, callee.style());
+            config.set(ConfigNames.SUPPORTED_PROTOCOL, callee.protocol());
+            config.set(ConfigNames.EXCLUDED_PORT, NumberUtil.box(callee.excludedPort()));
+            config.set(ConfigNames.MODULE, callee.module());
+            config.set(ConfigNames.INTERCEPTOR, callee.interceptor());
+            config.set(ConfigNames.CALLEE_DESC, callee.desc());
+            config.set(ConfigNames.SERIALIZATION, callee.serialization());
+            config.set(ConfigNames.COMPRESSION, callee.compression());
+            config.set(ConfigNames.CALLEE_THREAD_POOL, callee.threadPool());
+            config.set(ConfigNames.SERIALIZATION_THRESHOLD, callee.serializationThreshold());
+            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, callee.deserializationThreshold());
         }
         return config;
     }
 
     public static <C extends Config> C fillConfig(EffiRpcService service, C config) {
         if (service != null && config != null) {
-            fillKV(config, DefaultConfigNames.PATH, service.path());
-            fillKV(config, DefaultConfigNames.ANNOTATION_STYLE, service.style());
-            fillKV(config, DefaultConfigNames.PROTOCOL, service.protocol());
-            fillKV(config, DefaultConfigNames.EXCLUDED_PORT, service.excludedPort());
-            fillKV(config, DefaultConfigNames.MODULE, service.module());
-            fillKV(config, DefaultConfigNames.INTERCEPTOR, service.filters());
-            fillKV(config, DefaultConfigNames.CALLEE_DESC, service.desc());
-            fillKV(config, DefaultConfigNames.SERIALIZATION, service.serialization());
-            fillKV(config, DefaultConfigNames.COMPRESSION, service.compression());
-            fillKV(config, DefaultConfigNames.CALLEE_THREAD_POOL, service.threadPool());
-            fillKV(config, DefaultConfigNames.SERIALIZATION_THRESHOLD, service.serializationThreshold());
-            fillKV(config, DefaultConfigNames.DESERIALIZATION_THRESHOLD, service.deserializationThreshold());
+            config.set(ConfigNames.PATH, service.path());
+            config.set(ConfigNames.ANNOTATION_STYLE, service.style());
+            config.set(ConfigNames.SUPPORTED_PROTOCOL, service.protocol());
+            config.set(ConfigNames.EXCLUDED_PORT, NumberUtil.box(service.excludedPort()));
+            config.set(ConfigNames.MODULE, service.module());
+            config.set(ConfigNames.INTERCEPTOR, service.interceptor());
+            config.set(ConfigNames.CALLEE_DESC, service.desc());
+            config.set(ConfigNames.SERIALIZATION, service.serialization());
+            config.set(ConfigNames.COMPRESSION, service.compression());
+            config.set(ConfigNames.CALLEE_THREAD_POOL, service.threadPool());
+            config.set(ConfigNames.SERIALIZATION_THRESHOLD, service.serializationThreshold());
+            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, service.deserializationThreshold());
         }
         return config;
     }

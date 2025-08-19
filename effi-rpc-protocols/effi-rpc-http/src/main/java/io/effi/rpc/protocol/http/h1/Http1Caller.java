@@ -1,36 +1,38 @@
 package io.effi.rpc.protocol.http.h1;
 
-import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.HierarchicalConfig;
 import io.effi.rpc.protocol.http.HttpCaller;
-import io.effi.rpc.protocol.http.HttpCallerBuilder;
-import io.effi.rpc.protocol.http.support.HttpVersion;
-import io.effi.rpc.util.TypeToken;
+import io.effi.rpc.util.TypeCapture;
 
 /**
- * Implements {@link io.effi.rpc.base.Caller} using http1.1.
+ * Implements {@link io.effi.rpc.context.Caller} using http1.1.
  */
 public class Http1Caller<R> extends HttpCaller<R> {
 
-    Http1Caller(NodeConfig config, Builder<R> builder) {
-        super(config, builder);
+    Http1Caller(Builder<R> builder) {
+        super(builder);
     }
 
-    public static <R> Builder<R> builder(TypeToken<R> returnType, NodeConfig config) {
+    public static <T> Builder<T> builder(TypeCapture<T> returnType) {
+        return new Builder<>(returnType, null);
+    }
+
+    public static <R> Builder<R> builder(TypeCapture<R> returnType, HierarchicalConfig config) {
         return new Builder<>(returnType, config);
     }
 
     /**
      * Builds {@link Http1Caller} instance.
      */
-    public static class Builder<T> extends HttpCallerBuilder<Http1Caller<T>, Builder<T>> {
+    public static class Builder<T> extends HttpCaller.Builder<Http1Caller<T>, Builder<T>> {
 
-        public Builder(TypeToken<T> returnType, NodeConfig config) {
-            super(HttpVersion.HTTP_1_1, returnType, config);
+        public Builder(TypeCapture<T> returnType, HierarchicalConfig config) {
+            super(Http1Protocol.VERSION, returnType, config);
         }
 
         @Override
-        protected Http1Caller<T> build(NodeConfig config) {
-            return new Http1Caller<>(config, this);
+        public Http1Caller<T> build() {
+            return new Http1Caller<>(this);
         }
 
     }

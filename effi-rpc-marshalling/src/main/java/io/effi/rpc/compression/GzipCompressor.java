@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import static io.effi.rpc.constant.Component.Compression.GZIP;
+import static io.effi.rpc.config.ConfigValues.Compression.GZIP;
 
 /**
  * Implements {@link Compressor} using Gzip.

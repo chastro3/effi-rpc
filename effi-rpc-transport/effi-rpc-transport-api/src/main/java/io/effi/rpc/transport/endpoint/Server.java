@@ -1,20 +1,28 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.config.transport.ServerConfig;
+import io.effi.rpc.async.Future;
+import io.effi.rpc.component.transport.ServerConfig;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Accepts incoming connections and manages active channels.
+ * <p>
+ * Provides server functionality for binding to addresses, managing
+ * client connections, and handling active communication channels.
  */
 public interface Server extends Endpoint {
 
     /**
-     * Asynchronously binds to the configured address.
+     * Binds to the configured address asynchronously.
      */
-    CompletableFuture<Void> bind();
+    Future<? extends Channel> bind();
+
+    /**
+     * Returns the local address bound to the server.
+     */
+    InetSocketAddress localAddress();
 
     /**
      * Returns active channels.
@@ -29,6 +37,9 @@ public interface Server extends Endpoint {
      */
     Channel lookupChannel(InetSocketAddress remoteAddress);
 
+    /**
+     * Returns the configuration of this server.
+     */
     @Override
     ServerConfig config();
 }

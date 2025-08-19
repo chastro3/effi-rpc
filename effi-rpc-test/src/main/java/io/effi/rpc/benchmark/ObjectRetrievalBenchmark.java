@@ -1,6 +1,15 @@
 package io.effi.rpc.benchmark;
 
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -23,6 +32,8 @@ public class ObjectRetrievalBenchmark {
     private final Map<Class<?>, Object> classMap = new HashMap<>();
     private final Map<String, Object> stringMap = new HashMap<>();
 
+    private final Object[] array = new Object[]{directObject};
+
     @Setup
     public void setup() {
         classMap.put(SampleObject.class, directObject);
@@ -42,6 +53,11 @@ public class ObjectRetrievalBenchmark {
     @Benchmark
     public SampleObject stringKeyLookup() {
         return (SampleObject) stringMap.get("sample");
+    }
+
+    @Benchmark
+    public SampleObject arrayLookup() {
+        return (SampleObject) array[0];
     }
 
     public static void main(String[] args) throws RunnerException {

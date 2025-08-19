@@ -5,3 +5,4 @@ description= "Annotation processor for generating files or classes at compile ti
 dependencies{
     api(project(":effi-rpc-annotation"))
 }
+

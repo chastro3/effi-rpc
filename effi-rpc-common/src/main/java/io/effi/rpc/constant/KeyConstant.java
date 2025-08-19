@@ -13,6 +13,10 @@ public interface KeyConstant {
 
     String REQUEST_REMOTE_MODULE = "effi-rpc-remote-module";
 
+    String PLATFORM = "platform";
+
+    String APPLICATION = "application";
+
     String UNIQUE_ID = "uniqueId";
 
     String NAME = "name";

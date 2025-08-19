@@ -16,6 +16,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api")
     implementation("org.glassfish.jersey.core:jersey-server:3.1.10")
     implementation("ch.qos.logback:logback-classic:1.5.16")
+    implementation("com.google.auto:auto-common:1.2.2")
     // https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-core
     implementation("org.openjdk.jmh:jmh-core:1.37")
     annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")

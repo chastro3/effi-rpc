@@ -1,17 +1,15 @@
 package io.effi.rpc.protocol.grpc;
 
-import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.async.Future;
 import io.effi.rpc.protocol.http.h2.Http2Caller;
-
-import java.util.concurrent.CompletableFuture;
 
 public class GrpcCaller<R> extends Http2Caller<R> {
 
-    GrpcCaller(NodeConfig config, Builder<R> builder) {
-        super(config, builder);
+    GrpcCaller(Builder<R> builder) {
+        super(builder);
     }
 
-    public CompletableFuture<R> unaryCall(Object... args) {
+    public Future<R> unaryCall(Object... args) {
         return call(args);
     }
 

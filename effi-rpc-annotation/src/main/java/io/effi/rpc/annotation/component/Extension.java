@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a class as an implementation of an SPI interface.
  *
- * @see ExtensionLoader
+ * @see io.effi.rpc.component.extension.ExtensionLoader
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -33,6 +33,8 @@ public @interface Extension {
      * Defines conditions for enabling the extension.
      */
     String[] onClass() default {};
+
+    boolean primary() default false;
 
     /**
      * Indicates if this extension overrides others with the same name.

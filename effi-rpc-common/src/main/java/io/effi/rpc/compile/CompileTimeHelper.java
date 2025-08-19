@@ -2,15 +2,16 @@ package io.effi.rpc.compile;
 
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ReflectionUtil;
+import io.effi.rpc.util.StringUtil;
 import org.objectweb.asm.Type;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -23,15 +24,23 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Provides utilities for compile-time processing tasks.
- * Handles types, elements, annotations, and bytecode operations.
+ * <p>
+ * Facilitates annotation processing by offering helper methods for working with
+ * elements, types, annotations, and bytecode generation using ASM.
  */
 public class CompileTimeHelper {
 
@@ -54,14 +63,26 @@ public class CompileTimeHelper {
     }
 
     /**
-     * Gets the package name of the given type element.
+     * Gets qualified package name of given TypeElement.
      */
-    public String getPackage(TypeElement type) {
+    public String packageOf(TypeElement type) {
         return elements.getPackageOf(type).getQualifiedName().toString();
     }
 
+    public FileObject findOutputFile(String filePath) throws IOException {
+        return processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, StringUtil.empty(), filePath);
+    }
+
+    public FileObject createOutputFile(String filePath) throws IOException {
+        return createOutputFile(StringUtil.empty(), filePath);
+    }
+
+    public FileObject createOutputFile(String packageName, String filePath, Element... originatingElements) throws IOException {
+        return processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, packageName, filePath, originatingElements);
+    }
+
     /**
-     * Converts a set of modifiers into int bitmask compatible with {@link java.lang.reflect.Modifier}.
+     * Converts modifiers set to int bitmask compatible with {@link java.lang.reflect.Modifier}.
      */
     public int toReflectModifiers(Set<Modifier> mods) {
         int result = 0;
@@ -101,7 +122,7 @@ public class CompileTimeHelper {
     /**
      * Gets the fully qualified class name including inner class $ notation.
      */
-    public String getQualifiedClassName(TypeElement typeElement) {
+    public String qualifiedNameOf(TypeElement typeElement) {
         StringBuilder sb = new StringBuilder(64);
         Element current = typeElement;
         while (current.getKind().isClass() || current.getKind().isInterface()) {
@@ -111,38 +132,74 @@ public class CompileTimeHelper {
                 sb.insert(0, '$');
             }
         }
-
         PackageElement pkg = (PackageElement) current;
         if (!pkg.isUnnamed()) {
             sb.insert(0, pkg.getQualifiedName().toString() + ".");
         }
-
         return sb.toString();
     }
 
     /**
+     * Extracts the fully qualified class name of a Class-valued annotation attribute.
+     */
+    public String extractClassName(Element element, Class<? extends Annotation> type, String attributeName) {
+        AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
+        for (var entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
+                TypeMirror typeMirror = (TypeMirror) entry.getValue().getValue();
+                return qualifiedNameOf(asType(typeMirror));
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Extracts a list of fully qualified class names from a Class[]-valued annotation attribute.
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> extractClassNames(Element element, Class<? extends Annotation> type, String attributeName) {
+        AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
+        for (var entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
+                List<? extends AnnotationValue> values = (List<? extends AnnotationValue>)
+                        entry.getValue().getValue();
+                List<String> result = new ArrayList<>();
+                for (AnnotationValue val : values) {
+                    TypeMirror typeMirror = (TypeMirror) val.getValue();
+                    result.add(qualifiedNameOf(asType(typeMirror)));
+                }
+                return result;
+            }
+        }
+        return Collections.emptyList();
+    }
+
+
+    /**
      * Collects all implemented interface names recursively.
      */
-    public Set<Name> getAllInterfaceNames(TypeElement typeElement, Predicate<TypeElement> filter) {
-        Set<Name> result = new LinkedHashSet<>();
-        collectInterfacesRecursively(typeElement, result, filter);
-        return result;
+    public Set<String> findAllInterfaceNames(TypeElement typeElement, Predicate<TypeElement> filter) {
+        Set<TypeElement> result = new LinkedHashSet<>();
+        collectInterfaces(typeElement, result, filter);
+        return result.stream()
+                .map(this::qualifiedNameOf)
+                .collect(Collectors.toSet());
     }
 
     /**
      * Returns the annotation mirror of the specified type on an element.
      */
-    public AnnotationMirror getAnnotationMirror(Element element, Class<? extends Annotation> type) {
-        return getAnnotationMirror(element, type.getName());
+    public AnnotationMirror findAnnotationMirror(Element element, Class<? extends Annotation> type) {
+        return findAnnotationMirror(element, type.getName());
     }
 
     /**
      * Returns the type mirror with the specified qualified name.
      */
-    public AnnotationMirror getAnnotationMirror(Element element, String annotationName) {
+    public AnnotationMirror findAnnotationMirror(Element element, String annotationName) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
             TypeElement type = asType(annotationMirror);
-            if (type.getQualifiedName().contentEquals(annotationName)) {
+            if (qualifiedNameOf(type).contentEquals(annotationName)) {
                 return annotationMirror;
             }
         }
@@ -195,8 +252,8 @@ public class CompileTimeHelper {
             case DECLARED:
                 DeclaredType dt = (DeclaredType) mirror;
                 Element e = dt.asElement();
-                if (e instanceof TypeElement) {
-                    String qName = ((TypeElement) e).getQualifiedName().toString();
+                if (e instanceof TypeElement typeElement) {
+                    String qName = qualifiedNameOf(typeElement);
                     String internal = qName.replace('.', '/');
                     return Type.getObjectType(internal);
                 }
@@ -245,18 +302,6 @@ public class CompileTimeHelper {
         }
     }
 
-
-    /**
-     * Returns the ASM method descriptor for a method.
-     */
-    public String getMethodDescriptor(ExecutableElement element) {
-        Type returnType = asAsmType(element.getReturnType());
-        Type[] args = element.getParameters().stream()
-                .map(p -> asAsmType(p.asType()))
-                .toArray(Type[]::new);
-        return Type.getMethodDescriptor(returnType, args);
-    }
-
     /**
      * Checks if the method is defined in java.lang.Object.
      */
@@ -265,8 +310,8 @@ public class CompileTimeHelper {
         return ReflectionUtil.isObjectMethod(methodName, () -> buildSignature(element));
     }
 
-    private void collectInterfacesRecursively(TypeElement typeElement, Set<Name> collectedNames, Predicate<TypeElement> filter) {
-        if (typeElement == null || typeElement.getQualifiedName().contentEquals("java.lang.Object")) {
+    private void collectInterfaces(TypeElement typeElement, Set<TypeElement> collectedList, Predicate<TypeElement> filter) {
+        if (typeElement == null || qualifiedNameOf(typeElement).contentEquals("java.lang.Object")) {
             return;
         }
         for (TypeMirror interfaceMirror : typeElement.getInterfaces()) {
@@ -276,16 +321,15 @@ public class CompileTimeHelper {
             Element element = ((DeclaredType) interfaceMirror).asElement();
             if (element.getKind() == ElementKind.INTERFACE && element instanceof TypeElement interfaceElement) {
                 if (filter.test(interfaceElement)) {
-                    collectedNames.add(interfaceElement.getQualifiedName());
+                    collectedList.add(interfaceElement);
                 }
-                collectInterfacesRecursively(interfaceElement, collectedNames, filter);
+                collectInterfaces(interfaceElement, collectedList, filter);
             }
         }
         TypeMirror superclass = typeElement.getSuperclass();
         if (superclass.getKind() == TypeKind.DECLARED) {
             TypeElement superClassElement = asType(superclass);
-            collectInterfacesRecursively(superClassElement, collectedNames, filter);
+            collectInterfaces(superClassElement, collectedList, filter);
         }
     }
-
 }

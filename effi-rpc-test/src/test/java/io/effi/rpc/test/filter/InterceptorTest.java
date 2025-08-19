@@ -1,6 +1,6 @@
 package io.effi.rpc.test.filter;
 
-import io.effi.rpc.base.context.UnitType;
+import io.effi.rpc.context.UnitType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -12,6 +12,7 @@ public class InterceptorTest {
     @Test
     public void addFilter() {
         UnitType<?, ?> type = UnitType.extract(new CallerReqInterceptor());
+        UnitType<?, ?> extract = UnitType.extract(new TestCallStage());
         System.out.println(type);
     }
 }

@@ -22,7 +22,6 @@ fun RepositoryHandler.defaultRepositories() {
     gradlePluginPortal()
 }
 
-
 fun Project.configureTasks() {
     tasks.withType(JavaCompile::class.java).configureEach {
         options.encoding = "UTF-8"
@@ -51,8 +50,6 @@ fun Project.configureTasks() {
     }
 }
 
-
-
 fun Project.enablePublish(): Project {
     extra[Constants.PUBLISH] = true
     return this;
@@ -63,11 +60,11 @@ fun Project.enableProcessor(): Project {
     return this
 }
 
-fun Project.isPublishEnabled(): Boolean {
+fun Project.publishEnabled(): Boolean {
     return hasTrueExtra(Constants.PUBLISH)
 }
 
-fun Project.isProcessorEnabled(): Boolean {
+fun Project.processorEnabled(): Boolean {
     return hasTrueExtra(Constants.PROCESSOR)
 }
 

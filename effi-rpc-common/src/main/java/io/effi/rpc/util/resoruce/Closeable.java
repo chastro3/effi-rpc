@@ -1,7 +1,10 @@
 package io.effi.rpc.util.resoruce;
 
 /**
- * Represents a resource that can be closed and checked for activity.
+ * Represents resources that can be closed and monitored for activity.
+ * <p>
+ * Provides a standardized interface for resource lifecycle management
+ * with support for closing resources and checking their active status.
  */
 public interface Closeable {
 
@@ -14,5 +17,6 @@ public interface Closeable {
      * Returns the heartBeatHandler.
      */
     boolean isActive();
+
 }
 

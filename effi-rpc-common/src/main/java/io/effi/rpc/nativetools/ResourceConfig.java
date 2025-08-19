@@ -63,7 +63,7 @@ public class ResourceConfig implements NativeConfig<Map<String, Object>> {
         return !resources.excludes.isEmpty() || !resources.includes.isEmpty();
     }
 
-    static class ResourcesItem implements Item {
+    static class ResourcesItem implements NativeConfig.Item {
 
         private final List<ResourcesChildItem> includes = new ArrayList<>();
 
@@ -81,7 +81,7 @@ public class ResourceConfig implements NativeConfig<Map<String, Object>> {
         }
     }
 
-    record ResourcesChildItem(ConditionItem condition, String pattern) implements Item {
+    record ResourcesChildItem(ConditionItem condition, String pattern) implements NativeConfig.Item {
 
         @Override
         public Map<String, Object> toMap() {
@@ -92,7 +92,7 @@ public class ResourceConfig implements NativeConfig<Map<String, Object>> {
         }
     }
 
-    record GlobItem(ConditionItem condition, String glob, String module) implements Item {
+    record GlobItem(ConditionItem condition, String glob, String module) implements NativeConfig.Item {
 
         @Override
         public Map<String, Object> toMap() {
@@ -105,7 +105,7 @@ public class ResourceConfig implements NativeConfig<Map<String, Object>> {
     }
 
     record BundleItem(ConditionItem condition, String name, List<String> locales,
-                      List<String> classNames) implements Item {
+                      List<String> classNames) implements NativeConfig.Item {
 
         @Override
         public Map<String, Object> toMap() {

@@ -3,12 +3,14 @@ package io.effi.rpc.proxy.bytebuddy;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
+import io.effi.rpc.util.ClassUtil;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
 
-import static io.effi.rpc.constant.Component.ProxyFactory.BYTEBUDDY;
+import static io.effi.rpc.config.ConfigValues.ProxyFactory.BYTEBUDDY;
+
 
 /**
  * Implements {@link io.effi.rpc.proxy.ProxyFactory} using ByteBuddy.
@@ -23,7 +25,7 @@ public class ByteBuddyProxyFactory extends AbstractProxyFactory {
                 .method(ElementMatchers.any())
                 .intercept(MethodDelegation.to(new MethodInterceptor(handler).new InterfaceInterceptor()))
                 .make()) {
-            return dynamicType.load(interfaceClass.getClassLoader())
+            return dynamicType.load(ClassUtil.findClassLoader(interfaceClass))
                     .getLoaded().getDeclaredConstructor().newInstance();
         }
     }
@@ -36,7 +38,7 @@ public class ByteBuddyProxyFactory extends AbstractProxyFactory {
                 .method(ElementMatchers.any())
                 .intercept(MethodDelegation.to(new MethodInterceptor(handler).new InstanceInterceptor()))
                 .make()) {
-            return dynamicType.load(target.getClass().getClassLoader())
+            return dynamicType.load(ClassUtil.findClassLoader(target.getClass()))
                     .getLoaded().getConstructor().newInstance();
         }
     }

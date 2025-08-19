@@ -1,48 +1,38 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.config.transport.EndpointConfig;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.NetUtil;
 
 import java.net.InetSocketAddress;
 
 /**
  * Provides an abstract implementation of {@link Endpoint}.
  */
-public abstract class AbstractEndpoint extends EffiRpcPlatform.Holder implements Endpoint {
+public abstract class AbstractEndpoint extends ScopedPlatform.Holder implements Endpoint {
 
     protected EndpointConfig config;
 
+    protected TransportProtocol protocol;
+
     protected InetSocketAddress address;
 
-    protected URL url;
-
-    protected AbstractEndpoint(EndpointConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
+    protected AbstractEndpoint(EndpointConfig config, InetSocketAddress address, ScopedPlatform platform) {
         super(platform);
         this.config = AssertUtil.notNull(config, "config");
-        this.address = AssertUtil.notNull(address, "address");
-        this.url = config.newUrl(address);
+        this.address = NetUtil.resolveIfUnresolved(AssertUtil.notNull(address, "address"));
+        this.protocol = platform.namedExtension(TransportProtocol.class, config.protocolName());
     }
 
     @Override
-    public URL url() {
-        return url;
+    public EndpointConfig config() {
+        return config;
     }
 
     @Override
-    public String host() {
-        return url().host();
+    public TransportProtocol protocol() {
+        return protocol;
     }
-
-    @Override
-    public int port() {
-        return url().port();
-    }
-
-    @Override
-    public InetSocketAddress socketAddress() {
-        return address;
-    }
-
 }

@@ -1,5 +1,7 @@
 package io.effi.rpc.nativetools;
 
+import io.effi.rpc.constant.EffiRpcFramework;
+
 import java.util.Map;
 
 /**
@@ -7,18 +9,9 @@ import java.util.Map;
  *
  * @see <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/config-condition-schema-v1.0.0.json">config-condition-schema-v1.0.0.json</a>
  */
-public class ConditionItem implements Item {
-
-    //@Deprecated
-    private String typeReachable;
+public class ConditionItem implements NativeConfig.Item {
 
     private String typeReached;
-
-    //@Deprecated
-    public ConditionItem typeReachable(String typeReachable) {
-        this.typeReachable = typeReachable;
-        return this;
-    }
 
     public ConditionItem typeReached(String typeReached) {
         this.typeReached = typeReached;
@@ -27,9 +20,12 @@ public class ConditionItem implements Item {
 
     @Override
     public Map<String, Object> toMap() {
+        // https://www.graalvm.org/release-notes/JDK_23
+        // Replaced typeReachable conditions with typeReached
+        int javaVersion = EffiRpcFramework.javaVersion();
         return MapBuilder.create(2)
-                .put("typeReachable", typeReachable)
-                .put("typeReached", typeReached)
+                .putIf(javaVersion > 22, "typeReached", typeReached)
+                .putIf(javaVersion < 23, "typeReachable", typeReached)
                 .build();
     }
 }

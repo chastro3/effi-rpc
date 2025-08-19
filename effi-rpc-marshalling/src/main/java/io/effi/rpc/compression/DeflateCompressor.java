@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-import static io.effi.rpc.constant.Component.Compression.DEFLATE;
+import static io.effi.rpc.config.ConfigValues.Compression.DEFLATE;
 
 /**
  * Implements {@link Compressor} using Deflate.

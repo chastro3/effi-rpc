@@ -1,24 +1,47 @@
 package io.effi.rpc.util;
 
+import io.effi.rpc.util.resoruce.Cleanable;
+import io.effi.rpc.util.resoruce.Closeable;
+
+import java.lang.annotation.Annotation;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Provides common object operations.
  */
 public final class ObjectUtil {
 
-    @SuppressWarnings("rawtypes")
-    private static final CompletableFuture[] EMPTY_FUTURE_ARRAY = new CompletableFuture[0];
-
-    @SuppressWarnings("unchecked")
-    public static <T> CompletableFuture<T>[] emptyFutureArray() {
-        return (CompletableFuture<T>[]) EMPTY_FUTURE_ARRAY;
+    /**
+     * Returns the object name: {@code id()} if {@link Identifiable},
+     * otherwise lowercase class name.
+     */
+    public static String resolveName(Object obj) {
+        String name = null;
+        if (obj instanceof Identifiable identifiable) {
+            name = identifiable.id();
+        }
+        return StringUtil.isBlank(name)
+                ? lowercaseName(obj.getClass())
+                : name;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> CompletableFuture<T>[] newFutureArray(int size) {
-        return new CompletableFuture[size];
+    /**
+     * Releases the object by calling {@code clear()} or {@code close()} if applicable.
+     */
+    public static void release(Object obj) {
+        if (obj instanceof Cleanable cleanable) {
+            cleanable.clear();
+        }
+        if (obj instanceof Closeable closeable && closeable.isActive()) {
+            closeable.close();
+        }
+    }
+
+    /**
+     * Gets the annotation name.
+     */
+    public static String annotationName(Class<? extends Annotation> type) {
+        return "@" + type.getSimpleName();
     }
 
     /**
@@ -40,7 +63,6 @@ public final class ObjectUtil {
         return type.getSimpleName();
     }
 
-
     /**
      * Gets the lowercase name of the class.
      */
@@ -51,8 +73,7 @@ public final class ObjectUtil {
         return new String(chars);
     }
 
-    public static boolean isValid(Number number) {
-        return number != null && number.longValue() != -1L;
+    private ObjectUtil() {
     }
 
 }

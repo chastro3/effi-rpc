@@ -1,11 +1,11 @@
 package io.effi.rpc.boot;
 
-import io.effi.rpc.base.CallSideContainer;
-import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.RemoteService;
+import io.effi.rpc.context.PeerContainer;
+import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.RemoteService;
 import io.effi.rpc.compile.DynamicAccessor;
-import io.effi.rpc.config.HierarchicalNodeConfig;
-import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.DefaultHierarchicalConfig;
+import io.effi.rpc.config.HierarchicalConfig;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ObjectUtil;
 import io.effi.rpc.util.ReflectionUtil;
@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 /**
  * Provide the default implementation of {@link RemoteService}.
  */
-public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> implements RemoteService<T> {
+public class ComplexRemoteService<T> extends AbstractPeerContainer<Callee> implements RemoteService<T> {
 
     protected Class<T> serviceType;
 
@@ -34,7 +34,7 @@ public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> i
         this(name, service, null, null);
     }
 
-    public ComplexRemoteService(String name, T service, Class<T> serviceType, NodeConfig config) {
+    public ComplexRemoteService(String name, T service, Class<T> serviceType, HierarchicalConfig config) {
         initialize(name, service, serviceType, config);
     }
 
@@ -42,11 +42,11 @@ public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> i
 
     }
 
-    protected void initialize(String name, T service, Class<T> serviceType, NodeConfig config) {
+    protected void initialize(String name, T service, Class<T> serviceType, HierarchicalConfig config) {
         this.service = AssertUtil.notNull(service, "service");
         this.serviceType = checkServiceType(service, serviceType);
         this.name = checkName(name, this.serviceType);
-        this.methodAccess = DynamicAccessor.get(this.serviceType);
+        this.methodAccess = DynamicAccessor.fetch(this.serviceType);
         this.config = checkConfig(config);
     }
 
@@ -74,8 +74,8 @@ public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> i
     @Override
     public RemoteService<T> addCallee(Callee callee) {
         String path = callee.queryPath() == null ? "" : callee.queryPath().path();
-        String key = CallSideContainer.invokerKey(callee.protocol(), path);
-        addInvoker(key, callee);
+        String key = PeerContainer.invokerKey(callee.protocol().name(), path);
+        addPeer(key, callee);
         return this;
     }
 
@@ -87,7 +87,7 @@ public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> i
 
     @Override
     public Callee getCallee(String protocol, String path) {
-        String key = CallSideContainer.invokerKey(protocol, path);
+        String key = PeerContainer.invokerKey(protocol, path);
         return getInvoker(key);
     }
 
@@ -109,9 +109,9 @@ public class ComplexRemoteService<T> extends AbstractCallSideContainer<Callee> i
         return name;
     }
 
-    protected NodeConfig checkConfig(NodeConfig config) {
+    protected HierarchicalConfig checkConfig(HierarchicalConfig config) {
         if (config == null)
-            config = new HierarchicalNodeConfig(this);
+            config = new DefaultHierarchicalConfig(this);
         return config;
     }
 }

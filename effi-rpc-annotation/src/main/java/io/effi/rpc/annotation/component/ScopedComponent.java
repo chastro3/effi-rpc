@@ -7,7 +7,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks components with a defined scope and multiplicity.
+ * Marks components with a defined scope and kind.
+ *
+ * <p>Classes annotated with this will have their metadata
+ * automatically generated at compile time into
+ * {@link io.effi.rpc.constant.ResourcePath#COMPONENT_DESCRIPTOR_FILE}.
+ *
+ * <p>This properties file is used at runtime to
+ * discover and manage these components according to their scope and kind.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
@@ -65,7 +72,7 @@ public @interface ScopedComponent {
         SINGLE,
 
         /**
-         * Manages the component as multiple instances identified by keys.
+         * Manages the component as multiple instances identified by names.
          */
         MULTI
     }

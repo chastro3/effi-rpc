@@ -1,21 +1,33 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.config.transport.ClientConfig;
+import io.effi.rpc.async.Future;
+import io.effi.rpc.component.transport.ClientConfig;
 
-import java.util.concurrent.CompletableFuture;
+import java.net.InetSocketAddress;
 
 /**
- * Connects to a remote endpoint and manages channel(s).
+ * Connects to remote servers and manages communication channels.
+ * <p>
+ * Provides client functionality for establishing connections to remote
+ * servers and managing associated communication channels.
  */
 public interface Client extends Endpoint {
 
-    @Override
-    ClientConfig config();
+    /**
+     * Returns the remote address connected to the client.
+     */
+    InetSocketAddress remoteAddress();
 
     /**
-     * Asynchronously gets a {@link Channel} associated with this client.
+     * Fetches the {@link Channel} associated with this client asynchronously.
      */
-    CompletableFuture<Channel> getChannel();
+    Future<? extends Channel> fetchChannel();
+
+    /**
+     * Returns the configuration of this client.
+     */
+    @Override
+    ClientConfig config();
 }
 
 

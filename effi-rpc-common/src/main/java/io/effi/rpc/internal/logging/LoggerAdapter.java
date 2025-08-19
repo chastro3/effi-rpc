@@ -1,7 +1,10 @@
 package io.effi.rpc.internal.logging;
 
 /**
- * Provides logger instance based on the given name.
+ * Provides logger instances based on specified names.
+ * <p>
+ * Serves as a factory interface for obtaining logger implementations
+ * by name for internal logging purposes.
  */
 public interface LoggerAdapter {
 

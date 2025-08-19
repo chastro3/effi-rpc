@@ -8,14 +8,17 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Wraps an {@link ErrorCode} with a formatted message.
+ * Wraps error codes with formatted messages for RPC exceptions.
+ * <p>
+ * Provides a standardized exception type that encapsulates error codes and their
+ * formatted messages, with support for unwrapping various exception types.
  */
 public class EffiRpcException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
     EffiRpcException(ErrorCode errorCode, Throwable e, Object... args) {
-        super(errorCode.convert(args), e);
+        super(errorCode.render(args), e);
         this.errorCode = errorCode;
     }
 

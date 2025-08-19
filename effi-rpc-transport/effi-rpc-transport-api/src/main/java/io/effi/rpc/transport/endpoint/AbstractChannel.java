@@ -1,16 +1,15 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.base.CallSide;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.transport.Protocol;
+import io.effi.rpc.async.Future;
+import io.effi.rpc.async.Promise;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.TransportSupport;
-import io.effi.rpc.transport.WrappedEnvelope;
+import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.StringUtil;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Provides an abstract implementation of {@link Channel}.
@@ -19,49 +18,50 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
 
     protected final Endpoint endpoint;
 
-    protected final URL url;
+    protected final EndpointConfig config;
 
-    protected final Protocol protocol;
+    protected final TransportProtocol protocol;
 
-    protected AbstractChannel(Endpoint endpoint, URL url) {
+    /**
+     * Resolves the protocol from the config, since an endpoint (especially a server) may support multiple protocols.
+     *
+     * @param endpoint the associated endpoint
+     * @param config   the configuration used to determine the protocol
+     */
+    protected AbstractChannel(Endpoint endpoint, EndpointConfig config) {
         this.endpoint = AssertUtil.notNull(endpoint, "endpoint");
-        this.url = AssertUtil.notNull(url, "url");
-        this.protocol = TransportSupport.getProtocol(url.protocol());
+        this.config = AssertUtil.notNull(config, "config");
+        this.protocol = endpoint.platform().namedExtension(TransportProtocol.class, config.protocolName());
     }
 
     @Override
-    public CompletableFuture<Channel> send(Object message) {
-        if (message instanceof WrappedEnvelope<?, ?> wrappedEnvelope) {
-            CallSide callSide = wrappedEnvelope.context().callSide();
-            message = TransportSupport.inIOSerialization(callSide)
-                    ? wrappedEnvelope
-                    : wrappedEnvelope.encode().envelope();
+    public Future<Void> send(Object message) {
+        if (message instanceof EncodableOutputMessage<?> encodableOutputMessage) {
+            Peer peer = encodableOutputMessage.context().peer();
+            message = TransportSupport.inIOSerialization(peer)
+                    ? encodableOutputMessage
+                    : encodableOutputMessage.encode();
         }
         if (isActive()) {
             return doSend(message);
         }
-        return CompletableFuture.completedFuture(this);
+        return Promise.completedVoid();
     }
 
     @Override
-    public Protocol protocol() {
+    public Endpoint endpoint() {
+        return endpoint;
+    }
+
+    @Override
+    public TransportProtocol protocol() {
         return protocol;
     }
 
     @Override
-    public URL url() {
-        return url;
-    }
-
-    @Override
-    public EffiRpcPlatform platform() {
+    public ScopedPlatform platform() {
         return endpoint.platform();
     }
 
-    @Override
-    public String toString() {
-        return StringUtil.format("local={}, remote={}, active={}", localAddress(), remoteAddress(), isActive());
-    }
-
-    protected abstract CompletableFuture<Channel> doSend(Object message);
+    protected abstract Future<Void> doSend(Object message);
 }

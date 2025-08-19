@@ -1,37 +1,39 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.base.Callee;
-import io.effi.rpc.base.parameter.MethodMapper;
-import io.effi.rpc.config.NodeConfig;
+import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.parameter.MethodMapper;
 import io.effi.rpc.protocol.http.HttpCallee;
-import io.effi.rpc.protocol.http.HttpCalleeBuilder;
-import io.effi.rpc.protocol.http.support.HttpVersion;
 
 /**
  * Implements {@link Callee} using http2.
  */
 public class Http2Callee extends HttpCallee {
 
-    Http2Callee(NodeConfig config, Builder builder) {
-        super(config, builder);
+    Http2Callee(Builder builder) {
+        super(builder);
     }
 
-    public static Builder builder(MethodMapper<?> methodMapper, NodeConfig config) {
+    public static Builder builder(MethodMapper<?> methodMapper) {
+        return new Builder(methodMapper, null);
+    }
+
+    public static Builder builder(MethodMapper<?> methodMapper, HierarchicalConfig config) {
         return new Builder(methodMapper, config);
     }
 
     /**
      * Builds {@link Http2Callee} instance.
      */
-    public static class Builder extends HttpCalleeBuilder<Http2Callee, Builder> {
+    public static class Builder extends HttpCallee.Builder<Http2Callee, Builder> {
 
-        public Builder(MethodMapper<?> methodMapper, NodeConfig config) {
-            super(HttpVersion.HTTP_2_0, methodMapper, config);
+        public Builder(MethodMapper<?> methodMapper, HierarchicalConfig config) {
+            super(Http2Protocol.VERSION, methodMapper, config);
         }
 
         @Override
-        protected Http2Callee build(NodeConfig config) {
-            return new Http2Callee(config, this);
+        public Http2Callee build() {
+            return new Http2Callee(this);
         }
 
     }

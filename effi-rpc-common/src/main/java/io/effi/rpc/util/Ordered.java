@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Define objects with order values for precedence.
- * Lower values indicate higher priority. Equal values have arbitrary order.
+ * Define objects with order values for precedence-based sorting.
+ * <p>
+ * Provides ordering capabilities for objects with lower values indicating
+ * higher priority, enabling sorted collections and maps based on precedence.
  */
 public interface Ordered {
 
@@ -18,7 +20,7 @@ public interface Ordered {
 
     int LOWEST_PRECEDENCE = Integer.MAX_VALUE;
 
-    int DEFAULT = 0;
+    int DEFAULT = 5;
 
     /**
      * Sort {@link Ordered} objects by order values.
@@ -27,9 +29,8 @@ public interface Ordered {
         if (CollectionUtil.isEmpty(values)) {
             return values;
         }
-        List<T> result = new ArrayList<>(values);
-        result.sort(Comparator.comparingInt(Ordered::order));
-        return result;
+        values.sort(Comparator.comparingInt(Ordered::order));
+        return values;
     }
 
     static <K, V extends Ordered, R> Map<K, R> sort(Map<K, V> map, Function<V, R> mapper) {

@@ -3,5 +3,5 @@ plugins {
 }
 description = "RPC metrics collection."
 dependencies {
-    api(project(":effi-rpc-base"))
+    api(project(":effi-rpc-context"))
 }

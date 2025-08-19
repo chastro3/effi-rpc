@@ -22,7 +22,7 @@ public enum PredefinedErrorCode implements ErrorCode {
     CREATE_SSL("0013", "Failed to create SSL context for {}"),
     INVOKE_SERVICE("0014", "Failed to invoke service: '{}'"),
     CALL_CALLER("0015", "Failed to call caller: '{}'"),
-    GET_CHANNEL("0016", "Failed to get channel to '{}' over ({}) protocol"),
+    FETCH_CHANNEL("0016", "Failed to fetch channel to '{}' over ({}) protocol"),
     HANDLE_EVENT("0017", "Failed to handle event in '{}' for event of type '{}'"),
     NOT_FOUND_SERVICE("0018", "Service(s) not found for '{}'"),
     REGISTRY_REGISTER("0019", "Failed to register service(s) for '{}' in registry at '{}'"),
@@ -50,10 +50,6 @@ public enum PredefinedErrorCode implements ErrorCode {
     @Override
     public String message() {
         return message;
-    }
-
-    public EffiRpcException fail(Throwable cause, Object... args) {
-        return EffiRpcException.wrap(this, cause, args);
     }
 
 }

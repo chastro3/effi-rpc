@@ -80,6 +80,18 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     boolean contains(CharSequence name);
 
     /**
+     * Returns the first value of the specified header or the default value if not present.
+     *
+     * @param name         the header name
+     * @param defaultValue the default value to return if the header is not present
+     * @return the first header value or the default value if not present
+     */
+    default CharSequence getOrDefault(CharSequence name, CharSequence defaultValue) {
+        CharSequence value = get(name);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
      * Returns a set of all header names.
      */
     default Set<CharSequence> names() {

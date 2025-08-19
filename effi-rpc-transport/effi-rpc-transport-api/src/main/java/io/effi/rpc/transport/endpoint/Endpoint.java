@@ -1,43 +1,23 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.config.transport.EndpointConfig;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.resoruce.Closeable;
 
-import java.net.InetSocketAddress;
-
 /**
- * Represents an endpoint with host, port, and address details.
+ * Representezs an endpoint with host, port, and address details.
+ * <p>
+ * Provides a standardized interface for network endpoints with
+ * configuration and protocol support within a scoped platform.
  */
-public interface Endpoint extends URL.Provider, EffiRpcPlatform.Provider, Closeable {
+public interface Endpoint extends ScopedPlatform.Supplier, TransportProtocol.Supplier, Closeable {
 
     /**
-     * Returns host name or IP address.
-     */
-    String host();
-
-    /**
-     * Returns port number.
-     */
-    int port();
-
-    /**
-     * Returns socket address composed of host and port.
-     */
-    InetSocketAddress socketAddress();
-
-    /**
-     * Returns endpoint configuration.
+     * Returns the configuration of this endpoint.
      */
     EndpointConfig config();
 
-    /**
-     * Returns address string in "host:port" format.
-     */
-    default String address() {
-        return url().address();
-    }
 }
 
 

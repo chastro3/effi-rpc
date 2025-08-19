@@ -1,6 +1,7 @@
 package io.effi.rpc.compile;
 
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.ReflectionUtil;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -49,8 +50,10 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
- * Generates {@link DynamicAccessor} at compile-time and runtime.
- * Collects methods and constructs dynamic accessor classes.
+ * Generates {@link DynamicAccessor} implementations at compile-time and runtime.
+ * <p>
+ * Creates dynamic accessor classes using ASM bytecode generation to enable
+ * efficient method invocation by index for both compile-time and runtime scenarios.
  */
 public class DynamicAccessorGenerator {
 
@@ -61,15 +64,17 @@ public class DynamicAccessorGenerator {
     /**
      * Generates {@link GeneratedInfo} from a runtime class.
      */
-    public static GeneratedInfo fromClass(Class<?> type) {
+    public static GeneratedInfo from(Class<?> type) {
         String pkg = type.getPackage().getName();
         String name = type.getSimpleName();
         String qualifiedName = type.getName();
         Method[] methods = type.getMethods();
         List<MethodInfo> methodInfos = new ArrayList<>(methods.length);
         for (Method method : methods) {
-            if (!method.isBridge() && !method.isSynthetic() && method.getDeclaringClass() != Object.class) {
-                methodInfos.add(MethodInfo.fromMethod(method));
+            if (!method.isBridge()
+                    && !method.isSynthetic()
+                    && !ReflectionUtil.isObjectMethod(method)) {
+                methodInfos.add(MethodInfo.from(method));
             }
         }
         MethodInfo[] infos = methodInfos.toArray(new MethodInfo[0]);
@@ -79,18 +84,19 @@ public class DynamicAccessorGenerator {
     /**
      * Generates {@link GeneratedInfo} from a compile-time type element.
      */
-    public static GeneratedInfo fromTypeElement(TypeElement type, CompileTimeHelper helper) {
-        String pkg = helper.getPackage(type);
-        String qualifiedName = helper.getQualifiedClassName(type);
+    public static GeneratedInfo from(TypeElement type, CompileTimeHelper helper) {
+        String pkg = helper.packageOf(type);
         String name = type.getSimpleName().toString();
+        String qualifiedName = helper.qualifiedNameOf(type);
         List<? extends Element> members = helper.processingEnv().getElementUtils().getAllMembers(type);
         List<MethodInfo> methods = new ArrayList<>(members.size());
         for (Element e : members) {
-            if (e.getKind() != ElementKind.METHOD) continue;
-            ExecutableElement m = (ExecutableElement) e;
-            if (!m.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)) continue;
-            if (helper.isObjectMethod(m)) continue;
-            methods.add(MethodInfo.fromExecutableElement(m, helper));
+            if (e instanceof ExecutableElement em
+                    && em.getKind() == ElementKind.METHOD
+                    && em.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)
+                    && !helper.isObjectMethod(em)) {
+                methods.add(MethodInfo.from(em, helper));
+            }
         }
         MethodInfo[] infos = methods.toArray(new MethodInfo[0]);
         return generate(new ClassInfo(pkg, name, qualifiedName, infos, type.getKind() == ElementKind.INTERFACE));
@@ -281,7 +287,7 @@ public class DynamicAccessorGenerator {
 
     record MethodInfo(String name, Type[] parameterTypes, Type returnType, String descriptor, int modifiers) {
 
-        public static MethodInfo fromExecutableElement(ExecutableElement element, CompileTimeHelper helper) {
+        public static MethodInfo from(ExecutableElement element, CompileTimeHelper helper) {
             String name = element.getSimpleName().toString();
             List<? extends VariableElement> params = element.getParameters();
             int size = params.size();
@@ -295,7 +301,7 @@ public class DynamicAccessorGenerator {
             return new MethodInfo(name, parameterTypes, returnType, descriptor, modifiers);
         }
 
-        public static MethodInfo fromMethod(Method method) {
+        public static MethodInfo from(Method method) {
             String name = method.getName();
             Class<?>[] paramTypes = method.getParameterTypes();
             int size = paramTypes.length;
@@ -309,7 +315,7 @@ public class DynamicAccessorGenerator {
         }
     }
 
-    enum PrimitiveInfo {
+    private enum PrimitiveInfo {
         BOOLEAN(Type.BOOLEAN, "java/lang/Boolean", "booleanValue", "()Z", "(Z)Ljava/lang/Boolean;"),
         BYTE(Type.BYTE, "java/lang/Byte", "byteValue", "()B", "(B)Ljava/lang/Byte;"),
         CHAR(Type.CHAR, "java/lang/Character", "charValue", "()C", "(C)Ljava/lang/Character;"),
@@ -319,15 +325,15 @@ public class DynamicAccessorGenerator {
         LONG(Type.LONG, "java/lang/Long", "longValue", "()J", "(J)Ljava/lang/Long;"),
         DOUBLE(Type.DOUBLE, "java/lang/Double", "doubleValue", "()D", "(D)Ljava/lang/Double;");
 
-        public final int sort;
+        private final int sort;
 
-        public final String wrapperInternal;
+        private final String wrapperInternal;
 
-        public final String unboxMethodName;
+        private final String unboxMethodName;
 
-        public final String unboxDesc;
+        private final String unboxDesc;
 
-        public final String boxDesc;
+        private final String boxDesc;
 
         PrimitiveInfo(int sort, String wrapperInternal, String unboxMethodName, String unboxDesc, String boxDesc) {
             this.sort = sort;

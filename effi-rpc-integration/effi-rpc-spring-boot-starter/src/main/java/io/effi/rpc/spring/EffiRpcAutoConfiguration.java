@@ -1,9 +1,9 @@
 package io.effi.rpc.spring;
 
 import io.effi.rpc.boot.EffiRpcBootstrap;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.component.EffiRpcPlatform;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.component.ScopedPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -14,26 +14,28 @@ import org.springframework.context.annotation.Configuration;
 public class EffiRpcAutoConfiguration {
 
     @Bean
-    public EffiRpcPlatform effiRpcPlatform() {
-        return EffiRpcPlatform.getInstance();
+    @ConditionalOnMissingBean
+    public ScopedPlatform effiRpcPlatform() {
+        return ScopedPlatform.defaultPlatform().withName("spring-platform");
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public EffiRpcApplication effiRpcApplication(EffiRpcPlatform platform, ApplicationContext context) {
+    public ScopedApplication effiRpcApplication(ScopedPlatform platform, ApplicationContext context) {
         String applicationName = context.getApplicationName();
         return platform.newApplication(applicationName);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public EffiRpcModule defaultEffiRpcModule(EffiRpcApplication application) {
+    public ScopedModule defaultEffiRpcModule(ScopedApplication application) {
         return application.defaultModule();
     }
 
     @Bean
-    @ConditionalOnBean(EffiRpcApplication.class)
-    public EffiRpcBootstrap effiRpcBootstrap(EffiRpcApplication application) {
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(ScopedApplication.class)
+    public EffiRpcBootstrap effiRpcBootstrap(ScopedApplication application) {
         return EffiRpcBootstrap.newInstance(application);
     }
 }

@@ -1,10 +1,10 @@
 package demo.provider;
 
 import io.effi.rpc.boot.EffiRpcBootstrap;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.registry.DefaultRegistryConfig;
-import io.effi.rpc.config.transport.CertificateConfig;
-import io.effi.rpc.config.transport.DefaultCertificateConfig;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.registry.DefaultRegistryConfig;
+import io.effi.rpc.component.transport.CertificateConfig;
+import io.effi.rpc.component.transport.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -25,7 +25,7 @@ public class Provider {
                     start();
                 }
                 if (command.equals("stop")) {
-                    EffiRpcPlatform.getInstance().stop();
+                    ScopedPlatform.defaultPlatform().close();
                 }
             }
         }
@@ -42,10 +42,10 @@ public class Provider {
                 .certificate(certificateConfig)
                 .build();
         EffiRpcBootstrap bootstrap = EffiRpcBootstrap.newInstance("provider")
-                .serviceHost(http2ServerConfig, 8090)
-                .serviceHost(http2ServerConfig, 8090)
-                .serviceHost(Http1ServerConfig.defaultConfig(), 8091)
-                .registry(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build().addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE))
+                .applyServer(http2ServerConfig, 8090)
+                .applyServer(http2ServerConfig, 8090)
+                .applyServer(Http1ServerConfig.defaultConfig(), 8091)
+                .registry(DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE))
                 //.registry(DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").tag(RegistryConfig.Tag.PROVIDER, RegistryConfig.Tag.FORCE_ACTIVE).build())
                 .service(new HelloService())
                 .start();

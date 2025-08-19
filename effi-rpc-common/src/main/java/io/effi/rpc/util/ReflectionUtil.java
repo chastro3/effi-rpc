@@ -148,8 +148,8 @@ public final class ReflectionUtil {
             return parameterTypes == null
                     ? type.getConstructor(EMPTY_CLASS_ARRAY).newInstance()
                     : type.getConstructor(parameterTypes).newInstance(args);
-        } catch (Exception e) {
-            throw new RuntimeException("Create Instance is Failed for " + type.getName(), e);
+        } catch (Throwable e) {
+            throw new IllegalArgumentException("Create Instance is Failed for " + type.getName(), e);
         }
     }
 
@@ -210,7 +210,7 @@ public final class ReflectionUtil {
         if (annotation == null) {
             // Create a new default instance
             annotation = (T) Proxy.newProxyInstance(
-                    annotationType.getClassLoader(),
+                    ClassUtil.findClassLoader(annotationType),
                     new Class<?>[]{annotationType},
                     (proxy, method, args) -> {
                         if (method.getName().equals("toString")) {
@@ -374,5 +374,9 @@ public final class ReflectionUtil {
             }
         }
         return String.valueOf(value);
+    }
+
+    private ReflectionUtil() {
+
     }
 }

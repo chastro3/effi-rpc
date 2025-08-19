@@ -3,25 +3,18 @@ package io.effi.rpc.processor;
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.nativetools.ConditionItem;
-import io.effi.rpc.nativetools.ReflectConfigItem;
+import io.effi.rpc.nativetools.ReflectConfig;
 import io.effi.rpc.util.CollectionUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * Handles the processing of the {@link Extension} annotation.
+ * Handles the {@link Extension} annotation.
  */
 public class ExtensionHandler extends AnnotationHandler<Extension> {
 
@@ -31,24 +24,21 @@ public class ExtensionHandler extends AnnotationHandler<Extension> {
 
     @Override
     protected void handle(Set<? extends Element> elements, RoundEnvironment roundEnv) {
-        ExtensionResourceSection extensionResourceSection = getResourceSection(ExtensionResourceSection.class);
-        ReflectConfigResourceSection reflectConfigResourceSection = getResourceSection(ReflectConfigResourceSection.class);
+        ExtensionResourceSection extensionResourceSection = resourceSection(ExtensionResourceSection.class);
+        ReflectConfigResourceSection reflectConfigResourceSection = resourceSection(ReflectConfigResourceSection.class);
         for (Element element : elements) {
             if (element instanceof TypeElement typeElement) {
-                String extensionName = helper().getQualifiedClassName(typeElement);
-                // Get @Extension
-                AnnotationMirror extensionMirror = helper().getAnnotationMirror(typeElement, Extension.class);
+                String extensionName = helper().qualifiedNameOf(typeElement);
                 // Get interfaces from @Extension#interfaces()
-                List<Name> supportedInterfaces = getSupportedInterfaces(extensionMirror);
+                List<String> supportedInterfaces = helper().extractClassNames(typeElement, Extension.class, "interfaces");
                 // Get need generate interfaces.
-                Set<Name> neededInterfaces = helper().getAllInterfaceNames(typeElement,
+                Set<String> neededInterfaces = helper().findAllInterfaceNames(typeElement,
                         item -> isSupportedInterface(item, supportedInterfaces));
-                for (Name interfaceName : neededInterfaces) {
-                    String interfaceNameStr = interfaceName.toString();
-                    extensionResourceSection.add(interfaceNameStr, extensionName);
-                    ReflectConfigItem reflectConfigItem = new ReflectConfigItem()
-                            .condition(new ConditionItem().typeReachable(interfaceNameStr))
-                            .name(extensionName)
+                for (String interfaceName : neededInterfaces) {
+                    extensionResourceSection.add(interfaceName, extensionName);
+                    ReflectConfig.Item reflectConfigItem = new ReflectConfig.Item()
+                            .condition(new ConditionItem().typeReached(interfaceName))
+                            .type(extensionName)
                             .method("<init>", null);
                     reflectConfigResourceSection.nativeConfig().addItem(reflectConfigItem);
                 }
@@ -56,28 +46,11 @@ public class ExtensionHandler extends AnnotationHandler<Extension> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private List<Name> getSupportedInterfaces(AnnotationMirror annotationMirror) {
-        Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
-        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
-            ExecutableElement key = entry.getKey();
-            if (key.getSimpleName().contentEquals("interfaces")) {
-                List<? extends AnnotationValue> values = (List<? extends AnnotationValue>) entry.getValue().getValue();
-                List<Name> result = new ArrayList<>(values.size());
-                for (AnnotationValue value : values) {
-                    TypeMirror mirror = (TypeMirror) value.getValue();
-                    result.add(helper().asType(mirror).getQualifiedName());
-                }
-                return result;
-            }
-        }
-        return null;
-    }
-
-    private boolean isSupportedInterface(TypeElement typeElement, List<Name> supportedInterfaces) {
+    private boolean isSupportedInterface(TypeElement typeElement, List<String> supportedInterfaces) {
         Extensible extensible = typeElement.getAnnotation(Extensible.class);
         boolean hasExtensible = extensible != null;
         if (CollectionUtil.isEmpty(supportedInterfaces)) return hasExtensible;
-        return supportedInterfaces.contains(typeElement.getQualifiedName()) && hasExtensible;
+        String className = helper().qualifiedNameOf(typeElement);
+        return supportedInterfaces.contains(className) && hasExtensible;
     }
 }

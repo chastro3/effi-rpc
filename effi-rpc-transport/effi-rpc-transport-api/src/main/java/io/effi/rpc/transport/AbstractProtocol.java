@@ -1,54 +1,48 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.transport.codec.ClientCodec;
-import io.effi.rpc.transport.codec.ServerCodec;
+import io.effi.rpc.component.transport.ProtocolStack;
+import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
+import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.util.AssertUtil;
 
 /**
- * Provides an abstract implementation of {@link Protocol}.
+ * Provides an abstract implementation of {@link TransportProtocol}.
  */
-public abstract class AbstractProtocol implements Protocol {
+public abstract class AbstractProtocol extends AbstractTransporter implements TransportProtocol {
 
-    protected String protocol;
+    protected String protocolName;
 
-    protected ServerCodec serverCodec;
+    protected ProtocolStack stack;
 
-    protected ClientCodec clientCodec;
+    protected ServerExchangeContextCodec serverCodec;
 
-    protected Transporter transporter;
+    protected ClientExchangeContextCodec clientCodec;
 
-    protected AbstractProtocol(String protocol, ServerCodec serverCodec, ClientCodec clientCodec) {
-        this.protocol = AssertUtil.notBlank(protocol, "protocol");
+    protected void initialize(String protocolName, ProtocolStack stack,
+                              ServerExchangeContextCodec serverCodec,
+                              ClientExchangeContextCodec clientCodec) {
+        this.protocolName = AssertUtil.notBlank(protocolName, "protocol name");
         this.serverCodec = AssertUtil.notNull(serverCodec, "serverCodec");
         this.clientCodec = AssertUtil.notNull(clientCodec, "clientCodec");
     }
 
-    public void transporter(Transporter transporter) {
-        this.transporter = AssertUtil.notNull(transporter, "transporter");
+    @Override
+    public String name() {
+        return protocolName;
     }
 
     @Override
-    public ServerCodec serverCodec() {
+    public ProtocolStack stack() {
+        return stack;
+    }
+
+    @Override
+    public ServerExchangeContextCodec serverCodec() {
         return serverCodec;
     }
 
     @Override
-    public ClientCodec clientCodec() {
+    public ClientExchangeContextCodec clientCodec() {
         return clientCodec;
-    }
-
-    @Override
-    public String protocol() {
-        return protocol;
-    }
-
-    @Override
-    public Transporter transporter() {
-        return transporter;
-    }
-
-    @Override
-    public synchronized void clear() {
-        transporter.clear();
     }
 }

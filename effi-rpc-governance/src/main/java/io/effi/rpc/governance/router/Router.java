@@ -1,21 +1,21 @@
 package io.effi.rpc.governance.router;
 
 import io.effi.rpc.annotation.component.Extensible;
-import io.effi.rpc.base.Caller;
-import io.effi.rpc.base.context.CallContext;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.CallContext;
 import io.effi.rpc.config.ExtensionKeys;
-import io.effi.rpc.config.URL;
-import io.effi.rpc.constant.Component;
+import io.effi.rpc.registry.ServiceInstance;
 
 import java.util.List;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION;
+import static io.effi.rpc.config.ConfigValues.DEFAULT;
 
 /**
  * Routes a list of URLs based on the given invocation context.
  */
 @Extensible(
-        value = Component.DEFAULT,
+        value = DEFAULT,
         key = ExtensionKeys.ROUTER,
         scope = APPLICATION
 )
@@ -28,7 +28,7 @@ public interface Router {
      * @param urls    the list of URLs to route
      * @return a list of routed URLs
      */
-    List<URL> route(CallContext<?, Caller<?>> context, List<URL> urls);
+    List<ServiceInstance> route(CallContext<?, Caller<?>> context, List<ServiceInstance> urls);
 }
 
 

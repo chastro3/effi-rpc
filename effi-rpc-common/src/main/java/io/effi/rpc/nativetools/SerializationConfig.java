@@ -51,7 +51,7 @@ public class SerializationConfig implements NativeConfig<Map<String, Object>> {
         return !types.isEmpty() || !lambdaCapturingTypes.isEmpty() || !proxies.isEmpty();
     }
 
-    record TypeItem(ConditionItem condition, String type) implements Item {
+    record TypeItem(ConditionItem condition, String type) implements NativeConfig.Item {
         @Override
         public Map<String, Object> toMap() {
             return MapBuilder.create(3)
@@ -62,7 +62,7 @@ public class SerializationConfig implements NativeConfig<Map<String, Object>> {
         }
     }
 
-    record LambdaCapturingTypeItem(ConditionItem condition, String name) implements Item {
+    record LambdaCapturingTypeItem(ConditionItem condition, String name) implements NativeConfig.Item {
         @Override
         public Map<String, Object> toMap() {
             return MapBuilder.create(2)
@@ -72,7 +72,7 @@ public class SerializationConfig implements NativeConfig<Map<String, Object>> {
         }
     }
 
-    record ProxyItem(ConditionItem condition, List<String> interfaces) implements Item {
+    record ProxyItem(ConditionItem condition, List<String> interfaces) implements NativeConfig.Item {
         @Override
         public Map<String, Object> toMap() {
             return MapBuilder.create(2)

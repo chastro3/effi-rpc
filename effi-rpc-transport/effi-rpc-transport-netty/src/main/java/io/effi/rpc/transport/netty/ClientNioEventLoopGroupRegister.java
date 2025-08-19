@@ -1,11 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.component.PlatformConfiguration;
-import io.effi.rpc.component.WrappedComponent;
-import io.effi.rpc.config.SystemConfig;
+import io.effi.rpc.component.ExternalComponent;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.support.Scheduler;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.SystemKeys;
 import io.effi.rpc.util.StringUtil;
@@ -13,20 +11,23 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
 @Extension("clientNioEventLoopGroupRegister")
-public class ClientNioEventLoopGroupRegister implements PlatformConfiguration {
+public class ClientNioEventLoopGroupRegister implements ScopedPlatform.Listener {
 
     @Override
-    public void postInit(EffiRpcPlatform platform) {
+    public void onInitialized(ScopedPlatform platform) {
         NioEventLoopGroup nioEventLoopGroup = createNioEventLoopGroup();
-        WrappedComponent<NioEventLoopGroup> component = new WrappedComponent<>(
+        ExternalComponent<NioEventLoopGroup> component = new ExternalComponent<>(
                 NettyClient.EVENT_LOOP_GROUP_KEY,
                 nioEventLoopGroup,
                 nioEventLoopGroup::shutdownGracefully);
-        platform.register(WrappedComponent.class, component);
+        platform.registry().register(ExternalComponent.class, component);
+        Scheduler scheduler = new Scheduler().withDisposableService(nioEventLoopGroup);
+        platform.registry().register(Scheduler.class, scheduler);
     }
 
     private NioEventLoopGroup createNioEventLoopGroup() {
-        String ioThreadsStr = SystemConfig.getInstance().getParam(SystemKeys.CLIENT_IO_THREADS);
+        // todo 使用 platform config
+        String ioThreadsStr = System.getProperty(SystemKeys.CLIENT_IO_THREADS);
         int ioThreads = Constant.DEFAULT_IO_THREADS;
         if (StringUtil.isNotBlank(ioThreadsStr)) {
             try {

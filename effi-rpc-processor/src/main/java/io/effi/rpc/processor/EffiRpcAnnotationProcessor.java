@@ -1,19 +1,20 @@
 package io.effi.rpc.processor;
 
+import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.annotation.rpc.EffiRpcClient;
 import io.effi.rpc.annotation.rpc.EffiRpcService;
+import io.effi.rpc.nativetools.NativeConfig;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,32 +29,35 @@ import static io.effi.rpc.constant.SystemKeys.VERSION;
  * It processes the following annotations and generates the necessary resources:
  *
  * <ul>
+ *   <li>{@link Extensible}</li>
  *   <li>{@link Extension}</li>
  *   <li>{@link EffiRpcService}</li>
  *   <li>{@link EffiRpcClient}</li>
+ *   <li>{@link ScopedComponent}</li>
+ *   <li>{@link NativeConfig.Reflect}</li>
  * </ul>
  */
-@SupportedOptions({GROUP_ID, ARTIFACT_ID, VERSION, NATIVE_BUILD})
 public class EffiRpcAnnotationProcessor extends AbstractProcessor {
 
     private ResourceCollector resourceCollector;
 
-    private List<AnnotationHandler<? extends Annotation>> processors;
+    private List<AnnotationHandler<?>> annotationHandlers;
 
     private Set<String> supportedAnnotation;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        processors = List.of(
+        annotationHandlers = List.of(
                 new ExtensibleHandler(processingEnv),
                 new ExtensionHandler(processingEnv),
                 new RemoteServiceHandler(processingEnv),
                 new RemoteClientHandler(processingEnv),
-                new ScopedComponentHandler(processingEnv)
+                new ScopedComponentHandler(processingEnv),
+                new NativeReflectConfigHandler(processingEnv)
         );
-        resourceCollector = new ResourceCollector(processingEnv, processors);
-        supportedAnnotation = processors.stream()
+        resourceCollector = new ResourceCollector(processingEnv, annotationHandlers);
+        supportedAnnotation = annotationHandlers.stream()
                 .map(item -> item.type().getName())
                 .collect(Collectors.toSet());
     }
@@ -61,8 +65,8 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
-            for (AnnotationHandler<? extends Annotation> processor : processors) {
-                processor.handle(roundEnv);
+            for (AnnotationHandler<?> handler : annotationHandlers) {
+                handler.handle(roundEnv);
             }
             if (roundEnv.processingOver()) {
                 resourceCollector.write();
@@ -83,6 +87,11 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return supportedAnnotation;
+    }
+
+    @Override
+    public Set<String> getSupportedOptions() {
+        return Set.of(GROUP_ID, ARTIFACT_ID, VERSION, NATIVE_BUILD);
     }
 
     private String stackTraceAsString(Throwable e) {

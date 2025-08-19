@@ -3,8 +3,8 @@ package demo.provider;
 import demo.provider.model.ParentObject;
 import io.effi.rpc.annotation.rpc.EffiRpcCallee;
 import io.effi.rpc.annotation.rpc.EffiRpcService;
-import io.effi.rpc.base.annotation.Body;
-import io.effi.rpc.constant.Component;
+import io.effi.rpc.config.ConfigValues;
+import io.effi.rpc.context.annotation.Body;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -13,13 +13,14 @@ import jakarta.ws.rs.QueryParam;
 
 import java.util.List;
 
-import static io.effi.rpc.constant.Component.Protocol.HTTP_1_1;
-import static io.effi.rpc.constant.Component.Protocol.HTTP_2;
+import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_1_1;
+import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_2;
 
-@EffiRpcService(protocol = {HTTP_1_1, HTTP_2}, style = Component.AnnotationStyle.JAX_RS, path = "service")
+@EffiRpcService(protocol = {HTTP_1_1, HTTP_2}, style = ConfigValues.AnnotationStyle.JAX_RS, path = "service")
 public class HelloService extends CallLogInterceptor {
 
     public String hello(String name) {
+        Chain chain = null;
         return "Hello " + name;
     }
 
@@ -38,7 +39,7 @@ public class HelloService extends CallLogInterceptor {
 
     @POST
     @Path("helloList")
-    @EffiRpcCallee(path = "helloList", style = Component.AnnotationStyle.JAX_RS)
+    @EffiRpcCallee(path = "helloList", style = ConfigValues.AnnotationStyle.JAX_RS)
     public List<ParentObject> helloList(@QueryParam("name") String name,
                                         @HeaderParam("content-type") String contentType,
                                         @Body List<ParentObject> list) {

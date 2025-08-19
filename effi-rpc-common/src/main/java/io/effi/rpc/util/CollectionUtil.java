@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -24,9 +25,52 @@ public final class CollectionUtil {
 
     private static final Map.Entry[] EMPTY_ENTRY_ARRAY = new Map.Entry[0];
 
+    /**
+     * Returns an empty entry array.
+     */
     public static <K, V> Map.Entry<K, V>[] emptyEntryArray() {
         return EMPTY_ENTRY_ARRAY;
     }
+
+    /**
+     * Replaces the key in a map when the key (e.g. name) of the value object changes.
+     */
+    public static <K, V> boolean replaceMapKey(Map<K, V> map, K oldKey, K newKey,V value) {
+        if (Objects.equals(oldKey, newKey)) {
+            return false; // no change needed
+        }
+        if (oldKey != null) value = map.remove(oldKey);
+            map.put(newKey, value);
+            return true;
+
+    }
+
+    public static <T extends Comparable> Collection<T> flatDistinctCollection(Collection<? extends Iterable<T>> collection) {
+        if (isEmpty(collection)) return Collections.emptySet();
+        TreeSet<T> result = new TreeSet<>();
+        for (Iterable<T> iterable : collection) {
+            if (iterable != null) {
+                for (T item : iterable) {
+                    result.add(item);
+                }
+            }
+        }
+        return result.isEmpty() ? Collections.emptySet() : result;
+    }
+
+    public static <T extends Comparable> Collection<T> flatDistinctArray(Collection<? extends T[]> collection) {
+        if (isEmpty(collection)) return Collections.emptySet();
+        TreeSet<T> result = new TreeSet<>();
+        for (T[] array : collection) {
+            if (array != null) {
+                for (T item : array) {
+                    result.add(item);
+                }
+            }
+        }
+        return result.isEmpty() ? Collections.emptySet() : result;
+    }
+
 
     /**
      * Converts an array to a hash set.
@@ -173,16 +217,15 @@ public final class CollectionUtil {
      * Merges multiple collections into a single set.
      * <p>
      * Duplicates are eliminated. Returns an empty list if input is empty.
-     * </p>
      */
     @SafeVarargs
     public static <E> Collection<E> merge(Collection<E>... collections) {
         if (isEmpty(collections)) return Collections.emptyList();
         Set<E> set = new HashSet<>();
         for (Collection<E> collection : collections) {
-            set.addAll(collection);
+            if (CollectionUtil.isNotEmpty(collection)) set.addAll(collection);
         }
-        return set;
+        return set.isEmpty() ? Collections.emptyList() : set;
     }
 
 

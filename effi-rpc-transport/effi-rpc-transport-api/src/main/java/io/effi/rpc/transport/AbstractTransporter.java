@@ -1,8 +1,8 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.transport.ClientConfig;
-import io.effi.rpc.config.transport.ServerConfig;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.NetUtil;
@@ -23,13 +23,13 @@ public abstract class AbstractTransporter implements Transporter {
     protected final Map<String, Server> servers = new ConcurrentHashMap<>();
 
     @Override
-    public Server getServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform) {
-        return servers.computeIfAbsent(NetUtil.toAddress(address), k -> newServer(config, address, platform));
+    public Server supplyServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform) {
+        return servers.computeIfAbsent(NetUtil.toAddress(address), k -> createServer(config, address, platform));
     }
 
     @Override
-    public Client getClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcPlatform platform) {
-        return clients.computeIfAbsent(NetUtil.toAddress(remoteAddress), k -> newClient(config, remoteAddress, platform));
+    public Client supplyClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
+        return clients.computeIfAbsent(NetUtil.toAddress(remoteAddress), k -> createClient(config, remoteAddress, platform));
     }
 
     @Override
@@ -50,7 +50,7 @@ public abstract class AbstractTransporter implements Transporter {
         servers.clear();
     }
 
-    protected abstract Server newServer(ServerConfig config, InetSocketAddress address, EffiRpcPlatform platform);
+    protected abstract Server createServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform);
 
-    protected abstract Client newClient(ClientConfig config, InetSocketAddress remoteAddress, EffiRpcPlatform platform);
+    protected abstract Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform);
 }

@@ -1,6 +1,5 @@
 package io.effi.rpc.processor;
 
-
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.annotation.component.ScopedComponent;
 
@@ -11,7 +10,7 @@ import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
 /**
- * Handles the processing of the {@link Extensible} annotation.
+ * Handles the {@link Extensible} annotation.
  */
 public class ExtensibleHandler extends AnnotationHandler<Extensible> {
 
@@ -21,11 +20,11 @@ public class ExtensibleHandler extends AnnotationHandler<Extensible> {
 
     @Override
     protected void handle(Set<? extends Element> elements, RoundEnvironment roundEnv) {
-        ScopedComponentResourceSection resourceSection = getResourceSection(ScopedComponentResourceSection.class);
+        ScopedComponentResourceSection resourceSection = resourceSection(ScopedComponentResourceSection.class);
         for (Element element : elements) {
             if (element instanceof TypeElement typeElement) {
                 Extensible extensible = typeElement.getAnnotation(Extensible.class);
-                String typeName = helper().getQualifiedClassName(typeElement);
+                String typeName = helper().qualifiedNameOf(typeElement);
                 resourceSection.add(typeName, extensible.scope().name(), ScopedComponent.Kind.MULTI.name());
             }
         }

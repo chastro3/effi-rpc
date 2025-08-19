@@ -2,32 +2,29 @@ package demo.consumer;
 
 import demo.consumer.model.ParentObject;
 import io.effi.rpc.boot.AnnotationRemoteClient;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.registry.DefaultRegistryConfig;
-import io.effi.rpc.config.registry.RegistryConfig;
-import io.effi.rpc.config.transport.CertificateConfig;
-import io.effi.rpc.config.transport.ClientConfig;
-import io.effi.rpc.config.transport.DefaultCertificateConfig;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.CertificateConfig;
+import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.component.transport.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.h1.Http1ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
+import io.effi.rpc.component.registry.DefaultRegistryConfig;
+import io.effi.rpc.component.registry.RegistryConfig;
 
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static io.effi.rpc.constant.Component.Protocol.HTTP_1_1;
-
 public class Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(Consumer.class);
 
     public static void main(String[] args) {
-
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
                 System.out.print("Enter command (start, stop, exit): ");
@@ -36,7 +33,7 @@ public class Consumer {
                     send();
                 }
                 if (command.equals("stop")) {
-                    EffiRpcPlatform.getInstance().stop();
+                    ScopedPlatform.defaultPlatform().close();
                 }
             }
         }
@@ -76,7 +73,7 @@ public class Consumer {
     }
 
     private static void send() {
-        EffiRpcApplication application = EffiRpcPlatform.getInstance()
+        ScopedApplication application = ScopedPlatform.defaultPlatform()
                 .newApplication("consumer");
         CertificateConfig certificateConfig = DefaultCertificateConfig.builder()
                 .name("client-cert")
@@ -85,15 +82,18 @@ public class Consumer {
                 .trustCertPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\ca-cert.pem")
                 .build();
         Http2ClientConfig http2ClientConfig = Http2ClientConfig.builder()
-                .name("h2-client")
+                .id("h2-client")
                 .ssl(false)
                 .certificate(certificateConfig)
                 .build();
         application.platform()
+                .registry()
                 .register(ClientConfig.class, http2ClientConfig)
-                .register(ClientConfig.class, Http1ClientConfig.builder().name("hello-client").ssl(false).certificate(certificateConfig).protocol(HTTP_1_1).build());
-        application.register(RegistryConfig.class, DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build().addTags(Tags.CONSUMER, Tags.FORCE_ACTIVE))
-                .register(RegistryConfig.class, DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").build());
+                .register(ClientConfig.class, Http1ClientConfig.builder().id("hello-client").ssl(false).certificate(certificateConfig).build());
+        application.platform()
+                .registry()
+                .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.CONSUMER, Tags.FORCE_ACTIVE));
+//                .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("nacos://127.0.0.1:8848").build());
         AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
         HelloClient helloClient = remoteCaller.get();
 //        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);

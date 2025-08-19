@@ -8,7 +8,7 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.json.JacksonSerializer;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
-import static io.effi.rpc.constant.Component.Serialization.MSGPACK;
+import static io.effi.rpc.config.ConfigValues.Serialization.MSGPACK;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using MessagePack.

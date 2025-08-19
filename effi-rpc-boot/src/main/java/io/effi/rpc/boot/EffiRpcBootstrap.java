@@ -1,28 +1,28 @@
 package io.effi.rpc.boot;
 
-import io.effi.rpc.base.ServiceHost;
-import io.effi.rpc.component.EffiRpcApplication;
-import io.effi.rpc.component.EffiRpcModule;
-import io.effi.rpc.component.EffiRpcPlatform;
-import io.effi.rpc.config.registry.RegistryConfig;
-import io.effi.rpc.config.transport.ServerConfig;
+import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.registry.RegistryConfig;
+import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.CollectionUtil;
 
+import java.net.InetSocketAddress;
+
 /**
  * Bootstrap class for initializing and configuring EffiRpc framework.
  */
-public class EffiRpcBootstrap extends EffiRpcApplication.Holder {
+public class EffiRpcBootstrap extends ScopedApplication.Holder {
 
     private static final Logger logger = LoggerFactory.getLogger(EffiRpcBootstrap.class);
 
-
-    EffiRpcBootstrap(EffiRpcApplication application) {
+    EffiRpcBootstrap(ScopedApplication application) {
         super(application);
     }
 
-    public static EffiRpcBootstrap newInstance(EffiRpcPlatform platform, String applicationName) {
+    public static EffiRpcBootstrap newInstance(ScopedPlatform platform, String applicationName) {
         return newInstance(platform.newApplication(applicationName));
     }
 
@@ -33,7 +33,7 @@ public class EffiRpcBootstrap extends EffiRpcApplication.Holder {
      * @return a new instance of EffiRpcBootstrap
      */
     public static EffiRpcBootstrap newInstance(String applicationName) {
-        return newInstance(EffiRpcPlatform.getInstance(), applicationName);
+        return newInstance(ScopedPlatform.defaultPlatform(), applicationName);
     }
 
     /**
@@ -42,30 +42,25 @@ public class EffiRpcBootstrap extends EffiRpcApplication.Holder {
      * @param application the EffiRpcApplication instance
      * @return a new instance of EffiRpcBootstrap
      */
-    public static EffiRpcBootstrap newInstance(EffiRpcApplication application) {
+    public static EffiRpcBootstrap newInstance(ScopedApplication application) {
         return new EffiRpcBootstrap(application);
     }
 
-    /**
-     * Exports a service using a specific module.
-     *
-     * @param serverConfig    the server configuration
-     * @param port            the port to export on
-     * @param module          the EffiRpc module
-     * @param registryConfigs optional registry configurations
-     * @return the updated EffiRpcBootstrap instance
-     */
-    public EffiRpcBootstrap serviceHost(ServerConfig serverConfig, int port, RegistryConfig... registryConfigs) {
-        EffiRpcPlatform platform = platform();
-        DefaultServiceHost serviceHost = DefaultServiceHost.builder()
-                .exportedPort(port)
-                .serverConfig(serverConfig)
-                .registryAt(registryConfigs)
-                .platform(platform)
-                .build();
-        platform.register(ServiceHost.class, serviceHost);
+    public EffiRpcBootstrap applyServer(ServerConfig serverConfig, int port) {
+        ServerLauncher.allocate(application, serverConfig, port);
         return this;
     }
+
+    public EffiRpcBootstrap applyServer(ServerConfig serverConfig, String host, int port) {
+        ServerLauncher.allocate(application, serverConfig, host, port);
+        return this;
+    }
+
+    public EffiRpcBootstrap applyServer(ServerConfig serverConfig, InetSocketAddress boundAddress) {
+        ServerLauncher.allocate(application, serverConfig, boundAddress);
+        return this;
+    }
+
 
     /**
      * Registers multiple services.
@@ -99,7 +94,9 @@ public class EffiRpcBootstrap extends EffiRpcApplication.Holder {
      * @return the updated EffiRpcBootstrap instance
      */
     public EffiRpcBootstrap registry(RegistryConfig registryConfig) {
-        application().register(RegistryConfig.class, registryConfig);
+        application().platform()
+                .registry()
+                .register(RegistryConfig.class, registryConfig);
         return this;
     }
 
@@ -115,21 +112,21 @@ public class EffiRpcBootstrap extends EffiRpcApplication.Holder {
      * Stops the EffiRpc application.
      */
     public EffiRpcBootstrap stop() {
-        application.stop();
+        application.close();
         return this;
     }
 
     /**
      * Returns the application.
      */
-    public EffiRpcApplication application() {
+    public ScopedApplication application() {
         return application;
     }
 
     /**
      * Returns the defaultModule.
      */
-    public EffiRpcModule defaultModule() {
+    public ScopedModule defaultModule() {
         return application.defaultModule();
     }
 
