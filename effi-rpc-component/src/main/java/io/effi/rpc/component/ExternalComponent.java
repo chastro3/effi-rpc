@@ -3,8 +3,8 @@ package io.effi.rpc.component;
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.GenericKey;
-import io.effi.rpc.util.Identifiable;
-import io.effi.rpc.util.resoruce.Cleanable;
+import io.effi.rpc.trait.Identifiable;
+import io.effi.rpc.trait.Cleanable;
 
 /**
  * Wraps external component instances with metadata and lifecycle management.
@@ -26,7 +26,7 @@ public class ExternalComponent<T> extends DynamicTagComponent implements Identif
     }
 
     public ExternalComponent(GenericKey<T> name, T value, Cleanable cleanable) {
-        this.name = AssertUtil.notNull(name, "name");
+        this.name = AssertUtil.notNull(name, "id");
         this.value = AssertUtil.notNull(value, "value");
         this.cleanable = cleanable;
     }
@@ -53,6 +53,6 @@ public class ExternalComponent<T> extends DynamicTagComponent implements Identif
 
     @Override
     public String toString() {
-        return "ExternalComponent{name=" + name + ", value=" + value + "}";
+        return "ExternalComponent{id=" + name + ", value=" + value + "}";
     }
 }

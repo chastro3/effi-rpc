@@ -11,7 +11,7 @@ import java.util.Map;
 public interface Argument {
 
     /**
-     * Holds source expressions used to extract parameter values in {@link MethodMapper} mapping.
+     * Holds source expressions used to extract parameter values in {@link ServantMethod} mapping.
      */
     class Source extends Holder<String> {
 

@@ -1,15 +1,22 @@
 package io.effi.rpc.boot;
 
-import io.effi.rpc.annotation.rpc.EffiRpcCallee;
-import io.effi.rpc.annotation.rpc.EffiRpcCaller;
-import io.effi.rpc.annotation.rpc.EffiRpcClient;
-import io.effi.rpc.annotation.rpc.EffiRpcService;
+import io.effi.rpc.annotation.rpc.Call;
+import io.effi.rpc.annotation.rpc.CallGroup;
+import io.effi.rpc.annotation.rpc.Serve;
+import io.effi.rpc.annotation.rpc.ServeGroup;
+import io.effi.rpc.boot.confiurator.DefaultInterceptorChainConfigurator;
+import io.effi.rpc.boot.confiurator.DefaultThreadPoolConfigurator;
+import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.config.Options;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.CallerGroup;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.annotation.AnnotationStyle;
-import io.effi.rpc.context.annotation.AnnotationStyleParser;
+import io.effi.rpc.context.annotation.AnnotationStyleResolver;
 import io.effi.rpc.context.annotation.UnParse;
-import io.effi.rpc.config.Config;
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.context.support.failure.FailRetry;
+import io.effi.rpc.governance.registry.RegistryLocator;
 import io.effi.rpc.util.NumberUtil;
 import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.util.StringUtil;
@@ -26,11 +33,11 @@ import java.util.stream.Collectors;
  */
 public final class AnnotationSupport {
 
-    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalConfig config) {
-        AnnotationStyle annotationStyle = AnnotationStyle.getInstance(config);
-        AnnotationStyleParser parser = annotationStyle.parser();
-        if (parser != null)
-            parser.parseType(targetType, config);
+    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalOptions options) {
+        AnnotationStyle annotationStyle = AnnotationStyle.getInstance(options);
+        AnnotationStyleResolver resolver = annotationStyle.resolver();
+        if (resolver != null)
+            resolver.resolveType(targetType, options);
         return annotationStyle;
     }
 
@@ -43,100 +50,71 @@ public final class AnnotationSupport {
                 .collect(Collectors.toList());
     }
 
-    public static AnnotationStyleParser annotationStyleParserForMethod(Config config,
-                                                                       AnnotationStyle annotationStyle) {
-        String style = config.get(ConfigNames.ANNOTATION_STYLE);
-        if (StringUtil.isBlank(style)) return annotationStyle.parser();
+    public static AnnotationStyleResolver annotationStyleParserForMethod(Options options,
+                                                                         AnnotationStyle annotationStyle) {
+        String style = options.option(Peer.ANNOTATION_STYLE);
+        if (StringUtil.isBlank(style)) return annotationStyle.resolver();
         return Objects.equals(style, annotationStyle.name())
-                ? annotationStyle.parser()
-                : AnnotationStyle.getInstance(style).parser();
+                ? annotationStyle.resolver()
+                : AnnotationStyle.getInstance(style).resolver();
     }
 
-    public static <C extends Config> C fillConfig(EffiRpcCaller caller, C config) {
-        if (caller != null && config != null) {
-            config.set(ConfigNames.PATH, caller.path());
-            config.set(ConfigNames.ANNOTATION_STYLE, caller.style());
-            config.set(ConfigNames.PROTOCOL, caller.protocol());
-            config.set(ConfigNames.REMOTE_APPLICATION, caller.remoteApplication());
-            config.set(ConfigNames.REMOTE_MODULE, caller.remoteModule());
-            config.set(ConfigNames.CLIENT_CONFIG, caller.clientConfig());
-            config.set(ConfigNames.ADDRESS, caller.address());
-            config.set(ConfigNames.INTERCEPTOR, caller.interceptor());
-            config.set(ConfigNames.REGISTRY, caller.registry());
-            config.set(ConfigNames.SERIALIZATION, caller.serialization());
-            config.set(ConfigNames.COMPRESSION, caller.compression());
-            config.set(ConfigNames.MODULE, caller.module());
-            config.set(ConfigNames.LOAD_BALANCE, caller.loadBalance());
-            config.set(ConfigNames.FAILURE_HANDLER, caller.failureHandler());
-            config.set(ConfigNames.THREAD_POOL, caller.threadPool());
-            config.set(ConfigNames.TIMEOUT, caller.timeout());
-            config.set(ConfigNames.RETRIES, caller.retries());
-            config.set(ConfigNames.SERIALIZATION_THRESHOLD, caller.serializationThreshold());
-            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, caller.deserializationThreshold());
+    public static <C extends Options> C fillOption(Call call, C options) {
+        if (call != null && options != null) {
+            options.addOption(Peer.PATH, call.path());
+            options.addOption(Peer.ANNOTATION_STYLE, call.style());
+            options.addOption(Caller.PROTOCOL, call.protocol());
+            options.addOption(Caller.REMOTE_APPLICATION, call.remoteApplication());
+            options.addOption(Caller.REMOTE_MODULE, call.remoteModule());
+            options.addOption(Caller.CLIENT, call.clientConfig());
+            options.addOption(Caller.ENDPOINT, call.endpoint());
+            options.addOption(DefaultInterceptorChainConfigurator.INTERCEPTOR, call.interceptor());
+            options.addOption(RegistryLocator.REGISTRY, call.registry());
+            options.addOption(Peer.SERIALIZER, call.serialization());
+            options.addOption(Peer.COMPRESSOR, call.compression());
+            options.addOption(Peer.ASSOCIATED_MODULE, call.module());
+            options.addOption(Caller.LOAD_BALANCER, call.loadBalance());
+            options.addOption(Caller.FAILURE_HANDLER, call.failureHandler());
+            options.addOption(DefaultThreadPoolConfigurator.THREAD_POOL, call.threadPool());
+            options.addOption(Caller.TIMEOUT, call.timeout());
+            options.addOption(FailRetry.RETRIES, call.retries());
+            options.addOption(Peer.SERIALIZATION_THRESHOLD, call.serializationThreshold());
+            options.addOption(Peer.DESERIALIZATION_THRESHOLD, call.deserializationThreshold());
         }
-        return config;
+        return options;
     }
 
-    public static <C extends Config> C fillConfig(EffiRpcClient client, C config) {
-        if (client != null && config != null) {
-            config.set(ConfigNames.PROXY, client.proxy());
-            config.set(ConfigNames.PATH, client.path());
-            config.set(ConfigNames.ANNOTATION_STYLE, client.style());
-            config.set(ConfigNames.PROTOCOL, client.protocol());
-            config.set(ConfigNames.REMOTE_APPLICATION, client.remoteApplication());
-            config.set(ConfigNames.REMOTE_MODULE, client.remoteModule());
-            config.set(ConfigNames.CLIENT_CONFIG, client.clientConfig());
-            config.set(ConfigNames.ADDRESS, client.address());
-            config.set(ConfigNames.INTERCEPTOR, client.interceptor());
-            config.set(ConfigNames.REGISTRY, client.registry());
-            config.set(ConfigNames.SERIALIZATION, client.serialization());
-            config.set(ConfigNames.COMPRESSION, client.compression());
-            config.set(ConfigNames.MODULE, client.module());
-            config.set(ConfigNames.LOAD_BALANCE, client.loadBalance());
-            config.set(ConfigNames.FAILURE_HANDLER, client.failureHandler());
-            config.set(ConfigNames.THREAD_POOL, client.threadPool());
-            config.set(ConfigNames.TIMEOUT, client.timeout());
-            config.set(ConfigNames.RETRIES, client.retries());
-            config.set(ConfigNames.SERIALIZATION_THRESHOLD, client.serializationThreshold());
-            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, client.deserializationThreshold());
+    public static <C extends Options> C fillOption(CallGroup group, C options) {
+        if (group != null && options != null) {
+            options.addOption(CallerGroup.PROXY, group.proxy());
+            fillOption(group.call(), options);
         }
-        return config;
+        return options;
     }
 
-    public static <C extends Config> C fillConfig(EffiRpcCallee callee, C config) {
-        if (callee != null && config != null) {
-            config.set(ConfigNames.PATH, callee.path());
-            config.set(ConfigNames.ANNOTATION_STYLE, callee.style());
-            config.set(ConfigNames.SUPPORTED_PROTOCOL, callee.protocol());
-            config.set(ConfigNames.EXCLUDED_PORT, NumberUtil.box(callee.excludedPort()));
-            config.set(ConfigNames.MODULE, callee.module());
-            config.set(ConfigNames.INTERCEPTOR, callee.interceptor());
-            config.set(ConfigNames.CALLEE_DESC, callee.desc());
-            config.set(ConfigNames.SERIALIZATION, callee.serialization());
-            config.set(ConfigNames.COMPRESSION, callee.compression());
-            config.set(ConfigNames.CALLEE_THREAD_POOL, callee.threadPool());
-            config.set(ConfigNames.SERIALIZATION_THRESHOLD, callee.serializationThreshold());
-            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, callee.deserializationThreshold());
+    public static <C extends Options> C fillOption(Serve serve, C options) {
+        if (serve != null && options != null) {
+            options.addOption(Peer.PATH, serve.path());
+            options.addOption(Peer.ANNOTATION_STYLE, serve.style());
+            options.addOption(Servant.DECLARED_PROTOCOL, serve.protocol());
+            options.addOption(Servant.EXCLUDED_PORT, NumberUtil.box(serve.excludedPort()));
+            options.addOption(Peer.ASSOCIATED_MODULE, serve.module());
+            options.addOption(DefaultInterceptorChainConfigurator.INTERCEPTOR, serve.interceptor());
+            options.addOption(Servant.LABEL, serve.desc());
+            options.addOption(Peer.SERIALIZER, serve.serialization());
+            options.addOption(Peer.COMPRESSOR, serve.compression());
+            options.addOption(DefaultThreadPoolConfigurator.THREAD_POOL, serve.threadPool());
+            options.addOption(Peer.SERIALIZATION_THRESHOLD, serve.serializationThreshold());
+            options.addOption(Peer.DESERIALIZATION_THRESHOLD, serve.deserializationThreshold());
         }
-        return config;
+        return options;
     }
 
-    public static <C extends Config> C fillConfig(EffiRpcService service, C config) {
-        if (service != null && config != null) {
-            config.set(ConfigNames.PATH, service.path());
-            config.set(ConfigNames.ANNOTATION_STYLE, service.style());
-            config.set(ConfigNames.SUPPORTED_PROTOCOL, service.protocol());
-            config.set(ConfigNames.EXCLUDED_PORT, NumberUtil.box(service.excludedPort()));
-            config.set(ConfigNames.MODULE, service.module());
-            config.set(ConfigNames.INTERCEPTOR, service.interceptor());
-            config.set(ConfigNames.CALLEE_DESC, service.desc());
-            config.set(ConfigNames.SERIALIZATION, service.serialization());
-            config.set(ConfigNames.COMPRESSION, service.compression());
-            config.set(ConfigNames.CALLEE_THREAD_POOL, service.threadPool());
-            config.set(ConfigNames.SERIALIZATION_THRESHOLD, service.serializationThreshold());
-            config.set(ConfigNames.DESERIALIZATION_THRESHOLD, service.deserializationThreshold());
+    public static <C extends Options> C fillOption(ServeGroup group, C options) {
+        if (group != null && options != null) {
+            fillOption(group.serve(), options);
         }
-        return config;
+        return options;
     }
 
 }

@@ -1,10 +1,12 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
-import io.effi.rpc.annotation.rpc.EffiRpcCaller;
-import io.effi.rpc.annotation.rpc.EffiRpcClient;
+import io.effi.rpc.annotation.rpc.Call;
+import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.context.annotation.Body;
-import io.effi.rpc.config.ConfigValues;
+import io.effi.rpc.protocol.http.arg.annotation.jax.JaxRsStyleResolver;
+import io.effi.rpc.protocol.http.h1.Http1Protocol;
+import io.effi.rpc.protocol.http.h2.Http2Protocol;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -14,12 +16,8 @@ import jakarta.ws.rs.QueryParam;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-@EffiRpcClient(
-        remoteApplication = "provider",
-        protocol = ConfigValues.Protocol.HTTP_1_1,
-        clientConfig = "hello-client",
-        path = "service",
-        style = ConfigValues.AnnotationStyle.JAX_RS
+@CallGroup(
+        call = @Call(endpoint = "provider")
 )
 public interface HelloClient {
 
@@ -29,14 +27,14 @@ public interface HelloClient {
 
     @POST
     @Path("helloList")
-    @EffiRpcCaller(path = "helloList", protocol = ConfigValues.Protocol.HTTP_1_1, style = ConfigValues.AnnotationStyle.JAX_RS)
+    @Call(path = "helloList", protocol = Http1Protocol.NAME, style = JaxRsStyleResolver.NAME)
     List<ParentObject> helloList(@QueryParam("name") String name,
                                  @HeaderParam("content-type11") String contentType,
                                  @Body List<ParentObject> list);
 
     @POST
     @Path("helloList")
-    @EffiRpcCaller(path = "helloList", protocol = ConfigValues.Protocol.HTTP_2, style = ConfigValues.AnnotationStyle.JAX_RS, clientConfig = "h2-client")
+    @Call(path = "helloList", protocol = Http2Protocol.NAME, style = JaxRsStyleResolver.NAME, clientConfig = "h2-client")
     CompletableFuture<List<ParentObject>> helloListAsync(@QueryParam("name") String name,
                                                          @HeaderParam("content-type111") String contentType,
                                                          @Body List<ParentObject> list);

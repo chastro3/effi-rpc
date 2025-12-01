@@ -15,8 +15,8 @@ public class CallContext<R extends Request, P extends Peer> extends Interaction.
 
     private final Object[] args;
 
-    public CallContext(ScopedModule module, R request, P callSide, Interaction.Mode<?> mode, Object[] args) {
-        super(module, request, callSide, mode);
+    public CallContext(ScopedModule module, R request, P peer, Interaction.Mode<?> mode, Object[] args) {
+        super(module, request, peer, mode);
         this.args = args;
     }
 

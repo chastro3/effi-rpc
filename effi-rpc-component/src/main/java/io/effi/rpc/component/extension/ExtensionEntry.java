@@ -9,10 +9,10 @@ import io.effi.rpc.component.TagComponent;
 import io.effi.rpc.util.ClassUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.util.Ordered;
+import io.effi.rpc.trait.Ordered;
 import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.util.resoruce.Cleanable;
+import io.effi.rpc.trait.Cleanable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -102,8 +102,8 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
 
     @Override
     public String toString() {
-        return ObjectUtil.simpleClassName(this) + "<"
-                + type.getSimpleName() + "> {names="
+        return ObjectUtil.simpleClassName(this)
+                + "<" + type.getSimpleName() + "> {names="
                 + Arrays.toString(names) + "}";
     }
 

@@ -1,6 +1,6 @@
 package io.effi.rpc.context.support;
 
-import io.effi.rpc.async.Result;
+import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.exception.EffiRpcException;

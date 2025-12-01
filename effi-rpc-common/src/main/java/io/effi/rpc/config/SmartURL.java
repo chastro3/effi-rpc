@@ -3,9 +3,9 @@ package io.effi.rpc.config;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.FluentBuilder;
+import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.util.Replicable;
+import io.effi.rpc.trait.Replicable;
 import io.effi.rpc.util.StringUtil;
 
 import java.net.InetSocketAddress;
@@ -81,7 +81,7 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
                 .scheme(protocol)
                 .address(address)
                 .path(path)
-                .withQueryParams(params)
+                .queryParams(params)
                 .build();
     }
 
@@ -114,7 +114,7 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
         return this;
     }
 
-    public SmartURL withAddress(InetSocketAddress address) {
+    public SmartURL address(InetSocketAddress address) {
         if (address != null) {
             this.host = address.getHostString();
             this.port = address.getPort();
@@ -181,7 +181,7 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
                 .host(host)
                 .port(port)
                 .path(queryPath)
-                .withQueryParams(queryParams)
+                .queryParams(queryParams)
                 .build();
     }
 
@@ -253,11 +253,11 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
 
         public Builder path(QueryPath path) {
             this.queryPath = path;
-            withQueryParams(path.queryParams());
+            queryParams(path.queryParams());
             return this;
         }
 
-        public Builder withQueryParams(Map<String, String> params) {
+        public Builder queryParams(Map<String, String> params) {
             if (CollectionUtil.isNotEmpty(params)) {
                 this.queryParams.putAll(params);
             }

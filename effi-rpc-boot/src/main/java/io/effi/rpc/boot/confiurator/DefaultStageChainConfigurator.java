@@ -1,35 +1,35 @@
 package io.effi.rpc.boot.confiurator;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.context.ConfigurablePeer;
-import io.effi.rpc.context.ConfigurableCallee;
-import io.effi.rpc.context.ConfigurableCaller;
-import io.effi.rpc.context.ImmutableStageChain;
-import io.effi.rpc.context.Stage;
 import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.FutureResultStage;
-import io.effi.rpc.boot.confiurator.stage.InvokeCalleeStage;
+import io.effi.rpc.boot.confiurator.stage.InvokeServantStage;
 import io.effi.rpc.boot.confiurator.stage.LocatorStage;
 import io.effi.rpc.boot.confiurator.stage.ReplyInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.ReplyResultStage;
+import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.context.ConfigurableServant;
+import io.effi.rpc.context.ConfigurableCaller;
+import io.effi.rpc.context.ConfigurablePeer;
+import io.effi.rpc.context.Stage;
+import io.effi.rpc.context.support.ImmutableStageChain;
 
 import static io.effi.rpc.boot.confiurator.DefaultStageChainConfigurator.NAME;
 
 @Extension(value = NAME, primary = true)
 public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChainConfigurator, ScopedModule.Acceptor {
 
-    public static final String NAME = ConfigNames.DEFAULT;
+    public static final String NAME = Constant.DEFAULT_NAME;
 
     private Stage.Chain defaultCallerCallChain;
 
-    private Stage.Chain defaultCalleeCallChain;
+    private Stage.Chain defaultServantCallChain;
 
     private Stage.Chain defaultCallerReplyChain;
 
-    private Stage.Chain defaultCalleeReplyChain;
+    private Stage.Chain defaultServantReplyChain;
 
     @Override
     public void accept(ScopedModule module) {
@@ -40,17 +40,17 @@ public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChai
     public void configure(ConfigurablePeer peer) {
         if (peer instanceof ConfigurableCaller<?> caller) {
             if (caller.callStageChain() == null) {
-                caller.withCallStageChain(defaultCallerCallChain);
+                caller.callStageChain(defaultCallerCallChain);
             }
             if (caller.replyStageChain() == null) {
-                caller.withReplyStageChain(defaultCallerReplyChain);
+                caller.replyStageChain(defaultCallerReplyChain);
             }
-        } else if (peer instanceof ConfigurableCallee callee) {
-            if (callee.callStageChain() == null) {
-                callee.withCallStageChain(defaultCalleeCallChain);
+        } else if (peer instanceof ConfigurableServant servant) {
+            if (servant.callStageChain() == null) {
+                servant.callStageChain(defaultServantCallChain);
             }
-            if (callee.replyStageChain() == null) {
-                callee.withReplyStageChain(defaultCalleeReplyChain);
+            if (servant.replyStageChain() == null) {
+                servant.replyStageChain(defaultServantReplyChain);
             }
         }
     }
@@ -59,15 +59,15 @@ public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChai
         String[] callerCallChainNames = {
                 CallInterceptStage.NAME, LocatorStage.NAME, ChosenInterceptStage.NAME, FutureResultStage.NAME
         };
-        String[] calleeCallChainNames = new String[]{
-                CallInterceptStage.NAME, InvokeCalleeStage.NAME
+        String[] servantCallChainNames = new String[]{
+                CallInterceptStage.NAME, InvokeServantStage.NAME
         };
         String[] replyChainNames = {
                 ReplyInterceptStage.NAME, ReplyResultStage.NAME
         };
         defaultCallerCallChain = ImmutableStageChain.of(module, callerCallChainNames);
-        defaultCalleeCallChain = ImmutableStageChain.of(module, calleeCallChainNames);
+        defaultServantCallChain = ImmutableStageChain.of(module, servantCallChainNames);
         defaultCallerReplyChain = ImmutableStageChain.of(module, replyChainNames);
-        defaultCalleeReplyChain = defaultCallerReplyChain;
+        defaultServantReplyChain = defaultCallerReplyChain;
     }
 }

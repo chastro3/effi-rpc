@@ -24,5 +24,4 @@
     <logger name="io.effi.rpc" level="DEBUG"/>
     <logger name="com.alibaba.nacos" level="OFF"/>
 
-
 </configuration>

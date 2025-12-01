@@ -11,13 +11,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.config.ConfigValues.Serialization.KRYO;
+import static io.effi.rpc.serialization.kryo.KryoSerializer.NAME;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Kryo.
  */
-@Extension(value = KRYO, onClass = "com.esotericsoftware.kryo.Kryo")
+@Extension(value = NAME, onClass = "com.esotericsoftware.kryo.Kryo", primary = true)
 public class KryoSerializer extends AbstractSerializer {
+
+    public static final String NAME = "kryo";
 
     // Set buffer size
     private static final int BUFFER_SIZE = 1024 * 4;

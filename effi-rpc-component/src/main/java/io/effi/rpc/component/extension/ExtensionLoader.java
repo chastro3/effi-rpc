@@ -4,15 +4,15 @@ import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ComponentDescriptor;
 import io.effi.rpc.component.ScopedContext;
-import io.effi.rpc.constant.ResourcePath;
+import io.effi.rpc.constant.ResourcePaths;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ClassUtil;
+import io.effi.rpc.trait.Cleanable;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.Messages;
 import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.util.Ordered;
+import io.effi.rpc.trait.Ordered;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.util.resoruce.Cleanable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -26,7 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
+
+import static io.effi.rpc.util.StringUtil.format;
 
 /**
  * Loads and manages extension components of a specified type.
@@ -35,7 +36,7 @@ import java.util.function.Function;
  * managing them according to their configuration, including scope, conditional filtering,
  * and priority ordering.
  * <p>
- * Supports retrieving extension instances by name, obtaining the default extension,
+ * Supports retrieving extension instances by id, obtaining the default extension,
  * and listing all instances that meet specified conditions.
  *
  * @param <T> the extension type, which must be an interface annotated with {@link Extensible}
@@ -58,15 +59,12 @@ public final class ExtensionLoader<T> implements Cleanable {
 
     private final boolean lazyLoaded;
 
-    private final String key;
-
     ExtensionLoader(ScopedContext scopedContext, Class<T> type, ComponentDescriptor descriptor) {
         this.extensible = ensureExtensible(type);
         this.scopedContext = scopedContext;
         this.type = type;
         this.descriptor = descriptor;
         this.lazyLoaded = extensible.lazyLoad();
-        this.key = extensible.key();
         this.extensionEntries = loadExtensionEntries(type);
         this.primaryExtension = findPrimaryExtension();
     }
@@ -87,26 +85,11 @@ public final class ExtensionLoader<T> implements Cleanable {
         return descriptor;
     }
 
-    public T adaptiveExtension(Function<String, String> nameGetter) {
-        AssertUtil.notNull(nameGetter, "nameGetter");
-        if (StringUtil.isBlank(key)) {
-            throw new IllegalStateException("Failed to load adaptive extension for "
-                    + type.getTypeName() + ": no key defined in "
-                    + ObjectUtil.annotationName(Extensible.class));
-        }
-        // todo 扩展key的优化
-        String name = nameGetter.apply(key);
-        if (StringUtil.isBlank(name)) name = primaryExtension;
-        return namedExtension(name);
-    }
-
     public T namedExtension(String extensionName) {
         AssertUtil.notBlank(extensionName, "extensionName");
         ExtensionEntry<T> entry = extensionEntries.get(extensionName);
         if (entry == null) {
-            throw new IllegalStateException("Failed to load extension '"
-                    + extensionName + "' for '" + type.getTypeName()
-                    + "': not found or not eligible for loading.");
+            throw new IllegalStateException(format("Failed to load extension '{}' for '{}': not found or not eligible for loading.", extensionName, type.getTypeName()));
         }
         return entry.extension();
     }
@@ -114,8 +97,7 @@ public final class ExtensionLoader<T> implements Cleanable {
     public T preferredExtension(String extensionName) {
         extensionName = StringUtil.isBlank(extensionName) ? primaryExtension : extensionName;
         if (StringUtil.isBlank(extensionName)) {
-            throw new IllegalStateException("Attempted to use primary extension, but none was found for '"
-                    + type.getTypeName() + "'.");
+            throw new IllegalStateException("Attempted to use primary extension, but none was found for '" + type.getTypeName() + "'.");
         }
         ExtensionEntry<T> entry = extensionEntries.get(extensionName);
         if (entry != null) return entry.extension();
@@ -126,8 +108,7 @@ public final class ExtensionLoader<T> implements Cleanable {
                 return primaryEntry.extension();
             }
         }
-        throw new IllegalStateException("Extension '" + extensionName + "' not found, and primary extension "
-                + "also not found for '" + type.getTypeName() + "'.");
+        throw new IllegalStateException(format("Extension '{}' not found, and primary extension also not found for '{}'.", extensionName, type.getTypeName()));
     }
 
     public T primaryExtension() {
@@ -154,9 +135,8 @@ public final class ExtensionLoader<T> implements Cleanable {
     }
 
     private Extensible ensureExtensible(Class<?> type) {
-        if (!type.isInterface()) {
+        if (!type.isInterface())
             throw new IllegalArgumentException("Extension type '" + type.getName() + "' must be an interface");
-        }
         return AssertUtil.requireAnnotation(type, Extensible.class);
     }
 
@@ -165,7 +145,7 @@ public final class ExtensionLoader<T> implements Cleanable {
      */
     @SuppressWarnings("unchecked")
     private Map<String, ExtensionEntry<T>> loadExtensionEntries(Class<T> type) {
-        String path = ResourcePath.SPI_SERVICES_DIR + type.getTypeName();
+        String path = ResourcePaths.SPI_SERVICES_DIR + type.getTypeName();
         try {
             ClassLoader classLoader = ClassUtil.findClassLoader(type);
             Enumeration<URL> resources = classLoader.getResources(path);

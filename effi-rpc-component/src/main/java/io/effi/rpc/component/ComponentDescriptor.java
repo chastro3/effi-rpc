@@ -1,7 +1,7 @@
 package io.effi.rpc.component;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.constant.ResourcePath;
+import io.effi.rpc.constant.ResourcePaths;
 import io.effi.rpc.util.ClassUtil;
 import io.effi.rpc.util.Messages;
 
@@ -31,7 +31,7 @@ import static io.effi.rpc.util.ObjectUtil.simpleClassName;
  */
 public final class ComponentDescriptor {
 
-    public static final String DESCRIPTOR_FILE = ResourcePath.COMPONENT_DESCRIPTOR_FILE;
+    public static final String DESCRIPTOR_FILE = ResourcePaths.COMPONENT_DESCRIPTOR_FILE;
 
     private static final EnumMap<Scope, EnumMap<Kind, ComponentDescriptor>> CACHE = createCache();
 
@@ -106,7 +106,7 @@ public final class ComponentDescriptor {
         };
     }
 
-    public boolean isSingle() {
+    public boolean single() {
         return kind == Kind.SINGLE;
     }
 
@@ -122,7 +122,7 @@ public final class ComponentDescriptor {
         return cache;
     }
 
-    private static ComponentDescriptor cacheOf(Scope scope, Kind kind) {
+    private static ComponentDescriptor cached(Scope scope, Kind kind) {
         return CACHE.get(scope).get(kind);
     }
 
@@ -146,7 +146,7 @@ public final class ComponentDescriptor {
                 String[] split = value.split(",");
                 Scope componentScope = Scope.valueOf(split[0]);
                 Kind componentKind = Kind.valueOf(split[1]);
-                map.put(componentType, cacheOf(componentScope, componentKind));
+                map.put(componentType, cached(componentScope, componentKind));
             }
         } catch (Exception e) {
             throw new IllegalStateException(Messages.parseFile(DESCRIPTOR_FILE), e);

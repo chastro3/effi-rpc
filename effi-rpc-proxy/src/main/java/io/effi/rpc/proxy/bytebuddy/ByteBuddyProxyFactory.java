@@ -9,14 +9,15 @@ import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
 
-import static io.effi.rpc.config.ConfigValues.ProxyFactory.BYTEBUDDY;
-
+import static io.effi.rpc.proxy.bytebuddy.ByteBuddyProxyFactory.NAME;
 
 /**
  * Implements {@link io.effi.rpc.proxy.ProxyFactory} using ByteBuddy.
  */
-@Extension(value = BYTEBUDDY, onClass = "net.bytebuddy.ByteBuddy")
+@Extension(value = NAME, onClass = "net.bytebuddy.ByteBuddy")
 public class ByteBuddyProxyFactory extends AbstractProxyFactory {
+
+    public static final String NAME = "bytebuddy";
 
     @Override
     protected <T> T doCreateProxy(Class<T> interfaceClass, InvocationHandler handler) throws Exception {

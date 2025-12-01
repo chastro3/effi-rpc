@@ -1,6 +1,6 @@
 package io.effi.rpc.annotation.component;
 
-import io.effi.rpc.util.Ordered;
+import io.effi.rpc.trait.Ordered;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

@@ -18,7 +18,7 @@ public class Http1Client extends NettyPoolClient {
     @Override
     protected void initialize() {
         configureBootStrap();
-        withChannelConfigurer(new Http1ClientChannelConfigurer(this));
+        channelConfigurer(new Http1ClientChannelConfigurer(this));
     }
 
 }

@@ -2,8 +2,9 @@ package io.effi.rpc.benchmark;
 
 import io.effi.rpc.benchmark.model.ParentObject;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.ConfigValues;
 import io.effi.rpc.serialization.Serializer;
+import io.effi.rpc.serialization.json.JacksonSerializer;
+import io.effi.rpc.serialization.msgpack.MsgPackSerializer;
 import io.effi.rpc.util.TypeCapture;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -43,9 +44,9 @@ public class SerializationTest {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        ScopedPlatform platform = ScopedPlatform.defaultPlatform();
-        jsonSerializer = platform.namedExtension(Serializer.class, ConfigValues.Serialization.JSON);
-        msgpackSerializer = platform.namedExtension(Serializer.class, ConfigValues.Serialization.MSGPACK);
+        ScopedPlatform platform = ScopedPlatform.defaultInstance();
+        jsonSerializer = platform.namedExtension(Serializer.class, JacksonSerializer.NAME);
+        msgpackSerializer = platform.namedExtension(Serializer.class, MsgPackSerializer.NAME);
 
         List<ParentObject> objList = ParentObject.getObjList();
         TypeCapture<List<ParentObject>> typeCapture = new TypeCapture<>() {

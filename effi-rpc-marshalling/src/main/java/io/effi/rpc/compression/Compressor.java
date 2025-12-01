@@ -3,8 +3,10 @@ package io.effi.rpc.compression;
 import io.effi.rpc.annotation.component.Extensible;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import static io.effi.rpc.config.ConfigValues.Compression.GZIP;
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
  * Compresses and decompresses byte arrays using various compression algorithms.
@@ -12,24 +14,12 @@ import static io.effi.rpc.config.ConfigValues.Compression.GZIP;
  * Provides compression functionality for reducing data size during
  * transmission with extensible algorithm support.
  */
-@Extensible(GZIP)
+@Extensible(scope = PLATFORM)
 public interface Compressor {
 
-    /**
-     * Compresses the input byte array.
-     *
-     * @param data the data to compression
-     * @return the compressed data
-     */
-    byte[] compress(byte[] data) throws IOException;
+    void compress(OutputStream out, byte[] data) throws IOException;
 
-    /**
-     * Decompresses the input byte array.
-     *
-     * @param compressedData the data to decompress
-     * @return the decompressed data
-     */
-    byte[] decompress(byte[] compressedData) throws IOException;
+    InputStream decompress(InputStream in) throws IOException;
 
 }
 

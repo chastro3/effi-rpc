@@ -26,15 +26,15 @@ public class Header<T> extends Holder<T> implements Argument {
     }
 
     /**
-     * Creates a Header instance that wraps a Source object with no name specified.
-     * If it is a bean object, the value will be fetched from the headers based on the field name.
+     * Creates a Header instance that wraps a Source object with no id specified.
+     * If it is a bean object, the value will be fetched from the headers based on the field id.
      */
     public static Header<Source> source() {
         return new Header<>(new Source(null));
     }
 
     /**
-     * Creates a Header instance that wraps a Source object initialized with the specified name.
+     * Creates a Header instance that wraps a Source object initialized with the specified id.
      */
     public static Header<Source> source(String name) {
         return new Header<>(new Source(name));

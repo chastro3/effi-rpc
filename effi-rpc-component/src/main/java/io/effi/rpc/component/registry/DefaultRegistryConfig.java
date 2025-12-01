@@ -2,8 +2,8 @@ package io.effi.rpc.component.registry;
 
 import io.effi.rpc.component.DynamicTagComponent;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.config.Config;
 import io.effi.rpc.config.IdentifiableConfig;
+import io.effi.rpc.config.Options;
 import io.effi.rpc.util.AssertUtil;
 
 import java.util.Set;
@@ -21,8 +21,8 @@ public class DefaultRegistryConfig extends IdentifiableConfig implements Registr
 
     private final DynamicTagComponent dynamicTagComponent = new DynamicTagComponent();
 
-    DefaultRegistryConfig(String id, Config config, String type, String address, ThreadPool threadPool) {
-        super(checkId(id, type), config);
+    DefaultRegistryConfig(String id, Options options, String type, String address, ThreadPool threadPool) {
+        super(checkId(id, type), options);
         this.type = AssertUtil.notBlank(type, "protocol");
         this.address = AssertUtil.notBlank(address, "address");
         this.threadPool = threadPool;
@@ -65,11 +65,11 @@ public class DefaultRegistryConfig extends IdentifiableConfig implements Registr
     /**
      * Builds {@link DefaultRegistryConfig} instance.
      */
-    public static class Builder extends RegistryConfigBuilder<DefaultRegistryConfig, Builder> {
+    public static class Builder extends RegistryConfig.Builder<DefaultRegistryConfig, Builder> {
 
         @Override
         public DefaultRegistryConfig build() {
-            return new DefaultRegistryConfig(id, config, type, address, threadPool);
+            return new DefaultRegistryConfig(id, options, type, address, threadPool);
         }
     }
 }

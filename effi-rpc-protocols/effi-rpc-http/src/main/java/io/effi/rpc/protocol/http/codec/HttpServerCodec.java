@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.codec;
 
-import io.effi.rpc.protocol.http.HttpCallee;
+import io.effi.rpc.protocol.http.HttpServant;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpRequest;
@@ -23,15 +23,15 @@ import java.io.IOException;
  * - Encodes outbound HTTP responses into network messages.
  * - Decodes inbound HTTP requests into request objects.
  */
-public class HttpServerCodec implements Encoder<HttpResponse>, Decoder<HttpRequest, HttpCallee> {
+public class HttpServerCodec implements Encoder<HttpResponse>, Decoder<HttpRequest, HttpServant> {
 
     @Override
     public OutputMessage encode(HttpResponse response, Channel channel) {
         if (response instanceof HttpDuplexResponse httpResponse) {
             try (ByteBufOutputStream out = NettySupport.newOutputStream((NettyChannel) channel)) {
                 HttpUtil.encodeBody(channel.platform(), response, out);
-                return httpResponse.withChannel(channel)
-                        .withOutput(out, out.buffer().writerIndex());
+                return httpResponse.channel(channel)
+                        .output(out, out.buffer().writerIndex());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -40,7 +40,7 @@ public class HttpServerCodec implements Encoder<HttpResponse>, Decoder<HttpReque
     }
 
     @Override
-    public HttpRequest decode(InputMessage inputMessage, HttpCallee callee) {
+    public HttpRequest decode(InputMessage inputMessage, HttpServant callee) {
         if (inputMessage instanceof HttpDuplexRequest request) {
             return request;
         }

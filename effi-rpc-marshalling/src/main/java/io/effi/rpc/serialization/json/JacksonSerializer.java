@@ -12,13 +12,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.config.ConfigValues.Serialization.JSON;
+import static io.effi.rpc.serialization.json.JacksonSerializer.NAME;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Jackson.
  */
-@Extension(value = JSON, onClass = "com.fasterxml.jackson.databind.ObjectMapper")
+@Extension(value = NAME, onClass = "com.fasterxml.jackson.databind.ObjectMapper")
 public class JacksonSerializer extends AbstractSerializer {
+
+    public static final String NAME = "jackson";
 
     protected JsonMapper jsonMapper;
 

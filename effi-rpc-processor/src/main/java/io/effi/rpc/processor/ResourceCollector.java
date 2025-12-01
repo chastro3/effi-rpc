@@ -18,7 +18,7 @@ public class ResourceCollector implements ResourceSection {
             annotationHandler.withResourceCollector(this);
         }
         sections.put(ExtensionResourceSection.class, new ExtensionResourceSection(processingEnv));
-        sections.put(RemoteServiceResourceSection.class, new RemoteServiceResourceSection(processingEnv));
+        sections.put(ServeGroupResourceSection.class, new ServeGroupResourceSection(processingEnv));
         sections.put(ReflectConfigResourceSection.class, new ReflectConfigResourceSection(processingEnv));
         sections.put(ProxyConfigResourceSection.class, new ProxyConfigResourceSection(processingEnv));
         sections.put(ScopedComponentResourceSection.class, new ScopedComponentResourceSection(processingEnv));

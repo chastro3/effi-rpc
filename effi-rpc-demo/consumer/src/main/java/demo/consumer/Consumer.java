@@ -1,12 +1,12 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
-import io.effi.rpc.boot.AnnotationRemoteClient;
+import io.effi.rpc.boot.AnnotationCallerGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.ClientConfig;
-import io.effi.rpc.component.transport.DefaultCertificateConfig;
+import io.effi.rpc.component.transport.support.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -33,7 +33,7 @@ public class Consumer {
                     send();
                 }
                 if (command.equals("stop")) {
-                    ScopedPlatform.defaultPlatform().close();
+                    ScopedPlatform.defaultInstance().close();
                 }
             }
         }
@@ -51,7 +51,7 @@ public class Consumer {
 //                .locator(RegistryLocator.getInstance("provider"))
 //                .build();
 //        application.start();
-//        ParamVar<Argument.Target> paramVar = ParamVar.target(Map.of("name", "123456", "age", "24"));
+//        ParamVar<Argument.Target> paramVar = ParamVar.target(Map.of("id", "123456", "age", "24"));
 //        ExecutorService executorService = Executors.newFixedThreadPool(200);
 //        for (int i = 0; i < 1; i++) {
 //            executorService.execute(() -> {
@@ -73,10 +73,10 @@ public class Consumer {
     }
 
     private static void send() {
-        ScopedApplication application = ScopedPlatform.defaultPlatform()
+        ScopedApplication application = ScopedPlatform.defaultInstance()
                 .newApplication("consumer");
         CertificateConfig certificateConfig = DefaultCertificateConfig.builder()
-                .name("client-cert")
+                .id("client-cert")
                 .certChainPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\client-cert.pem")
                 .privateKeyPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\client-private-key.pem")
                 .trustCertPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\ca-cert.pem")
@@ -94,8 +94,8 @@ public class Consumer {
                 .registry()
                 .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.CONSUMER, Tags.FORCE_ACTIVE));
 //                .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("nacos://127.0.0.1:8848").build());
-        AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
-        HelloClient helloClient = remoteCaller.get();
+        AnnotationCallerGroup<HelloClient> callerGroup = new AnnotationCallerGroup<>(HelloClient.class, application);
+        HelloClient helloClient = callerGroup.target();
 //        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 //        scheduledExecutorService.scheduleAtFixedRate(() -> {
 //

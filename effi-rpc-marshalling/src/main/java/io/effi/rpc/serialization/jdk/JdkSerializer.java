@@ -10,13 +10,15 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import static io.effi.rpc.config.ConfigValues.Serialization.JDK;
+import static io.effi.rpc.serialization.jdk.JdkSerializer.NAME;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Jdk.
  */
-@Extension(JDK)
+@Extension(NAME)
 public class JdkSerializer extends AbstractSerializer {
+
+    public static final String NAME = "jdk";
 
     @Override
     protected void doSerialize(Object obj, OutputStream out) throws IOException {

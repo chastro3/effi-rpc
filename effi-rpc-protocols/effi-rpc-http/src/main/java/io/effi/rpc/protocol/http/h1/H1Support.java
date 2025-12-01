@@ -35,7 +35,7 @@ public class H1Support {
                 .url(NettySupport.createRequestUrl(channel, request.uri()))
                 .headers(request.headers())
                 .build()
-                .withInput(NettySupport.newInputStream(request.content()));
+                .input(NettySupport.newInputStream(request.content()));
     }
 
     /**
@@ -50,7 +50,7 @@ public class H1Support {
                 .url(context.message().url())
                 .headers(response.headers())
                 .build()
-                .withInput(NettySupport.newInputStream(response.content()));
+                .input(NettySupport.newInputStream(response.content()));
     }
 
     /**

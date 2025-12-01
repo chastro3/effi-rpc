@@ -1,10 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.async.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
-import io.effi.rpc.config.ConfigNames;
 import io.effi.rpc.transport.endpoint.Client;
+import io.effi.rpc.concurrent.Promise;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
@@ -28,7 +27,7 @@ public class NettyPoolClient extends NettyClient {
 
     @Override
     protected void configureChannelHandler(Bootstrap bootstrap) {
-        int maxConnections = config().getConfig(ConfigNames.MAX_CONNECTIONS);
+        int maxConnections = config().option(ClientConfig.MAX_CONNECTIONS);
         this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
             @Override
             public void channelCreated(Channel ch) throws Exception {
@@ -43,7 +42,7 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return true;
     }
 

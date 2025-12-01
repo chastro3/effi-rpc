@@ -12,15 +12,17 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.effi.rpc.config.ConfigValues.Serialization.PROTOBUF;
+import static io.effi.rpc.serialization.protobuf.ProtobufSerializer.NAME;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Protobuf.
  * <p>
  * Serializes only the first parameter as a {@link MessageLite}; deserialization behaves the same.
  */
-@Extension(value = PROTOBUF, onClass = "com.google.protobuf.MessageLite")
+@Extension(value = NAME, onClass = "com.google.protobuf.MessageLite")
 public class ProtobufSerializer extends AbstractSerializer {
+
+    public static final String NAME = "protobuf";
 
     private final Map<Class<?>, MessageLite> messageMap = new ConcurrentHashMap<>();
 

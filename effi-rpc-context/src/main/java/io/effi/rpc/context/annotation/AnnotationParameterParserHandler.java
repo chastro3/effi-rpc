@@ -1,6 +1,6 @@
 package io.effi.rpc.context.annotation;
 
-import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.Request;
 
 import java.lang.annotation.Annotation;
@@ -18,8 +18,8 @@ public interface AnnotationParameterParserHandler<T extends Annotation, REQ exte
      * @param request    the incoming request
      * @param annotation the annotation instance
      * @param parameter  the method parameter
-     * @param callee     the callee context
+     * @param servant     the callee context
      * @return the extracted parameter value, or {@code null} if not supported
      */
-    Object handle(REQ request, T annotation, Parameter parameter, Callee callee);
+    Object handle(REQ request, T annotation, Parameter parameter, Servant servant);
 }

@@ -21,7 +21,7 @@ public class ClientNioEventLoopGroupRegister implements ScopedPlatform.Listener 
                 nioEventLoopGroup,
                 nioEventLoopGroup::shutdownGracefully);
         platform.registry().register(ExternalComponent.class, component);
-        Scheduler scheduler = new Scheduler().withDisposableService(nioEventLoopGroup);
+        Scheduler scheduler = new Scheduler().disposableService(nioEventLoopGroup);
         platform.registry().register(Scheduler.class, scheduler);
     }
 

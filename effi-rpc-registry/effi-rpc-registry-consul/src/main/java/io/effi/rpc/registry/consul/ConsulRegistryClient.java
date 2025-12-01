@@ -1,15 +1,14 @@
 package io.effi.rpc.registry.consul;
 
-import io.effi.rpc.async.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.config.ConfigNames;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.registry.AbstractRegistryClient;
 import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.concurrent.Promise;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.consul.CheckOptions;
@@ -44,7 +43,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         try {
             consulClient.agentInfo()
                     .toCompletionStage()
@@ -56,14 +55,14 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
     }
 
     @Override
-    public Registration createRegistrationAction(ServiceInstance instance) {
+    public Registration createRegistration(ServiceInstance instance) {
         String instanceId = instance.id();
         ServiceOptions opts = new ServiceOptions()
                 .setName(instance.serviceName())
                 .setId(instanceId)
                 .setAddress(instance.host())
                 .setPort(instance.port());
-        int heartbeatInterval = config.getConfig(ConfigNames.HEARTBEAT_INTERVAL);
+        int heartbeatInterval = config.option(RegistryConfig.HEARTBEAT_INTERVAL);
         CheckOptions checkOpts = new CheckOptions()
                 .setId(instanceId)
                 .setTtl((heartbeatInterval * 2) + "ms")
@@ -118,7 +117,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
     }
 
     private ConsulClient createConsulClient(RegistryConfig config) {
-        int connectTimeout = config.getConfig(ConfigNames.CONNECT_TIMEOUT);
+        int connectTimeout = config.option(RegistryConfig.CONNECT_TIMEOUT);
         String address = addresses[0];
         InetSocketAddress socketAddress = NetUtil.toInetSocketAddress(address);
         ConsulClientOptions options = new ConsulClientOptions()

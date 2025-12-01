@@ -16,7 +16,7 @@ public class EffiRpcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ScopedPlatform effiRpcPlatform() {
-        return ScopedPlatform.defaultPlatform().withName("spring-platform");
+        return ScopedPlatform.defaultInstance().name("spring-platform");
     }
 
     @Bean

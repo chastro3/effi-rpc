@@ -8,13 +8,15 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.json.JacksonSerializer;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
-import static io.effi.rpc.config.ConfigValues.Serialization.MSGPACK;
+import static io.effi.rpc.serialization.msgpack.MsgPackSerializer.NAME;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using MessagePack.
  */
-@Extension(value = MSGPACK, onClass = "org.msgpack.jackson.dataformat.MessagePackFactory")
+@Extension(value = NAME, onClass = "org.msgpack.jackson.dataformat.MessagePackFactory")
 public class MsgPackSerializer extends JacksonSerializer {
+
+    public static final String NAME = "msgpack";
 
     public MsgPackSerializer() {
         super.jsonMapper = JsonMapper.builder(new MessagePackFactory())

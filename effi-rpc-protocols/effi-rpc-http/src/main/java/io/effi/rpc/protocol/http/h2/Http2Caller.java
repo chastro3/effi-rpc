@@ -1,6 +1,5 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.config.HierarchicalConfig;
 import io.effi.rpc.protocol.http.HttpCaller;
 import io.effi.rpc.util.TypeCapture;
 
@@ -14,11 +13,7 @@ public class Http2Caller<R> extends HttpCaller<R> {
     }
 
     public static <R> Builder<R> builder(TypeCapture<R> replyType) {
-        return new Builder<>(replyType, null);
-    }
-
-    public static <R> Builder<R> builder(TypeCapture<R> returnType, HierarchicalConfig config) {
-        return new Builder<>(returnType, config);
+        return new Builder<R>(replyType);
     }
 
     /**
@@ -26,8 +21,8 @@ public class Http2Caller<R> extends HttpCaller<R> {
      */
     public static class Builder<T> extends HttpCaller.Builder<Http2Caller<T>, Builder<T>> {
 
-        public Builder(TypeCapture<T> returnType, HierarchicalConfig config) {
-            super(Http2Protocol.VERSION, returnType, config);
+        public Builder(TypeCapture<T> returnType) {
+            super(Http2Protocol.VERSION, returnType);
         }
 
         @Override

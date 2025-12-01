@@ -1,12 +1,10 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.config.ConfigValues;
-import io.effi.rpc.config.HierarchicalConfig;
 import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.support.AbstractCaller;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
-import io.effi.rpc.protocol.http.support.HttpVersion;
+import io.effi.rpc.serialization.json.JacksonSerializer;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.TypeCapture;
@@ -27,7 +25,7 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
     protected HttpCaller(Builder builder) {
         super(builder);
         this.version = builder.version;
-        String method = config.get(ConfigNames.HTTP_METHOD);
+        String method = option(HttpProtocol.HTTP_METHOD);
         this.httpMethod = StringUtil.isNotBlank(method) ? HttpMethod.valueOf(method) : HttpMethod.POST;
         this.requestHeaders = builder.requestHeaders;
     }
@@ -63,11 +61,11 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
 
         protected volatile HttpHeaders requestHeaders;
 
-        protected Builder(HttpVersion version, TypeCapture<?> returnType, HierarchicalConfig config) {
-            super(returnType, version.name(), config);
+        protected Builder(HttpVersion version, TypeCapture<?> returnType) {
+            super(returnType, version.name());
             this.version = AssertUtil.notNull(version, "version");
-            if (StringUtil.isBlank(config.get(ConfigNames.SERIALIZATION))) {
-                serialization(ConfigValues.Serialization.JSON);
+            if (StringUtil.isBlank(option(Peer.SERIALIZER))) {
+                serializer(JacksonSerializer.NAME);
             }
         }
 
@@ -78,7 +76,7 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
          * @return This builder instance for fluent chaining.
          */
         public C method(HttpMethod method) {
-            config.set(ConfigNames.HTTP_METHOD, method.name());
+            addOption(HttpProtocol.HTTP_METHOD, method.name());
             return self();
         }
 

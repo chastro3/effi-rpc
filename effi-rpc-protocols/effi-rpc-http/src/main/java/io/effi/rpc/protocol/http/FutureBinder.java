@@ -5,7 +5,7 @@ import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
-import io.effi.rpc.context.support.ReplyFuture;
+import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,7 +19,7 @@ public abstract class FutureBinder extends ChannelDuplexHandler {
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         SmartURL requestSmartUrl;
-        if ((requestSmartUrl = supported(msg)) != null) {
+        if ((requestSmartUrl = supports(msg)) != null) {
             writeHttpRequest(ctx, msg, promise);
             Long futureId = requestSmartUrl.get(KeyConstant.ATTR_UNIQUE_ID);
             NettySupport.bindFutureId(futureId, ctx.channel());
@@ -46,7 +46,7 @@ public abstract class FutureBinder extends ChannelDuplexHandler {
         super.exceptionCaught(ctx, cause);
     }
 
-    protected abstract SmartURL supported(Object msg);
+    protected abstract SmartURL supports(Object msg);
 
     protected abstract void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception;
 

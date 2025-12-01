@@ -2,22 +2,19 @@ package io.effi.rpc.transport;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.config.ConfigNames;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
-import io.effi.rpc.context.Callee;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.PeerContainer;
 import io.effi.rpc.context.ReplyContext;
+import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.metrics.CalleeMetrics;
 import io.effi.rpc.context.metrics.CallerMetrics;
-import io.effi.rpc.context.support.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
@@ -42,7 +39,7 @@ public class TransportSupport {
 
     public static boolean inIOSerialization(Peer peer) {
         try {
-            Long serializationThreshold = peer.getConfig(ConfigNames.SERIALIZATION_THRESHOLD);
+            Long serializationThreshold = peer.option(Peer.SERIALIZATION_THRESHOLD);
             if (serializationThreshold == null || serializationThreshold <= 0) return true;
             double averageSerializationTime;
             if (peer instanceof Caller<?>) {
@@ -63,18 +60,18 @@ public class TransportSupport {
         Channel channel = inputMessage.channel();
         TransportProtocol protocol = channel.protocol();
         ScopedModule module = protocol.lookupModule(inputMessage);
-        Callee callee = module.namedComponent(Callee.class, PeerContainer.invokerKey(smartUrl.scheme(), smartUrl.path()));
+        Servant servant = module.namedComponent(Servant.class, Peer.buildId(smartUrl.scheme(), smartUrl.path()));
         // todo send to client
-        if (callee == null) {
+        if (servant == null) {
             protocol.sendCalleeNotFound(inputMessage);
         } else {
-            callee.threadPool().execute(() -> {
+            servant.threadPool().execute(() -> {
                 ServerExchangeContextCodec serverCodec = protocol.serverCodec();
-                CallContext<Request, Callee> callContext = serverCodec.decode(inputMessage, callee);
-                Interaction.Result result = callee.callStageChain().proceed(callContext);
-                Response response = protocol.createResponse(callee, result);
+                CallContext<Request, Servant> callContext = serverCodec.decode(inputMessage, servant);
+                Interaction.Result result = servant.callStageChain().proceed(callContext);
+                Response response = protocol.createResponse(servant, result);
                 var replyContext = new ReplyContext<>(callContext, response, result);
-                callee.replyStageChain().proceed(replyContext);
+                servant.replyStageChain().proceed(replyContext);
                 if (callContext.message().needReply()) {
                     var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
                     channel.send(outputMessage);
@@ -107,7 +104,7 @@ public class TransportSupport {
                     });
                 }
             } catch (Exception e) {
-                EffiRpcException exception = PredefinedErrorCode.CHANNEL_READ.fail(e, channel.remoteAddress());
+                EffiRpcException exception = TransportErrorCodes.CHANNEL_READ.fail(e, channel.remoteAddress());
                 threadPool.execute(() -> future.failure(exception));
             }
         }
@@ -115,7 +112,7 @@ public class TransportSupport {
 
     public static boolean inIODeserialization(Peer peer) {
         try {
-            Long deserializationThreshold = peer.getConfig(ConfigNames.DESERIALIZATION_THRESHOLD);
+            Long deserializationThreshold = peer.option(Peer.DESERIALIZATION_THRESHOLD);
             if (deserializationThreshold == null || deserializationThreshold <= 0) return true;
             double averageDeserializationTime;
             if (peer instanceof Caller<?>) {

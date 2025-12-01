@@ -7,13 +7,15 @@ import io.effi.rpc.util.ClassUtil;
 
 import java.lang.reflect.Proxy;
 
-import static io.effi.rpc.config.ConfigValues.ProxyFactory.JDK;
+import static io.effi.rpc.proxy.jdk.JDKProxyFactory.NAME;
 
 /**
  * Implements {@link io.effi.rpc.proxy.ProxyFactory} using Jdk.
  */
-@Extension(JDK)
+@Extension(value = NAME, primary = true)
 public class JDKProxyFactory extends AbstractProxyFactory {
+
+    public static final String NAME = "jdk";
 
     @Override
     @SuppressWarnings("unchecked")

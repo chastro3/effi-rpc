@@ -1,6 +1,6 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.constant.ResourcePath;
+import io.effi.rpc.constant.ResourcePaths;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
@@ -34,7 +34,7 @@ public class ExtensionResourceSection extends Helper implements ResourceSection 
     @Override
     public void write() throws IOException {
         for (Map.Entry<String, Set<String>> entry : extensionEntries.entrySet()) {
-            String path = ResourcePath.SPI_SERVICES_DIR + entry.getKey();
+            String path = ResourcePaths.SPI_SERVICES_DIR + entry.getKey();
             Set<String> merged = new LinkedHashSet<>(entry.getValue());
             FileObject resource;
             try {

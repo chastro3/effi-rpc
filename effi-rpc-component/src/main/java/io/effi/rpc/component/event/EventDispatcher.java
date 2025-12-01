@@ -2,7 +2,7 @@ package io.effi.rpc.component.event;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.util.resoruce.Closeable;
+import io.effi.rpc.trait.Closeable;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Kind.SINGLE;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
@@ -16,9 +16,7 @@ public interface EventDispatcher extends Closeable, ScopedPlatform.Supplier {
     /**
      * Registers a listener for the specified event type.
      */
-    <E extends Event<?>>
-
-    void registerListener(Class<E> eventType, EventListener<E> listener);
+    <E extends Event<?>> void registerListener(Class<E> eventType, EventListener<E> listener);
 
     /**
      * Removes a listener for the specified event type.
@@ -29,6 +27,7 @@ public interface EventDispatcher extends Closeable, ScopedPlatform.Supplier {
      * Dispatches the event to all registered listeners.
      */
     <E extends Event<?>> void publish(E event);
+
 }
 
 

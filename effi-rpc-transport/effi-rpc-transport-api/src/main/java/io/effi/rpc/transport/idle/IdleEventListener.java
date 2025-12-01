@@ -1,7 +1,6 @@
 package io.effi.rpc.transport.idle;
 
 import io.effi.rpc.component.event.EventListener;
-import io.effi.rpc.config.ConfigNames;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.constant.SystemKeys;
@@ -25,7 +24,7 @@ public class IdleEventListener implements EventListener<IdleEvent> {
         Channel channel = event.source();
         EndpointConfig config = channel.endpoint().config();
         AtomicInteger ideCount = channel.get(KeyConstant.IDLE_COUNT);
-        int idleCountThreshold = config.getConfig(ConfigNames.IDLE_COUNT_THRESHOLD);
+        int idleCountThreshold = config.option(EndpointConfig.IDLE_COUNT_THRESHOLD);
         if (ideCount != null) {
             String enablePrintLog = System.getProperty(SystemKeys.PRINT_HEARTBEAT_LOG);
             if (!StringUtil.isBlank(enablePrintLog)

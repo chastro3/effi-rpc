@@ -4,19 +4,19 @@ import io.effi.rpc.component.extension.ExtensionAccessor;
 import io.effi.rpc.component.extension.ExtensionEntry;
 import io.effi.rpc.component.extension.ExtensionLoader;
 import io.effi.rpc.component.extension.ExtensionRepository;
-import io.effi.rpc.config.ConfigValues;
-import io.effi.rpc.config.DefaultHierarchicalConfig;
-import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.config.Options;
+import io.effi.rpc.constant.Constant;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.trait.Closeable;
 import io.effi.rpc.util.GenericKey;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.ObjectUtil;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.util.hook.CloseHook;
-import io.effi.rpc.util.hook.HookExecutor;
-import io.effi.rpc.util.hook.InitializeHook;
-import io.effi.rpc.util.hook.StartHook;
-import io.effi.rpc.util.resoruce.Closeable;
+import io.effi.rpc.hook.CloseHook;
+import io.effi.rpc.hook.HookExecutor;
+import io.effi.rpc.hook.InitializeHook;
+import io.effi.rpc.hook.StartHook;
 
 import java.util.Collection;
 import java.util.EventListener;
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope;
 
@@ -50,14 +49,14 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
 
     protected Collection<Listener<?>> listeners;
 
-    protected HierarchicalConfig callerConfig;
+    protected Options callOptions;
 
-    protected HierarchicalConfig calleeConfig;
+    protected Options serveOptions;
 
     protected ScopedContext(Scope scope, Class<? extends Listener<?>> listenerType,
                             ScopedContext parent, String name, ComponentRepository repository) {
         initialize(scope, listenerType, parent, repository);
-        withName(name);
+        name(name);
     }
 
     /**
@@ -66,16 +65,16 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
      * Registers this instance early into the given {@link LazySingleton} to prevent
      * recursive creation during initialization.
      *
-     * @see ScopedPlatform#defaultPlatform()
-     * @see ScopedApplication#defaultApplication()
-     * @see ScopedApplication#defaultModule()
+     * @see ScopedPlatform#defaultInstance()
+     * @see ScopedApplication#defaultInstance()
+     * @see ScopedModule#defaultInstance()
      */
     @SuppressWarnings("unchecked")
     protected ScopedContext(Scope scope, Class<? extends Listener<?>> listenerType,
                             ScopedContext parent, LazySingleton<? extends ScopedContext> defaultScopedContext) {
         ((LazySingleton<ScopedContext>) defaultScopedContext).expose(this);
         initialize(scope, listenerType, parent, null);
-        withName(ConfigValues.DEFAULT);
+        name(Constant.DEFAULT_NAME);
     }
 
     @Override
@@ -124,11 +123,6 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     @Override
-    public <T> T adaptiveExtension(Class<T> type, Function<String, String> nameGetter) {
-        return extensionRepository.adaptiveExtension(type, nameGetter);
-    }
-
-    @Override
     public <T> T primaryExtension(Class<T> type) {
         return extensionRepository.primaryExtension(type);
     }
@@ -147,8 +141,8 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return this.scope == scope || Scope.UNIVERSAL == scope;
     }
 
-    public ScopedContext withName(String name) {
-        String newName = AssertUtil.notBlank(name, "name");
+    public ScopedContext name(String name) {
+        String newName = AssertUtil.notBlank(name, "id");
         this.name = changeName(this.name, newName);
         return this;
     }
@@ -169,12 +163,12 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return parent;
     }
 
-    public HierarchicalConfig callerConfig() {
-        return callerConfig;
+    public Options callOptions() {
+        return callOptions;
     }
 
-    public HierarchicalConfig calleeConfig() {
-        return calleeConfig;
+    public Options serveOptions() {
+        return serveOptions;
     }
 
     public void start() {
@@ -184,7 +178,7 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return active.get();
     }
 
@@ -198,15 +192,14 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     @SuppressWarnings("unchecked")
-    protected void initialize(Scope scope, Class<? extends Listener<?>> listenerType,
-                              ScopedContext parent, ComponentRepository repository) {
+    protected void initialize(Scope scope, Class<? extends Listener<?>> listenerType, ScopedContext parent, ComponentRepository repository) {
         this.scope = scope;
         this.parent = parent;
         this.componentRepository = checkComponentRepository(repository);
         this.extensionRepository = new ExtensionRepository(this);
         this.listeners = (Collection<Listener<?>>) extensions(listenerType);
-        this.callerConfig = new DefaultHierarchicalConfig(this, parent == null ? null : parent.callerConfig());
-        this.calleeConfig = new DefaultHierarchicalConfig(this, parent == null ? null : parent.calleeConfig());
+        this.callOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.callOptions());
+        this.serveOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.serveOptions());
         HookExecutor.initialize().execute(listeners, this, this::doInit);
     }
 
@@ -227,11 +220,15 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return repository;
     }
 
-    protected abstract void doStart();
-
-    protected abstract void doClose();
-
     protected void doInit() {
+    }
+
+    protected  void doStart(){
+
+    }
+
+    protected  void doClose(){
+
     }
 
     /**
@@ -241,8 +238,7 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
      * @see ScopedApplication.Listener
      * @see ScopedModule.Listener
      */
-    protected interface Listener<T extends ScopedContext>
-            extends InitializeHook<T>, StartHook<T>, CloseHook<T>, EventListener {
+    protected interface Listener<T extends ScopedContext> extends InitializeHook<T>, StartHook<T>, CloseHook<T>, EventListener {
 
     }
 

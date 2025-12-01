@@ -1,17 +1,17 @@
 package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.context.Callee;
-import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.parameter.MethodMapper;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.HierarchicalConfig;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.ServerConfig;
+import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.Servant;
+import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.protocol.http.HttpProtocol;
+import io.effi.rpc.protocol.http.HttpVersion;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
-import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
@@ -20,13 +20,15 @@ import io.effi.rpc.util.TypeCapture;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
-import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_2;
+import static io.effi.rpc.protocol.http.h2.Http2Protocol.NAME;
 
 /**
  * Implements {@link TransportProtocol} using http2.
  */
-@Extension(HTTP_2)
+@Extension(value = NAME, primary = true)
 public class Http2Protocol extends HttpProtocol {
+
+    public static final String NAME = "http/2.0";
 
     public static final HttpVersion VERSION = new Version();
 
@@ -35,13 +37,13 @@ public class Http2Protocol extends HttpProtocol {
     }
 
     @Override
-    public <T> Callee createCallee(MethodMapper<T> methodMapper, HierarchicalConfig config, ScopedModule module) {
-        return Http2Callee.builder(methodMapper, config).module(module).build();
+    public <T> Servant createServant(ServantMethod<T> servantMethod, HierarchicalOptions options, ScopedModule module) {
+        return Http2Servant.builder(servantMethod).options(options).module(module).build();
     }
 
     @Override
-    public <T> Caller<T> createCaller(TypeCapture<T> returnType, HierarchicalConfig config, ScopedModule module) {
-        return Http2Caller.builder(returnType, config).module(module).build();
+    public <T> Caller<T> createCaller(TypeCapture<T> returnType, HierarchicalOptions options, ScopedModule module) {
+        return Http2Caller.builder(returnType).options(options).module(module).build();
     }
 
     @Override
@@ -58,7 +60,7 @@ public class Http2Protocol extends HttpProtocol {
 
         @Override
         public String name() {
-            return HTTP_2;
+            return NAME;
         }
 
         @Override

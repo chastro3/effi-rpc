@@ -1,12 +1,9 @@
 package io.effi.rpc.test;
 
-import io.effi.rpc.context.annotation.AnnotationStyle;
-import io.effi.rpc.context.parameter.MethodMapper;
-import io.effi.rpc.context.parameter.ParamVar;
-import io.effi.rpc.boot.AnnotationRemoteClient;
-import io.effi.rpc.boot.AnnotationRemoteService;
+import io.effi.rpc.boot.AnnotationCallerGroup;
+import io.effi.rpc.boot.AnnotationServantGroup;
 import io.effi.rpc.boot.ApplicationServiceRegistrar;
-import io.effi.rpc.boot.ComplexRemoteService;
+import io.effi.rpc.boot.ComplexServantGroup;
 import io.effi.rpc.boot.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
@@ -14,16 +11,18 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.config.ConfigValues;
-import io.effi.rpc.config.DefaultHierarchicalConfig;
 import io.effi.rpc.constant.EffiRpcFramework;
 import io.effi.rpc.constant.Tags;
+import io.effi.rpc.context.annotation.AnnotationStyle;
+import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.context.parameter.ParamVar;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.nativetools.ConditionItem;
 import io.effi.rpc.nativetools.ReflectConfig;
-import io.effi.rpc.protocol.http.arg.api.HttpMethodMapperBuilder;
-import io.effi.rpc.protocol.http.h2.Http2Callee;
+import io.effi.rpc.protocol.http.arg.annotation.jax.JaxRsStyleResolver;
+import io.effi.rpc.protocol.http.arg.api.HttpServantMethodBuilder;
+import io.effi.rpc.protocol.http.h2.Http2Servant;
 import io.effi.rpc.protocol.http.h2.Http2Caller;
 import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2Protocol;
@@ -46,28 +45,28 @@ public class ApiTest {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiTest.class);
 
-    ScopedApplication application = ScopedPlatform.defaultPlatform()
+    ScopedApplication application = ScopedPlatform.defaultInstance()
             .newApplication("test");
 
     @Test
     public void serverExport() throws Exception {
         ScopedModule module = application.defaultModule();
         // 创建一个service host
-        ServerLauncher serverLauncher = ServerLauncher.allocate(application, Http2ServerConfig.defaultConfig(), "192.168.188.1", 8090);
+        ServerLauncher serverLauncher = ServerLauncher.attach(application, Http2ServerConfig.defaultConfig(), "192.168.188.1", 8090);
         ApplicationServiceRegistrar serviceRegistrar = new ApplicationServiceRegistrar(application);
         application.platform().registry().register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE));
-        ComplexRemoteService<HelloService> remoteService = new ComplexRemoteService<>(new HelloService());
-        MethodMapper<HelloService> methodMapper = new HttpMethodMapperBuilder<>(remoteService, "hello")
-                .mappedParameterType(String.class, ParamVar.source("name"))
+        ComplexServantGroup<HelloService> remoteService = new ComplexServantGroup<>(new HelloService());
+        ServantMethod<HelloService> servantMethod = new HttpServantMethodBuilder<>(remoteService, "hello")
+                .mappedParameterType(String.class, ParamVar.source("id"))
                 .build();
-        Http2Callee callee = Http2Callee.builder(methodMapper, new DefaultHierarchicalConfig())
+        Http2Servant callee = Http2Servant.builder(servantMethod)
                 .path("/hello")
                 .module(module)
-                .compression("xxx")
+                .compressor("xxx")
                 .method(HttpMethod.POST)
                 .addResponseHeader("zzz", "hahah")
-                .serialization("json")
-                .desc("xxx")
+                .serializer("json")
+                .label("xxx")
                 .threadPool(new ThreadPool("test", Executors.newFixedThreadPool(10)))
                 .build();
         serviceRegistrar.register();
@@ -77,40 +76,27 @@ public class ApiTest {
 
     @Test
     public void caller(){
-        Http2Caller<String> caller = Http2Caller.<String>builder(new TypeCapture<>() {}, new DefaultHierarchicalConfig())
+        Http2Caller<String> caller = Http2Caller.<String>builder(new TypeCapture<>() {})
                 .path("//hello")
                 .module(application.defaultModule())
-                .compression("xxx")
+                .compressor("xxx")
                 .clientConfig(Http2ClientConfig.defaultConfig())
                 .addRequestHeader("zzz","ahahah")
-                .target("provifer")
+                .endpoint("provifer")
                 .build();
         System.out.println(caller);
     }
 
     @Test
     public void annotatedRemoteService() {
-        AnnotationRemoteService<HelloService> remoteService = new AnnotationRemoteService<>(new HelloService(), application);
+        AnnotationServantGroup<HelloService> remoteService = new AnnotationServantGroup<>(new HelloService(), application);
         System.out.println(remoteService);
     }
 
     @Test
     public void annotationRemoteCaller() {
-        AnnotationRemoteClient<HelloClient> remoteCaller = new AnnotationRemoteClient<>(HelloClient.class, application);
+        AnnotationCallerGroup<HelloClient> remoteCaller = new AnnotationCallerGroup<>(HelloClient.class, application);
         System.out.println(remoteCaller);
-    }
-
-    @Test
-    public void configTest() {
-        DefaultHierarchicalConfig node1 = new DefaultHierarchicalConfig(null);
-        DefaultHierarchicalConfig node2 = new DefaultHierarchicalConfig(null);
-        DefaultHierarchicalConfig node3 = new DefaultHierarchicalConfig(null);
-        node3.withParent(node2);
-        node2.withParent(node1);
-        node1.set("path", "/1");
-        node2.set("path", "/2");
-        node3.set("path", "/3");
-
     }
 
     @Test
@@ -120,7 +106,7 @@ public class ApiTest {
             executorService.execute(() -> {
                 AnnotationStyle springMvc = AnnotationStyle.getInstance("spring-mvc");
                 AnnotationStyle springWebflux = AnnotationStyle.getInstance("spring-webflux");
-                AnnotationStyle annotationStyle = AnnotationStyle.getInstance(ConfigValues.AnnotationStyle.JAX_RS);
+                AnnotationStyle annotationStyle = AnnotationStyle.getInstance(JaxRsStyleResolver.NAME);
                 System.out.println(springMvc);
                 System.out.println(springWebflux);
                 System.out.println(annotationStyle);
@@ -146,7 +132,7 @@ public class ApiTest {
 
     @Test
     public void spiTest() {
-        TransportProtocol protocol = ScopedPlatform.defaultPlatform().namedExtension(TransportProtocol.class, Http2Protocol.VERSION.name());
+        TransportProtocol protocol = ScopedPlatform.defaultInstance().namedExtension(TransportProtocol.class, Http2Protocol.VERSION.name());
         System.out.println(protocol);
     }
 

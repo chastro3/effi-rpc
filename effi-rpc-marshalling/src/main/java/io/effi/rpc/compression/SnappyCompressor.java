@@ -1,25 +1,32 @@
 package io.effi.rpc.compression;
 
 import io.effi.rpc.annotation.component.Extension;
-import org.xerial.snappy.Snappy;
+import org.xerial.snappy.SnappyInputStream;
+import org.xerial.snappy.SnappyOutputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import static io.effi.rpc.config.ConfigValues.Compression.SNAPPY;
+import static io.effi.rpc.compression.SnappyCompressor.NAME;
 
 /**
  * Implements {@link Compressor} using Snappy.
  */
-@Extension(value = SNAPPY, onClass = "org.xerial.snappy.Snappy")
-public class SnappyCompressor extends AbstractCompressor {
+@Extension(value = NAME, onClass = "org.xerial.snappy.Snappy")
+public class SnappyCompressor implements Compressor {
+
+    public static final String NAME = "snappy";
 
     @Override
-    protected byte[] doCompress(byte[] data) throws IOException {
-        return Snappy.compress(data);
+    public void compress(OutputStream out, byte[] data) throws IOException {
+        try (SnappyOutputStream outputStream = new SnappyOutputStream(out)) {
+            outputStream.write(data);
+        }
     }
 
     @Override
-    protected byte[] doDecompress(byte[] data) throws IOException {
-        return Snappy.uncompress(data);
+    public InputStream decompress(InputStream in) throws IOException {
+        return new SnappyInputStream(in);
     }
 }

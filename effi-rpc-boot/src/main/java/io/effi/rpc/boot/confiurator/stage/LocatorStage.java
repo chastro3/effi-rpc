@@ -22,7 +22,7 @@ public class LocatorStage implements Stage.CallUnit<Request, Caller<?>> {
     public Interaction.Result process(CallContext<Request, Caller<?>> context, Chain chain) {
         Locator locator = context.peer().locator();
         InetSocketAddress remoteAddress = locator.locate(context);
-        context.message().url().withAddress(remoteAddress);
+        context.message().url().address(remoteAddress);
         return chain.proceed(context);
     }
 }

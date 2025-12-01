@@ -1,24 +1,18 @@
 package io.effi.rpc.governance.router;
 
 import io.effi.rpc.annotation.component.Extensible;
-import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallContext;
-import io.effi.rpc.config.ExtensionKeys;
+import io.effi.rpc.context.Caller;
 import io.effi.rpc.registry.ServiceInstance;
 
 import java.util.List;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION;
-import static io.effi.rpc.config.ConfigValues.DEFAULT;
 
 /**
  * Routes a list of URLs based on the given invocation context.
  */
-@Extensible(
-        value = DEFAULT,
-        key = ExtensionKeys.ROUTER,
-        scope = APPLICATION
-)
+@Extensible(scope = APPLICATION)
 public interface Router {
 
     /**

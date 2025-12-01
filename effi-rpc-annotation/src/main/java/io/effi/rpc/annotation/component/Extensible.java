@@ -26,11 +26,6 @@ public @interface Extensible {
     String value() default "";
 
     /**
-     * Defines the extension key for selecting an extension.
-     */
-    String key() default "";
-
-    /**
      * Specifies the scope of the extension.
      */
     Scope scope() default Scope.PLATFORM;

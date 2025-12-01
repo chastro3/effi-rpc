@@ -1,17 +1,16 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.async.Future;
-import io.effi.rpc.async.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.support.Scheduler;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.executor.RpcThreadPool;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Promise;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +55,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         String serviceName = instance.serviceName();
         Set<ServiceInstance> serviceInstances = registeredServiceInstances.computeIfAbsent(serviceName, k -> ConcurrentHashMap.newKeySet());
         if (serviceInstances.add(instance)) {
-            Registration registration = createRegistrationAction(instance);
+            Registration registration = createRegistration(instance);
             RegisterTask registerTask = new RegisterTask(this, instance, registration);
             return registerTask.execute().onComplete(res -> {
                 if (res.succeeded()) {
@@ -130,7 +129,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
             try {
                 doClose();
             } catch (Throwable t) {
-                throw PredefinedErrorCode.CLOSE_RESOURCE.fail(t, "registry client").toCompletionException();
+                logger.error( "Failed to close registry client connected to '{}'", t,this);
             }
         });
     }
@@ -145,7 +144,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         logger.trace("Updated {} instance(s) for '{}' from '{}'", instances.size(), serviceName, config);
     }
 
-    protected abstract Registration createRegistrationAction(ServiceInstance instance);
+    protected abstract Registration createRegistration(ServiceInstance instance);
 
     protected abstract void doSubscribe(String serviceName) throws Throwable;
 

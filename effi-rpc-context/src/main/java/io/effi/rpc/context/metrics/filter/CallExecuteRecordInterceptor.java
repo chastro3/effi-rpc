@@ -3,7 +3,7 @@ package io.effi.rpc.context.metrics.filter;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.CallContext;
-import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Interceptor;
 import io.effi.rpc.context.Request;
@@ -16,12 +16,12 @@ import static io.effi.rpc.context.metrics.filter.CallExecuteRecordInterceptor.NA
  * Callee Metrics Filter.
  */
 @Extension(value = NAME, tags = Tags.FORCE_ACTIVE)
-public class CallExecuteRecordInterceptor implements Interceptor.CallUnit<Request, Callee> {
+public class CallExecuteRecordInterceptor implements Interceptor.CallUnit<Request, Servant> {
 
     public static final String NAME = "callExecuteRecord";
 
     @Override
-    public Interaction.Result intercept(CallContext<Request, Callee> context, Chain chain) {
+    public Interaction.Result intercept(CallContext<Request, Servant> context, Chain chain) {
         MetricsSupport.recordStartTime(context);
         Interaction.Result result = chain.proceed(context);
         MetricsSupport.recordEndTime(context);
@@ -29,8 +29,8 @@ public class CallExecuteRecordInterceptor implements Interceptor.CallUnit<Reques
     }
 
     @Override
-    public UnitType<Request, Callee> unitType() {
-        return UnitType.of(Request.class, Callee.class);
+    public UnitType<Request, Servant> unitType() {
+        return UnitType.cached(Request.class, Servant.class);
     }
 
 }

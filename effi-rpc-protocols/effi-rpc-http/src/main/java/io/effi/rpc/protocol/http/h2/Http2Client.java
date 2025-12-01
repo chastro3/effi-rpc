@@ -1,6 +1,6 @@
 package io.effi.rpc.protocol.http.h2;
 
-import io.effi.rpc.async.Promise;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.transport.netty.NettyChannel;
@@ -22,7 +22,7 @@ public class Http2Client extends NettyPoolClient {
     @Override
     protected void initialize() {
         configureBootStrap();
-        withChannelConfigurer(new Http2ClientChannelConfigurer(this));
+        channelConfigurer(new Http2ClientChannelConfigurer(this));
     }
 
     @Override

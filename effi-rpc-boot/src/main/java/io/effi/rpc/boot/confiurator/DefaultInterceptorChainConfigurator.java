@@ -1,19 +1,21 @@
 package io.effi.rpc.boot.confiurator;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.constant.Tags;
-import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.ConfigurablePeer;
-import io.effi.rpc.context.ConfigurableCaller;
-import io.effi.rpc.context.ImmutableInterceptorChain;
-import io.effi.rpc.context.ImmutableStageChain;
-import io.effi.rpc.context.Interceptor;
-import io.effi.rpc.context.Stage;
-import io.effi.rpc.context.StageInterceptor;
 import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.ReplyInterceptStage;
+import io.effi.rpc.config.ConfigurableOptionName;
+import io.effi.rpc.config.OptionName;
+import io.effi.rpc.constant.Constant;
+import io.effi.rpc.constant.Tags;
+import io.effi.rpc.context.ConfigurableCaller;
+import io.effi.rpc.context.ConfigurablePeer;
+import io.effi.rpc.context.Interceptor;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Stage;
+import io.effi.rpc.context.support.ImmutableInterceptorChain;
+import io.effi.rpc.context.support.ImmutableStageChain;
+import io.effi.rpc.context.support.StageInterceptor;
 import io.effi.rpc.context.support.util.CallInterceptorClassifier;
 import io.effi.rpc.context.support.util.ChosenInterceptorClassifier;
 import io.effi.rpc.context.support.util.InteractionUnitClassifier;
@@ -28,12 +30,17 @@ import java.util.Map;
 import java.util.Set;
 
 import static io.effi.rpc.boot.confiurator.DefaultInterceptorChainConfigurator.NAME;
+import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
 
 @SuppressWarnings("rawtypes")
 @Extension(value = NAME, primary = true)
 public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.InterceptorChainConfigurator {
 
-    public static final String NAME = ConfigNames.DEFAULT;
+    public static final String NAME = Constant.DEFAULT_NAME;
+
+    public static final OptionName<String[]> INTERCEPTOR = ConfigurableOptionName.nameOf("interceptor", MERGE_PARENT);
+
+    public static final OptionName<String[]> EXCLUDED_INTERCEPTOR = ConfigurableOptionName.nameOf("excludedInterceptor");
 
     @Override
     public void configure(ConfigurablePeer peer) {
@@ -72,25 +79,25 @@ public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.Int
 
     private void processCallInterceptors(ConfigurablePeer peer, List<String> callNames) {
         tryAddStageInterceptor(peer.callStageChain(), CallInterceptStage.NAME, callNames);
-        peer.withCallInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(callNames)));
+        peer.callInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(callNames)));
     }
 
     private void processChosenInterceptors(ConfigurablePeer peer, List<String> chosenNames) {
         ConfigurableCaller<?> caller = (ConfigurableCaller<?>) peer;
         tryAddStageInterceptor(peer.callStageChain(), ChosenInterceptStage.NAME, chosenNames);
-        caller.withChosenInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(chosenNames)));
+        caller.chosenInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(chosenNames)));
     }
 
     private void processReplyInterceptors(ConfigurablePeer peer, List<String> replyNames) {
         tryAddStageInterceptor(peer.replyStageChain(), ReplyInterceptStage.NAME, replyNames);
-        peer.withReplyInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(replyNames)));
+        peer.replyInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(replyNames)));
     }
 
 
     private Map<String, Interceptor> lookupAvailableInterceptors(ConfigurablePeer peer) {
-        List<String[]> configuredNames = peer.getMergedConfig(ConfigNames.INTERCEPTOR);
+        List<String[]> configuredNames = peer.mergedOption(INTERCEPTOR);
         Collection<String> configuredInterceptors = CollectionUtil.flatDistinctArray(configuredNames);
-        String[] excludedNames = peer.getConfig(ConfigNames.EXCLUDED_INTERCEPTOR);
+        String[] excludedNames = peer.option(EXCLUDED_INTERCEPTOR);
         Set<String> excludedInterceptors = CollectionUtil.toHashSet(excludedNames);
         return peer.module().namedExtensions(Interceptor.class, (name, holder) ->
                 (configuredInterceptors.contains(name) || holder.hasTags(Tags.FORCE_ACTIVE))
@@ -102,7 +109,7 @@ public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.Int
         if (head instanceof ImmutableStageChain headChain) {
             ImmutableStageChain chain = headChain.lookupChain(stageName);
             if (chain != null && chain.next() != null) {
-                StageInterceptor stageInterceptor = StageInterceptor.lookup(chain.next());
+                StageInterceptor stageInterceptor = StageInterceptor.cached(chain.next());
                 interceptorNames.add(stageInterceptor.name());
             }
         }

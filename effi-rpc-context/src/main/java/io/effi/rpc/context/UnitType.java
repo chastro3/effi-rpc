@@ -14,9 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Provides type information for execution units including message and call side
  * type parameters with caching support for efficient type extraction.
  * </p>
- *
- * @see CallExecutionUnit
- * @see ReplyExecutionUnit
  */
 public final class UnitType<M extends Message, P extends Peer> {
 
@@ -51,7 +48,7 @@ public final class UnitType<M extends Message, P extends Peer> {
                         Interaction.Unit.class.isAssignableFrom(raw)) {
                     Type mType = pt.getActualTypeArguments()[0];
                     Type pType = pt.getActualTypeArguments()[1];
-                    return of((Class) mType, (Class) pType);
+                    return cached((Class) mType, (Class) pType);
                 }
             }
             clazz = clazz.getSuperclass();
@@ -60,7 +57,7 @@ public final class UnitType<M extends Message, P extends Peer> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <M extends Message, P extends Peer> UnitType<M, P> of(Class<?> messageType, Class<?> peerType) {
+    public static <M extends Message, P extends Peer> UnitType<M, P> cached(Class<?> messageType, Class<?> peerType) {
         Pair<Class<?>, Class<?>> key = Pair.of(messageType, peerType);
         return (UnitType<M, P>) CACHE.computeIfAbsent(key, k -> new UnitType<>((Class<M>) messageType, (Class<P>) peerType));
     }

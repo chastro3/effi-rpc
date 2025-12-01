@@ -29,7 +29,7 @@ public final class Http1ClientHandler extends FutureBinder {
     }
 
     @Override
-    protected SmartURL supported(Object msg) {
+    protected SmartURL supports(Object msg) {
         if (msg instanceof HttpDuplexRequest request) {
             return request.url();
         }

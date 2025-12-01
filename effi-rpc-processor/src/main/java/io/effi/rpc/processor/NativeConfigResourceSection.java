@@ -1,6 +1,6 @@
 package io.effi.rpc.processor;
 
-import io.effi.rpc.constant.ResourcePath;
+import io.effi.rpc.constant.ResourcePaths;
 import io.effi.rpc.constant.SystemKeys;
 import io.effi.rpc.nativetools.JsonWriter;
 import io.effi.rpc.nativetools.NativeConfig;
@@ -27,7 +27,7 @@ public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Help
     @Override
     public void write() throws IOException {
         if (nativeConfig.hasResource()) {
-            String filePath = ResourcePath.NATIVE_IMAGE_DIR + modulePath + "generated/" + nativeConfig.name();
+            String filePath = ResourcePaths.NATIVE_IMAGE_DIR + modulePath + "generated/" + nativeConfig.name();
             FileObject resource = helper().createOutputFile(filePath);
             try (JsonWriter jsonWriter = new JsonWriter(resource.openWriter())) {
                 jsonWriter.write(nativeConfig.toJsonConfig());

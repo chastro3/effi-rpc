@@ -5,6 +5,7 @@ import io.effi.rpc.compile.DynamicAccessor;
 import io.effi.rpc.compression.Compressor;
 import io.effi.rpc.serialization.Serializer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
@@ -15,16 +16,6 @@ import java.lang.reflect.Type;
  */
 @Extension(value = "test", interfaces = Serializer.class)
 public class MyTest implements Serializer, Compressor {
-
-    @Override
-    public byte[] compress(byte[] data) {
-        return new byte[0];
-    }
-
-    @Override
-    public byte[] decompress(byte[] compressedData) {
-        return new byte[0];
-    }
 
     public static void main(String[] args) {
         DynamicAccessor dynamicAccessor = DynamicAccessor.fetch(EmptyClass.class);
@@ -38,6 +29,16 @@ public class MyTest implements Serializer, Compressor {
 
     @Override
     public <T> T deserialize(InputStream in, Type type) {
+        return null;
+    }
+
+    @Override
+    public void compress(OutputStream out, byte[] data) throws IOException {
+
+    }
+
+    @Override
+    public InputStream decompress(InputStream in) throws IOException {
         return null;
     }
 }

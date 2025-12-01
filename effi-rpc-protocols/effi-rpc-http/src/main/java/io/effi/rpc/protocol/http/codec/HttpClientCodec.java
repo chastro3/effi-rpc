@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.codec;
 
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.HttpCaller;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
@@ -40,8 +40,8 @@ public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpRespon
             //  request.url().addParam(KeyConstant.TIMESTAMP, DateUtil.format(LocalDateTime.now()));
             try (ByteBufOutputStream out = NettySupport.newOutputStream((NettyChannel) channel)) {
                 HttpUtil.encodeBody(channel.platform(), request, out);
-                return httpRequest.withChannel(channel)
-                        .withOutput(out, out.buffer().writerIndex());
+                return httpRequest.channel(channel)
+                        .output(out, out.buffer().writerIndex());
             } catch (Exception e) {
                 throw TransportErrorCodes.ENCODE.fail(e, OutputMessage.class, request.getClass());
             }
@@ -56,10 +56,10 @@ public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpRespon
                 ScopedPlatform platform = response.channel().platform();
                 Object body = HttpUtil.decodeBody(platform, response, response.inputStream(), side.replyType().type());
                 if (response.succeeded()) {
-                    response.withBody(body);
+                    response.body(body);
                 } else {
-                    EffiRpcException fail = PredefinedErrorCode.INVOKE_SERVICE.fail(null, String.valueOf(body));
-                    response.withBody(fail);
+                    EffiRpcException fail = InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(body);
+                    response.body(fail);
                 }
                 return response;
             }

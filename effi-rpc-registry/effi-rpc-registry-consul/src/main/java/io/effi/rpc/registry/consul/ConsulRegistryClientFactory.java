@@ -5,15 +5,16 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.registry.AbstractRegistryClientFactory;
 import io.effi.rpc.registry.RegistryClient;
-import io.effi.rpc.registry.RegistryClientFactory;
 
-import static io.effi.rpc.config.ConfigValues.Registry.CONSUL;
+import static io.effi.rpc.registry.consul.ConsulRegistryClientFactory.NAME;
 
 /**
- * Implements {@link RegistryClientFactory} using Consul.
+ * Implements {@link RegistryClient.Factory} using Consul.
  */
-@Extension(CONSUL)
+@Extension(NAME)
 public class ConsulRegistryClientFactory extends AbstractRegistryClientFactory {
+
+    public static final String NAME = "consul";
 
     @Override
     protected RegistryClient newClient(RegistryConfig config, ScopedPlatform platform) {

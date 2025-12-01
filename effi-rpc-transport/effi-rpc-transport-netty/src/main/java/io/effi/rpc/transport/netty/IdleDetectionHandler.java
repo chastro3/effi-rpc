@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.event.EventDispatcher;
-import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.transport.endpoint.Endpoint;
@@ -64,7 +64,7 @@ public class IdleDetectionHandler extends ChannelInboundHandlerAdapter {
     }
 
     private IdleStateHandler newIdleStateHandler() {
-        int allIdleTime = endpoint.config().getConfig(ConfigNames.IDLE_TRIGGER_INTERVAL);
+        int allIdleTime = endpoint.config().option(EndpointConfig.IDLE_TRIGGER_INTERVAL);
         return new IdleStateHandler(0, 0, allIdleTime, TimeUnit.MILLISECONDS);
     }
 }

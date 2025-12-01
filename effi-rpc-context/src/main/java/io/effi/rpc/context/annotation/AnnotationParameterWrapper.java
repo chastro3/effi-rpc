@@ -33,7 +33,7 @@ public class AnnotationParameterWrapper<T extends Annotation> {
         return null;
     }
 
-    public boolean supported(Parameter parameter) {
+    public boolean supports(Parameter parameter) {
         return parameter.isAnnotationPresent(type);
     }
 

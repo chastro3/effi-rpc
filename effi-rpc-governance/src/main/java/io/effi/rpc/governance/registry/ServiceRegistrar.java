@@ -3,7 +3,7 @@ package io.effi.rpc.governance.registry;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.registry.ServiceInstance;
-import io.effi.rpc.util.resoruce.Closeable;
+import io.effi.rpc.trait.Closeable;
 
 import java.util.List;
 

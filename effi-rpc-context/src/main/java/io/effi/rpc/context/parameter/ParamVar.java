@@ -26,15 +26,15 @@ public class ParamVar<T> extends Holder<T> implements Argument {
     }
 
     /**
-     * Creates a ParamVar instance wrapping a Source object with no name specified.
-     * If it's a bean object, the value will be fetched from the parameters based on the field name.
+     * Creates a ParamVar instance wrapping a Source object with no id specified.
+     * If it's a bean object, the value will be fetched from the parameters based on the field id.
      */
     public static ParamVar<Source> source() {
         return new ParamVar<>(new Source(null));
     }
 
     /**
-     * Creates a ParamVar instance wrapping a Source object initialized with the specified name.
+     * Creates a ParamVar instance wrapping a Source object initialized with the specified id.
      */
     public static ParamVar<Source> source(String name) {
         return new ParamVar<>(new Source(name));

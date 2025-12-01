@@ -21,7 +21,8 @@ public abstract class AbstractProtocol extends AbstractTransporter implements Tr
     protected void initialize(String protocolName, ProtocolStack stack,
                               ServerExchangeContextCodec serverCodec,
                               ClientExchangeContextCodec clientCodec) {
-        this.protocolName = AssertUtil.notBlank(protocolName, "protocol name");
+        this.protocolName = AssertUtil.notBlank(protocolName, "protocol id");
+        this.stack = AssertUtil.notNull(stack, "stack");
         this.serverCodec = AssertUtil.notNull(serverCodec, "serverCodec");
         this.clientCodec = AssertUtil.notNull(clientCodec, "clientCodec");
     }

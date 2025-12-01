@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.grpc;
 
-import io.effi.rpc.async.Future;
 import io.effi.rpc.protocol.http.h2.Http2Caller;
+import io.effi.rpc.concurrent.Future;
 
 public class GrpcCaller<R> extends Http2Caller<R> {
 

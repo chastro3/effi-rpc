@@ -38,6 +38,6 @@ public class CallerMetricsInterceptor implements Interceptor.ReplyUnit<Response,
 
     @Override
     public UnitType<Response, Caller<?>> unitType() {
-        return UnitType.of(Response.class, Caller.class);
+        return UnitType.cached(Response.class, Caller.class);
     }
 }

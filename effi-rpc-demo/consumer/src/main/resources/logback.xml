@@ -13,8 +13,7 @@
             </pattern>
         </encoder>
     </appender>
-    <conversionRule conversionWord="clr"
-                    converterClass="ch.qos.logback.classic.pattern.color.HighlightingCompositeConverter"/>
+    <conversionRule conversionWord="clr" converterClass="ch.qos.logback.classic.pattern.color.HighlightingCompositeConverter"/>
 
     <root level="INFO">
         <appender-ref ref="ASYNC"/>

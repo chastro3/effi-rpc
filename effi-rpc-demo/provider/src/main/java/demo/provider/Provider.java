@@ -4,7 +4,7 @@ import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.transport.CertificateConfig;
-import io.effi.rpc.component.transport.DefaultCertificateConfig;
+import io.effi.rpc.component.transport.support.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -25,7 +25,7 @@ public class Provider {
                     start();
                 }
                 if (command.equals("stop")) {
-                    ScopedPlatform.defaultPlatform().close();
+                    ScopedPlatform.defaultInstance().close();
                 }
             }
         }
@@ -33,7 +33,7 @@ public class Provider {
 
     public static void start() {
         CertificateConfig certificateConfig = DefaultCertificateConfig.builder()
-                .name("server-cert")
+                .id("server-cert")
                 .certChainPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\server-cert.pem")
                 .privateKeyPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\server-private-key.pem")
                 .trustCertPath("C:\\Users\\zhouwenbo\\Desktop\\rpc\\certs\\ca-cert.pem")

@@ -23,23 +23,23 @@ public class HttpIOMessage<SELF extends HttpIOMessage<SELF>> extends StandardHtt
     }
 
     @Override
-    public SELF withBody(Object body) {
+    public SELF body(Object body) {
         this.body = body;
         return self();
     }
 
-    public SELF withChannel(Channel channel) {
+    public SELF channel(Channel channel) {
         this.channel = channel;
         return self();
     }
 
 
-    public SELF withInput(InputStream inputStream) {
+    public SELF input(InputStream inputStream) {
         this.inputStream = inputStream;
         return self();
     }
 
-    public SELF withOutput(OutputStream outputStream, int length) {
+    public SELF output(OutputStream outputStream, int length) {
         this.outputStream = outputStream;
         setContentLength(length);
         return self();

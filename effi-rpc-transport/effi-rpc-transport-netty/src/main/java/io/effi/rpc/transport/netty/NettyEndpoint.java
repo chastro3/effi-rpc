@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.async.Promise;
+import io.effi.rpc.config.OptionName;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.EndpointConfig;
-import io.effi.rpc.config.ConfigName;
 import io.effi.rpc.transport.endpoint.AbstractEndpoint;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.LazySingleton;
@@ -29,7 +29,7 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
         initialize();
     }
 
-    public void withChannelConfigurer(ChannelConfigurer channelConfigurer) {
+    public void channelConfigurer(ChannelConfigurer channelConfigurer) {
         this.channelConfigurer = ensureChannelConfigurer(channelConfigurer);
     }
 
@@ -46,8 +46,8 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
         configureChannelHandler(bootstrap);
     }
 
-    protected <V> void configureIfValid(ConfigName<V> name, Consumer<V> consumer) {
-        V value = config.getConfig(name);
+    protected <V> void configureIfValid(OptionName<V> name, Consumer<V> consumer) {
+        V value = config.option(name);
         if (value != null) consumer.accept(value);
     }
 

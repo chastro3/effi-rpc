@@ -49,7 +49,7 @@ public class DisruptorEventDispatcher extends AbstractEventDispatcher {
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return started;
     }
 

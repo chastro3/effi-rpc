@@ -41,7 +41,7 @@ public final class ScopedPlatform extends ScopedContext {
         super(PLATFORM, Listener.class, null, defaultPlatform);
     }
 
-    public static ScopedPlatform defaultPlatform() {
+    public static ScopedPlatform defaultInstance() {
         return DEFAULT_PLATFORM.ensure();
     }
 
@@ -51,8 +51,8 @@ public final class ScopedPlatform extends ScopedContext {
     }
 
     @Override
-    public ScopedPlatform withName(String name) {
-        return (ScopedPlatform) super.withName(name);
+    public ScopedPlatform name(String name) {
+        return (ScopedPlatform) super.name(name);
     }
 
     public ScopedApplication defaultApplication() {
@@ -134,7 +134,7 @@ public final class ScopedPlatform extends ScopedContext {
         protected ScopedPlatform platform;
 
         public Holder(ScopedPlatform platform) {
-            this.platform = AssertUtil.notNull(platform, "platform");
+           this.platform = AssertUtil.notNull(platform, "platform");
         }
 
         @Override

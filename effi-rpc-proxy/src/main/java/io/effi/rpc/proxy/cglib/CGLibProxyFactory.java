@@ -5,14 +5,16 @@ import io.effi.rpc.proxy.AbstractProxyFactory;
 import io.effi.rpc.proxy.InvocationHandler;
 import org.springframework.cglib.proxy.Enhancer;
 
-import static io.effi.rpc.config.ConfigValues.ProxyFactory.CGLIB;
+import static io.effi.rpc.proxy.cglib.CGLibProxyFactory.NAME;
 import static io.effi.rpc.util.ClassUtil.findClassLoader;
 
 /**
  * Implements {@link io.effi.rpc.proxy.ProxyFactory} using Cglib.
  */
-@Extension(value = CGLIB, onClass = "org.springframework.cglib.proxy.Enhancer")
+@Extension(value = NAME, onClass = "org.springframework.cglib.proxy.Enhancer")
 public class CGLibProxyFactory extends AbstractProxyFactory {
+
+    public static final String NAME = "cglib";
 
     @Override
     @SuppressWarnings("unchecked")

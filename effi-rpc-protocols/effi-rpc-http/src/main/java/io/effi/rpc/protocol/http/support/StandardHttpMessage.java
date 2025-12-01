@@ -1,8 +1,9 @@
 package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.protocol.http.HttpVersion;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.FluentBuilder;
+import io.effi.rpc.trait.FluentBuilder;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
@@ -30,7 +31,7 @@ public abstract class StandardHttpMessage implements HttpMessage {
         this.body = builder.body;
     }
 
-    public StandardHttpMessage withBody(Object body) {
+    public StandardHttpMessage body(Object body) {
         this.body = body;
         return this;
     }

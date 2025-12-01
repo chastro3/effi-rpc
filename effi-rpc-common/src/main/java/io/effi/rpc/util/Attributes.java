@@ -1,6 +1,6 @@
 package io.effi.rpc.util;
 
-import io.effi.rpc.util.resoruce.Cleanable;
+import io.effi.rpc.trait.Cleanable;
 
 import java.util.function.Supplier;
 

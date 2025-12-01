@@ -3,7 +3,6 @@ package io.effi.rpc.component.extension;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 
 /**
  * Provides access to extension loaders and extension instances.
@@ -28,7 +27,7 @@ public interface ExtensionAccessor {
      * Otherwise, the primary extension for the given {@code type} will be returned.
      *
      * @param type the extension type
-     * @param name the preferred extension name
+     * @param name the extension name
      * @return the matching extension instance, or the primary extension if not found
      */
     <T> T preferredExtension(Class<T> type, String name);
@@ -41,16 +40,6 @@ public interface ExtensionAccessor {
      * @return the extension instance, or {@code null} if not found
      */
     <T> T namedExtension(Class<T> type, String name);
-
-    /**
-     * Returns the adaptive extension instance for the specified type,
-     * using the given name resolver.
-     *
-     * @param type       the extension type
-     * @param nameGetter the function to resolve the extension name
-     * @return the adaptive extension instance, or {@code null} if unavailable
-     */
-    <T> T adaptiveExtension(Class<T> type, Function<String, String> nameGetter);
 
     /**
      * Returns the primary extension instance for the specified type.

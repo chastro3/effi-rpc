@@ -1,24 +1,25 @@
 package io.effi.rpc.compression;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.util.FileUtil;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4FastDecompressor;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import static io.effi.rpc.config.ConfigValues.Compression.LZ4;
+import static io.effi.rpc.compression.Lz4Compressor.NAME;
 
 /**
  * Implements {@link Compressor} using Lz4.
  */
-@Extension(value = LZ4, onClass = "net.jpountz.lz4.LZ4Factory")
-public class Lz4Compressor extends AbstractCompressor {
+@Extension(value = NAME, onClass = "net.jpountz.lz4.LZ4Factory")
+public class Lz4Compressor implements Compressor {
+
+    public static final String NAME = "lz4";
 
     private final LZ4Compressor compressor;
 
@@ -31,18 +32,14 @@ public class Lz4Compressor extends AbstractCompressor {
     }
 
     @Override
-    protected byte[] doCompress(byte[] data) throws IOException {
-        ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-        try (LZ4BlockOutputStream outputStream = new LZ4BlockOutputStream(byteOutput, 1024, compressor)) {
+    public void compress(OutputStream out, byte[] data) throws IOException {
+        try (LZ4BlockOutputStream outputStream = new LZ4BlockOutputStream(out, 1024, compressor)) {
             outputStream.write(data);
         }
-        return byteOutput.toByteArray();
     }
 
     @Override
-    protected byte[] doDecompress(byte[] data) throws IOException {
-        try (LZ4BlockInputStream inputStream = new LZ4BlockInputStream(new ByteArrayInputStream(data), decompressor)) {
-            return FileUtil.toBytes(inputStream);
-        }
+    public InputStream decompress(InputStream in) throws IOException {
+        return new LZ4BlockInputStream(in, decompressor);
     }
 }

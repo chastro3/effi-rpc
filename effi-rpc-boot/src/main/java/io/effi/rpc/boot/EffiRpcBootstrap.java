@@ -27,13 +27,13 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
     }
 
     /**
-     * Creates a new instance of EffiRpcBootstrap with the specified application name.
+     * Creates a new instance of EffiRpcBootstrap with the specified application id.
      *
-     * @param applicationName the name of the application
+     * @param applicationName the id of the application
      * @return a new instance of EffiRpcBootstrap
      */
     public static EffiRpcBootstrap newInstance(String applicationName) {
-        return newInstance(ScopedPlatform.defaultPlatform(), applicationName);
+        return newInstance(ScopedPlatform.defaultInstance(), applicationName);
     }
 
     /**
@@ -47,17 +47,17 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
     }
 
     public EffiRpcBootstrap applyServer(ServerConfig serverConfig, int port) {
-        ServerLauncher.allocate(application, serverConfig, port);
+        ServerLauncher.attach(application, serverConfig, port);
         return this;
     }
 
     public EffiRpcBootstrap applyServer(ServerConfig serverConfig, String host, int port) {
-        ServerLauncher.allocate(application, serverConfig, host, port);
+        ServerLauncher.attach(application, serverConfig, host, port);
         return this;
     }
 
     public EffiRpcBootstrap applyServer(ServerConfig serverConfig, InetSocketAddress boundAddress) {
-        ServerLauncher.allocate(application, serverConfig, boundAddress);
+        ServerLauncher.attach(application, serverConfig, boundAddress);
         return this;
     }
 
@@ -83,7 +83,7 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      * @return the updated EffiRpcBootstrap instance
      */
     public EffiRpcBootstrap service(Object service) {
-        AnnotationRemoteService<Object> remoteService = new AnnotationRemoteService<>(service, application);
+        AnnotationServantGroup<Object> remoteService = new AnnotationServantGroup<>(service, application);
         return this;
     }
 

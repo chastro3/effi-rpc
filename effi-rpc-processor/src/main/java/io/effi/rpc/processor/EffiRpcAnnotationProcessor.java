@@ -3,8 +3,8 @@ package io.effi.rpc.processor;
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.annotation.rpc.EffiRpcClient;
-import io.effi.rpc.annotation.rpc.EffiRpcService;
+import io.effi.rpc.annotation.rpc.CallGroup;
+import io.effi.rpc.annotation.rpc.ServeGroup;
 import io.effi.rpc.nativetools.NativeConfig;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -31,8 +31,8 @@ import static io.effi.rpc.constant.SystemKeys.VERSION;
  * <ul>
  *   <li>{@link Extensible}</li>
  *   <li>{@link Extension}</li>
- *   <li>{@link EffiRpcService}</li>
- *   <li>{@link EffiRpcClient}</li>
+ *   <li>{@link ServeGroup}</li>
+ *   <li>{@link CallGroup}</li>
  *   <li>{@link ScopedComponent}</li>
  *   <li>{@link NativeConfig.Reflect}</li>
  * </ul>
@@ -51,8 +51,8 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
         annotationHandlers = List.of(
                 new ExtensibleHandler(processingEnv),
                 new ExtensionHandler(processingEnv),
-                new RemoteServiceHandler(processingEnv),
-                new RemoteClientHandler(processingEnv),
+                new ServeGroupHandler(processingEnv),
+                new CallGroupHandler(processingEnv),
                 new ScopedComponentHandler(processingEnv),
                 new NativeReflectConfigHandler(processingEnv)
         );

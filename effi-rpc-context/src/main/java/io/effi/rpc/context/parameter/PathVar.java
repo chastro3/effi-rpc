@@ -26,7 +26,7 @@ public class PathVar<T> extends Holder<T> implements Argument {
     }
 
     /**
-     * Creates a PathVar instance that wraps a Source object initialized with the specified name.
+     * Creates a PathVar instance that wraps a Source object initialized with the specified id.
      */
     public static PathVar<Source> source(String name) {
         return new PathVar<>(new Source(name));

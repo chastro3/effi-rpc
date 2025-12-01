@@ -2,10 +2,7 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.context.support.ReplyFuture;
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.transport.endpoint.Endpoint;
+import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.util.AssertUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -64,7 +61,6 @@ public class NettySupport {
     }
 
 
-
     public static void bindFutureId(Long futureId, Channel channel) {
         channel.attr(FUTURE_ID).set(futureId);
     }
@@ -89,9 +85,5 @@ public class NettySupport {
                 .build();
         requestSmartUrl.addQueryParam(KeyConstant.ONEWAY, Boolean.FALSE.toString());
         return requestSmartUrl;
-    }
-
-    private static EffiRpcException wrapChannelException(Throwable cause, Endpoint endpoint) {
-        return PredefinedErrorCode.FETCH_CHANNEL.fail(cause, endpoint, endpoint.protocol().name());
     }
 }

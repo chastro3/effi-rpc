@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.async.Promise;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -84,7 +84,7 @@ public final class NettyChannel extends AbstractChannel {
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return channel.isActive();
     }
 
@@ -93,7 +93,7 @@ public final class NettyChannel extends AbstractChannel {
         return StringUtil.format(
                 "{}[local={}, remote={}, active={}, type={}]",
                 ObjectUtil.simpleClassName(this),
-                localAddress(), remoteAddress(), isActive(),
+                localAddress(), remoteAddress(), active(),
                 physical() ? "physical" : "virtual"
         );
     }

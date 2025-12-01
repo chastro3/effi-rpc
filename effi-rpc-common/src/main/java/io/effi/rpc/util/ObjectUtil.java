@@ -1,7 +1,8 @@
 package io.effi.rpc.util;
 
-import io.effi.rpc.util.resoruce.Cleanable;
-import io.effi.rpc.util.resoruce.Closeable;
+import io.effi.rpc.trait.Cleanable;
+import io.effi.rpc.trait.Closeable;
+import io.effi.rpc.trait.Identifiable;
 
 import java.lang.annotation.Annotation;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public final class ObjectUtil {
         if (obj instanceof Cleanable cleanable) {
             cleanable.clear();
         }
-        if (obj instanceof Closeable closeable && closeable.isActive()) {
+        if (obj instanceof Closeable closeable && closeable.active()) {
             closeable.close();
         }
     }

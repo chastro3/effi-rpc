@@ -1,6 +1,6 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.async.Future;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;

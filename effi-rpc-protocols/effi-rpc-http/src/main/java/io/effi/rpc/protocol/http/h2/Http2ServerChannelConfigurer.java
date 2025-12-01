@@ -20,7 +20,7 @@ public class Http2ServerChannelConfigurer extends EndpointChannelConfigurer<Http
     private final Http2ServerHandler serverHandler;
 
     public Http2ServerChannelConfigurer(Http2Server server) {
-        super(server, SslContextManager.fetch(H2Support.SUPPORTED_PROTOCOL, server.config()));
+        super(server, SslContextManager.contextOf(H2Support.SUPPORTED_PROTOCOL, server.config()));
         this.serverHandler = new Http2ServerHandler();
     }
 

@@ -3,7 +3,6 @@ package io.effi.rpc.context;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.support.DefaultInteractionResult;
-import io.effi.rpc.context.support.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AbstractAttributes;
 
@@ -83,7 +82,7 @@ public interface Interaction {
 
     }
 
-    interface Result extends io.effi.rpc.async.Result<Object>, SmartURL.Supplier {
+    interface Result extends io.effi.rpc.concurrent.Result<Object>, SmartURL.Supplier {
 
         @Override
         SmartURL url();

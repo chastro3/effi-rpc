@@ -2,6 +2,7 @@ package io.effi.rpc.component;
 
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.annotation.component.ScopedComponent;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.LazySingleton;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION;
@@ -21,27 +22,21 @@ public final class ScopedModule extends ScopedContext implements ScopedApplicati
     }
 
     ScopedModule(LazySingleton<ScopedModule> defaultModule) {
-        super(MODULE, Listener.class, ScopedApplication.defaultApplication(), defaultModule);
+        super(MODULE, Listener.class, ScopedApplication.defaultInstance(), defaultModule);
+    }
+
+    public static ScopedModule defaultInstance() {
+        return ScopedApplication.defaultInstance().defaultModule();
     }
 
     @Override
-    public ScopedModule withName(String name) {
-        return (ScopedModule) super.withName(name);
+    public ScopedModule name(String name) {
+        return (ScopedModule) super.name(name);
     }
 
     @Override
     public ScopedApplication application() {
         return (ScopedApplication) parent();
-    }
-
-    @Override
-    protected void doStart() {
-
-    }
-
-    @Override
-    protected void doClose() {
-
     }
 
     /**
@@ -81,7 +76,7 @@ public final class ScopedModule extends ScopedContext implements ScopedApplicati
         protected ScopedModule module;
 
         public Holder(ScopedModule module) {
-            this.module = module;
+            this.module = AssertUtil.notNull(module, "module");
         }
 
         @Override

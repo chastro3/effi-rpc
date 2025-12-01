@@ -20,7 +20,7 @@ public class HttpCombineChannelConfigurer extends EndpointChannelConfigurer<Http
     private final Http2ServerChannelConfigurer http2Configurer;
 
     public HttpCombineChannelConfigurer(Http2Server server) {
-        super(server, SslContextManager.fetch(H2Support.SUPPORTED_PROTOCOL, server.config()));
+        super(server, SslContextManager.contextOf(H2Support.SUPPORTED_PROTOCOL, server.config()));
         this.http1Configurer = new Http1ServerChannelConfigurer(server);
         this.http2Configurer = new Http2ServerChannelConfigurer(server);
     }

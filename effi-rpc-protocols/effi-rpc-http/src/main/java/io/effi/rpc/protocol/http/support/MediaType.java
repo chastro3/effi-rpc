@@ -1,10 +1,7 @@
 package io.effi.rpc.protocol.http.support;
 
+import io.effi.rpc.serialization.json.JacksonSerializer;
 import io.effi.rpc.util.StringUtil;
-
-import static io.effi.rpc.config.ConfigValues.Serialization.JSON;
-import static io.effi.rpc.config.ConfigValues.Serialization.MSGPACK;
-import static io.effi.rpc.config.ConfigValues.Serialization.PROTOBUF;
 
 /**
  * Maps content types to corresponding serialization formats.
@@ -12,9 +9,10 @@ import static io.effi.rpc.config.ConfigValues.Serialization.PROTOBUF;
 public enum MediaType {
 
     APPLICATION_TEXT("application/text", "txt"),
-    APPLICATION_JSON("application/json", JSON),
-    APPLICATION_MSGPACK("application/msgpack", MSGPACK),
-    APPLICATION_PROTOBUF("application/protobuf", PROTOBUF);
+    APPLICATION_JSON("application/json", JacksonSerializer.NAME),
+    // todo 优化
+    APPLICATION_MSGPACK("application/msgpack",""),
+    APPLICATION_PROTOBUF("application/protobuf", "");
 
     private final CharSequence contentType;
 

@@ -1,20 +1,17 @@
 package io.effi.rpc.test.service;
 
-import io.effi.rpc.annotation.rpc.EffiRpcCaller;
-import io.effi.rpc.annotation.rpc.EffiRpcClient;
-import io.effi.rpc.config.ConfigValues;
+import io.effi.rpc.annotation.rpc.Call;
+import io.effi.rpc.annotation.rpc.CallGroup;
+import io.effi.rpc.protocol.http.h2.Http2Protocol;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 
-import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_1_1;
-import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_2;
-
-@EffiRpcClient(remoteApplication = "provider", protocol = HTTP_1_1, style = ConfigValues.AnnotationStyle.JAX_RS)
+@CallGroup()
 public interface HelloClient {
 
     @GET
     @Path("hello1")
-    @EffiRpcCaller(path = "hello", protocol = HTTP_2)
+    @Call(path = "hello", protocol = Http2Protocol.NAME)
     String hello(@QueryParam("name") String name, @QueryParam("age") int age);
 }

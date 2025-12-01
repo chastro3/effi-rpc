@@ -10,11 +10,11 @@ import io.effi.rpc.registry.util.RegistryUtil;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.Identifiable;
+import io.effi.rpc.trait.Closeable;
+import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.util.resoruce.Closeable;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -42,15 +42,15 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
         application.registry().register(ServerLauncher.class, this);
     }
 
-    public static ServerLauncher allocate(ScopedApplication application, ServerConfig config, int port) {
-        return allocate(application, config, NetUtil.localHost(), port);
+    public static ServerLauncher attach(ScopedApplication application, ServerConfig config, int port) {
+        return attach(application, config, NetUtil.localHost(), port);
     }
 
-    public static ServerLauncher allocate(ScopedApplication application, ServerConfig config, String host, int port) {
-        return allocate(application, config, InetSocketAddress.createUnresolved(host, port));
+    public static ServerLauncher attach(ScopedApplication application, ServerConfig config, String host, int port) {
+        return attach(application, config, InetSocketAddress.createUnresolved(host, port));
     }
 
-    public static ServerLauncher allocate(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress) {
+    public static ServerLauncher attach(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress) {
         AssertUtil.notNull(application, "application");
         AssertUtil.notNull(config, "server config");
         AssertUtil.notNull(boundAddress, "bound address");
@@ -75,9 +75,9 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
         Server server = protocol.supplyServer(serverConfig, boundAddress, platform);
         server.bind().onComplete(res -> {
             if (res.succeeded()) {
-                logger.info("Opened ({}) server on port {}.", serverConfig.protocolName(), boundAddress.getPort());
+                logger.info("({}) Server started on port {}.", serverConfig.protocolName().toUpperCase(), boundAddress.getPort());
             } else {
-                logger.error("Failed to open ({}) server on port {}.", serverConfig.protocolName(), boundAddress.getPort(), res.cause());
+                logger.error("Failed to open ({}) server on port {}.", res.cause(), serverConfig.protocolName(), boundAddress.getPort());
             }
         });
         return server;
@@ -92,9 +92,9 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return server.initialized()
-                && server.ensure().isActive();
+                && server.ensure().active();
     }
 
     @Override
@@ -103,7 +103,7 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
     }
 
     public Optional<Server> server() {
-        return isActive()
+        return active()
                 ? Optional.of(server.ensure())
                 : Optional.empty();
     }

@@ -9,7 +9,7 @@ import java.util.function.BiPredicate;
 /**
  * Provides access to component loaders and component instances.
  * <p>
- * Supports retrieval of components by type, name, or key,
+ * Supports retrieval of components by type, id, or key,
  * including filtering and batch operations on component collections.
  */
 public interface ComponentAccessor {
@@ -26,7 +26,7 @@ public interface ComponentAccessor {
      * Returns the named component of the specified type.
      *
      * @param type the component type
-     * @param name the component name
+     * @param name the component id
      * @return the component instance, or {@code null} if not found
      */
     <T> T namedComponent(Class<T> type, String name);
@@ -44,7 +44,7 @@ public interface ComponentAccessor {
      * Returns all components of the specified type, filtered by the given predicate.
      *
      * @param type   the component type
-     * @param filter predicate to filter by component name and instance; {@code null} disables filtering
+     * @param filter predicate to filter by component id and instance; {@code null} disables filtering
      * @return the collection of components, never {@code null}
      */
     <T> Collection<T> components(Class<T> type, BiPredicate<String, T> filter);
@@ -53,7 +53,7 @@ public interface ComponentAccessor {
      * Returns a map of named components of the specified type, filtered by the given predicate.
      *
      * @param type   the component type
-     * @param filter predicate to filter by component name and instance; {@code null} disables filtering
+     * @param filter predicate to filter by component id and instance; {@code null} disables filtering
      * @return the map of component names to instances, never {@code null}
      */
     <T> Map<String, T> namedComponents(Class<T> type, BiPredicate<String, T> filter);

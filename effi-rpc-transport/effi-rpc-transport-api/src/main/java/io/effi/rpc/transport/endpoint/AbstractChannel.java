@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.async.Future;
-import io.effi.rpc.async.Promise;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.context.Peer;
@@ -42,7 +42,7 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
                     ? encodableOutputMessage
                     : encodableOutputMessage.encode();
         }
-        if (isActive()) {
+        if (active()) {
             return doSend(message);
         }
         return Promise.completedVoid();

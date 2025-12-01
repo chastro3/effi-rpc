@@ -1,10 +1,10 @@
 package demo.provider;
 
 import demo.provider.model.ParentObject;
-import io.effi.rpc.annotation.rpc.EffiRpcCallee;
-import io.effi.rpc.annotation.rpc.EffiRpcService;
-import io.effi.rpc.config.ConfigValues;
+import io.effi.rpc.annotation.rpc.Serve;
+import io.effi.rpc.annotation.rpc.ServeGroup;
 import io.effi.rpc.context.annotation.Body;
+import io.effi.rpc.protocol.http.arg.annotation.jax.JaxRsStyleResolver;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -13,10 +13,7 @@ import jakarta.ws.rs.QueryParam;
 
 import java.util.List;
 
-import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_1_1;
-import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_2;
-
-@EffiRpcService(protocol = {HTTP_1_1, HTTP_2}, style = ConfigValues.AnnotationStyle.JAX_RS, path = "service")
+@ServeGroup
 public class HelloService extends CallLogInterceptor {
 
     public String hello(String name) {
@@ -39,7 +36,7 @@ public class HelloService extends CallLogInterceptor {
 
     @POST
     @Path("helloList")
-    @EffiRpcCallee(path = "helloList", style = ConfigValues.AnnotationStyle.JAX_RS)
+    @Serve(path = "helloList", style = JaxRsStyleResolver.NAME)
     public List<ParentObject> helloList(@QueryParam("name") String name,
                                         @HeaderParam("content-type") String contentType,
                                         @Body List<ParentObject> list) {

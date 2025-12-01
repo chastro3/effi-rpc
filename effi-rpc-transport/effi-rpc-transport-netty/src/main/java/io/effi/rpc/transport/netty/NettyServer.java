@@ -1,18 +1,19 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.async.Promise;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.component.transport.support.TcpEndpointConfig;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.ChannelTracker;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.concurrent.Promise;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelOption;
@@ -57,20 +58,20 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return isActive(serverChannelFuture);
     }
 
     @Override
     public void close() {
-        if (isActive()) {
+        if (active()) {
             for (Channel channel : activeChannels.values()) {
                 try {
                     channel.close();
                 } catch (Throwable e) {
-                    EffiRpcException failed = PredefinedErrorCode.CLOSE_CHANNEL
+                    EffiRpcException fail = TransportErrorCodes.CLOSE_CHANNEL
                             .fail(e, channel.remoteAddress());
-                    logger.error(failed.getMessage(), e);
+                    logger.error(fail.getMessage(), e);
                 }
             }
             serverChannelFuture.ensure().result().close();
@@ -126,26 +127,26 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
 
     @Override
     protected void configureOptions(ServerBootstrap bootstrap) {
-        int bossThreads = config.getConfig(ConfigNames.CONNECTION_HANDLER_THREADS);
-        int workThreads = config.getConfig(ConfigNames.REQUEST_PROCESSOR_THREADS);
+        int bossThreads = config.option(ServerConfig.ACCEPTOR_THREADS);
+        int workThreads = config.option(ServerConfig.IO_THREADS);
         bossGroup = new NioEventLoopGroup(bossThreads, newThreadFactory("server-boss"));
         workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
         bootstrap.group(bossGroup, workerGroup)
                 .localAddress(localAddress())
                 .channel(NioServerSocketChannel.class);
-        configureIfValid(ConfigNames.ACCEPT_BACKLOG, val -> {
+        configureIfValid(ServerConfig.ACCEPT_BACKLOG, val -> {
             bootstrap.option(ChannelOption.SO_BACKLOG, val);
         });
-        configureIfValid(ConfigNames.SEND_BUFFER_SIZE, val -> {
+        configureIfValid(EndpointConfig.SEND_BUFFER_SIZE, val -> {
             bootstrap.childOption(ChannelOption.SO_SNDBUF, val);
         });
-        configureIfValid(ConfigNames.RECEIVE_BUFFER_SIZE, val -> {
+        configureIfValid(EndpointConfig.RECEIVE_BUFFER_SIZE, val -> {
             bootstrap.childOption(ChannelOption.SO_RCVBUF, val);
         });
-        configureIfValid(ConfigNames.TCP_NO_DELAY, val -> {
+        configureIfValid(TcpEndpointConfig.NO_DELAY, val -> {
             bootstrap.childOption(ChannelOption.TCP_NODELAY, val);
         });
-        configureIfValid(ConfigNames.TCP_KEEP_ALIVE, val -> {
+        configureIfValid(TcpEndpointConfig.KEEP_ALIVE, val -> {
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, val);
         });
     }

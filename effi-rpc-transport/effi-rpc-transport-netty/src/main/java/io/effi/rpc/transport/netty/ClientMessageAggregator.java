@@ -1,11 +1,12 @@
 package io.effi.rpc.transport.netty;
 
+import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Response;
-import io.effi.rpc.context.support.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.nativetools.NativeConfig;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.transport.message.InputMessage;
@@ -18,9 +19,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
 import java.net.InetSocketAddress;
-
-import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_READ;
-import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
 
 /**
  * Converts messages for client-side communication.
@@ -48,7 +46,7 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        EffiRpcException exception = CHANNEL_READ.fail(cause, ctx.channel().remoteAddress());
+        EffiRpcException exception = TransportErrorCodes.CHANNEL_READ.fail(cause, ctx.channel().remoteAddress());
         logger.error(exception);
     }
 
@@ -71,7 +69,7 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
                 ReplyFuture replyFuture = ReplyFuture.lookup(outputMessage.url());
                 if (replyFuture != null) {
                     InetSocketAddress remoteAddress = outputMessage.channel().remoteAddress();
-                    EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), remoteAddress);
+                    EffiRpcException exception = TransportErrorCodes.CHANNEL_WRITE.fail(future.cause(), remoteAddress);
                     replyFuture.context().peer().threadPool().execute(() -> replyFuture.failure(exception));
                 } else {
                     logger.warn("ReplyFuture is null, cannot complete with exception.");

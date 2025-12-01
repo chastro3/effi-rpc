@@ -3,7 +3,6 @@ package io.effi.rpc.proxy;
 import io.effi.rpc.annotation.component.Extensible;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
-import static io.effi.rpc.config.ConfigValues.ProxyFactory.JDK;
 
 /**
  * Creates proxy instances for specified interfaces or objects.
@@ -11,7 +10,7 @@ import static io.effi.rpc.config.ConfigValues.ProxyFactory.JDK;
  * Provides proxy factory functionality for creating dynamic proxies
  * with invocation handlers for both interfaces and concrete objects.
  */
-@Extensible(value = JDK, scope = PLATFORM)
+@Extensible(scope = PLATFORM)
 public interface ProxyFactory {
 
     /**

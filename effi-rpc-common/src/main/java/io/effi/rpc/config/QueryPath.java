@@ -91,7 +91,7 @@ public class QueryPath {
         return result;
     }
 
-    public boolean matched(String realPath) {
+    public boolean matches(String realPath) {
         return match(realPath) != null;
     }
 

@@ -1,6 +1,7 @@
 package io.effi.rpc.util;
 
 import java.lang.annotation.Annotation;
+import java.util.function.Function;
 
 import static io.effi.rpc.util.StringUtil.format;
 
@@ -28,12 +29,20 @@ public final class AssertUtil {
         valid(condition, format(message, args));
     }
 
+    public static <E extends RuntimeException> void valid(boolean condition, Function<String, E> exception, String message, Object... args) {
+        valid(condition, exception, format(message, args));
+    }
+
     /**
      * Checks if the condition is true with a custom message.
      */
     public static void valid(boolean condition, String message) {
+        valid(condition, IllegalArgumentException::new, message);
+    }
+
+    public static <E extends RuntimeException> void valid(boolean condition, Function<String, E> exception, String message) {
         if (!condition) {
-            throw new IllegalArgumentException(message);
+            throw exception.apply(message);
         }
     }
 

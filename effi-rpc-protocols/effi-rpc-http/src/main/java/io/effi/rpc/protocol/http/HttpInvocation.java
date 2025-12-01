@@ -60,7 +60,7 @@ public class HttpInvocation {
         QueryPath queryPath = caller.queryPath();
         SmartURL.Builder urlBuilder = SmartURL.builder()
                 .scheme(caller.protocol().name())
-                .withQueryParams(paramVars);
+                .queryParams(paramVars);
         if (queryPath != null) {
             String[] realPath = queryPath.render(pathVars);
             if (CollectionUtil.isEmpty(realPath)) {

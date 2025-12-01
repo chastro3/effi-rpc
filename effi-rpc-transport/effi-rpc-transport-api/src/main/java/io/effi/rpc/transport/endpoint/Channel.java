@@ -1,10 +1,10 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.async.Future;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.Attributes;
-import io.effi.rpc.util.resoruce.Closeable;
+import io.effi.rpc.trait.Closeable;
 
 import java.net.InetSocketAddress;
 

@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
-import static io.effi.rpc.config.ConfigValues.Serialization.KRYO;
 
 /**
  * Serializes and deserializes objects using various serialization formats.
@@ -16,7 +15,7 @@ import static io.effi.rpc.config.ConfigValues.Serialization.KRYO;
  * Provides serialization functionality for converting objects to and from
  * byte streams with platform-scoped extensibility.
  */
-@Extensible(value = KRYO, scope = PLATFORM)
+@Extensible(scope = PLATFORM)
 public interface Serializer {
 
     /**

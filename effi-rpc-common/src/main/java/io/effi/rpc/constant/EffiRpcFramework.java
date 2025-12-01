@@ -1,6 +1,5 @@
 package io.effi.rpc.constant;
 
-
 import io.effi.rpc.util.ClassUtil;
 import io.effi.rpc.util.Messages;
 
@@ -22,9 +21,8 @@ public final class EffiRpcFramework {
         return JAVA_VERSION;
     }
 
-
     private static String loadVersion() {
-        String path = ResourcePath.VERSION_FILE;
+        String path = ResourcePaths.VERSION_FILE;
         try {
             InputStream stream = ClassUtil.findClassLoader(EffiRpcFramework.class)
                     .getResourceAsStream(path);

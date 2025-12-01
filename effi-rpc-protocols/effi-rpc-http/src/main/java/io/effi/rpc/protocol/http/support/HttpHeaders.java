@@ -13,15 +13,15 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     /**
      * Retrieves the first value of the specified header.
      *
-     * @param name the header name
+     * @param name the header id
      * @return the first header value or null if not present
      */
     CharSequence get(CharSequence name);
 
     /**
-     * Retrieves all values associated with the specified header name.
+     * Retrieves all values associated with the specified header id.
      *
-     * @param name the header name
+     * @param name the header id
      * @return list of values, or empty list if not present
      */
     List<CharSequence> getAll(CharSequence name);
@@ -29,7 +29,7 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     /**
      * Adds a header or appends a value to an existing one.
      *
-     * @param name  the header name
+     * @param name  the header id
      * @param value the header value
      */
     void add(CharSequence name, CharSequence value);
@@ -42,9 +42,9 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     void add(Iterable<? extends Map.Entry<? extends CharSequence, ? extends CharSequence>> headers);
 
     /**
-     * Sets a header, replacing any existing values for the given name.
+     * Sets a header, replacing any existing values for the given id.
      *
-     * @param name  the header name
+     * @param name  the header id
      * @param value the header value
      */
     void set(CharSequence name, CharSequence value);
@@ -52,7 +52,7 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     /**
      * Sets multiple values for the specified header, replacing any existing values.
      *
-     * @param name   the header name
+     * @param name   the header id
      * @param values the header values
      */
     void set(CharSequence name, List<CharSequence> values);
@@ -65,16 +65,16 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     void set(Iterable<? extends Map.Entry<? extends CharSequence, ? extends CharSequence>> headers);
 
     /**
-     * Removes the header with the specified name.
+     * Removes the header with the specified id.
      *
-     * @param name the header name
+     * @param name the header id
      */
     void remove(CharSequence name);
 
     /**
-     * Returns true if the header with the specified name is present.
+     * Returns true if the header with the specified id is present.
      *
-     * @param name the header name
+     * @param name the header id
      * @return true if present, false otherwise
      */
     boolean contains(CharSequence name);
@@ -82,7 +82,7 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
     /**
      * Returns the first value of the specified header or the default value if not present.
      *
-     * @param name         the header name
+     * @param name         the header id
      * @param defaultValue the default value to return if the header is not present
      * @return the first header value or the default value if not present
      */

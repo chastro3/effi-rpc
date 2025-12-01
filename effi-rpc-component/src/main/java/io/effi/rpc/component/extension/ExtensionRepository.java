@@ -4,13 +4,12 @@ import io.effi.rpc.component.ComponentDescriptor;
 import io.effi.rpc.component.ScopedContext;
 import io.effi.rpc.component.ScopedContextOwned;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.resoruce.Cleanable;
+import io.effi.rpc.trait.Cleanable;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 
 /**
  * Manages extension loaders and their extensions within a scoped context.
@@ -48,11 +47,6 @@ public class ExtensionRepository implements ScopedContextOwned, ExtensionAccesso
     @Override
     public <T> T namedExtension(Class<T> type, String name) {
         return extensionLoader(type).namedExtension(name);
-    }
-
-    @Override
-    public <T> T adaptiveExtension(Class<T> type, Function<String, String> nameGetter) {
-        return extensionLoader(type).adaptiveExtension(nameGetter);
     }
 
     @Override

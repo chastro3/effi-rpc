@@ -5,19 +5,22 @@ import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import io.effi.rpc.async.Future;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.ConfigurableOptionName;
+import io.effi.rpc.config.OptionName;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.registry.AbstractRegistryClient;
 import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.List;
 import java.util.Map;
+
+import static io.effi.rpc.config.OptionName.Strategy.ONLY_CURRENT;
 
 /**
  * Implements {@link RegistryClient} using Nacos.
@@ -25,6 +28,8 @@ import java.util.Map;
  * See <a href="https://github.com/alibaba/nacos">Nacos</a> for details.
  */
 public class NacosRegistryClient extends AbstractRegistryClient {
+
+    public static final OptionName<String> NACOS_PROJECT_NAME = ConfigurableOptionName.nameOf("projectName", ONLY_CURRENT);
 
     private final NamingService namingService;
 
@@ -34,12 +39,12 @@ public class NacosRegistryClient extends AbstractRegistryClient {
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return namingService.getServerStatus().equals("UP");
     }
 
     @Override
-    public Registration createRegistrationAction(ServiceInstance instance) {
+    public Registration createRegistration(ServiceInstance instance) {
         String instanceId = instance.id();
         Instance inst = new Instance();
         inst.setInstanceId(instanceId);
@@ -100,10 +105,10 @@ public class NacosRegistryClient extends AbstractRegistryClient {
     }
 
     private NamingService createNamingService(RegistryConfig config) {
-        String projectName = config.getConfig(ConfigNames.NACOS_PROJECT_NAME);
+        String projectName = config.option(NACOS_PROJECT_NAME);
         if (StringUtil.isNotBlank(projectName))
-            // nacos <project.name>
-            System.setProperty("project.name", projectName);
+            // nacos <project.id>
+            System.setProperty("project.id", projectName);
         try {
             return NamingFactory.createNamingService(config.address());
         } catch (NacosException e) {

@@ -1,35 +1,32 @@
 package io.effi.rpc.compression;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.util.FileUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-import static io.effi.rpc.config.ConfigValues.Compression.DEFLATE;
+import static io.effi.rpc.compression.DeflateCompressor.NAME;
 
 /**
  * Implements {@link Compressor} using Deflate.
  */
-@Extension(DEFLATE)
-public class DeflateCompressor extends AbstractCompressor {
+@Extension(NAME)
+public class DeflateCompressor implements Compressor {
+
+    public static final String NAME = "deflate";
 
     @Override
-    protected byte[] doCompress(byte[] data) throws IOException {
-        ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-        try (DeflaterOutputStream outputStream = new DeflaterOutputStream(byteOutput)) {
+    public void compress(OutputStream out, byte[] data) throws IOException {
+        try (DeflaterOutputStream outputStream = new DeflaterOutputStream(out)) {
             outputStream.write(data);
         }
-        return byteOutput.toByteArray();
     }
 
     @Override
-    protected byte[] doDecompress(byte[] data) throws IOException {
-        try (InflaterInputStream inputStream = new InflaterInputStream(new ByteArrayInputStream(data))) {
-            return FileUtil.toBytes(inputStream);
-        }
+    public InputStream decompress(InputStream in) throws IOException {
+        return new InflaterInputStream(in);
     }
 }

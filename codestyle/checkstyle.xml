@@ -50,7 +50,7 @@
         <module name="MissingJavadocMethod">
             <property name="allowMissingPropertyJavadoc" value="true"/>
             <property name="tokens" value="METHOD_DEF,ANNOTATION_FIELD_DEF"/>
-            <property name="allowedAnnotations" value="Override,Bean"/>
+            <property name="allowedAnnotations" value="Overrnamee,Bean"/>
         </module>
         <module name="JavadocType">
             <property name="allowUnknownTags" value="true"/>
@@ -66,12 +66,12 @@
         <!-- 包名的检查（只允许小写字母），默认^[a-z]+(\.[a-zA-Z_][a-zA-Z_0-9_]*)*$ -->
         <module name="PackageName">
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
-            <message key="name.invalidPattern" value="包名 ''{0}'' 要符合 ''{1}''格式."/>
+            <message key="name.invalnamePattern" value="包名 ''{0}'' 要符合 ''{1}''格式."/>
         </module>
         <!-- Class或Interface名检查，默认^[A-Z][a-zA-Z0-9]*$-->
         <module name="TypeName">
             <property name="severity" value="warning"/>
-            <message key="name.invalidPattern" value="名称 ''{0}'' 要符合 ''{1}''格式."/>
+            <message key="name.invalnamePattern" value="名称 ''{0}'' 要符合 ''{1}''格式."/>
         </module>
         <!-- 非static型变量的检查 -->
         <module name="MemberName"/>
@@ -94,7 +94,7 @@
         <!-- 方法的参数个数不超过5个。 并且不对构造方法进行检查-->
         <module name="ParameterNumber">
             <property name="max" value="10"/>
-            <property name="ignoreOverriddenMethods" value="true"/>
+            <property name="ignoreOverrnamedenMethods" value="true"/>
             <property name="tokens" value="METHOD_DEF"/>
         </module>
 
@@ -124,7 +124,7 @@
 
         <!-- 代码块检查 -->
         <!-- 检查是否有嵌套代码块 -->
-        <module name="AvoidNestedBlocks"/>
+        <module name="AvonameNestedBlocks"/>
         <!-- 检查是否有空代码块 -->
         <module name="EmptyBlock"/>
         <!-- 检查左大括号位置 -->

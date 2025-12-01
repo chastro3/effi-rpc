@@ -8,7 +8,6 @@ import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.message.InputMessage;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
-import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_2;
 
 /**
  * Define protocols for client-server communication and request handling.
@@ -16,7 +15,7 @@ import static io.effi.rpc.config.ConfigValues.Protocol.HTTP_2;
  * Provides transport protocol functionality for module lookup, error handling,
  * and codec management with platform-scoped extensibility.
  */
-@Extensible(value = HTTP_2, scope = PLATFORM)
+@Extensible(scope = PLATFORM)
 public interface TransportProtocol extends Transporter, Protocol {
 
     /**

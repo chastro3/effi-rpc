@@ -40,7 +40,7 @@ import static io.netty.channel.ChannelHandler.Sharable;
 public final class Http2ClientHandler extends FutureBinder {
 
     @Override
-    protected SmartURL supported(Object msg) {
+    protected SmartURL supports(Object msg) {
         if (msg instanceof HttpDuplexRequest request) {
             return request.url();
         }

@@ -1,7 +1,7 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.Extensible;
-import io.effi.rpc.util.Ordered;
+import io.effi.rpc.trait.Ordered;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 
@@ -39,13 +39,12 @@ public interface Interceptor<M extends Message, P extends Peer, C extends Intera
      * Intercepts the {@link CallContext} during the call phase.
      * <p>
      * For the client, invoked before {@link Locator#locate(CallContext)}.<br>
-     * For the server, invoked before {@link Callee#invoke(Object...)}.
+     * For the server, invoked before {@link Servant#invoke(Object...)}.
      *
      * @see Interceptor
      * @see CallContext
      */
-    interface CallUnit<R extends Request, P extends Peer>
-            extends Interceptor<R, P, CallContext<R, P>> {
+    interface CallUnit<R extends Request, P extends Peer> extends Interceptor<R, P, CallContext<R, P>> {
 
         @Override
         Interaction.Result intercept(CallContext<R, P> context, Chain chain);
@@ -61,8 +60,7 @@ public interface Interceptor<M extends Message, P extends Peer, C extends Intera
      * @see Interceptor
      * @see CallContext
      */
-    interface ChosenUnit<R extends Request, C extends Caller<?>>
-            extends Interceptor<R, C, CallContext<R, C>> {
+    interface ChosenUnit<R extends Request, C extends Caller<?>> extends Interceptor<R, C, CallContext<R, C>> {
 
         @Override
         Interaction.Result intercept(CallContext<R, C> context, Chain chain);
@@ -77,13 +75,11 @@ public interface Interceptor<M extends Message, P extends Peer, C extends Intera
      * @see Interceptor
      * @see ReplyContext
      */
-    interface ReplyUnit<R extends Response, P extends Peer>
-            extends Interceptor<R, P, ReplyContext<R, P>> {
+    interface ReplyUnit<R extends Response, P extends Peer> extends Interceptor<R, P, ReplyContext<R, P>> {
 
         @Override
         Interaction.Result intercept(ReplyContext<R, P> context, Chain chain);
     }
-
 
     /**
      * Defines a chain of {@link Interceptor} execution units.

@@ -30,16 +30,16 @@ public final class ScopedApplication extends ScopedContext implements ScopedPlat
     }
 
     ScopedApplication(LazySingleton<ScopedApplication> defaultApplication) {
-        super(APPLICATION, Listener.class, ScopedPlatform.defaultPlatform(), defaultApplication);
+        super(APPLICATION, Listener.class, ScopedPlatform.defaultInstance(), defaultApplication);
     }
 
-    public static ScopedApplication defaultApplication() {
-        return ScopedPlatform.defaultPlatform().defaultApplication();
+    public static ScopedApplication defaultInstance() {
+        return ScopedPlatform.defaultInstance().defaultApplication();
     }
 
     @Override
-    public ScopedApplication withName(String name) {
-        return (ScopedApplication) super.withName(name);
+    public ScopedApplication name(String name) {
+        return (ScopedApplication) super.name(name);
     }
 
     @Override

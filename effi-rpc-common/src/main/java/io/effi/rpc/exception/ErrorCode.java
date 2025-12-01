@@ -39,6 +39,10 @@ public interface ErrorCode {
     default EffiRpcException fail(Throwable cause, Object... args) {
         return EffiRpcException.wrap(this, cause, args);
     }
+
+    default EffiRpcException fail(Object... args) {
+        return fail(null, args);
+    }
 }
 
 

@@ -18,7 +18,7 @@ public class Http1Server extends NettyServer {
     @Override
     protected void initialize() {
         configureBootStrap();
-        withChannelConfigurer(new Http1ServerChannelConfigurer(this));
+        channelConfigurer(new Http1ServerChannelConfigurer(this));
     }
 
 }

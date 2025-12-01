@@ -35,14 +35,13 @@ public final class CollectionUtil {
     /**
      * Replaces the key in a map when the key (e.g. name) of the value object changes.
      */
-    public static <K, V> boolean replaceMapKey(Map<K, V> map, K oldKey, K newKey,V value) {
+    public static <K, V> boolean replaceMapKey(Map<K, V> map, K oldKey, K newKey, V value) {
         if (Objects.equals(oldKey, newKey)) {
             return false; // no change needed
         }
         if (oldKey != null) value = map.remove(oldKey);
-            map.put(newKey, value);
-            return true;
-
+        map.put(newKey, value);
+        return true;
     }
 
     public static <T extends Comparable> Collection<T> flatDistinctCollection(Collection<? extends Iterable<T>> collection) {

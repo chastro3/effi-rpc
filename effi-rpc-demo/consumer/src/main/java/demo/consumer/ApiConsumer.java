@@ -1,15 +1,14 @@
 package demo.consumer;
 
-import io.effi.rpc.async.Future;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
-import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.config.DefaultHierarchicalConfig;
+import io.effi.rpc.context.parameter.Header;
+import io.effi.rpc.governance.registry.RegistryLocator;
 import io.effi.rpc.protocol.http.h2.Http2Caller;
-import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.util.TypeCapture;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,23 +16,19 @@ import java.util.concurrent.Executors;
 public class ApiConsumer {
 
     public static void main(String[] args) {
-        DefaultRegistryConfig consul = DefaultRegistryConfig.builder().id("consul").authority("consul://127.0.0.1:8500").build();
-        ScopedModule module = ScopedPlatform.defaultPlatform()
-                .defaultApplication()
-                .withName("consumer")
-                .defaultModule();
-        module.platform().registry().register(RegistryConfig.class, consul);
-        Http2Caller<String> caller = Http2Caller.<String>builder(new TypeCapture<>() {}, new DefaultHierarchicalConfig())
+        DefaultRegistryConfig consul = DefaultRegistryConfig.builder()
+                .id("consul")
+                .authority("consul://127.0.0.1:8500")
+                .build();
+        Http2Caller<String> caller = Http2Caller.<String>builder(new TypeCapture<>() {})
                 .path("hello")
-                .target("provider")
-                .registryConfigs("consul")
-                .clientConfig(Http2ClientConfig.defaultConfig())
-                .module(module)
+                .locator(RegistryLocator.cached("default", consul))
+                .module(ScopedModule.defaultInstance())
                 .build();
         ExecutorService executorService = Executors.newFixedThreadPool(200);
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 1; i++) {
             executorService.execute(() -> {
-                Future<String> future = caller.call("xxx");
+                Future<String> future = caller.call("xxx", Header.target(Map.of("content-type", "application/json")));
                 System.out.println(future.toCompletableFuture().join());
             });
         }

@@ -11,8 +11,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
  * contexts in the RPC processing pipeline with module-scoped components.
  */
 @Extensible(scope = MODULE)
-public interface Stage<M extends Message, P extends Peer, C extends Interaction.Context<M, P>>
-        extends Interaction.Unit<M, P> {
+public interface Stage<M extends Message, P extends Peer, C extends Interaction.Context<M, P>> extends Interaction.Unit<M, P> {
 
     /**
      * Processes the stage with the given {@link Interaction.Context} and {@link Chain}.
@@ -32,8 +31,10 @@ public interface Stage<M extends Message, P extends Peer, C extends Interaction.
      * @see Stage
      * @see CallContext
      */
-    interface CallUnit<R extends Request, P extends Peer>
-            extends Stage<R, P, CallContext<R, P>> {}
+    interface CallUnit<R extends Request, P extends Peer> extends Stage<R, P, CallContext<R, P>> {
+
+        Interaction.Result process(CallContext<R, P> context, Chain chain);
+    }
 
     /**
      * Defines a stage that handles the {@link ReplyContext} during the reply phase.
@@ -44,8 +45,7 @@ public interface Stage<M extends Message, P extends Peer, C extends Interaction.
      * @see Stage
      * @see ReplyContext
      */
-    interface ReplyUnit<R extends Response, C extends Peer>
-            extends Stage<R, C, ReplyContext<R, C>> {}
+    interface ReplyUnit<R extends Response, C extends Peer> extends Stage<R, C, ReplyContext<R, C>> {}
 
     /**
      * Defines a chain of {@link Stage} execution units.

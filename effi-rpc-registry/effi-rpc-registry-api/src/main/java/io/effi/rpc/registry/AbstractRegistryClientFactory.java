@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides an abstract implementation of {@link RegistryClientFactory}.
+ * Provides an abstract implementation of {@link RegistryClient.Factory}.
  */
-public abstract class AbstractRegistryClientFactory implements RegistryClientFactory, ScopedPlatform.Acceptor {
+public abstract class AbstractRegistryClientFactory implements RegistryClient.Factory, ScopedPlatform.Acceptor {
 
     private final Map<String, RegistryClient> registryServices = new ConcurrentHashMap<>();
 

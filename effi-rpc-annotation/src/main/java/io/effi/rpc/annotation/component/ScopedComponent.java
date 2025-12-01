@@ -1,5 +1,7 @@
 package io.effi.rpc.annotation.component;
 
+import io.effi.rpc.constant.ResourcePaths;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,7 +13,7 @@ import java.lang.annotation.Target;
  *
  * <p>Classes annotated with this will have their metadata
  * automatically generated at compile time into
- * {@link io.effi.rpc.constant.ResourcePath#COMPONENT_DESCRIPTOR_FILE}.
+ * {@link ResourcePaths#COMPONENT_DESCRIPTOR_FILE}.
  *
  * <p>This properties file is used at runtime to
  * discover and manage these components according to their scope and kind.

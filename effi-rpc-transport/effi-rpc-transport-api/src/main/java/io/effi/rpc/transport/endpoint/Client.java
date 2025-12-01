@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.async.Future;
 import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.concurrent.Future;
 
 import java.net.InetSocketAddress;
 

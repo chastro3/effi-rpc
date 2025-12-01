@@ -1,27 +1,27 @@
 package io.effi.rpc.context;
 
-import io.effi.rpc.context.parameter.MethodMapper;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.util.TypeCapture;
 
 /**
- * Creates protocol-specific caller and callee instances.
+ * Creates protocol-specific caller and servant instances.
  * <p>
- * Provides factory methods for creating RPC caller and callee implementations
+ * Provides factory methods for creating RPC caller and servant implementations
  * based on method mappers, reply types, and configuration settings.
  */
 public interface PeerFactory {
 
     /**
-     * Creates a callee from the specified method mapper and configuration.
+     * Creates a servant from the specified method mapper and configuration.
      *
-     * @param methodMapper the method mapper defining the exposed methods
-     * @param config the callee configuration
+     * @param servantMethod the method mapper defining the exposed methods
+     * @param config the servant configuration
      * @param module the associated module
-     * @return the created callee
+     * @return the created servant
      */
-    <T> Callee createCallee(MethodMapper<T> methodMapper, HierarchicalConfig config, ScopedModule module);
+    <T> Servant createServant(ServantMethod<T> servantMethod, HierarchicalOptions options, ScopedModule module);
 
     /**
      * Creates a caller for the specified reply type, configuration.
@@ -31,6 +31,6 @@ public interface PeerFactory {
      * @param module the associated module
      * @return the created caller
      */
-    <T> Caller<T> createCaller(TypeCapture<T> replyType, HierarchicalConfig config, ScopedModule module);
+    <T> Caller<T> createCaller(TypeCapture<T> replyType, HierarchicalOptions options, ScopedModule module);
 }
 

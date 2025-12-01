@@ -14,7 +14,7 @@ public class RpcThreadPool extends ThreadPoolExecutor {
 
     public RpcThreadPool(int corePoolSize, int maximumPoolSize, String namePrefix) {
         this(corePoolSize, maximumPoolSize,
-                Constant.DEFAULT_KEEPALIVE, TimeUnit.SECONDS,
+                Constant.DEFAULT_KEEP_ALIVE, TimeUnit.SECONDS,
                 new LinkedBlockingDeque<>(Constant.DEFAULT_CAPACITY),
                 new RpcThreadFactory(namePrefix, false),
                 new CallerRunsPolicy());

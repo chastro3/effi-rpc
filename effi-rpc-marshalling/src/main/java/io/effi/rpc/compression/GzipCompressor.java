@@ -1,35 +1,32 @@
 package io.effi.rpc.compression;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.util.FileUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import static io.effi.rpc.config.ConfigValues.Compression.GZIP;
+import static io.effi.rpc.compression.GzipCompressor.NAME;
 
 /**
  * Implements {@link Compressor} using Gzip.
  */
-@Extension(GZIP)
-public class GzipCompressor extends AbstractCompressor {
+@Extension(value = NAME, primary = true)
+public class GzipCompressor implements Compressor {
+
+    public static final String NAME = "gzip";
 
     @Override
-    protected byte[] doCompress(byte[] data) throws IOException {
-        ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-        try (GZIPOutputStream outputStream = new GZIPOutputStream(byteOutput)) {
+    public void compress(OutputStream out, byte[] data) throws IOException {
+        try (GZIPOutputStream outputStream = new GZIPOutputStream(out)) {
             outputStream.write(data);
         }
-        return byteOutput.toByteArray();
     }
 
     @Override
-    protected byte[] doDecompress(byte[] data) throws IOException {
-        try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(data))) {
-            return FileUtil.toBytes(inputStream);
-        }
+    public InputStream decompress(InputStream in) throws IOException {
+        return new GZIPInputStream(in);
     }
 }

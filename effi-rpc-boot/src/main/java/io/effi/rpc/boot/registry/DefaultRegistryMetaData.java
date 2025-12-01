@@ -5,7 +5,7 @@ import io.effi.rpc.boot.ApplicationServiceRegistrar;
 import io.effi.rpc.boot.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.context.Callee;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.transport.endpoint.ChannelTracker;
 
 import java.lang.management.ManagementFactory;
@@ -44,7 +44,7 @@ public class DefaultRegistryMetaData {
         memoryUsage = round((double) usedMemory / totalMemory);
         int activeService = 0;
         for (ScopedModule module : application.modules()) {
-            activeService += module.componentCount(Callee.class);
+            activeService += module.componentCount(Servant.class);
         }
         services = activeService;
         ApplicationServiceRegistrar serviceRegistrar = application.singleComponent(ApplicationServiceRegistrar.class);

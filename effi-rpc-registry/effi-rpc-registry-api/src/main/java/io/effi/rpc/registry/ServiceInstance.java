@@ -1,6 +1,6 @@
 package io.effi.rpc.registry;
 
-import io.effi.rpc.util.Identifiable;
+import io.effi.rpc.trait.Identifiable;
 
 import java.util.Map;
 
@@ -19,7 +19,7 @@ public interface ServiceInstance extends Identifiable {
     String id();
 
     /**
-     * Returns the logical service name.
+     * Returns the logical service id.
      */
     String serviceName();
 

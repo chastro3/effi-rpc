@@ -1,12 +1,13 @@
 package io.effi.rpc.governance.router;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.CallContext;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Caller;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.StringUtil;
 
@@ -18,22 +19,24 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static io.effi.rpc.config.ConfigValues.DEFAULT;
+import static io.effi.rpc.governance.router.DefaultRouter.NAME;
 
 /**
  * Provides the default implementation of {@link Router}.
  */
-@Extension(DEFAULT)
+@Extension(value = NAME, primary = true)
 public class DefaultRouter implements Router {
+
+    public static final String NAME = Constant.DEFAULT_NAME;
 
     @Override
     public List<ServiceInstance> route(CallContext<?, Caller<?>> context, List<ServiceInstance> instances) {
         SmartURL smartUrl = context.message().url();
         Caller<?> caller = context.peer();
         // filter by group
-        String group = caller.getConfig(KeyConstant.GROUP);
+        String group = caller.option(KeyConstant.GROUP);
         if (!StringUtil.isBlank(group)) {
-            instances = instances.stream().filter(item -> Objects.equals(caller.getConfig(KeyConstant.GROUP), group)).collect(Collectors.toList());
+            instances = instances.stream().filter(item -> Objects.equals(caller.option(KeyConstant.GROUP), group)).collect(Collectors.toList());
         }
         // filter by router rule
         ScopedModule module = context.module();

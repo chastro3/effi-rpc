@@ -1,15 +1,15 @@
 package io.effi.rpc.context.annotation;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.Config;
-import io.effi.rpc.config.ConfigNames;
+import io.effi.rpc.config.Options;
+import io.effi.rpc.context.Peer;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Caches and provides {@link AnnotationStyleParser} instance.
+ * Caches and provides {@link AnnotationStyleResolver} instance.
  */
 public class AnnotationStyle {
 
@@ -17,36 +17,36 @@ public class AnnotationStyle {
 
     private static final Object LOCK = new Object();
 
-    private static final Map<String, AnnotationStyle> annotationStyles = new ConcurrentHashMap<>(8);
+    private static final Map<String, AnnotationStyle> CACHE = new ConcurrentHashMap<>(4);
 
     private final String name;
 
-    private final AnnotationStyleParser parser;
+    private final AnnotationStyleResolver resolver;
 
-    AnnotationStyle(String name, AnnotationStyleParser parser) {
+    AnnotationStyle(String name, AnnotationStyleResolver resolver) {
         this.name = name;
-        this.parser = parser;
+        this.resolver = resolver;
     }
 
-    public static AnnotationStyle getInstance(Config config) {
-        if (config == null) return UNKNOWN;
-        return getInstance(config.get(ConfigNames.ANNOTATION_STYLE));
+    public static AnnotationStyle getInstance(Options options) {
+        if (options == null) return UNKNOWN;
+        return getInstance(options.option(Peer.ANNOTATION_STYLE));
     }
 
     public static AnnotationStyle getInstance(String name) {
         if (StringUtil.isBlank(name)) {
             return AnnotationStyle.UNKNOWN;
         }
-        AnnotationStyle style = annotationStyles.get(name);
+        AnnotationStyle style = CACHE.get(name);
         if (style == null) {
             synchronized (LOCK) {
-                style = annotationStyles.get(name);
+                style = CACHE.get(name);
                 if (style == null) {
                     try {
-                        AnnotationStyleParser parser = ScopedPlatform.defaultPlatform()
-                                .namedExtension(AnnotationStyleParser.class, name);
+                        AnnotationStyleResolver parser = ScopedPlatform.defaultInstance()
+                                .namedExtension(AnnotationStyleResolver.class, name);
                         style = new AnnotationStyle(name, parser);
-                        annotationStyles.put(name, style);
+                        CACHE.put(name, style);
                     } catch (Exception ignored) {
                     }
                 }
@@ -59,7 +59,7 @@ public class AnnotationStyle {
         return name;
     }
 
-    public AnnotationStyleParser parser() {
-        return parser;
+    public AnnotationStyleResolver resolver() {
+        return resolver;
     }
 }

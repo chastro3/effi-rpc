@@ -1,12 +1,12 @@
 package demo.provider.model;
 
-import io.effi.rpc.annotation.rpc.EffiRpcService;
+import io.effi.rpc.annotation.rpc.ServeGroup;
 
 /**
  * @Author WenBo Zhou
  * @Date 2025/4/14 10:41
  */
-@EffiRpcService
+@ServeGroup
 public interface Testitf{
 
     String sayHello(String name);

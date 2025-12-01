@@ -4,15 +4,17 @@ import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ProtocolStack;
-import io.effi.rpc.config.ConfigValues;
+import io.effi.rpc.config.ConfigurableOptionName;
+import io.effi.rpc.config.OptionName;
+import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.context.Callee;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
+import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
@@ -21,12 +23,11 @@ import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
-import io.effi.rpc.protocol.http.support.HttpVersion;
 import io.effi.rpc.transport.AbstractProtocol;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
-import io.effi.rpc.transport.codec.DefaultClientExchangeContextCodec;
-import io.effi.rpc.transport.codec.DefaultServerExchangeContextCodec;
+import io.effi.rpc.transport.codec.ConfigurableClientCodec;
+import io.effi.rpc.transport.codec.ConfigurableServerCodec;
 import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
@@ -43,6 +44,8 @@ import java.util.Map;
  * Provides a standard http implementation of {@link TransportProtocol}.
  */
 public abstract class HttpProtocol extends AbstractProtocol {
+
+    public static final OptionName<String> HTTP_METHOD = ConfigurableOptionName.<String>nameOf("httpMethod").defaultValue(HttpMethod.GET.name());
 
     private static final Map<CharSequence, CharSequence> REGULAR_REQUEST_HEADERS = HttpUtil.regularRequestHeaders();
 
@@ -65,7 +68,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
             if (CollectionUtil.isNotEmpty(argumentHeaders)) {
                 headers.add(argumentHeaders.entrySet());
             }
-            HttpUtil.addContentType(headers, caller.config());
+            HttpUtil.addContentType(headers, caller.options());
             return HttpDuplexRequest.builder()
                     .version(version)
                     .method(httpCaller.httpMethod())
@@ -79,8 +82,8 @@ public abstract class HttpProtocol extends AbstractProtocol {
 
 
     @Override
-    public Response createResponse(Callee callee, Interaction.Result result) {
-        if (callee instanceof HttpCallee httpCallee) {
+    public Response createResponse(Servant servant, Interaction.Result result) {
+        if (servant instanceof HttpServant httpCallee) {
             int statusCode = 200;
             Object value = result.result();
             if (!result.succeeded()) {
@@ -89,7 +92,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
             }
             HttpHeaders headers = version().newHeaders();
             headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
-            HttpUtil.addContentType(headers, callee.config());
+            HttpUtil.addContentType(headers, servant.options());
             return HttpDuplexResponse.builder()
                     .version(version)
                     .method(httpCallee.httpMethod())
@@ -99,7 +102,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
                     .body(value)
                     .build();
         }
-        throw new IllegalArgumentException("unsupported callee type :" + ObjectUtil.simpleClassName(callee));
+        throw new IllegalArgumentException("unsupported callee type :" + ObjectUtil.simpleClassName(servant));
     }
 
     @Override
@@ -114,7 +117,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
             }
         }
         HttpHeaders headers = httpRequest.headers();
-        String defaultName = ConfigValues.DEFAULT;
+        String defaultName = Constant.DEFAULT_NAME;
         // todo 优化没有application直接报错并返回给客户端
         CharSequence applicationName = headers.getOrDefault(KeyConstant.REQUEST_REMOTE_APPLICATION, defaultName);
         CharSequence moduleName = headers.getOrDefault(KeyConstant.REQUEST_REMOTE_MODULE, defaultName);
@@ -131,7 +134,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     private HttpResponse create404Response(Request request, Channel channel) {
-        EffiRpcException ex = PredefinedErrorCode.NOT_FOUND_CALLEE.fail(null, request.url().baseUrl());
+        EffiRpcException ex = InteractionErrorCodes.SERVANT_NOT_FOUND.fail(request.url().baseUrl());
         HttpHeaders headers = version().newHeaders();
         headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
         headers.set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
@@ -161,17 +164,17 @@ public abstract class HttpProtocol extends AbstractProtocol {
 
     private ClientExchangeContextCodec createClientCodec() {
         HttpClientCodec clientCodec = new HttpClientCodec();
-        return new DefaultClientExchangeContextCodec<HttpRequest, HttpResponse>()
-                .withEncoder(clientCodec)
-                .withDecoder(clientCodec)
-                .withResultExtractor(this::extractResult);
+        return new ConfigurableClientCodec<HttpRequest, HttpResponse>()
+                .encoder(clientCodec)
+                .decoder(clientCodec)
+                .resultExtractor(this::extractResult);
     }
 
     private ServerExchangeContextCodec createServerCodec() {
         HttpServerCodec serverCodec = new HttpServerCodec();
-        return new DefaultServerExchangeContextCodec<HttpResponse, HttpRequest>()
-                .withEncoder(serverCodec)
-                .withDecoder(serverCodec);
+        return new ConfigurableServerCodec<HttpResponse, HttpRequest>()
+                .encoder(serverCodec)
+                .decoder(serverCodec);
     }
 
     private Interaction.Result extractResult(HttpResponse response) {

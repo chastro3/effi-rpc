@@ -1,6 +1,7 @@
 package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.context.Message;
+import io.effi.rpc.protocol.http.HttpVersion;
 import io.netty.handler.codec.http.HttpMethod;
 
 /**

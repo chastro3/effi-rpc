@@ -18,7 +18,7 @@ public class Http2Server extends Http1Server {
     @Override
     protected void initialize() {
         configureBootStrap();
-        withChannelConfigurer(new HttpCombineChannelConfigurer(this));
+        channelConfigurer(new HttpCombineChannelConfigurer(this));
     }
 
 }

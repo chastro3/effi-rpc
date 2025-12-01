@@ -3,7 +3,7 @@ package io.effi.rpc.component.support;
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.executor.ConfigurableThreadFactory;
 import io.effi.rpc.util.LazySingleton;
-import io.effi.rpc.util.resoruce.Closeable;
+import io.effi.rpc.trait.Closeable;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -49,12 +49,12 @@ public class Scheduler implements Closeable {
         periodicService().scheduleAtFixedRate(runnable, delay, interval, unit);
     }
 
-    public Scheduler withDisposableService(ScheduledExecutorService disposableService) {
+    public Scheduler disposableService(ScheduledExecutorService disposableService) {
         this.disposableService = disposableService;
         return this;
     }
 
-    public Scheduler withPeriodicService(ScheduledExecutorService periodicService) {
+    public Scheduler periodicService(ScheduledExecutorService periodicService) {
         this.periodicService = periodicService;
         return this;
     }
@@ -69,7 +69,7 @@ public class Scheduler implements Closeable {
 
     @Override
     public void close() {
-        if (isActive()) {
+        if (active()) {
             if (disposableService != null) {
                 disposableService.shutdown();
             }
@@ -83,7 +83,7 @@ public class Scheduler implements Closeable {
     }
 
     @Override
-    public boolean isActive() {
+    public boolean active() {
         return !(!DEFAULT_SCHEDULER.initialized()
                 && disposableService() == null
                 && periodicService() == null);

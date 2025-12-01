@@ -2,21 +2,19 @@ package io.effi.rpc.context.support;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.config.DefaultHierarchicalConfig;
-import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.config.HierarchicalOptions;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.context.ConfigurableCaller;
 import io.effi.rpc.context.ConfigurablePeer;
 import io.effi.rpc.context.Interceptor;
 import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.PeerContainer;
+import io.effi.rpc.context.PeerGroup;
 import io.effi.rpc.context.Protocol;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.FluentBuilder;
+import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.TypeCapture;
 
 import java.util.List;
@@ -29,7 +27,7 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
 
     protected String id;
 
-    protected HierarchicalConfig config;
+    protected HierarchicalOptions options;
 
     protected QueryPath queryPath;
 
@@ -55,38 +53,38 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     }
 
     @Override
-    public ConfigurablePeer withThreadPool(ThreadPool threadPool) {
+    public ConfigurablePeer threadPool(ThreadPool threadPool) {
         this.threadPool = AssertUtil.notNull(threadPool, "threadPool");
         return this;
     }
 
     @Override
-    public ConfigurablePeer withCallStageChain(Stage.Chain chain) {
+    public ConfigurablePeer callStageChain(Stage.Chain chain) {
         this.callStageChain = AssertUtil.notNull(chain, "chain");
         return this;
     }
 
     @Override
-    public ConfigurablePeer withReplyStageChain(Stage.Chain chain) {
+    public ConfigurablePeer replyStageChain(Stage.Chain chain) {
         this.replyStageChain = AssertUtil.notNull(chain, "chain");
         return this;
     }
 
     @Override
-    public ConfigurablePeer withCallInterceptorChain(Interceptor.Chain chain) {
+    public ConfigurablePeer callInterceptorChain(Interceptor.Chain chain) {
         this.callInterceptorChain = AssertUtil.notNull(chain, "chain");
         return this;
     }
 
     @Override
-    public ConfigurablePeer withReplyInterceptorChain(Interceptor.Chain chain) {
+    public ConfigurablePeer replyInterceptorChain(Interceptor.Chain chain) {
         this.replyInterceptorChain = AssertUtil.notNull(chain, "chain");
         return this;
     }
 
     @Override
-    public HierarchicalConfig config() {
-        return config;
+    public HierarchicalOptions options() {
+        return options;
     }
 
     @Override
@@ -145,12 +143,12 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     }
 
     protected void initialize(B builder) {
-        this.config = AssertUtil.notNull(builder.config, "config");
+        this.options = AssertUtil.notNull(builder.options, "options").withOwner(this);
         this.module = AssertUtil.notNull(builder.module, "module");
         this.queryPath = findQueryPath();
         this.replyType = builder.replyType;
         this.protocol = platform().namedExtension(Protocol.class, builder.protocol);
-        this.id = PeerContainer.invokerKey(protocol().name(), queryPath.path());
+        this.id = Peer.buildId(protocol().name(), queryPath.path());
     }
 
     protected void onInitialized(B builder) {
@@ -160,7 +158,7 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     }
 
     private QueryPath findQueryPath() {
-        List<String> pathSegments = getMergedConfig(ConfigNames.PATH);
+        List<String> pathSegments = mergedOption(PATH);
         return CollectionUtil.isEmpty(pathSegments)
                 ? QueryPath.empty()
                 : QueryPath.valueOf(pathSegments);
@@ -168,41 +166,41 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
 
     private void configureThreadPool(B builder) {
         ThreadPool threadPool = builder.threadPool;
-        if (threadPool != null) withThreadPool(threadPool);
+        if (threadPool != null) threadPool(threadPool);
         module.preferredExtension(
                 ThreadPoolConfigurator.class,
-                getConfig(ConfigNames.THREAD_POOL_CONFIGURATOR)
+                option(THREAD_POOL_CONFIGURATOR)
         ).configure(this);
     }
 
     protected void configureStageChain(B builder) {
         Stage.Chain callChain = builder.callStageChain;
-        if (callChain != null) withCallStageChain(callChain);
+        if (callChain != null) callStageChain(callChain);
         Stage.Chain replyChain = builder.replyStageChain;
-        if (replyChain != null) withReplyStageChain(replyChain);
+        if (replyChain != null) replyStageChain(replyChain);
         if (callChain == null || replyChain == null) {
             module.preferredExtension(
                     StageChainConfigurator.class,
-                    getConfig(ConfigNames.STAGE_CHAIN_CONFIGURATOR)
+                    option(STAGE_CHAIN_CONFIGURATOR)
             ).configure(this);
         }
     }
 
     protected void configureInterceptorChain(B builder) {
         Interceptor.Chain callChain = builder.callInterceptorChain;
-        if (callChain != null) withCallInterceptorChain(callChain);
+        if (callChain != null) callInterceptorChain(callChain);
         Interceptor.Chain replyChain = builder.replyInterceptorChain;
-        if (replyChain != null) withReplyInterceptorChain(replyChain);
+        if (replyChain != null) replyInterceptorChain(replyChain);
         boolean isCaller = this instanceof ConfigurableCaller;
         Interceptor.Chain chosenChain = null;
         if (isCaller) {
             chosenChain = ((AbstractCaller.Builder) builder).chosenInterceptorChain;
-            if (chosenChain != null) ((ConfigurableCaller) this).withChosenInterceptorChain(chosenChain);
+            if (chosenChain != null) ((ConfigurableCaller) this).chosenInterceptorChain(chosenChain);
         }
         if (callChain == null || replyChain == null || (isCaller && chosenChain == null)) {
             module.preferredExtension(
                     InterceptorChainConfigurator.class,
-                    getConfig(ConfigNames.INTERCEPTOR_CHAIN_CONFIGURATOR)
+                    option(INTERCEPTOR_CHAIN_CONFIGURATOR)
             ).configure(this);
         }
     }
@@ -210,14 +208,13 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     /**
      * Builds {@link Peer} instance and defines configuration.
      */
-    protected abstract static class Builder<T extends Peer, SELF extends Builder<T, SELF>>
-            implements FluentBuilder<T, SELF> {
+    protected abstract static class Builder<T extends Peer, SELF extends Builder<T, SELF>> implements FluentBuilder<T, SELF>, HierarchicalOptions.Supplier {
 
         protected String protocol;
 
-        protected HierarchicalConfig config;
+        protected HierarchicalOptions options = HierarchicalOptions.create();
 
-        protected PeerContainer<?> container;
+        protected PeerGroup<?, ?> group;
 
         protected ScopedModule module;
 
@@ -233,15 +230,17 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
 
         protected ThreadPool threadPool;
 
-        protected Builder(String protocol, HierarchicalConfig config) {
+        protected Builder(String protocol) {
             this.protocol = AssertUtil.notBlank(protocol, "protocol");
-            this.config = config == null
-                    ? new DefaultHierarchicalConfig(this)
-                    : config;
+        }
+
+        public SELF options(HierarchicalOptions options) {
+            this.options = AssertUtil.notNull(options, "options");
+            return self();
         }
 
         public SELF path(String path) {
-            config.set(ConfigNames.PATH, path);
+            options.addOption(PATH, path);
             return self();
         }
 
@@ -252,16 +251,6 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
 
         public SELF threadPool(ThreadPool threadPool) {
             this.threadPool = threadPool;
-            return self();
-        }
-
-        public SELF compression(String compression) {
-            config.set(ConfigNames.COMPRESSION, compression);
-            return self();
-        }
-
-        public SELF serialization(String serialization) {
-            config.set(ConfigNames.SERIALIZATION, serialization);
             return self();
         }
 
@@ -283,6 +272,21 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
         public SELF replyInterceptorChain(Interceptor.Chain chain) {
             this.replyInterceptorChain = chain;
             return self();
+        }
+
+        public SELF compressor(String compressor) {
+            addOption(COMPRESSOR, compressor);
+            return self();
+        }
+
+        public SELF serializer(String serializer) {
+            addOption(SERIALIZER, serializer);
+            return self();
+        }
+
+        @Override
+        public HierarchicalOptions options() {
+            return options;
         }
     }
 }

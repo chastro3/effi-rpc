@@ -4,8 +4,7 @@ import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.component.transport.support.TcpEndpointConfig;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.ArrayIdentifier;
@@ -23,6 +22,7 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,21 +46,21 @@ public class SslContextManager {
      * Returns a server-side SSL context, creating it if necessary,
      * using specified protocols and configuration.
      */
-    public static SslContext fetch(String[] supportedProtocols, ServerConfig config) {
-        return doFetch(supportedProtocols, config);
+    public static SslContext contextOf(String[] supportedProtocols, ServerConfig config) {
+        return doContextOf(supportedProtocols, config);
     }
 
     /**
      * Returns a client-side SSL context, creating it if necessary,
      * using specified protocols and configuration.
      */
-    public static SslContext fetch(String[] supportedProtocols, ClientConfig config) {
-        return doFetch(supportedProtocols, config);
+    public static SslContext contextOf(String[] supportedProtocols, ClientConfig config) {
+        return doContextOf(supportedProtocols, config);
     }
 
-    private static SslContext doFetch(String[] supportedProtocols, EndpointConfig config) {
-        boolean isServer = config instanceof ServerConfig;
+    private static SslContext doContextOf(String[] supportedProtocols, EndpointConfig config) {
         if (!sslEnabled(config)) return null;
+        boolean isServer = config instanceof ServerConfig;
         Pair<ArrayIdentifier<String>, String> key = generateSslContextKey(supportedProtocols, config.id());
         Map<Pair<ArrayIdentifier<String>, String>, SslContext> contextMap = isServer ? SERVER_SSL_CONTEXT : CLIENT_SSL_CONTEXT;
         return contextMap.computeIfAbsent(key, k -> createSslContext(supportedProtocols, config.certificateConfig(), isServer));
@@ -76,7 +76,7 @@ public class SslContextManager {
                     ? SslContextBuilder.forServer(certChain, privateKey, keyPassword)
                     : SslContextBuilder.forClient().keyManager(certChain, privateKey, keyPassword);
             if (trustCert != null) builder.trustManager(trustCert);
-            if (isServer) handleClientAuth(builder, config, trustCert);
+            if (isServer) configureClientAuth(builder, config, trustCert);
             return builder.sslProvider(SSL_PROVIDER)
                     /* NOTE: the cipher filter may not include all ciphers required by the HTTP/2 specification.
                      * Please refer to the HTTP/2 specification for cipher requirements. */
@@ -90,8 +90,8 @@ public class SslContextManager {
                                     ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
                                     supportedProtocols)
                     ).build();
-        } catch (Exception e) {
-            throw PredefinedErrorCode.CREATE_SSL.fail(e, isServer ? "server" : "client");
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to create SSL context for '" + (isServer ? "server" : "client") + "'.", e);
         } finally {
             close(certChain, privateKey, trustCert);
         }
@@ -108,7 +108,7 @@ public class SslContextManager {
     }
 
     private static boolean sslEnabled(EndpointConfig config) {
-        return config.getConfig(ConfigNames.TCP_SSL);
+        return config.option(TcpEndpointConfig.SSL);
     }
 
     private static Pair<ArrayIdentifier<String>, String> generateSslContextKey(String[] supportedProtocols, String name) {
@@ -121,7 +121,7 @@ public class SslContextManager {
         return new ByteArrayInputStream(bytes);
     }
 
-    private static void handleClientAuth(SslContextBuilder builder, CertificateConfig config, InputStream trustCert) {
+    private static void configureClientAuth(SslContextBuilder builder, CertificateConfig config, InputStream trustCert) {
         if (trustCert != null) {
             builder.clientAuth(config.clientAuthEnabled() ? ClientAuth.REQUIRE : ClientAuth.OPTIONAL);
         } else {
@@ -136,7 +136,7 @@ public class SslContextManager {
                     try {
                         inputStream.close();
                     } catch (IOException e) {
-                        logger.error("Failed to close input stream", e);
+                        logger.error("Failed to close input stream.", e);
                     }
                 }
             }

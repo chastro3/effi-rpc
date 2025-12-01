@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
  * <p>Example usage:
  * <pre>{@code
  *   new ExecutionUnitClassifier<>(peer, protocol)
- *       .handler(Handler.of(myRule, (name, unit) -> addToChain(name, unit)))
+ *       .handler(Handler.of(myRule, (id, unit) -> addToChain(id, unit)))
  *       .classify(allUnits);
  * }</pre>
  * </p>

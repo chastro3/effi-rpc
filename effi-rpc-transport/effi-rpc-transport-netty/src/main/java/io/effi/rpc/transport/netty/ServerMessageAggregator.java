@@ -5,6 +5,7 @@ import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.nativetools.NativeConfig;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.transport.message.InputMessage;
@@ -16,9 +17,6 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-
-import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_READ;
-import static io.effi.rpc.exception.PredefinedErrorCode.CHANNEL_WRITE;
 
 /**
  * Converts messages for client-side communication.
@@ -45,7 +43,7 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        EffiRpcException exception = CHANNEL_READ.fail(cause, ctx.channel().remoteAddress());
+        EffiRpcException exception = TransportErrorCodes.CHANNEL_WRITE.fail(cause, ctx.channel().remoteAddress());
         logger.error(exception);
     }
 
@@ -65,7 +63,7 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
         if (msg instanceof OutputMessage) {
             promise.addListener(future -> {
                 if (!future.isSuccess()) {
-                    EffiRpcException exception = CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());
+                    EffiRpcException exception = TransportErrorCodes.CHANNEL_WRITE.fail(future.cause(), channel.remoteAddress());
                     logger.error(exception);
                 }
             });

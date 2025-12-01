@@ -1,8 +1,8 @@
 package demo.provider.model;
 
-import io.effi.rpc.annotation.rpc.EffiRpcService;
+import io.effi.rpc.annotation.rpc.ServeGroup;
 
-@EffiRpcService
+@ServeGroup
 public class TestitfImpl implements Testitf {
     @Override
     public String sayHello(String name) {

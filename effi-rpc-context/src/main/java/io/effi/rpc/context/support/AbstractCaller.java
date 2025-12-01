@@ -1,19 +1,16 @@
 package io.effi.rpc.context.support;
 
-import io.effi.rpc.async.Future;
 import io.effi.rpc.component.transport.ClientConfig;
-import io.effi.rpc.component.transport.DefaultClientConfig;
-import io.effi.rpc.config.ConfigNames;
-import io.effi.rpc.config.HierarchicalConfig;
+import io.effi.rpc.component.transport.support.DefaultClientConfig;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.CallerGroup;
 import io.effi.rpc.context.ConfigurableCaller;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Interceptor;
 import io.effi.rpc.context.Locator;
-import io.effi.rpc.context.LocatorFactory;
-import io.effi.rpc.context.RemoteClient;
+import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.metrics.CallerMetrics;
@@ -21,6 +18,7 @@ import io.effi.rpc.context.metrics.MetricsSupport;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.TypeCapture;
 
@@ -34,7 +32,7 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
 
     protected Locator locator;
 
-    protected UnaryReplyFuture.FailureHandler failureHandler;
+    protected Unary.FailureHandler failureHandler;
 
     protected ClientConfig clientConfig;
 
@@ -46,25 +44,25 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
 
     @Override
     public Future<R> call(Object... args) throws EffiRpcException {
-        return  doCall(args, UNARY_MODE)
-                .withFailureHandler(failureHandler)
+        return doCall(args, Unary.MODE)
+                .failureHandler(failureHandler)
                 .toResultFuture();
     }
 
     @Override
-    public ConfigurableCaller<R> withClientConfig(ClientConfig clientConfig) {
+    public ConfigurableCaller<R> clientConfig(ClientConfig clientConfig) {
         this.clientConfig = AssertUtil.notNull(clientConfig, "clientConfig");
         return this;
     }
 
     @Override
-    public ConfigurableCaller<R> withLocator(Locator locator) {
+    public ConfigurableCaller<R> locator(Locator locator) {
         this.locator = AssertUtil.notNull(locator, "locator");
         return this;
     }
 
     @Override
-    public ConfigurableCaller withChosenInterceptorChain(Interceptor.Chain chain) {
+    public ConfigurableCaller chosenInterceptorChain(Interceptor.Chain chain) {
         this.chosenInterceptorChain = AssertUtil.notNull(chain, "chain");
         return this;
     }
@@ -101,8 +99,8 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
         this.locator = ensureLocator(builder);
         this.clientConfig = ensureClientConfig(builder);
         this.failureHandler = platform().preferredExtension(
-                UnaryReplyFuture.FailureHandler.class,
-                getConfig(ConfigNames.FAILURE_HANDLER)
+                Unary.FailureHandler.class,
+                option(FAILURE_HANDLER)
         );
     }
 
@@ -117,23 +115,23 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
     private Locator ensureLocator(Builder builder) {
         Locator locator = builder.locator;
         if (locator != null) return locator;
-        String target = getConfig(ConfigNames.TARGET);
-        String locatorName = getConfig(ConfigNames.LOCATOR);
-        LocatorFactory locatorFactory = platform().preferredExtension(LocatorFactory.class, locatorName);
+        String target = option(ENDPOINT);
+        String locatorName = option(LOCATOR);
+        Locator.Factory locatorFactory = platform().preferredExtension(Locator.Factory.class, locatorName);
         return locatorFactory.fetch(target, this);
     }
 
     private ClientConfig ensureClientConfig(Builder builder) {
         ClientConfig clientConfig = builder.clientConfig;
         if (clientConfig != null) return clientConfig;
-        String clientConfigName = getConfig(ConfigNames.CLIENT_CONFIG);
+        String clientConfigName = option(CLIENT);
         if (StringUtil.isBlank(clientConfigName)) {
-            return DefaultClientConfig.fetch(protocol.name(), protocol.stack());
+            return DefaultClientConfig.cached(protocol.name(), protocol.stack());
         } else {
             clientConfig = platform().namedComponent(ClientConfig.class, clientConfigName);
             if (clientConfig != null) return clientConfig;
         }
-        return DefaultClientConfig.fetch(protocol.name(), protocol.stack());
+        return DefaultClientConfig.cached(protocol.name(), protocol.stack());
     }
 
     protected <T extends ReplyFuture> T doCall(Object[] args, Interaction.Mode<T> mode) {
@@ -147,8 +145,7 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
     /**
      * Builds {@link Caller} instance and defines configuration.
      */
-    public abstract static class Builder<T extends Caller<?>, SELF extends Builder<T, SELF>>
-            extends AbstractPeer.Builder<T, SELF> {
+    public abstract static class Builder<T extends Caller<?>, SELF extends Builder<T, SELF>> extends AbstractPeer.Builder<T, SELF> {
 
         protected Locator locator;
 
@@ -156,25 +153,40 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
 
         protected Interceptor.Chain chosenInterceptorChain;
 
-        protected Builder(TypeCapture<?> returnType, String protocol, HierarchicalConfig config) {
-            super(protocol, config);
+        protected Builder(TypeCapture<?> returnType, String protocol) {
+            super(protocol);
             this.replyType = AssertUtil.notNull(returnType, "returnType");
+        }
+
+        public SELF endpoint(String target) {
+            addOption(ENDPOINT, target);
+            return self();
         }
 
         public SELF registryConfigs(String... registryConfigs) {
             if (CollectionUtil.isNotEmpty(registryConfigs)) {
-                config.set(ConfigNames.REGISTRY, registryConfigs);
+                addOption(REGISTRY, registryConfigs);
             }
             return self();
         }
 
-        public SELF target(String target) {
-            config.set(ConfigNames.TARGET, target);
+        public SELF timeout(int timeout) {
+            addOption(TIMEOUT, timeout);
             return self();
         }
 
-        public SELF container(RemoteClient<?> client) {
-            this.container = client;
+        public SELF loadBalancer(String loadBalancer) {
+            addOption(LOAD_BALANCER, loadBalancer);
+            return self();
+        }
+
+        public SELF failureHandler(String failureHandler) {
+            addOption(FAILURE_HANDLER, failureHandler);
+            return self();
+        }
+
+        public SELF group(CallerGroup<?> group) {
+            this.group = group;
             return self();
         }
 
@@ -190,26 +202,6 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
 
         public SELF chosenInterceptorChain(Interceptor.Chain chain) {
             this.chosenInterceptorChain = chain;
-            return self();
-        }
-
-        public SELF retries(int retries) {
-            config.set(ConfigNames.RETRIES, retries);
-            return self();
-        }
-
-        public SELF loadBalance(String loadBalance) {
-            config.set(ConfigNames.LOAD_BALANCE, loadBalance);
-            return self();
-        }
-
-        public SELF failureHandler(String failureHandler) {
-            config.set(ConfigNames.FAILURE_HANDLER, failureHandler);
-            return self();
-        }
-
-        public SELF timeout(int timeout) {
-            config.set(ConfigNames.TIMEOUT, timeout);
             return self();
         }
     }

@@ -4,7 +4,7 @@ import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.registry.util.RegistryUtil;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.util.FluentBuilder;
+import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.HashMap;

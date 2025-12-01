@@ -30,7 +30,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @Override
     public boolean containsBean(Class<?> type, String name) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             return singleBeans.containsKey(type);
         } else {
             return namedBeans.containsKey(type) && namedBeans.get(type).containsKey(name);
@@ -40,7 +40,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @Override
     public <T> BeanFactory registerBean(Class<T> type, String name, T bean) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             singleBeans.put(type, bean);
         } else {
             namedBeans.computeIfAbsent(type, k -> new ConcurrentHashMap<>()).put(name, bean);
@@ -52,13 +52,13 @@ public class DefaultBeanFactory implements BeanFactory {
     @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> type) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             return (T) singleBeans.get(type);
         } else {
             Map<String, Object> namedMap = namedBeans.get(type);
             if (CollectionUtil.isEmpty(namedMap)) return null;
             if (namedMap.size() > 1) {
-                throw new IllegalStateException("Multiple beans of type " + type + ", use getBean(type, name) instead");
+                throw new IllegalStateException("Multiple beans of type " + type + ", use getBean(type, id) instead");
             }
             return (T) namedMap.values().iterator().next();
         }
@@ -68,7 +68,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> type, String name) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             return (T) singleBeans.get(type);
         } else {
             return (T) namedBeans.getOrDefault(type, Collections.emptyMap()).get(name);
@@ -78,7 +78,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @Override
     public String[] getBeanNames(Class<?> type) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             return singleBeans.containsKey(type)
                     ? new String[]{ObjectUtil.lowercaseName(type)}
                     : StringUtil.emptyArray();
@@ -92,7 +92,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @SuppressWarnings("unchecked")
     public <T> Map<String, T> getBeans(Class<T> type) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             Object bean = singleBeans.get(type);
             if (bean == null) return Collections.emptyMap();
             return Collections.singletonMap(ObjectUtil.lowercaseName(type), (T) bean);
@@ -104,7 +104,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @Override
     public BeanFactory removeBean(Class<?> type) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             singleBeans.remove(type);
         } else {
             namedBeans.remove(type);
@@ -115,7 +115,7 @@ public class DefaultBeanFactory implements BeanFactory {
     @Override
     public BeanFactory removeBean(Class<?> type, String name) {
         ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-        if (descriptor.isSingle()) {
+        if (descriptor.single()) {
             singleBeans.remove(type);
         } else {
             Map<String, Object> map = namedBeans.get(type);
