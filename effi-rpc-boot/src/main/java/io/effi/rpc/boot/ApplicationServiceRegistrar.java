@@ -42,6 +42,12 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
 
     private final AtomicBoolean active = new AtomicBoolean(false);
 
+    private final AtomicBoolean starting = new AtomicBoolean(false);
+
+    private volatile Promise<Void> registrationFuture;
+
+    private volatile Promise<Void> deregistrationFuture;
+
     public static ApplicationServiceRegistrar forApplication(ScopedApplication application) {
         return new ApplicationServiceRegistrar(application);
     }
@@ -54,33 +60,72 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     }
 
     @Override
-    public void register() {
-        if (active.compareAndSet(false, true)) {
-            List<ServiceInstance> serviceInstances = createServiceInstances();
-            for (int i = 0; i < serverLaunchers.size(); i++) {
-                ServerLauncher serverLauncher = serverLaunchers.get(i);
-                Server server = serverLauncher.start();
-                ServiceInstance serviceInstance = serviceInstances.get(i);
-                if (server.active()) {
-                    registerServiceInstance(serviceInstance);
-                } else {
-                    server.bind().onComplete(res -> {
-                        if (res.succeeded()) {
-                            registerServiceInstance(serviceInstance);
-                        }
-                    });
-                }
-            }
-            this.serviceInstances = serviceInstances;
+    public Promise<Void> register() {
+        if (active.get()) {
+            return Promise.completedVoid();
         }
+        if (!starting.compareAndSet(false, true)) {
+            Promise<Void> current = registrationFuture;
+            return current != null ? current : Promise.completedVoid();
+        }
+
+        Promise<Void> result = new Promise<>();
+        registrationFuture = result;
+        List<ServiceInstance> serviceInstances = createServiceInstances();
+        List<Future<?>> bindFutures = new ArrayList<>(serverLaunchers.size());
+        for (ServerLauncher serverLauncher : serverLaunchers) {
+            Server server = serverLauncher.start();
+            bindFutures.add(server.bind());
+        }
+
+        Promise.allOf(bindFutures).onComplete(bindResult -> {
+            if (bindResult.failed()) {
+                logger.error("Failed to start service server(s).", bindResult.cause());
+                serverLaunchers.forEach(ServerLauncher::close);
+                starting.set(false);
+                result.failure(bindResult.cause());
+                return;
+            }
+
+            this.serviceInstances = serviceInstances;
+            registerServiceInstances(serviceInstances).onComplete(registerResult -> {
+                if (registerResult.succeeded()) {
+                    active.set(true);
+                    starting.set(false);
+                    result.success(null);
+                    return;
+                }
+
+                logger.error("Failed to register service instance(s).", registerResult.cause());
+                deregisterServiceInstances().onComplete(rollbackResult -> {
+                    this.serviceInstances = null;
+                    serverLaunchers.forEach(ServerLauncher::close);
+                    starting.set(false);
+                    result.failure(registerResult.cause());
+                });
+            });
+        });
+        return result;
     }
 
     @Override
-    public void deregister() {
-        if (active.compareAndSet(true, false)) {
-            deregisterServiceInstances()
-                    .onComplete(res ->  serverLaunchers.forEach(ServerLauncher::close));
+    public Promise<Void> deregister() {
+        if (!active.compareAndSet(true, false)) {
+            Promise<Void> current = deregistrationFuture;
+            return current != null ? current : Promise.completedVoid();
         }
+
+        Promise<Void> result = new Promise<>();
+        deregistrationFuture = result;
+        deregisterServiceInstances().onComplete(res -> {
+            serverLaunchers.forEach(ServerLauncher::close);
+            if (res.succeeded()) {
+                result.success(null);
+            } else {
+                result.failure(res.cause());
+            }
+        });
+        return result;
     }
 
     @Override
@@ -107,7 +152,7 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     }
 
     public ApplicationServiceRegistrar attachServer(ServerConfig config, InetSocketAddress boundAddress) {
-        if (!active()) {
+        if (!active() && !starting.get()) {
             ServerLauncher serverLauncher = ServerLauncher.attach(application, config, boundAddress);
             serverLaunchers.add(serverLauncher);
         }
@@ -115,7 +160,7 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     }
 
     public ApplicationServiceRegistrar registry(RegistryConfig... configs) {
-        if (!active()) {
+        if (!active() && !starting.get()) {
             if (CollectionUtil.isNotEmpty(configs)) {
                 for (RegistryConfig config : configs) {
                     application.platform().registry().register(RegistryConfig.class, config);
@@ -157,16 +202,20 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
                 .toList();
     }
 
-    private void registerServiceInstance(ServiceInstance serviceInstance) {
+    private Future<Void> registerServiceInstances(List<ServiceInstance> serviceInstances) {
         if (CollectionUtil.isEmpty(registryConfigs)) {
             logger.warn("No available registry config(s)");
-        } else {
-            for (RegistryConfig registryConfig : registryConfigs) {
-                RegistryClient registryClient = RegistryClient.of(registryConfig, platform());
-                registryClient.register(serviceInstance);
-            }
+            return Promise.completedVoid();
         }
 
+        List<Future<Void>> futures = new ArrayList<>();
+        for (RegistryConfig registryConfig : registryConfigs) {
+            RegistryClient registryClient = RegistryClient.of(registryConfig, platform());
+            for (ServiceInstance serviceInstance : serviceInstances) {
+                futures.add(registryClient.register(serviceInstance));
+            }
+        }
+        return Promise.allOf(futures);
     }
 
     private Future<Void> deregisterServiceInstances() {

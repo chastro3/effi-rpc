@@ -26,11 +26,6 @@ public class HttpServantMethodBuilder<T> implements Builder<ServantMethod<T>> {
         this.methodName = AssertUtil.notBlank(methodName, "method id");
     }
 
-    public HttpServantMethodBuilder(ServantGroup<T> service,MethodRef ref){
-        this.service = AssertUtil.notNull(service, "service");
-        this.methodName = AssertUtil.notNull(ref, "method ref");
-    }
-
     /**
      * Specifies the parameter type for mapping.
      */

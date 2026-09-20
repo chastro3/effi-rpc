@@ -1,0 +1,107 @@
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+This repository is indexed by CodeGraph (`.codegraph/` exists at the repo root).
+Use CodeGraph before grep/find or reading files to understand or locate code:
+
+- MCP tools, when available: `codegraph_explore` or `codegraph_node`.
+- Shell fallback:
+  - `codegraph explore "<symbol names or question>"`
+  - `codegraph node <symbol-or-file>`
+
+Keep the index current with `codegraph sync .` after substantial source changes.
+
+<!-- CODEGRAPH_END -->
+
+# effi-rpc Build Guide
+
+## Environment
+
+- Repository root: `C:\Users\zhouwenbo\Desktop\rpc\code\effi-rpc`
+- JDK: `C:\dev\Java\jdk-25.0.3`
+- `JAVA_HOME`: `C:\dev\Java\jdk-25.0.3`
+- `GRADLE_USER_HOME`: `D:\tools\gradle`
+- Gradle wrapper: `9.5.1`
+- Wrapper distribution:
+  `D:\tools\gradle\wrapper\dists\gradle-9.5.1-bin\bvvv0hnjcinfezlom7fy9dbyi\gradle-9.5.1`
+
+Always use the project wrapper (`gradlew.bat`). Do not replace it with a system
+Gradle installation.
+
+## Windows TEMP Workaround
+
+This machine can fail to connect to the Gradle daemon when `TEMP` and `TMP`
+point to `C:\Users\ZHOUWE~1\AppData\Local\Temp`. A typical failure is:
+
+```text
+java.io.IOException: Unable to establish loopback connection
+```
+
+Set both variables to a normal repository-local directory before running any
+Gradle command:
+
+```powershell
+$tempDir = 'C:\Users\zhouwenbo\Desktop\rpc\code\effi-rpc\.gradle\tmp'
+New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+
+$env:TEMP = $tempDir
+$env:TMP = $tempDir
+```
+
+Use the same `TEMP` and `TMP` values for IDEA's Gradle process. The wrapper
+launcher and the forked Gradle JVM are separate processes and both need the
+corrected location.
+
+## Verified Build Commands
+
+Run all commands from the repository root:
+
+```powershell
+$env:TEMP = 'C:\Users\zhouwenbo\Desktop\rpc\code\effi-rpc\.gradle\tmp'
+$env:TMP = $env:TEMP
+$env:GRADLE_USER_HOME = 'D:\tools\gradle'
+$env:JAVA_HOME = 'C:\dev\Java\jdk-25.0.3'
+```
+
+Check the wrapper:
+
+```powershell
+.\gradlew.bat --version
+```
+
+Build all modules while deliberately skipping the currently non-runnable tests:
+
+```powershell
+.\gradlew.bat build -x test --no-daemon --no-configuration-cache
+```
+
+Compile one module:
+
+```powershell
+.\gradlew.bat :effi-rpc-protocols:effi-rpc-http:compileJava --no-daemon --no-configuration-cache
+```
+
+The repository sets `org.gradle.configuration-cache=true`, but Gradle 9.5.1
+currently fails on `:effi-rpc-common:processResources` because the build logic
+reads `Task.project` during execution. Always include
+`--no-configuration-cache` until that build logic is made compatible.
+
+## Test Constraints
+
+Do not run plain `build`, `test`, or `check` as the baseline verification until
+the test sources are repaired:
+
+- `effi-rpc-test/src/test/java/io/effi/rpc/test/ApiTest.java` blocks forever in
+  `serverExport()` on `new CountDownLatch(1).await()`.
+- The same class blocks in `annotationStyle()` on `System.in.read()`.
+- `effi-rpc-test/build.gradle.kts` disables the `test` task, so the standard
+  build does not execute these tests today.
+
+After those issues are fixed, the full command should become:
+
+```powershell
+.\gradlew.bat build --no-daemon --no-configuration-cache
+```
+
+Last verified: `2026-09-20`; the `build -x test` command completed
+successfully with 57 Gradle tasks.

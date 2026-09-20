@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implements {@link Server} using Netty.
@@ -48,6 +49,8 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
 
     protected Map<ChannelId, Channel> activeChannels = new ConcurrentHashMap<>();
 
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+
     public NettyServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform) {
         super(config, address, platform, new ServerBootstrap());
     }
@@ -64,20 +67,28 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
 
     @Override
     public void close() {
-        if (active()) {
-            for (Channel channel : activeChannels.values()) {
-                try {
-                    channel.close();
-                } catch (Throwable e) {
-                    EffiRpcException fail = TransportErrorCodes.CLOSE_CHANNEL
-                            .fail(e, channel.remoteAddress());
-                    logger.error(fail.getMessage(), e);
-                }
-            }
-            serverChannelFuture.ensure().result().close();
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+        if (!closed.compareAndSet(false, true)) {
+            return;
         }
+        for (Channel channel : activeChannels.values()) {
+            try {
+                channel.close();
+            } catch (Throwable e) {
+                EffiRpcException fail = TransportErrorCodes.CLOSE_CHANNEL
+                        .fail(e, channel.remoteAddress());
+                logger.error(fail.getMessage(), e);
+            }
+        }
+        activeChannels.clear();
+        if (serverChannelFuture.initialized()) {
+            Promise<NettyChannel> bindResult = serverChannelFuture.ensure();
+            if (bindResult.succeeded() && bindResult.result() != null) {
+                bindResult.result().close();
+            }
+        }
+        if (bossGroup != null) bossGroup.shutdownGracefully();
+        if (workerGroup != null) workerGroup.shutdownGracefully();
+
     }
 
     @Override

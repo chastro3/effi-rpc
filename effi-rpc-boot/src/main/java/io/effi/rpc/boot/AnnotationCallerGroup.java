@@ -153,17 +153,19 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
     @Override
     public Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) throws Throwable {
         MethodCaller methodCaller = methodCallerMap.get(method);
-            if (methodCaller != null) {
-                Caller<?> caller = methodCaller.caller();
-                args = wrapArgs(methodCaller.linkings(), args, caller);
-                RpcType rpcType = methodCaller.rpcType;
-                if (rpcType == RpcType.SYNC) {
-                    return caller.blockingCall(args);
-                } else if (rpcType == RpcType.ASYNC) {
-                    return caller.call(args);
-                }
-            }
+        if (methodCaller != null) {
+            Caller<?> caller = methodCaller.caller();
+            args = wrapArgs(methodCaller.linkings(), args, caller);
+            return invokeCaller(caller, methodCaller.rpcType, args);
+        }
         return null;
+    }
+
+    static Object invokeCaller(Caller<?> caller, RpcType rpcType, Object[] args) {
+        return switch (rpcType) {
+            case SYNC -> caller.blockingCall(args);
+            case ASYNC -> caller.call(args).toCompletableFuture();
+        };
     }
 
     private Object[] wrapArgs(ParameterLinking[] linkings, Object[] args, Caller<?> caller) {

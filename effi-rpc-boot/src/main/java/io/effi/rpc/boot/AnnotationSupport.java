@@ -76,7 +76,9 @@ public final class AnnotationSupport {
             options.addOption(Caller.LOAD_BALANCER, call.loadBalance());
             options.addOption(Caller.FAILURE_HANDLER, call.failureHandler());
             options.addOption(DefaultThreadPoolConfigurator.THREAD_POOL, call.threadPool());
-            options.addOption(Caller.TIMEOUT, call.timeout());
+            if (call.timeout() >= 0) {
+                options.addOption(Caller.TIMEOUT, call.timeout());
+            }
             options.addOption(FailRetry.RETRIES, call.retries());
             options.addOption(Peer.SERIALIZATION_THRESHOLD, call.serializationThreshold());
             options.addOption(Peer.DESERIALIZATION_THRESHOLD, call.deserializationThreshold());

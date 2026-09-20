@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 
 import static io.effi.rpc.util.StringUtil.format;
@@ -42,8 +42,6 @@ import static io.effi.rpc.util.StringUtil.format;
  * @param <T> the extension type, which must be an interface annotated with {@link Extensible}
  */
 public final class ExtensionLoader<T> implements Cleanable {
-
-    private static final Map<Class<?>, ExtensionEntry<?>> EXTENSION_ENTRIES = new ConcurrentHashMap<>();
 
     private final Map<String, ExtensionEntry<T>> extensionEntries;
 
@@ -149,6 +147,7 @@ public final class ExtensionLoader<T> implements Cleanable {
         try {
             ClassLoader classLoader = ClassUtil.findClassLoader(type);
             Enumeration<URL> resources = classLoader.getResources(path);
+            Map<Class<?>, ExtensionEntry<T>> extensionEntriesByType = new HashMap<>();
             List<ExtensionEntry<T>> extensionEntries = new ArrayList<>();
             List<ExtensionEntry<T>> overrideExtensionEntries = new ArrayList<>();
             // Load and create ExtensionEntry instance for all valid extensions
@@ -160,7 +159,10 @@ public final class ExtensionLoader<T> implements Cleanable {
                         Class<?> extensionClass = classLoader.loadClass(extensionClassName);
                         Extension extension = extensionClass.getAnnotation(Extension.class);
                         if (type.isAssignableFrom(extensionClass) && extension != null) {
-                            ExtensionEntry<T> extensionEntry = (ExtensionEntry<T>) EXTENSION_ENTRIES.computeIfAbsent(extensionClass, k -> new ExtensionEntry<>(this, (Class<? extends T>) extensionClass, extension));
+                            ExtensionEntry<T> extensionEntry = extensionEntriesByType.computeIfAbsent(
+                                    extensionClass,
+                                    k -> new ExtensionEntry<>(this, (Class<? extends T>) extensionClass, extension)
+                            );
                             if (extensionEntry.available()) {
                                 extensionEntries.add(extensionEntry);
                                 if (extensionEntry.canOverride()) {
