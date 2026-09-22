@@ -54,23 +54,58 @@ public abstract class AbstractRegistryClient implements RegistryClient {
     public Future<Void> register(ServiceInstance instance) {
         String serviceName = instance.serviceName();
         Set<ServiceInstance> serviceInstances = registeredServiceInstances.computeIfAbsent(serviceName, k -> ConcurrentHashMap.newKeySet());
-        if (serviceInstances.add(instance)) {
-            Registration registration = createRegistration(instance);
-            RegisterTask registerTask = new RegisterTask(this, instance, registration);
-            return registerTask.execute().onComplete(res -> {
-                if (res.succeeded()) {
-                    platform.singleComponent(Scheduler.class)
-                            .addPeriodic(registerTask, 5, 10, TimeUnit.SECONDS);
-                    logger.info("Registered instance '{}' of service '{}' at '{}'",
-                            instance.id(), serviceName, config);
-
-                } else {
-                    logger.error("Failed to register instance '{}' of service '{}' at '{}'", res.cause(),
-                            instance.id(), serviceName, config);
-                }
-            });
+        if (!serviceInstances.add(instance)) {
+            return Promise.completedVoid();
         }
-        return Promise.completedVoid();
+
+        Registration registration = createRegistration(instance);
+        RegisterTask registerTask = new RegisterTask(this, instance, registration);
+        Promise<Void> result = new Promise<>();
+        register(instance, serviceName, registerTask, 0, result);
+        return result;
+    }
+
+    private void register(ServiceInstance instance, String serviceName, RegisterTask registerTask,
+                          int attempt, Promise<Void> result) {
+        registerTask.execute().onComplete(res -> {
+            if (res.succeeded()) {
+                platform.singleComponent(Scheduler.class)
+                        .addPeriodic(registerTask, 5, 10, TimeUnit.SECONDS);
+                logger.info("Registered instance '{}' of service '{}' at '{}'",
+                        instance.id(), serviceName, config);
+                result.success(null);
+                return;
+            }
+
+            int retries = Math.max(0, config.option(RegistryConfig.RETRIES));
+            if (attempt < retries) {
+                long retryInterval = Math.max(1, config.option(RegistryConfig.HEARTBEAT_INTERVAL));
+                logger.warn("Failed to register instance '{}' of service '{}' at '{}', retrying {}/{}",
+                        res.cause(), instance.id(), serviceName, config, attempt + 1, retries);
+                platform.singleComponent(Scheduler.class).addDisposable(
+                        () -> register(instance, serviceName, registerTask, attempt + 1, result),
+                        retryInterval,
+                        TimeUnit.MILLISECONDS
+                );
+                return;
+            }
+
+            removeRegisteredInstance(serviceName, instance);
+            logger.error("Failed to register instance '{}' of service '{}' at '{}' after {} attempt(s)",
+                    res.cause(), instance.id(), serviceName, config, attempt + 1);
+            result.failure(res.cause());
+        });
+    }
+
+    private void removeRegisteredInstance(String serviceName, ServiceInstance instance) {
+        Set<ServiceInstance> serviceInstances = registeredServiceInstances.get(serviceName);
+        if (serviceInstances == null) {
+            return;
+        }
+        serviceInstances.remove(instance);
+        if (serviceInstances.isEmpty()) {
+            registeredServiceInstances.remove(serviceName, serviceInstances);
+        }
     }
 
     @Override

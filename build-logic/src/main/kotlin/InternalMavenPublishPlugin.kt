@@ -9,10 +9,9 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
+import nmcp.NmcpExtension
 import org.gradle.plugins.signing.SigningExtension
-import tech.yanand.gradle.mavenpublish.MavenCentralExtension
 import java.io.File
-import java.util.*
 
 class InternalMavenPublishPlugin : Plugin<Project> {
 
@@ -25,13 +24,13 @@ class InternalMavenPublishPlugin : Plugin<Project> {
         with(project.pluginManager) {
             apply("maven-publish")
             apply("signing")
-            apply("tech.yanand.maven-central-publish")
+            apply("com.gradleup.nmcp")
         }
         project.afterEvaluate {
             val component = findComponent(project) ?: return@afterEvaluate
             val publication = createPublication(project, component)
             configureSigning(project, publication)
-            configureMavenCentral(project)
+            configureNmcp(project)
         }
     }
 
@@ -71,51 +70,61 @@ class InternalMavenPublishPlugin : Plugin<Project> {
     }
 
     private fun configurePom(project: Project, publication: MavenPublication) {
+        val repositoryUrl = project.findProperty(PublishConfig.REPOSITORY_URL) as String?
+            ?: error("maven.publish.repository.url must be set in gradle.properties (e.g. \"https://github.com/chastro3/effi-rpc\")")
+        val licenseName = project.findProperty(PublishConfig.LICENSE_NAME) as String?
+            ?: "The Apache Software License, Version 2.0"
+        val licenseUrl = project.findProperty(PublishConfig.LICENSE_URL) as String?
+            ?: "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        val developerName = project.findProperty(PublishConfig.DEVELOPER_NAME) as String?
+            ?: error("maven.publish.developer.name must be set in gradle.properties")
+        val developerEmail = project.findProperty(PublishConfig.DEVELOPER_EMAIL) as String?
+            ?: error("maven.publish.developer.email must be set in gradle.properties")
+        val scmUrl = project.findProperty(PublishConfig.SCM_URL) as String?
+            ?: "scm:git:${repositoryUrl}.git"
         val path = project.path.replace(":", "/")
         publication.pom.apply {
             name.set(project.name)
-            description.set(project.description)
-            url.set("https://github.com/chastro3/effi-rpc/tree/master$path")
+            description.set(project.description ?: project.name)
+            url.set("${repositoryUrl}/tree/master$path")
             licenses {
                 license {
-                    name.set("The Apache Software License, Version 2.0")
-                    url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    name.set(licenseName)
+                    url.set(licenseUrl)
                 }
             }
             developers {
                 developer {
-                    name.set("chastro3")
-                    email.set("wenbochou@163.com")
+                    name.set(developerName)
+                    email.set(developerEmail)
                 }
             }
             scm {
-                connection.set("scm:git:https://github.com/chastro3/effi-rpc.git")
-                developerConnection.set("scm:git:https://github.com/chastro3/effi-rpc.git")
-                url.set("https://github.com/chastro3/effi-rpc/tree/master$path")
+                connection.set(scmUrl)
+                developerConnection.set(scmUrl)
+                url.set("${repositoryUrl}/tree/master$path")
             }
         }
     }
 
     private fun configureSigning(project: Project, publication: MavenPublication) {
+        val keyId = project.findProperty(PublishConfig.SIGNING_KEY_ID) as? String ?: return
+        val ringFile = project.findProperty(PublishConfig.SIGNING_SECRET_KEY_RING_FILE) as? String ?: return
+        val password = project.findProperty(PublishConfig.SIGNING_PASSWORD) as? String ?: return
         project.extensions.configure(SigningExtension::class.java) {
-            val keyId = project.findProperty("signing.keyId") as String?
-            val ringFile = project.findProperty("signing.secretKeyRingFile") as String?
-            val password = project.findProperty("signing.password") as String?
-            if (!keyId.isNullOrBlank() && !ringFile.isNullOrBlank() && !password.isNullOrBlank()) {
-                useInMemoryPgpKeys(keyId, File(ringFile).readText(), password)
-                sign(publication)
-            }
+            useInMemoryPgpKeys(keyId, File(ringFile).readText(), password)
+            sign(publication)
         }
     }
 
-    private fun configureMavenCentral(project: Project) {
-        project.extensions.configure<MavenCentralExtension> {
-            val token = project.findProperty("maven.central.user.token") as String?
-            if (!token.isNullOrBlank()) {
-                val encodedToken = Base64.getEncoder().encodeToString(token.toByteArray())
-                authToken.set(encodedToken)
+    private fun configureNmcp(project: Project) {
+        val username = project.findProperty(PublishConfig.CENTRAL_USERNAME) as? String ?: return
+        val password = project.findProperty(PublishConfig.CENTRAL_PASSWORD) as? String ?: return
+        project.extensions.configure<NmcpExtension> {
+            publishAllPublicationsToCentralPortal {
+                this.username.set(username)
+                this.password.set(password)
                 publishingType.set("AUTOMATIC")
-                maxWait.set(60)
             }
         }
     }

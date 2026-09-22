@@ -27,6 +27,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.Http2StreamFrame;
+import io.netty.util.concurrent.PromiseCombiner;
 
 import static io.netty.channel.ChannelHandler.Sharable;
 
@@ -51,9 +52,11 @@ public final class Http2ClientHandler extends FutureBinder {
     protected void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (msg instanceof HttpDuplexRequest request) {
             Http2StreamFrame[] frames = H2Support.toHttp2StreamFrames(request);
+            PromiseCombiner combiner = new PromiseCombiner(ctx.executor());
             for (Http2StreamFrame frame : frames) {
-                ctx.write(frame, ctx.newPromise());
+                combiner.add(ctx.write(frame));
             }
+            combiner.finish(promise);
         }
     }
 

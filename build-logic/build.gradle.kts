@@ -17,8 +17,8 @@ gradlePlugin {
     }
 }
 
-dependencies{
-    implementation("tech.yanand.maven-central-publish:tech.yanand.maven-central-publish.gradle.plugin:1.3.0")
+dependencies {
+    implementation("com.gradleup.nmcp:nmcp:1.0.2")
 }
 
 fun RepositoryHandler.defaultRepositories() {

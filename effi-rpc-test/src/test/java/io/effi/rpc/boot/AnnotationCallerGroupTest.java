@@ -3,12 +3,15 @@ package io.effi.rpc.boot;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.RpcType;
+import io.effi.rpc.context.parameter.ParameterLinking;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnnotationCallerGroupTest {
@@ -21,6 +24,18 @@ class AnnotationCallerGroupTest {
 
         assertTrue(result instanceof CompletableFuture);
         assertEquals("ok", ((CompletableFuture<?>) result).join());
+    }
+
+    @Test
+    void argumentWithoutWrapperIsPassedThrough() throws NoSuchMethodException {
+        Method method = SampleClient.class.getDeclaredMethod("call", String.class);
+        ParameterLinking[] linkings = {
+                new ParameterLinking(method.getParameters()[0], null)
+        };
+
+        Object[] wrapped = AnnotationCallerGroup.wrapArgs(linkings, new Object[]{"value"}, null);
+
+        assertSame("value", wrapped[0]);
     }
 
     @SuppressWarnings("unchecked")
@@ -37,5 +52,10 @@ class AnnotationCallerGroupTest {
                     default -> throw new UnsupportedOperationException(method.getName());
                 }
         );
+    }
+
+    private interface SampleClient {
+
+        void call(String value);
     }
 }

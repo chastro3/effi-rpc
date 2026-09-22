@@ -24,7 +24,6 @@ import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.TypeCapture;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -93,13 +92,16 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
             HierarchicalOptions callOption = parseCallOption(method);
             ScopedModule module = getModule(callOption, application);
             TransportProtocol protocol = getProtocol(callOption, application);
-            if (protocol != null) {
-                ReturnTypeWrapper returnTypeWrapper = getReturnType(method);
-                var parameterMappers = getParameterMappers(callOption, method);
-                Caller<?> caller = protocol.createCaller(returnTypeWrapper.typeCapture(), callOption, module);
-                register(caller);
-                methodCallerMap.put(method, new MethodCaller(caller, returnTypeWrapper.rpcType(), parameterMappers));
+            if (protocol == null) {
+                throw new IllegalStateException(
+                        "No transport protocol configured for RPC method: " + method.toGenericString()
+                );
             }
+            ReturnTypeWrapper returnTypeWrapper = getReturnType(method);
+            var parameterMappers = getParameterMappers(callOption, method);
+            Caller<?> caller = protocol.createCaller(returnTypeWrapper.typeCapture(), callOption, module);
+            register(caller);
+            methodCallerMap.put(method, new MethodCaller(caller, returnTypeWrapper.rpcType(), parameterMappers));
         }
     }
 
@@ -136,6 +138,10 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
         if (methodAnnotationStyleResolver != null && methodAnnotationStyleResolver.supports(method)) {
             linkings = methodAnnotationStyleResolver.resolveParameterLinking(method);
             methodAnnotationStyleResolver.resolveMethod(method, options);
+        } else if (method.getParameterCount() > 0) {
+            throw new IllegalStateException(
+                    "No annotation style configured for RPC method parameters: " + method.toGenericString()
+            );
         } else {
             linkings = ParameterLinking.emptyWrappers(method);
         }
@@ -158,7 +164,7 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
             args = wrapArgs(methodCaller.linkings(), args, caller);
             return invokeCaller(caller, methodCaller.rpcType, args);
         }
-        return null;
+        throw new IllegalStateException("No RPC mapping configured for method: " + method.toGenericString());
     }
 
     static Object invokeCaller(Caller<?> caller, RpcType rpcType, Object[] args) {
@@ -168,16 +174,15 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
         };
     }
 
-    private Object[] wrapArgs(ParameterLinking[] linkings, Object[] args, Caller<?> caller) {
+    static Object[] wrapArgs(ParameterLinking[] linkings, Object[] args, Caller<?> caller) {
         if (CollectionUtil.isNotEmpty(args)) {
             Object[] result = new Object[linkings.length];
             for (int i = 0; i < linkings.length; i++) {
                 ParameterLinking linking = linkings[i];
                 AnnotationParameterWrapper<?> wrapper = linking.wrapper();
-                if (wrapper != null) {
-                    Parameter parameter = linking.parameter();
-                    result[i] = wrapper.wrap(args[i], parameter, caller);
-                }
+                result[i] = wrapper == null
+                        ? args[i]
+                        : wrapper.wrap(args[i], linking.parameter(), caller);
             }
             return result;
         }
