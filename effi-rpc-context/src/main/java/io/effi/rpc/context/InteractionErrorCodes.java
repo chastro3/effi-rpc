@@ -15,6 +15,10 @@ public interface InteractionErrorCodes {
 
     ErrorCode SERVANT_INVOCATION_FAILED = allocate("Failed to invoke Servant: '{}'");
 
+    ErrorCode REPLY_STAGE_FAILED = allocate("Failed to process RPC reply for '{}'");
+
+    ErrorCode REPLY_RESULT_MISSING = allocate("RPC reply result is missing for '{}'");
+
     private static ErrorCode allocate(String message) {
         return CONTEXT_ERROR_CODE_ALLOCATOR.next(message);
     }

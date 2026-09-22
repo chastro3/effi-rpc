@@ -7,6 +7,7 @@ import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
@@ -45,7 +46,9 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
         if (active()) {
             return doSend(message);
         }
-        return Promise.completedVoid();
+        Promise<Void> promise = new Promise<>();
+        promise.failure(TransportErrorCodes.CHANNEL_INACTIVE.fail(this));
+        return promise;
     }
 
     @Override

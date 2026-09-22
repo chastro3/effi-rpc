@@ -1,11 +1,15 @@
 package io.effi.rpc.concurrent;
 
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 public final class ArrayListener<T> implements Listener<T> {
+
+    private static final Logger logger = LoggerFactory.getLogger(ArrayListener.class);
 
     public volatile Consumer<T>[] handlers;
     private volatile int size;
@@ -25,7 +29,11 @@ public final class ArrayListener<T> implements Listener<T> {
         int n = size;
         Consumer<T>[] a = handlers;
         for (int i = 0; i < n; i++) {
-            a[i].accept(event);
+            try {
+                a[i].accept(event);
+            } catch (Throwable e) {
+                logger.error("Failed to execute future listener.", e);
+            }
         }
     }
 

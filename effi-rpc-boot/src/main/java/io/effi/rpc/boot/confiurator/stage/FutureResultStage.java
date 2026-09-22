@@ -5,6 +5,7 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
+import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.ReplyFuture;
@@ -52,9 +53,17 @@ public class FutureResultStage implements Stage.CallUnit<Request, Caller<?>> {
                 future.failure(fail);
             }
         });
-        future.onComplete(res ->
-                future.withRawResult(reverseStageChain.proceed(res.result()))
-        );
+        future.onComplete(res -> {
+            if (res.failed()) {
+                return;
+            }
+            try {
+                future.withRawResult(reverseStageChain.proceed(res.result()));
+            } catch (Throwable e) {
+                EffiRpcException failure = InteractionErrorCodes.REPLY_STAGE_FAILED.fail(e, caller.id());
+                future.withRawResult(Interaction.Result.failure(context.message().url(), failure));
+            }
+        });
         return Interaction.Result.success(context.message().url(), future);
     }
 }

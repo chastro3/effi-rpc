@@ -79,12 +79,13 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
 
     @Override
     public ReplyFuture timeout(long delay, TimeUnit unit) {
-        scheduler().schedule(() -> {
-            if (!completed()) {
-                failure(InteractionErrorCodes.SERVICE_CALL_TIMEOUT.fail(delay + " " + unit, id));
-            }
-        }, delay, unit);
+        super.timeout(delay, unit);
         return this;
+    }
+
+    @Override
+    protected Throwable timeoutException(long delay, TimeUnit unit) {
+        return InteractionErrorCodes.SERVICE_CALL_TIMEOUT.fail(delay + " " + unit, id);
     }
 
     @Override
@@ -109,8 +110,20 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
     public <T> Future<T> toResultFuture() {
         Promise<T> promise = new Promise<>();
         onComplete(res -> {
-            if (res.succeeded()) promise.success((T) rawResult.result());
-            else promise.failure(res.cause());
+            if (res.failed()) {
+                promise.failure(res.cause());
+                return;
+            }
+            Interaction.Result result = rawResult;
+            if (result == null) {
+                promise.failure(InteractionErrorCodes.REPLY_RESULT_MISSING.fail(id));
+                return;
+            }
+            if (result.succeeded()) {
+                promise.success((T) result.result());
+            } else {
+                promise.failure(result.cause());
+            }
         });
         return promise;
     }

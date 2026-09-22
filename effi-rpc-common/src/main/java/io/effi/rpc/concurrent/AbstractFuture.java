@@ -1,11 +1,16 @@
 package io.effi.rpc.concurrent;
 
 import io.effi.rpc.executor.RpcThreadFactory;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.LazySingleton;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -13,6 +18,8 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 public abstract class AbstractFuture<T> implements Future<T> {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractFuture.class);
 
     private static final LazySingleton<ScheduledExecutorService> DEFAULT_SCHEDULER =
             LazySingleton.from(AbstractFuture::initializeDefaultScheduler);
@@ -23,7 +30,9 @@ public abstract class AbstractFuture<T> implements Future<T> {
 
     protected final ScheduledExecutorService scheduler;
 
-    private volatile Thread waiter;
+    private final Set<Thread> waiters = ConcurrentHashMap.newKeySet();
+
+    private volatile ScheduledFuture<?> timeoutFuture;
 
     protected AbstractFuture() {
         this(null);
@@ -64,11 +73,20 @@ public abstract class AbstractFuture<T> implements Future<T> {
 
     @Override
     public Future<T> timeout(long delay, TimeUnit unit) {
-        scheduler().schedule(() -> {
-            if (!completed()) {
-                tryComplete(new TimeoutException("Promise timed out after " + delay + " " + unit));
+        ScheduledFuture<?> scheduled = scheduler().schedule(() ->
+                tryComplete(timeoutException(delay, unit)),
+                delay,
+                unit
+        );
+        synchronized (this) {
+            if (result != null) {
+                scheduled.cancel(false);
+            } else {
+                ScheduledFuture<?> previous = timeoutFuture;
+                timeoutFuture = scheduled;
+                if (previous != null) previous.cancel(false);
             }
-        }, delay, unit);
+        }
         return this;
     }
 
@@ -110,11 +128,15 @@ public abstract class AbstractFuture<T> implements Future<T> {
 
     public T await() {
         if (completed()) return result();
-        waiter = Thread.currentThread();
-        while (!completed()) {
-            LockSupport.park(this);
+        Thread current = Thread.currentThread();
+        waiters.add(current);
+        try {
+            while (!completed()) {
+                LockSupport.park(this);
+            }
+        } finally {
+            waiters.remove(current);
         }
-        waiter = null;
         return result();
     }
 
@@ -122,16 +144,20 @@ public abstract class AbstractFuture<T> implements Future<T> {
         if (completed()) return result();
         long nanos = unit.toNanos(timeout);
         long deadline = System.nanoTime() + nanos;
-        waiter = Thread.currentThread();
-        while (!completed()) {
-            if (nanos <= 0L) {
-                tryComplete(new TimeoutException("Future timed out"));
-                break;
+        Thread current = Thread.currentThread();
+        waiters.add(current);
+        try {
+            while (!completed()) {
+                if (nanos <= 0L) {
+                    tryComplete(new TimeoutException("Future timed out"));
+                    break;
+                }
+                LockSupport.parkNanos(this, nanos);
+                nanos = deadline - System.nanoTime();
             }
-            LockSupport.parkNanos(this, nanos);
-            nanos = deadline - System.nanoTime();
+        } finally {
+            waiters.remove(current);
         }
-        waiter = null;
         return result();
     }
 
@@ -139,10 +165,15 @@ public abstract class AbstractFuture<T> implements Future<T> {
         return (scheduler != null) ? scheduler : DEFAULT_SCHEDULER.ensure();
     }
 
+    protected Throwable timeoutException(long delay, TimeUnit unit) {
+        return new TimeoutException("Promise timed out after " + delay + " " + unit);
+    }
+
     @SuppressWarnings("unchecked")
     protected AbstractFuture<T> tryComplete(Object value) {
         Listener<Result<T>> l;
         Result<T> r;
+        ScheduledFuture<?> timeoutTask;
         synchronized (this) {
             if (result != null) return this;
             r = (value instanceof Throwable)
@@ -151,16 +182,20 @@ public abstract class AbstractFuture<T> implements Future<T> {
             result = r;
             l = listener;
             listener = null;
+            timeoutTask = timeoutFuture;
+            timeoutFuture = null;
         }
+        if (timeoutTask != null) timeoutTask.cancel(false);
         if (l != null) {
-            l.trigger(r);
-            l.clear();
+            try {
+                l.trigger(r);
+            } catch (Throwable e) {
+                logger.error("Failed to notify future listener.", e);
+            } finally {
+                l.clear();
+            }
         }
-        Thread w = waiter;
-        waiter = null;
-        if (w != null) {
-            LockSupport.unpark(w);
-        }
+        waiters.forEach(LockSupport::unpark);
         return this;
     }
 

@@ -24,6 +24,12 @@ public interface IOMessage extends Message, TransportProtocol.Supplier {
     default TransportProtocol protocol() {
         return channel().protocol();
     }
+
+    /**
+     * Releases resources associated with this message.
+     */
+    default void close() {
+    }
 }
 
 

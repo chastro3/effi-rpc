@@ -11,6 +11,7 @@ public interface TransportErrorCodes {
     ErrorCode CONNECT = allocate("Failed to connect to '{}'");
     ErrorCode FETCH_CHANNEL = allocate("Failed to fetch channel to '{}' over '{}' protocol");
     ErrorCode CLOSE_CHANNEL = allocate("Failed to close remote channel to '{}'");
+    ErrorCode CHANNEL_INACTIVE = allocate("Channel '{}' is not active");
     ErrorCode CHANNEL_WRITE = allocate("Failed to write data to channel '{}'");
     ErrorCode CHANNEL_READ = allocate("Failed to read data from channel '{}'");
     ErrorCode CLOSE_SERVER = allocate("Failed to close server at '{}'");

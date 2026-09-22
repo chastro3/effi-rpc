@@ -46,7 +46,7 @@ public class NettySupport {
     }
 
     public static ByteBufInputStream newInputStream(ByteBuf buf) {
-        return new ByteBufInputStream(buf);
+        return new ByteBufInputStream(buf, true);
     }
 
     /**

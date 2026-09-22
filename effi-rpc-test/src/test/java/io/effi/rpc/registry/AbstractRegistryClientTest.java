@@ -51,6 +51,11 @@ class AbstractRegistryClientTest {
         }
 
         @Override
+        public boolean active() {
+            return true;
+        }
+
+        @Override
         protected Registration createRegistration(ServiceInstance instance) {
             return ignored -> {
                 if (attempts.incrementAndGet() == 1) {

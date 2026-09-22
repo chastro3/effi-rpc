@@ -63,22 +63,35 @@ public class TransportSupport {
         Servant servant = module.namedComponent(Servant.class, Peer.buildId(smartUrl.scheme(), smartUrl.path()));
         // todo send to client
         if (servant == null) {
-            protocol.sendCalleeNotFound(inputMessage);
+            try {
+                protocol.sendCalleeNotFound(inputMessage);
+            } finally {
+                inputMessage.close();
+            }
         } else {
-            servant.threadPool().execute(() -> {
-                ServerExchangeContextCodec serverCodec = protocol.serverCodec();
-                CallContext<Request, Servant> callContext = serverCodec.decode(inputMessage, servant);
-                Interaction.Result result = servant.callStageChain().proceed(callContext);
-                Response response = protocol.createResponse(servant, result);
-                var replyContext = new ReplyContext<>(callContext, response, result);
-                servant.replyStageChain().proceed(replyContext);
-                if (callContext.message().needReply()) {
-                    var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
-                    channel.send(outputMessage);
-                }
-            }).onComplete(res -> {
-                if (res.failed()) logger.error(res.cause());
-            });
+            try {
+                servant.threadPool().execute(() -> {
+                    try {
+                        ServerExchangeContextCodec serverCodec = protocol.serverCodec();
+                        CallContext<Request, Servant> callContext = serverCodec.decode(inputMessage, servant);
+                        Interaction.Result result = servant.callStageChain().proceed(callContext);
+                        Response response = protocol.createResponse(servant, result);
+                        var replyContext = new ReplyContext<>(callContext, response, result);
+                        servant.replyStageChain().proceed(replyContext);
+                        if (callContext.message().needReply()) {
+                            var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
+                            channel.send(outputMessage);
+                        }
+                    } finally {
+                        inputMessage.close();
+                    }
+                }).onComplete(res -> {
+                    if (res.failed()) logger.error(res.cause());
+                });
+            } catch (RuntimeException | Error e) {
+                inputMessage.close();
+                throw e;
+            }
         }
     }
 
@@ -93,20 +106,28 @@ public class TransportSupport {
             try {
                 if (inIODeserialization(caller)) {
                     ReplyContext<Response, Caller<?>> replyContext = clientCodec.decode(inputMessage, caller);
+                    inputMessage.close();
                     threadPool.execute(() -> future.complete(replyContext))
                             .onComplete(res -> {
                                 if (res.failed()) logger.error(res.cause());
                             });
                 } else {
                     threadPool.execute(() -> {
-                        ReplyContext<Response, Caller<?>> replyContext = clientCodec.decode(inputMessage, caller);
-                        future.complete(replyContext);
+                        try {
+                            ReplyContext<Response, Caller<?>> replyContext = clientCodec.decode(inputMessage, caller);
+                            future.complete(replyContext);
+                        } finally {
+                            inputMessage.close();
+                        }
                     });
                 }
             } catch (Exception e) {
+                inputMessage.close();
                 EffiRpcException exception = TransportErrorCodes.CHANNEL_READ.fail(e, channel.remoteAddress());
                 threadPool.execute(() -> future.failure(exception));
             }
+        } else {
+            inputMessage.close();
         }
     }
 
