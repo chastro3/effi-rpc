@@ -8,20 +8,15 @@ import io.effi.rpc.context.Stage;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Executes stages in the stage chain as interceptors.
  * <p>
  * Provides interceptor functionality that wraps {@link Stage.Chain} and delegates
- * interception to subsequent {@link Stage} with caching support for named instances.
+ * interception to subsequent {@link Stage}.
  */
 public final class StageInterceptor implements Interceptor<Message, Peer, Interaction.Context<Message, Peer>> {
 
     public static final String PREFIX = "stage$";
-
-    private static final Map<String, StageInterceptor> CACHE = new ConcurrentHashMap<>();
 
     private final ImmutableStageChain stageChain;
 
@@ -29,13 +24,9 @@ public final class StageInterceptor implements Interceptor<Message, Peer, Intera
         this.stageChain = stageChain;
     }
 
-    public static StageInterceptor lookup(String name) {
-        return CACHE.get(name);
-    }
-
-    public static StageInterceptor cached(ImmutableStageChain stageChain) {
+    public static StageInterceptor create(ImmutableStageChain stageChain) {
         AssertUtil.notNull(stageChain, "stageChain");
-        return CACHE.computeIfAbsent(findName(stageChain), k -> new StageInterceptor(stageChain));
+        return new StageInterceptor(stageChain);
     }
 
     @Override

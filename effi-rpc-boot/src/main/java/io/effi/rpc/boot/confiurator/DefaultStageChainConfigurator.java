@@ -15,6 +15,10 @@ import io.effi.rpc.context.ConfigurableCaller;
 import io.effi.rpc.context.ConfigurablePeer;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.support.ImmutableStageChain;
+import io.effi.rpc.util.ArrayIdentifier;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.effi.rpc.boot.confiurator.DefaultStageChainConfigurator.NAME;
 
@@ -22,6 +26,10 @@ import static io.effi.rpc.boot.confiurator.DefaultStageChainConfigurator.NAME;
 public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChainConfigurator, ScopedModule.Acceptor {
 
     public static final String NAME = Constant.DEFAULT_NAME;
+
+    private final Map<ArrayIdentifier<String>, Stage.Chain> stageChainCache = new ConcurrentHashMap<>();
+
+    private ScopedModule module;
 
     private Stage.Chain defaultCallerCallChain;
 
@@ -33,6 +41,7 @@ public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChai
 
     @Override
     public void accept(ScopedModule module) {
+        this.module = module;
         initializeDefaultStageChain(module);
     }
 
@@ -59,15 +68,23 @@ public class DefaultStageChainConfigurator implements ConfigurablePeer.StageChai
         String[] callerCallChainNames = {
                 CallInterceptStage.NAME, LocatorStage.NAME, ChosenInterceptStage.NAME, FutureResultStage.NAME
         };
-        String[] servantCallChainNames = new String[]{
+        String[] servantCallChainNames = {
                 CallInterceptStage.NAME, InvokeServantStage.NAME
         };
         String[] replyChainNames = {
                 ReplyInterceptStage.NAME, ReplyResultStage.NAME
         };
-        defaultCallerCallChain = ImmutableStageChain.of(module, callerCallChainNames);
-        defaultServantCallChain = ImmutableStageChain.of(module, servantCallChainNames);
-        defaultCallerReplyChain = ImmutableStageChain.of(module, replyChainNames);
+        defaultCallerCallChain = resolveStageChain(callerCallChainNames);
+        defaultServantCallChain = resolveStageChain(servantCallChainNames);
+        defaultCallerReplyChain = resolveStageChain(replyChainNames);
         defaultServantReplyChain = defaultCallerReplyChain;
+    }
+
+    Stage.Chain resolveStageChain(String[] names) {
+        String[] stageNames = names.clone();
+        ArrayIdentifier<String> key = ArrayIdentifier.of(stageNames);
+        return stageChainCache.computeIfAbsent(key, ignored ->
+                ImmutableStageChain.of(module, stageNames)
+        );
     }
 }

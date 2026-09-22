@@ -24,6 +24,7 @@ import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +49,12 @@ public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.Int
         List<String> callNames = peer.callInterceptorChain() == null ? new LinkedList<>() : null;
         List<String> chosenNames = createChosenNamesIfNeed(peer);
         List<String> replyNames = peer.replyInterceptorChain() == null ? new LinkedList<>() : null;
+        Map<String, Interceptor> additionalInterceptors = new HashMap<>();
         registerClassifiers(classifier, callNames, chosenNames, replyNames);
         classifier.classify(lookupAvailableInterceptors(peer));
-        if (callNames != null) processCallInterceptors(peer, callNames);
-        if (chosenNames != null) processChosenInterceptors(peer, chosenNames);
-        if (replyNames != null) processReplyInterceptors(peer, replyNames);
+        if (callNames != null) processCallInterceptors(peer, callNames, additionalInterceptors);
+        if (chosenNames != null) processChosenInterceptors(peer, chosenNames, additionalInterceptors);
+        if (replyNames != null) processReplyInterceptors(peer, replyNames, additionalInterceptors);
     }
 
     private List<String> createChosenNamesIfNeed(Peer peer) {
@@ -77,20 +79,35 @@ public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.Int
         }
     }
 
-    private void processCallInterceptors(ConfigurablePeer peer, List<String> callNames) {
-        tryAddStageInterceptor(peer.callStageChain(), CallInterceptStage.NAME, callNames);
-        peer.callInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(callNames)));
+    private void processCallInterceptors(ConfigurablePeer peer, List<String> callNames,
+                                         Map<String, Interceptor> additionalInterceptors) {
+        tryAddStageInterceptor(peer.callStageChain(), CallInterceptStage.NAME, callNames, additionalInterceptors);
+        peer.callInterceptorChain(ImmutableInterceptorChain.of(
+                peer.module(),
+                StringUtil.toArray(callNames),
+                additionalInterceptors
+        ));
     }
 
-    private void processChosenInterceptors(ConfigurablePeer peer, List<String> chosenNames) {
+    private void processChosenInterceptors(ConfigurablePeer peer, List<String> chosenNames,
+                                           Map<String, Interceptor> additionalInterceptors) {
         ConfigurableCaller<?> caller = (ConfigurableCaller<?>) peer;
-        tryAddStageInterceptor(peer.callStageChain(), ChosenInterceptStage.NAME, chosenNames);
-        caller.chosenInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(chosenNames)));
+        tryAddStageInterceptor(peer.callStageChain(), ChosenInterceptStage.NAME, chosenNames, additionalInterceptors);
+        caller.chosenInterceptorChain(ImmutableInterceptorChain.of(
+                peer.module(),
+                StringUtil.toArray(chosenNames),
+                additionalInterceptors
+        ));
     }
 
-    private void processReplyInterceptors(ConfigurablePeer peer, List<String> replyNames) {
-        tryAddStageInterceptor(peer.replyStageChain(), ReplyInterceptStage.NAME, replyNames);
-        peer.replyInterceptorChain(ImmutableInterceptorChain.of(peer.module(), StringUtil.toArray(replyNames)));
+    private void processReplyInterceptors(ConfigurablePeer peer, List<String> replyNames,
+                                          Map<String, Interceptor> additionalInterceptors) {
+        tryAddStageInterceptor(peer.replyStageChain(), ReplyInterceptStage.NAME, replyNames, additionalInterceptors);
+        peer.replyInterceptorChain(ImmutableInterceptorChain.of(
+                peer.module(),
+                StringUtil.toArray(replyNames),
+                additionalInterceptors
+        ));
     }
 
 
@@ -105,11 +122,13 @@ public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.Int
         );
     }
 
-    private void tryAddStageInterceptor(Stage.Chain head, String stageName, List<String> interceptorNames) {
+    private void tryAddStageInterceptor(Stage.Chain head, String stageName, List<String> interceptorNames,
+                                        Map<String, Interceptor> additionalInterceptors) {
         if (head instanceof ImmutableStageChain headChain) {
             ImmutableStageChain chain = headChain.lookupChain(stageName);
             if (chain != null && chain.next() != null) {
-                StageInterceptor stageInterceptor = StageInterceptor.cached(chain.next());
+                StageInterceptor stageInterceptor = StageInterceptor.create(chain.next());
+                additionalInterceptors.put(stageInterceptor.name(), stageInterceptor);
                 interceptorNames.add(stageInterceptor.name());
             }
         }

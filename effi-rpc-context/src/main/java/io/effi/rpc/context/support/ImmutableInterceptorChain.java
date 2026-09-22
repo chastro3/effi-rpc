@@ -3,17 +3,16 @@ package io.effi.rpc.context.support;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Interceptor;
-import io.effi.rpc.util.ArrayIdentifier;
 import io.effi.rpc.util.CollectionUtil;
 
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides an immutable chain of interceptor instances.
  * <p>
  * Implements an immutable chain structure for processing interceptors with
- * efficient caching and creation support for interceptor chains.
+ * creation support for interceptor chains.
  *
  * @see ImmutableInteractionUnitChain
  * @see Interceptor.Chain
@@ -26,21 +25,33 @@ public final class ImmutableInterceptorChain extends ImmutableInteractionUnitCha
 
     private static final ImmutableInterceptorChain TAIL = new ImmutableInterceptorChain("empty", TAIL_INTERCEPTOR, null);
 
-    private static final Map<ArrayIdentifier<String>, ImmutableInterceptorChain> CACHE = new ConcurrentHashMap<>();
-
     /**
-     * Creates or retrieves a cached interceptor chain for the given module and interceptor names.
+     * Creates an interceptor chain for the given module and interceptor names.
      *
      * @param module the scoped module to lookup interceptors from
      * @param names  the interceptor names to include in the chain
      * @return the interceptor chain, or empty chain if names are empty
      */
     public static ImmutableInterceptorChain of(ScopedModule module, String[] names) {
+        return of(module, names, Collections.emptyMap());
+    }
+
+    /**
+     * Creates an interceptor chain with additional named interceptors.
+     *
+     * @param module               the scoped module to lookup interceptors from
+     * @param names                the interceptor names to include in the chain
+     * @param additionalInterceptors interceptors that are not registered as extensions
+     * @return the interceptor chain, or empty chain if names are empty
+     */
+    public static ImmutableInterceptorChain of(ScopedModule module, String[] names,
+                                               Map<String, Interceptor> additionalInterceptors) {
         if (CollectionUtil.isEmpty(names)) return TAIL;
-        ArrayIdentifier<String> key = ArrayIdentifier.of(names);
-        return CACHE.computeIfAbsent(key, k ->
-                init(module, ImmutableInterceptorChain::lookupInterceptor, names, ImmutableInterceptorChain::new, TAIL)
-        );
+        return init(module,
+                (scopedModule, name) -> lookupInterceptor(scopedModule, name, additionalInterceptors),
+                names,
+                ImmutableInterceptorChain::new,
+                TAIL);
     }
 
     /**
@@ -54,10 +65,10 @@ public final class ImmutableInterceptorChain extends ImmutableInteractionUnitCha
         return init(filters, ImmutableInterceptorChain::new, TAIL);
     }
 
-    private static Interceptor lookupInterceptor(ScopedModule module, String name) {
-        if (name.startsWith(StageInterceptor.PREFIX)) {
-            return StageInterceptor.lookup(name);
-        }
+    private static Interceptor lookupInterceptor(ScopedModule module, String name,
+                                                 Map<String, Interceptor> additionalInterceptors) {
+        Interceptor interceptor = additionalInterceptors.get(name);
+        if (interceptor != null) return interceptor;
         return module.namedExtension(Interceptor.class, name);
     }
 
