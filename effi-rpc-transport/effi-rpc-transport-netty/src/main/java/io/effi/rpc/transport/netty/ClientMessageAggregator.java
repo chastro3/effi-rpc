@@ -11,6 +11,7 @@ import io.effi.rpc.transport.TransportSupport;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.transport.message.InputMessage;
 import io.effi.rpc.transport.message.OutputMessage;
+import io.effi.rpc.util.ExceptionUtil;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.Messages;
 import io.netty.channel.ChannelDuplexHandler;
@@ -46,8 +47,17 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        EffiRpcException exception = TransportErrorCodes.CHANNEL_READ.fail(cause, ctx.channel().remoteAddress());
+        EffiRpcException exception = TransportErrorCodes.CHANNEL_EXCEPTION.fail(
+                cause,
+                ctx.channel().remoteAddress(),
+                ExceptionUtil.message(cause)
+        );
         logger.error(exception);
+        try {
+            super.exceptionCaught(ctx, cause);
+        } finally {
+            ctx.close();
+        }
     }
 
     @Override

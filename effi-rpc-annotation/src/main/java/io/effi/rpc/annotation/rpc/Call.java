@@ -81,6 +81,11 @@ public @interface Call {
     int timeout() default -1;
 
     /**
+     * Sets service discovery timeout in milliseconds.
+     */
+    int serviceDiscoveryTimeout() default -1;
+
+    /**
      * Sets retry count.
      */
     int retries() default -1;

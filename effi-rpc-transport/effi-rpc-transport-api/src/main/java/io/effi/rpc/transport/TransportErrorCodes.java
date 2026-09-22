@@ -14,6 +14,7 @@ public interface TransportErrorCodes {
     ErrorCode CHANNEL_INACTIVE = allocate("Channel '{}' is not active");
     ErrorCode CHANNEL_WRITE = allocate("Failed to write data to channel '{}'");
     ErrorCode CHANNEL_READ = allocate("Failed to read data from channel '{}'");
+    ErrorCode CHANNEL_EXCEPTION = allocate("Channel '{}' failed: {}");
     ErrorCode CLOSE_SERVER = allocate("Failed to close server at '{}'");
     ErrorCode ENCODE = allocate("Failed to encode object '{}' from '{}'");
     ErrorCode DECODE = allocate("Failed to decode object '{}' from '{}'");

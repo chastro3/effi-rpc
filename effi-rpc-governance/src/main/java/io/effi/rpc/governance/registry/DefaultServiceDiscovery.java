@@ -9,18 +9,21 @@ import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.concurrent.Promise;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static io.effi.rpc.governance.registry.DefaultServiceDiscovery.NAME;
 
@@ -42,15 +45,34 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
         SmartURL smartUrl = context.message().url();
         int size = registryConfigs.size();
         ScopedPlatform platform = context.module().platform();
-        List<Future<List<ServiceInstance>>> futures = new ArrayList<>(size);
+        List<RegistryLookup> lookups = new ArrayList<>(size);
         for (RegistryConfig registryConfig : registryConfigs) {
             RegistryClient registryClient = RegistryClient.of(registryConfig, platform);
-            futures.add(registryClient.lookup(serviceName));
+            lookups.add(new RegistryLookup(registryConfig, registryClient.lookup(serviceName)));
         }
-        Promise<Void> promise = Promise.allOf(futures);
-        promise.await();
-        for (Future<List<ServiceInstance>> future : futures) {
-            List<ServiceInstance> discoveredInstances = future.result();
+        int callTimeout = context.peer().option(Caller.TIMEOUT);
+        int discoveryTimeout = context.peer().option(Caller.SERVICE_DISCOVERY_TIMEOUT);
+        long timeout = Math.max(1, discoveryTimeout > 0 ? Math.min(callTimeout, discoveryTimeout) : callTimeout);
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
+        Throwable lastFailure = null;
+        RegistryConfig lastFailureRegistry = null;
+        for (RegistryLookup lookup : lookups) {
+            List<ServiceInstance> discoveredInstances;
+            try {
+                long remaining = deadline - System.nanoTime();
+                if (remaining <= 0) {
+                    throw new TimeoutException("Service discovery timed out");
+                }
+                discoveredInstances = lookup.future().toCompletableFuture().get(remaining, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw PredefinedErrorCode.REGISTRY_DISCOVER.fail(e, serviceName, lookup.registryConfig());
+            } catch (ExecutionException | TimeoutException e) {
+                lastFailure = e instanceof ExecutionException && e.getCause() != null ? e.getCause() : e;
+                lastFailureRegistry = lookup.registryConfig();
+                logger.warn("Failed to discover service '{}' from registry '{}'", lastFailure, serviceName, lastFailureRegistry);
+                continue;
+            }
             if (CollectionUtil.isNotEmpty(discoveredInstances)) {
                 for (ServiceInstance discoveredInstance : discoveredInstances) {
                     if (discoveredInstance.protocol().equals(smartUrl.scheme())) {
@@ -63,8 +85,14 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
             }
         }
         if (availableInstances.isEmpty()) {
+            if (lastFailure != null) {
+                throw PredefinedErrorCode.REGISTRY_DISCOVER.fail(lastFailure, serviceName, lastFailureRegistry);
+            }
             throw InteractionErrorCodes.SERVICE_INSTANCE_NOT_FOUND.fail(serviceName);
         }
         return availableInstances;
+    }
+
+    private record RegistryLookup(RegistryConfig registryConfig, Future<List<ServiceInstance>> future) {
     }
 }

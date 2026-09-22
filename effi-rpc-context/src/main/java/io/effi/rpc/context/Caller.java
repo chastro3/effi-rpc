@@ -37,6 +37,8 @@ public interface Caller<R> extends Peer {
 
     OptionName<String> SERVICE_DISCOVERY = OptionName.of("serviceDiscovery", CURRENT_FIRST);
 
+    OptionName<Integer> SERVICE_DISCOVERY_TIMEOUT = OptionName.of("serviceDiscoveryTimeout", CURRENT_FIRST, 1000);
+
     OptionName<String> ROUTER = OptionName.of("router", CURRENT_FIRST);
 
     OptionName<String> FAILURE_HANDLER = OptionName.of("failureHandler", CURRENT_FIRST);

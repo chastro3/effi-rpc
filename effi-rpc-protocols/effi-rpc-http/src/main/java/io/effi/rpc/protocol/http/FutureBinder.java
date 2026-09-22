@@ -6,7 +6,10 @@ import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.ReplyFuture;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.netty.NettySupport;
+import io.effi.rpc.util.ExceptionUtil;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -42,8 +45,21 @@ public abstract class FutureBinder extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        ReplyFuture future = NettySupport.getBoundFuture(ctx.channel());
+        if (future != null) {
+            EffiRpcException exception = TransportErrorCodes.CHANNEL_EXCEPTION.fail(
+                    cause,
+                    ctx.channel().remoteAddress(),
+                    ExceptionUtil.message(cause)
+            );
+            future.failure(exception);
+        }
         NettySupport.unbindFutureId(ctx.channel());
-        super.exceptionCaught(ctx, cause);
+        try {
+            super.exceptionCaught(ctx, cause);
+        } finally {
+            ctx.close();
+        }
     }
 
     protected abstract SmartURL supports(Object msg);

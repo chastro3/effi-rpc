@@ -79,6 +79,9 @@ public final class AnnotationSupport {
             if (call.timeout() >= 0) {
                 options.addOption(Caller.TIMEOUT, call.timeout());
             }
+            if (call.serviceDiscoveryTimeout() >= 0) {
+                options.addOption(Caller.SERVICE_DISCOVERY_TIMEOUT, call.serviceDiscoveryTimeout());
+            }
             options.addOption(FailRetry.RETRIES, call.retries());
             options.addOption(Peer.SERIALIZATION_THRESHOLD, call.serializationThreshold());
             options.addOption(Peer.DESERIALIZATION_THRESHOLD, call.deserializationThreshold());

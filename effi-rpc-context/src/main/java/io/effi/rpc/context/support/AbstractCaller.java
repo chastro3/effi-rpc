@@ -175,6 +175,11 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
             return self();
         }
 
+        public SELF serviceDiscoveryTimeout(int timeout) {
+            addOption(SERVICE_DISCOVERY_TIMEOUT, timeout);
+            return self();
+        }
+
         public SELF loadBalancer(String loadBalancer) {
             addOption(LOAD_BALANCER, loadBalancer);
             return self();
