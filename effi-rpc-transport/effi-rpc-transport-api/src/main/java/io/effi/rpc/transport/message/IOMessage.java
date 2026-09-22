@@ -13,7 +13,7 @@ import io.effi.rpc.transport.endpoint.Channel;
  * @see InputMessage
  * @see OutputMessage
  */
-public interface IOMessage extends Message, TransportProtocol.Supplier {
+public interface IOMessage extends Message, TransportProtocol.Supplier, AutoCloseable {
 
     /**
      * Returns the associated channel.
@@ -28,8 +28,8 @@ public interface IOMessage extends Message, TransportProtocol.Supplier {
     /**
      * Releases resources associated with this message.
      */
-    default void close() {
-    }
+    @Override
+    void close();
 }
 
 

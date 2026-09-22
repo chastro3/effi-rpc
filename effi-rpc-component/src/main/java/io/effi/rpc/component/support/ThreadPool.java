@@ -8,6 +8,7 @@ import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.trait.Closeable;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Supplier;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
@@ -28,27 +29,35 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
 
     public <T> Future<T> execute(Supplier<T> supplier) {
         Promise<T> promise = new Promise<>();
-        executor.submit(() -> {
-            try {
-                T result = supplier.get();
-                promise.success(result);
-            } catch (Throwable e) {
-                promise.failure(e);
-            }
-        });
+        try {
+            executor.submit(() -> {
+                try {
+                    T result = supplier.get();
+                    promise.success(result);
+                } catch (Throwable e) {
+                    promise.failure(e);
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            promise.failure(e);
+        }
         return promise;
     }
 
     public Future<Void> execute(Runnable task) {
         Promise<Void> promise = new Promise<>();
-        executor.submit(() -> {
-            try {
-                task.run();
-                promise.success(null);
-            } catch (Throwable e) {
-                promise.failure(e);
-            }
-        });
+        try {
+            executor.submit(() -> {
+                try {
+                    task.run();
+                    promise.success(null);
+                } catch (Throwable e) {
+                    promise.failure(e);
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            promise.failure(e);
+        }
         return promise;
     }
 

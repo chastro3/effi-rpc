@@ -6,6 +6,7 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
+import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.ReplyFuture;
@@ -59,38 +60,46 @@ public class TransportSupport {
         SmartURL smartUrl = inputMessage.url();
         Channel channel = inputMessage.channel();
         TransportProtocol protocol = channel.protocol();
-        ScopedModule module = protocol.lookupModule(inputMessage);
-        Servant servant = module.namedComponent(Servant.class, Peer.buildId(smartUrl.scheme(), smartUrl.path()));
-        // todo send to client
-        if (servant == null) {
-            try {
-                protocol.sendCalleeNotFound(inputMessage);
-            } finally {
-                inputMessage.close();
+        try {
+            ScopedModule module = protocol.lookupModule(inputMessage);
+            if (module == null) {
+                throw InteractionErrorCodes.SERVANT_NOT_FOUND.fail(smartUrl.baseUrl(), channel.remoteAddress());
             }
-        } else {
-            try {
-                servant.threadPool().execute(() -> {
-                    try {
-                        ServerExchangeContextCodec serverCodec = protocol.serverCodec();
-                        CallContext<Request, Servant> callContext = serverCodec.decode(inputMessage, servant);
-                        Interaction.Result result = servant.callStageChain().proceed(callContext);
-                        Response response = protocol.createResponse(servant, result);
-                        var replyContext = new ReplyContext<>(callContext, response, result);
-                        servant.replyStageChain().proceed(replyContext);
-                        if (callContext.message().needReply()) {
-                            var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
-                            channel.send(outputMessage);
-                        }
-                    } finally {
-                        inputMessage.close();
-                    }
-                }).onComplete(res -> {
-                    if (res.failed()) logger.error(res.cause());
-                });
-            } catch (RuntimeException | Error e) {
+            Servant servant = module.namedComponent(Servant.class, Peer.buildId(smartUrl.scheme(), smartUrl.path()));
+            if (servant == null) {
+                protocol.sendServantNotFound(inputMessage);
                 inputMessage.close();
-                throw e;
+                return;
+            }
+            servant.threadPool().execute(() -> {
+                try {
+                    ServerExchangeContextCodec serverCodec = protocol.serverCodec();
+                    CallContext<Request, Servant> callContext = serverCodec.decode(inputMessage, servant);
+                    Interaction.Result result = servant.callStageChain().proceed(callContext);
+                    Response response = protocol.createResponse(servant, result);
+                    var replyContext = new ReplyContext<>(callContext, response, result);
+                    servant.replyStageChain().proceed(replyContext);
+                    if (callContext.message().needReply()) {
+                        var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
+                        channel.send(outputMessage);
+                    }
+                } catch (Throwable e) {
+                    EffiRpcException failure = e instanceof EffiRpcException effiRpcException
+                            ? effiRpcException
+                            : InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(e, servant.id());
+                    protocol.sendError(inputMessage, failure);
+                } finally {
+                    inputMessage.close();
+                }
+            }).onComplete(res -> {
+                if (res.failed()) logger.error(res.cause());
+            });
+        } catch (Throwable e) {
+            EffiRpcException failure = e instanceof EffiRpcException effiRpcException
+                    ? effiRpcException
+                    : TransportErrorCodes.DECODE.fail(e, Request.class, inputMessage.getClass());
+            try (inputMessage) {
+                protocol.sendError(inputMessage, failure);
             }
         }
     }

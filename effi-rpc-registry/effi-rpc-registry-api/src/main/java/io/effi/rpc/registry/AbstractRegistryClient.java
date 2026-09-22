@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -42,6 +43,8 @@ public abstract class AbstractRegistryClient implements RegistryClient {
     protected final ThreadPool threadPool;
 
     protected final String[] addresses;
+
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     protected AbstractRegistryClient(RegistryConfig config, ScopedPlatform platform, boolean needThreadPool) {
         this.config = AssertUtil.notNull(config, "config");
@@ -128,6 +131,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
                 } else {
                     logger.error("Failed to discover instance(s) for '{}' from '{}'", res.cause(), serviceName, config);
+                    subscribedHealthServices.remove(serviceName, holder);
                     holder.promise().failure(res.cause());
                 }
             });
@@ -141,6 +145,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         String serviceName = instance.serviceName();
         return doDeregister(instance).onComplete(res -> {
                     if (res.succeeded()) {
+                        removeRegisteredInstance(serviceName, instance);
                         logger.info("Deregistered instance '{}' of service '{}' at '{}'",
                                 instance.id(), serviceName, config);
                     } else {
@@ -158,13 +163,19 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
     @Override
     public void close() {
-        deregisterServices().onComplete(res -> {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+        long timeout = Math.max(1, config.option(RegistryConfig.CONNECT_TIMEOUT));
+        deregisterServices()
+                .timeout(timeout, TimeUnit.MILLISECONDS)
+                .onComplete(res -> {
             subscribedHealthServices.clear();
             registeredServiceInstances.clear();
             try {
                 doClose();
             } catch (Throwable t) {
-                logger.error( "Failed to close registry client connected to '{}'", t,this);
+                logger.error("Failed to close registry client connected to '{}'", t, this);
             }
         });
     }

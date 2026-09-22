@@ -28,5 +28,8 @@ public abstract class AbstractIOMessage implements IOMessage {
         return channel;
     }
 
+    @Override
+    public void close() {
+    }
 }
 

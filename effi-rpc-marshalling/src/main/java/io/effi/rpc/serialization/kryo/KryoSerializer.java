@@ -1,38 +1,96 @@
 package io.effi.rpc.serialization.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.config.OptionName;
 import io.effi.rpc.serialization.AbstractSerializer;
+import io.effi.rpc.util.ClassUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import static io.effi.rpc.serialization.kryo.KryoSerializer.NAME;
+import static io.effi.rpc.config.OptionName.Strategy.CURRENT_FIRST;
+import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Kryo.
  */
 @Extension(value = NAME, onClass = "com.esotericsoftware.kryo.Kryo", primary = true)
-public class KryoSerializer extends AbstractSerializer {
+public class KryoSerializer extends AbstractSerializer implements ScopedPlatform.Acceptor {
 
     public static final String NAME = "kryo";
+
+    public static final OptionName<List<String>> REGISTERED_CLASS_NAMES =
+            OptionName.of("serializer.kryo.registeredClasses", CURRENT_FIRST, List.of());
+
+    public static final OptionName<List<String>> INCLUDE_CLASS_NAMES =
+            OptionName.of("serializer.kryo.includeClasses", MERGE_PARENT, List.of());
 
     // Set buffer size
     private static final int BUFFER_SIZE = 1024 * 4;
 
+    private final List<Consumer<Kryo>> registrations = new CopyOnWriteArrayList<>();
+
+    private volatile List<Class<?>> registeredClasses = List.of();
+
     /**
      * Kryo is not thread safe. Each thread should have its own Kryo, Input, and Output instance.
      */
-    private final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
+    private final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(this::createKryo);
+
+    @Override
+    public void accept(ScopedPlatform platform) {
+        List<String> classNames = new ArrayList<>(platform.options().option(REGISTERED_CLASS_NAMES));
+        classNames.addAll(platform.options().option(INCLUDE_CLASS_NAMES));
+        this.registeredClasses = resolveClasses(classNames);
+    }
+
+    /**
+     * Registers a class before Kryo instances are used.
+     */
+    public void register(Class<?> type) {
+        registrations.add(kryo -> kryo.register(type));
+    }
+
+    /**
+     * Registers a class and its serializer before Kryo instances are used.
+     */
+    public <T> void register(Class<T> type, Serializer<T> serializer) {
+        registrations.add(kryo -> kryo.register(type, serializer));
+    }
+
+    private Kryo createKryo() {
         Kryo kryo = new Kryo();
-        kryo.setRegistrationRequired(false);
+        kryo.setRegistrationRequired(true);
         kryo.setReferences(false);
+        registeredClasses.forEach(kryo::register);
+        registrations.forEach(registration -> registration.accept(kryo));
         return kryo;
-    });
+    }
+
+    private List<Class<?>> resolveClasses(List<String> classNames) {
+        ClassLoader classLoader = ClassUtil.findClassLoader(KryoSerializer.class);
+        List<Class<?>> classes = new ArrayList<>(classNames.size());
+        for (String className : classNames) {
+            try {
+                classes.add(Class.forName(className, false, classLoader));
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Kryo registered class not found: " + className, e);
+            }
+        }
+        return List.copyOf(classes);
+    }
 
     @Override
     protected void doSerialize(Object obj, OutputStream out) throws IOException {

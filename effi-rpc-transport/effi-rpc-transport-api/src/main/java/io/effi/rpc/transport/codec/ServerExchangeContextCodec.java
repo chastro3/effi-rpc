@@ -15,8 +15,7 @@ import io.effi.rpc.transport.message.OutputMessage;
  * Provides codec functionality for converting {@link ReplyContext} to {@link OutputMessage}
  * and {@link InputMessage} to {@link CallContext} in server-side communication.
  */
-public interface ServerExchangeContextCodec
-        extends Encoder<ReplyContext<Response, Servant>>,
+public interface ServerExchangeContextCodec extends Encoder<ReplyContext<Response, Servant>>,
         Decoder<CallContext<Request, Servant>, Servant> {
 
     /**

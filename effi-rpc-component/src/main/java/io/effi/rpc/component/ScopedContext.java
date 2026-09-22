@@ -53,6 +53,8 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
 
     protected Options serveOptions;
 
+    protected Options options;
+
     protected ScopedContext(Scope scope, Class<? extends Listener<?>> listenerType,
                             ScopedContext parent, String name, ComponentRepository repository) {
         initialize(scope, listenerType, parent, repository);
@@ -171,6 +173,10 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return serveOptions;
     }
 
+    public Options options() {
+        return options;
+    }
+
     public void start() {
         if (active.compareAndSet(false, true)) {
             HookExecutor.start().execute(listeners, this, this::doStart);
@@ -200,6 +206,7 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         this.listeners = (Collection<Listener<?>>) extensions(listenerType);
         this.callOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.callOptions());
         this.serveOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.serveOptions());
+        this.options = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.options());
         HookExecutor.initialize().execute(listeners, this, this::doInit);
     }
 

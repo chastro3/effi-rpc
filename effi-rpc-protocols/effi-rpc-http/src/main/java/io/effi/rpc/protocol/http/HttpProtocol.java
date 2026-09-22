@@ -15,6 +15,8 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
@@ -31,6 +33,7 @@ import io.effi.rpc.transport.codec.ConfigurableServerCodec;
 import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
+import io.effi.rpc.transport.message.OutputMessage;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.Messages;
@@ -44,6 +47,8 @@ import java.util.Map;
  * Provides a standard http implementation of {@link TransportProtocol}.
  */
 public abstract class HttpProtocol extends AbstractProtocol {
+
+    private static final Logger logger = LoggerFactory.getLogger(HttpProtocol.class);
 
     public static final OptionName<String> HTTP_METHOD = ConfigurableOptionName.<String>nameOf("httpMethod").defaultValue(HttpMethod.GET.name());
 
@@ -121,27 +126,47 @@ public abstract class HttpProtocol extends AbstractProtocol {
         // todo 优化没有application直接报错并返回给客户端
         CharSequence applicationName = headers.getOrDefault(KeyConstant.REQUEST_REMOTE_APPLICATION, defaultName);
         CharSequence moduleName = headers.getOrDefault(KeyConstant.REQUEST_REMOTE_MODULE, defaultName);
-        return inputMessage.channel()
+        ScopedApplication application = inputMessage.channel()
                 .platform()
-                .lookupApplication(applicationName.toString())
-                .lookupModule(moduleName.toString());
+                .lookupApplication(applicationName.toString());
+        return application == null ? null : application.lookupModule(moduleName.toString());
     }
 
     @Override
-    public void sendCalleeNotFound(InputMessage inputMessage) {
-        //        HttpResponse httpResponse = create404Response(request, channel);
-        //        channel.send(httpResponse);
+    public void sendServantNotFound(InputMessage inputMessage) {
+        sendErrorResponse(inputMessage, 404, InteractionErrorCodes.SERVANT_NOT_FOUND.fail(
+                inputMessage.url().baseUrl(),
+                inputMessage.channel().remoteAddress()
+        ));
     }
 
-    private HttpResponse create404Response(Request request, Channel channel) {
-        EffiRpcException ex = InteractionErrorCodes.SERVANT_NOT_FOUND.fail(request.url().baseUrl());
+    @Override
+    public void sendError(InputMessage inputMessage, EffiRpcException cause) {
+        sendErrorResponse(inputMessage, 500, cause);
+    }
+
+    private void sendErrorResponse(InputMessage inputMessage, int statusCode, EffiRpcException cause) {
+        if (!(inputMessage instanceof HttpRequest request) || !request.needReply()) {
+            return;
+        }
+        HttpResponse response = createErrorResponse(request, inputMessage.channel(), statusCode, cause);
+        OutputMessage outputMessage = new HttpServerCodec().encode(response, inputMessage.channel());
+        inputMessage.channel().send(outputMessage).onComplete(result -> {
+            if (result.failed()) {
+                logger.error("Failed to send HTTP error response to '{}'.", result.cause(),
+                        inputMessage.channel().remoteAddress());
+            }
+        });
+    }
+
+    private HttpResponse createErrorResponse(Request request, Channel channel, int statusCode, EffiRpcException ex) {
         HttpHeaders headers = version().newHeaders();
         headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
         headers.set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
         return HttpDuplexResponse.builder()
                 .version(version)
                 .method(HttpMethod.GET)
-                .statusCode(404)
+                .statusCode(statusCode)
                 .url(request.url())
                 .headers(headers)
                 .body(ex.getMessage().getBytes())

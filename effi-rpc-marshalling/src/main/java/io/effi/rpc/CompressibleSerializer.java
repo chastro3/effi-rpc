@@ -1,9 +1,12 @@
 package io.effi.rpc;
 
 import io.effi.rpc.compression.Compressor;
+import io.effi.rpc.config.OptionName;
+import io.effi.rpc.config.Options;
 import io.effi.rpc.serialization.Serializer;
 import io.effi.rpc.util.AssertUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,12 +15,25 @@ import java.lang.reflect.Type;
 
 public class CompressibleSerializer implements Serializer {
 
+    public static final OptionName<Integer> MAX_DECOMPRESSED_BYTES =
+            OptionName.of("serializer.compression.maxDecompressedBytes", 16 * 1024 * 1024);
+
     private final Serializer serializer;
     private final Compressor compressor;
+    private final int maxDecompressedBytes;
 
     public CompressibleSerializer(Serializer serializer, Compressor compressor) {
+        this(serializer, compressor, MAX_DECOMPRESSED_BYTES.defaultValue());
+    }
+
+    public CompressibleSerializer(Serializer serializer, Compressor compressor, Options options) {
+        this(serializer, compressor, options.option(MAX_DECOMPRESSED_BYTES));
+    }
+
+    public CompressibleSerializer(Serializer serializer, Compressor compressor, int maxDecompressedBytes) {
         this.serializer = AssertUtil.notNull(serializer, "serializer");
         this.compressor = compressor;
+        this.maxDecompressedBytes = maxDecompressedBytes;
     }
 
     @Override
@@ -33,7 +49,27 @@ public class CompressibleSerializer implements Serializer {
 
     @Override
     public <T> T deserialize(InputStream in, Type type) throws IOException {
-        InputStream source = (compressor == null) ? in : compressor.decompress(in);
-        return serializer.deserialize(source, type);
+        if (compressor == null) {
+            return serializer.deserialize(in, type);
+        }
+        byte[] data = readBounded(compressor.decompress(in));
+        return serializer.deserialize(new ByteArrayInputStream(data), type);
+    }
+
+    private byte[] readBounded(InputStream in) throws IOException {
+        try (in; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[2048];
+            int total = 0;
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                total += read;
+                if (maxDecompressedBytes > 0 && total > maxDecompressedBytes) {
+                    throw new IOException("Decompressed payload exceeds the configured limit of "
+                            + maxDecompressedBytes + " bytes");
+                }
+                out.write(buffer, 0, read);
+            }
+            return out.toByteArray();
+        }
     }
 }

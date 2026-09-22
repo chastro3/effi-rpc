@@ -114,6 +114,7 @@ public final class HttpUtil {
                 && !response.succeeded()
                 && response.body() instanceof String bodyStr) {
             out.write(bodyStr.getBytes(StandardCharsets.UTF_8));
+            return;
         }
         CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
         ensureSerializer(platform, contentType).serialize(message.body(), out);
