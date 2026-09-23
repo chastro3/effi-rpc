@@ -42,3 +42,31 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Kotlin ###
+**/.kotlin/
+*.salive
+
+### Java / JVM ###
+*.class
+*.log
+*.log.*
+*.hprof
+*.jfr
+hs_err_pid*
+replay_pid*
+.attach_pid*
+
+### Temporary files ###
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+### Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/

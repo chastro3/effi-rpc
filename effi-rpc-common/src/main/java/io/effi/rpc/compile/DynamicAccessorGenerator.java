@@ -5,7 +5,6 @@ import io.effi.rpc.util.ReflectionUtil;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Element;
@@ -16,6 +15,7 @@ import javax.lang.model.element.VariableElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,6 @@ import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.ATHROW;
 import static org.objectweb.asm.Opcodes.BIPUSH;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
@@ -47,6 +46,7 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.SIPUSH;
 import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
@@ -62,32 +62,55 @@ public class DynamicAccessorGenerator {
     private static final String PARAMETER_TYPES = "PARAMETER_TYPES";
 
     /**
-     * Generates {@link GeneratedInfo} from a runtime class.
+     * Generates accessor metadata from a runtime class.
+     *
+     * @param type target class
+     * @return generated accessor metadata
      */
     public static GeneratedInfo from(Class<?> type) {
-        String pkg = type.getPackage().getName();
-        String name = type.getSimpleName();
+        ClassInfo info = classInfo(type);
+        return generate(info, info.name() + DynamicAccessor.SUFFIX);
+    }
+
+    static GeneratedInfo from(Class<?> type, String accessorName) {
+        return generate(classInfo(type), accessorName);
+    }
+
+    private static ClassInfo classInfo(Class<?> type) {
+        if (type == null || type.isPrimitive() || type.isArray()) {
+            throw new IllegalArgumentException("Unsupported dynamic accessor type: " + type);
+        }
+        String pkg = type.getPackageName();
+        String name = binaryName(type.getName(), pkg);
         String qualifiedName = type.getName();
-        Method[] methods = type.getMethods();
+        Method[] methods = publicMethods(type);
         List<MethodInfo> methodInfos = new ArrayList<>(methods.length);
         for (Method method : methods) {
-            if (!method.isBridge()
-                    && !method.isSynthetic()
-                    && !ReflectionUtil.isObjectMethod(method)) {
-                methodInfos.add(MethodInfo.from(method));
-            }
+            methodInfos.add(MethodInfo.from(method));
         }
         MethodInfo[] infos = methodInfos.toArray(new MethodInfo[0]);
-        return generate(new ClassInfo(pkg, name, qualifiedName, infos, type.isInterface()));
+        return new ClassInfo(pkg, name, qualifiedName, infos, type.isInterface());
+    }
+
+    static Method[] publicMethods(Class<?> type) {
+        return Arrays.stream(type.getMethods())
+                .filter(method -> !method.isBridge())
+                .filter(method -> !method.isSynthetic())
+                .filter(method -> !ReflectionUtil.isObjectMethod(method))
+                .toArray(Method[]::new);
     }
 
     /**
-     * Generates {@link GeneratedInfo} from a compile-time type element.
+     * Generates accessor metadata from a compile-time type element.
+     *
+     * @param type target type element
+     * @param helper compile-time helper
+     * @return generated accessor metadata
      */
     public static GeneratedInfo from(TypeElement type, CompileTimeHelper helper) {
         String pkg = helper.packageOf(type);
-        String name = type.getSimpleName().toString();
         String qualifiedName = helper.qualifiedNameOf(type);
+        String name = binaryName(qualifiedName, pkg);
         List<? extends Element> members = helper.processingEnv().getElementUtils().getAllMembers(type);
         List<MethodInfo> methods = new ArrayList<>(members.size());
         for (Element e : members) {
@@ -99,12 +122,19 @@ public class DynamicAccessorGenerator {
             }
         }
         MethodInfo[] infos = methods.toArray(new MethodInfo[0]);
-        return generate(new ClassInfo(pkg, name, qualifiedName, infos, type.getKind() == ElementKind.INTERFACE));
+        ClassInfo info = new ClassInfo(
+                pkg,
+                name,
+                qualifiedName,
+                infos,
+                type.getKind() == ElementKind.INTERFACE
+        );
+        return generate(info, name + DynamicAccessor.SUFFIX);
     }
 
-    private static GeneratedInfo generate(ClassInfo info) {
-        String pkgInternal = info.pkg().replace('.', '/') + '/';
-        String internal = pkgInternal + info.name() + DynamicAccessor.SUFFIX;
+    private static GeneratedInfo generate(ClassInfo info, String accessorName) {
+        String pkgInternal = info.pkg().isEmpty() ? "" : info.pkg().replace('.', '/') + '/';
+        String internal = pkgInternal + accessorName;
         String targetInternal = info.qualifiedName().replace('.', '/');
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -115,7 +145,7 @@ public class DynamicAccessorGenerator {
         if (hasMethods) emitInvoke(cw, targetInternal, info);
 
         cw.visitEnd();
-        return new GeneratedInfo(info.pkg(), info.name() + DynamicAccessor.SUFFIX, cw.toByteArray());
+        return new GeneratedInfo(info.pkg(), accessorName, cw.toByteArray());
     }
 
     private static void emitStaticInitializer(ClassWriter cw, String owner, ClassInfo info) {
@@ -133,11 +163,11 @@ public class DynamicAccessorGenerator {
 
     private static void emitStringArray(MethodVisitor mv, String owner, MethodInfo[] methods, Function<MethodInfo, String> f) {
         int n = methods.length;
-        mv.visitIntInsn(BIPUSH, n);
+        emitIntConstant(mv, n);
         mv.visitTypeInsn(ANEWARRAY, "java/lang/String");
         for (int i = 0; i < n; i++) {
             mv.visitInsn(DUP);
-            mv.visitIntInsn(BIPUSH, i);
+            emitIntConstant(mv, i);
             mv.visitLdcInsn(f.apply(methods[i]));
             mv.visitInsn(AASTORE);
         }
@@ -146,23 +176,23 @@ public class DynamicAccessorGenerator {
 
     private static void emitClassArray(MethodVisitor mv, String owner, MethodInfo[] methods, Function<MethodInfo, Type[]> f) {
         int n = methods.length;
-        mv.visitIntInsn(BIPUSH, n);
+        emitIntConstant(mv, n);
         mv.visitTypeInsn(ANEWARRAY, "[Ljava/lang/Class;");
 
         for (int i = 0; i < n; i++) {
             Type[] pts = f.apply(methods[i]);
 
             mv.visitInsn(DUP);
-            mv.visitIntInsn(BIPUSH, i);
+            emitIntConstant(mv, i);
 
             if (pts.length == 0) {
                 mv.visitInsn(ACONST_NULL);
             } else {
-                mv.visitIntInsn(BIPUSH, pts.length);
+                emitIntConstant(mv, pts.length);
                 mv.visitTypeInsn(ANEWARRAY, "java/lang/Class");
                 for (int j = 0; j < pts.length; j++) {
                     mv.visitInsn(DUP);
-                    mv.visitIntInsn(BIPUSH, j);
+                    emitIntConstant(mv, j);
                     Type t = pts[j];
                     if (t.getSort() <= Type.DOUBLE) {
                         mv.visitFieldInsn(GETSTATIC, PrimitiveInfo.of(t.getSort()).wrapperInternal, "TYPE", "Ljava/lang/Class;");
@@ -201,9 +231,16 @@ public class DynamicAccessorGenerator {
     private static void emitInvoke(ClassWriter cw, String targetInternal, ClassInfo info) {
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "invoke", "(Ljava/lang/Object;I[Ljava/lang/Object;)Ljava/lang/Object;", null, null);
         mv.visitCode();
-        mv.visitVarInsn(ALOAD, 1);
-        mv.visitTypeInsn(CHECKCAST, targetInternal);
-        mv.visitVarInsn(ASTORE, 4);
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ILOAD, 2);
+        mv.visitVarInsn(ALOAD, 3);
+        mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                DynamicAccessor.INTERNAL_NAME,
+                "validateInvocation",
+                "(I[Ljava/lang/Object;)V",
+                false
+        );
         emitMethodSwitch(mv, targetInternal, info);
         mv.visitMaxs(0, 0);
         mv.visitEnd();
@@ -221,19 +258,16 @@ public class DynamicAccessorGenerator {
         for (int i = 0; i < n; i++) {
             MethodInfo mth = methods[i];
             mv.visitLabel(labels[i]);
-            if (i == 0) {
-                mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{targetInternal}, 0, null);
-            } else {
-                mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-            }
+            mv.visitFrame(F_SAME, 0, null, 0, null);
             if (!Modifier.isStatic(mth.modifiers())) {
-                mv.visitVarInsn(ALOAD, 4);
+                mv.visitVarInsn(ALOAD, 1);
+                mv.visitTypeInsn(CHECKCAST, targetInternal);
             }
 
             Type[] pts = mth.parameterTypes();
             for (int j = 0; j < pts.length; j++) {
                 mv.visitVarInsn(ALOAD, 3);
-                mv.visitLdcInsn(j);
+                emitIntConstant(mv, j);
                 mv.visitInsn(AALOAD);
                 emitParamUnboxing(mv, pts[j]);
             }
@@ -267,6 +301,20 @@ public class DynamicAccessorGenerator {
         } else {
             mv.visitTypeInsn(CHECKCAST, t.getInternalName());
         }
+    }
+
+    private static void emitIntConstant(MethodVisitor mv, int value) {
+        if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+            mv.visitIntInsn(BIPUSH, value);
+        } else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+            mv.visitIntInsn(SIPUSH, value);
+        } else {
+            mv.visitLdcInsn(value);
+        }
+    }
+
+    private static String binaryName(String qualifiedName, String pkg) {
+        return pkg.isEmpty() ? qualifiedName : qualifiedName.substring(pkg.length() + 1);
     }
 
     private static void emitReturnBoxing(MethodVisitor mv, Type rt) {

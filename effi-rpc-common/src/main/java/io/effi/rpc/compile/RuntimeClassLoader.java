@@ -2,8 +2,8 @@ package io.effi.rpc.compile;
 
 import io.effi.rpc.util.ClassUtil;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -23,22 +23,23 @@ public final class RuntimeClassLoader extends ClassLoader {
 
     private static final AtomicReference<RuntimeClassLoader> SELF = new AtomicReference<>();
 
-    private static volatile Method DEFINE_CLASS_METHOD;
-
     private RuntimeClassLoader(ClassLoader parent) {
         super(parent);
     }
 
     /**
-     * Gets or creates RuntimeClassLoader bound to given type’s class loader.
+     * Returns the runtime class loader associated with the supplied type.
+     *
+     * @param type target type
+     * @return runtime class loader bound to the target type's class loader
      */
     public static RuntimeClassLoader get(Class<?> type) {
         ClassLoader cl = ClassUtil.findClassLoader(type);
-        // fast‑path: same parent as this class
+        // Reuse the framework loader for targets loaded by the framework class loader.
         if (SELF_CLASS_LOADER.equals(cl)) {
             return SELF.updateAndGet(existing -> existing != null ? existing : new RuntimeClassLoader(cl));
         }
-        // 2. normal search:
+        // Weak values let unused runtime loaders be reclaimed.
         synchronized (LOADERS) {
             WeakReference<RuntimeClassLoader> ref = LOADERS.get(cl);
             if (ref != null) {
@@ -46,7 +47,6 @@ public final class RuntimeClassLoader extends ClassLoader {
                 if (runtimeClassLoader != null)
                     return runtimeClassLoader;
                 else
-                    // the value has been GC-reclaimed, but still not the key (defensive sanity)
                     LOADERS.remove(cl);
             }
             RuntimeClassLoader runtimeClassLoader = new RuntimeClassLoader(cl);
@@ -56,7 +56,9 @@ public final class RuntimeClassLoader extends ClassLoader {
     }
 
     /**
-     * Removes cached RuntimeClassLoader for given parent.
+     * Removes the cached runtime class loader for the supplied parent.
+     *
+     * @param parent parent class loader
      */
     public static void remove(ClassLoader parent) {
         if (SELF_CLASS_LOADER.equals(parent)) {
@@ -69,34 +71,22 @@ public final class RuntimeClassLoader extends ClassLoader {
     }
 
     /**
-     * Defines class from bytecode, using parent loader first, then this loader if needed.
+     * Defines class from bytecode in the target type's package when accessible.
+     *
+     * @param targetType target type whose package owns the generated class
+     * @param name generated class name used as fallback
+     * @param bytes generated class bytecode
+     * @return defined class
      */
-    public Class<?> define(String name, byte[] bytes) {
-        ProtectionDomain pd = getClass().getProtectionDomain();
+    public Class<?> define(Class<?> targetType, String name, byte[] bytes) {
         try {
-            // First, try defining in parent to get package/protected access
-            return (Class<?>) defineClassMethod().invoke(getParent(), name, bytes, 0, bytes.length, pd);
-        } catch (Exception ignored) {
-            // Fallback: define in this loader
+            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(targetType, MethodHandles.lookup());
+            return lookup.defineClass(bytes);
+        } catch (IllegalAccessException | IllegalArgumentException | SecurityException ignored) {
+            // Fallback for named modules that do not open the target package.
         }
+        ProtectionDomain pd = targetType.getProtectionDomain();
         return defineClass(name, bytes, 0, bytes.length, pd);
-    }
-
-    private static Method defineClassMethod() throws Exception {
-        Method result = DEFINE_CLASS_METHOD;
-        if (result == null) {
-            synchronized (LOADERS) {
-                if (DEFINE_CLASS_METHOD == null) {
-                    DEFINE_CLASS_METHOD = result = ClassLoader.class.getDeclaredMethod("defineClass",
-                            String.class, byte[].class, int.class, int.class, ProtectionDomain.class);
-                    try {
-                        DEFINE_CLASS_METHOD.setAccessible(true);
-                    } catch (Exception ignored) {
-                    }
-                }
-            }
-        }
-        return result;
     }
 
 }
