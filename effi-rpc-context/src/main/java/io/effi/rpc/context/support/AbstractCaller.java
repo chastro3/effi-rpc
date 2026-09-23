@@ -24,6 +24,17 @@ import io.effi.rpc.util.TypeCapture;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.effi.rpc.context.options.CallerOptions.CLIENT;
+import static io.effi.rpc.context.options.CallerOptions.ENDPOINT;
+import static io.effi.rpc.context.options.FaultToleranceOptions.FAILURE_HANDLER;
+import static io.effi.rpc.context.options.GovernanceOptions.LOAD_BALANCER;
+import static io.effi.rpc.context.options.GovernanceOptions.LOCATOR;
+import static io.effi.rpc.context.options.GovernanceOptions.REGISTRY;
+import static io.effi.rpc.context.options.GovernanceOptions.SERVICE_DISCOVERY_TIMEOUT;
+import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
+import io.effi.rpc.context.options.FaultToleranceOptions;
+import io.effi.rpc.context.options.GovernanceOptions;
+
 /**
  * Provides an abstract implementation of {@link Caller}.
  */

@@ -1,7 +1,7 @@
 package io.effi.rpc.component.transport;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.config.OptionName;
+import io.effi.rpc.component.transport.options.ServerOptions;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
@@ -10,12 +10,6 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  */
 @ScopedComponent(scope = PLATFORM)
 public interface ServerConfig extends EndpointConfig {
-
-    OptionName<Integer> ACCEPT_BACKLOG = OptionName.of("acceptBacklog", 1024);
-
-    OptionName<Integer> ACCEPTOR_THREADS = OptionName.of("acceptorThreads", 1);
-
-    OptionName<Integer> IO_THREADS = OptionName.of("ioThreads", Runtime.getRuntime().availableProcessors() * 2);
 
     interface Configurator<SELF extends Configurator<SELF>> extends EndpointConfig.Configurator<SELF> {
 
@@ -26,7 +20,7 @@ public interface ServerConfig extends EndpointConfig {
          * If the queue is full, the server may reject new connections.
          */
         default SELF acceptBacklog(int acceptBacklog) {
-            addOption(ACCEPT_BACKLOG, acceptBacklog);
+            addOption(ServerOptions.ACCEPT_BACKLOG, acceptBacklog);
             return self();
         }
 
@@ -37,7 +31,7 @@ public interface ServerConfig extends EndpointConfig {
          * You can adjust this number based on the expected volume of incoming connection requests.
          */
         default SELF acceptorThreads(int connectionHandlerThreads) {
-            addOption(ACCEPTOR_THREADS, connectionHandlerThreads);
+            addOption(ServerOptions.ACCEPTOR_THREADS, connectionHandlerThreads);
             return self();
         }
 
@@ -48,7 +42,7 @@ public interface ServerConfig extends EndpointConfig {
          * This can be adjusted based on the load and the expected traffic.
          */
         default SELF ioThreads(int requestProcessorThreads) {
-            addOption(IO_THREADS, requestProcessorThreads);
+            addOption(ServerOptions.IO_THREADS, requestProcessorThreads);
             return self();
         }
     }

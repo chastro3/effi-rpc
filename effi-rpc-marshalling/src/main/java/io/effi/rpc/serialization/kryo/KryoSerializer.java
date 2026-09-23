@@ -6,22 +6,22 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.serialization.AbstractSerializer;
+import io.effi.rpc.serialization.options.KryoOptions;
 import io.effi.rpc.util.ClassUtil;
+import io.effi.rpc.util.CollectionUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import static io.effi.rpc.serialization.kryo.KryoSerializer.NAME;
-import static io.effi.rpc.config.OptionName.Strategy.CURRENT_FIRST;
-import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
 
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Kryo.
@@ -30,12 +30,6 @@ import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
 public class KryoSerializer extends AbstractSerializer implements ScopedPlatform.Acceptor {
 
     public static final String NAME = "kryo";
-
-    public static final OptionName<List<String>> REGISTERED_CLASS_NAMES =
-            OptionName.of("serializer.kryo.registeredClasses", CURRENT_FIRST, List.of());
-
-    public static final OptionName<List<String>> INCLUDE_CLASS_NAMES =
-            OptionName.of("serializer.kryo.includeClasses", MERGE_PARENT, List.of());
 
     // Set buffer size
     private static final int BUFFER_SIZE = 1024 * 4;
@@ -51,8 +45,14 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
 
     @Override
     public void accept(ScopedPlatform platform) {
-        List<String> classNames = new ArrayList<>(platform.options().option(REGISTERED_CLASS_NAMES));
-        classNames.addAll(platform.options().option(INCLUDE_CLASS_NAMES));
+        List<String> classNames = new ArrayList<>();
+        String[] registeredClassNames = platform.options().option(KryoOptions.REGISTERED_CLASS_NAMES);
+        if (registeredClassNames != null) {
+            Collections.addAll(classNames, registeredClassNames);
+        }
+        classNames.addAll(
+                CollectionUtil.toHashSet(platform.options().option(KryoOptions.INCLUDE_CLASS_NAMES))
+        );
         this.registeredClasses = resolveClasses(classNames);
     }
 

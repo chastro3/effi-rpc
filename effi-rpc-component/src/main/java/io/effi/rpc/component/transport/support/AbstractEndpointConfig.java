@@ -4,7 +4,7 @@ import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.component.transport.ProtocolStack;
 import io.effi.rpc.config.IdentifiableConfig;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.util.AssertUtil;
 
 /**
@@ -18,11 +18,17 @@ public abstract class AbstractEndpointConfig extends IdentifiableConfig implemen
 
     protected ProtocolStack protocolStack;
 
-    protected AbstractEndpointConfig(String protocol, ProtocolStack protocolStack, String id, Options options) {
+    protected AbstractEndpointConfig(
+            String protocol,
+            ProtocolStack protocolStack,
+            String id,
+            Options options,
+            CertificateConfig certificateConfig
+    ) {
         super(checkId(id, protocol), options);
         this.protocol = AssertUtil.notBlank(protocol, "protocol");
         this.protocolStack = AssertUtil.notNull(protocolStack, "protocolStack");
-        this.certificateConfig = options.option(CertificateConfig.NAME);
+        this.certificateConfig = certificateConfig;
     }
 
     @Override

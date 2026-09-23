@@ -1,12 +1,13 @@
 package io.effi.rpc.context.annotation;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import io.effi.rpc.context.options.PeerOptions;
 
 /**
  * Caches and provides {@link AnnotationStyleResolver} instance.
@@ -30,7 +31,7 @@ public class AnnotationStyle {
 
     public static AnnotationStyle getInstance(Options options) {
         if (options == null) return UNKNOWN;
-        return getInstance(options.option(Peer.ANNOTATION_STYLE));
+        return getInstance(options.option(PeerOptions.ANNOTATION_STYLE));
     }
 
     public static AnnotationStyle getInstance(String name) {

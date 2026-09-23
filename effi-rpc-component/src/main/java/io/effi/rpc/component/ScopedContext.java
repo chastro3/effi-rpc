@@ -4,8 +4,8 @@ import io.effi.rpc.component.extension.ExtensionAccessor;
 import io.effi.rpc.component.extension.ExtensionEntry;
 import io.effi.rpc.component.extension.ExtensionLoader;
 import io.effi.rpc.component.extension.ExtensionRepository;
-import io.effi.rpc.config.HierarchicalOptions;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.HierarchicalOptions;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.Closeable;
@@ -53,7 +53,7 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
 
     protected Options serveOptions;
 
-    protected Options options;
+    protected HierarchicalOptions options;
 
     protected ScopedContext(Scope scope, Class<? extends Listener<?>> listenerType,
                             ScopedContext parent, String name, ComponentRepository repository) {
@@ -173,7 +173,7 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return serveOptions;
     }
 
-    public Options options() {
+    public HierarchicalOptions options() {
         return options;
     }
 

@@ -1,14 +1,11 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.context.parameter.ParameterBinding;
 
 import java.lang.reflect.Method;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
-import static io.effi.rpc.config.OptionName.Strategy.CURRENT_FIRST;
-import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
 
 /**
  * Represents an RPC servant that handle remote service invocations.
@@ -18,12 +15,6 @@ import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
  */
 @ScopedComponent(scope = MODULE)
 public interface Servant extends Peer {
-
-    OptionName<String> LABEL = OptionName.of("label", CURRENT_FIRST);
-
-    OptionName<Integer[]> EXCLUDED_PORT = OptionName.of("excludedPort", MERGE_PARENT);
-
-    OptionName<String[]> DECLARED_PROTOCOL = OptionName.of("protocol", CURRENT_FIRST);
 
     /**
      * Returns the group associated with this servant.

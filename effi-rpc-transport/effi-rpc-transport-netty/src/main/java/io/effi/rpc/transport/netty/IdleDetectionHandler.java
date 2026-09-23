@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.netty.channel.ChannelHandler.Sharable;
+import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Detects idle states in Netty channels and publishes related events.
@@ -64,7 +65,7 @@ public class IdleDetectionHandler extends ChannelInboundHandlerAdapter {
     }
 
     private IdleStateHandler newIdleStateHandler() {
-        int allIdleTime = endpoint.config().option(EndpointConfig.IDLE_TRIGGER_INTERVAL);
+        int allIdleTime = endpoint.config().option(TransportOptions.IDLE_TRIGGER_INTERVAL);
         return new IdleStateHandler(0, 0, allIdleTime, TimeUnit.MILLISECONDS);
     }
 }

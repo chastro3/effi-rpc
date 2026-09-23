@@ -9,6 +9,8 @@ import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.TypeCapture;
 import io.netty.handler.codec.http.HttpMethod;
+import io.effi.rpc.context.options.SerializationOptions;
+import io.effi.rpc.protocol.http.HttpOptions;
 
 /**
  * Provides a standard http implementation of {@link Caller}.
@@ -25,7 +27,7 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
     protected HttpCaller(Builder builder) {
         super(builder);
         this.version = builder.version;
-        String method = option(HttpProtocol.HTTP_METHOD);
+        String method = option(HttpOptions.HTTP_METHOD);
         this.httpMethod = StringUtil.isNotBlank(method) ? HttpMethod.valueOf(method) : HttpMethod.POST;
         this.requestHeaders = builder.requestHeaders;
     }
@@ -64,7 +66,7 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
         protected Builder(HttpVersion version, TypeCapture<?> returnType) {
             super(returnType, version.name());
             this.version = AssertUtil.notNull(version, "version");
-            if (StringUtil.isBlank(option(Peer.SERIALIZER))) {
+            if (StringUtil.isBlank(option(SerializationOptions.SERIALIZER))) {
                 serializer(JacksonSerializer.NAME);
             }
         }
@@ -76,7 +78,7 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
          * @return This builder instance for fluent chaining.
          */
         public C method(HttpMethod method) {
-            addOption(HttpProtocol.HTTP_METHOD, method.name());
+            addOption(HttpOptions.HTTP_METHOD, method.name());
             return self();
         }
 

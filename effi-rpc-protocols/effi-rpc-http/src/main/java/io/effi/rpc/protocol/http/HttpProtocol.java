@@ -4,8 +4,6 @@ import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ProtocolStack;
-import io.effi.rpc.config.ConfigurableOptionName;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.Caller;
@@ -43,14 +41,13 @@ import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
 
+
 /**
  * Provides a standard http implementation of {@link TransportProtocol}.
  */
 public abstract class HttpProtocol extends AbstractProtocol {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpProtocol.class);
-
-    public static final OptionName<String> HTTP_METHOD = ConfigurableOptionName.<String>nameOf("httpMethod").defaultValue(HttpMethod.GET.name());
 
     private static final Map<CharSequence, CharSequence> REGULAR_REQUEST_HEADERS = HttpUtil.regularRequestHeaders();
 

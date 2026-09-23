@@ -14,6 +14,7 @@ import io.effi.rpc.context.parameter.Argument;
 import io.effi.rpc.context.parameter.Header;
 import io.effi.rpc.context.parameter.ParamVar;
 import io.effi.rpc.context.parameter.PathVar;
+import io.effi.rpc.protocol.http.HttpOptions;
 import io.effi.rpc.protocol.http.HttpProtocol;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpUtil;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static io.effi.rpc.protocol.http.arg.annotation.jax.JaxRsStyleResolver.NAME;
+import io.effi.rpc.context.options.PeerOptions;
 
 /**
  * Implements {@link AnnotationStyleResolver} using Jax-rs.
@@ -76,21 +78,21 @@ public class JaxRsStyleResolver extends AbstractAnnotationStyleResolver<HttpRequ
     @Override
     protected List<AnnotationOptionResolver<Class<?>, ?>> typeConfigParsers() {
         return List.of(
-                new AnnotationOptionResolver<>(Path.class, Peer.PATH, Path::value)
+                new AnnotationOptionResolver<>(Path.class, PeerOptions.PATH, path -> new String[]{path.value()})
         );
     }
 
     @Override
     protected List<AnnotationOptionResolver<Method, ?>> methodConfigParsers() {
         return List.of(
-                new AnnotationOptionResolver<>(Path.class, Peer.PATH, Path::value),
-                new AnnotationOptionResolver<>(GET.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.GET.name()),
-                new AnnotationOptionResolver<>(POST.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.POST.name()),
-                new AnnotationOptionResolver<>(PUT.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.PUT.name()),
-                new AnnotationOptionResolver<>(DELETE.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.DELETE.name()),
-                new AnnotationOptionResolver<>(PATCH.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.PATCH.name()),
-                new AnnotationOptionResolver<>(HEAD.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.HEAD.name()),
-                new AnnotationOptionResolver<>(OPTIONS.class, HttpProtocol.HTTP_METHOD, v -> HttpMethod.OPTIONS.name())
+                new AnnotationOptionResolver<>(Path.class, PeerOptions.PATH, path -> new String[]{path.value()}),
+                new AnnotationOptionResolver<>(GET.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.GET.name()),
+                new AnnotationOptionResolver<>(POST.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.POST.name()),
+                new AnnotationOptionResolver<>(PUT.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.PUT.name()),
+                new AnnotationOptionResolver<>(DELETE.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.DELETE.name()),
+                new AnnotationOptionResolver<>(PATCH.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.PATCH.name()),
+                new AnnotationOptionResolver<>(HEAD.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.HEAD.name()),
+                new AnnotationOptionResolver<>(OPTIONS.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.OPTIONS.name())
         );
     }
 

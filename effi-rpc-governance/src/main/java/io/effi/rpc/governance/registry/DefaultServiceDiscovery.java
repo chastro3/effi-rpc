@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static io.effi.rpc.governance.registry.DefaultServiceDiscovery.NAME;
+import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.context.options.GovernanceOptions;
 
 
 /**
@@ -50,8 +52,8 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
             RegistryClient registryClient = RegistryClient.of(registryConfig, platform);
             lookups.add(new RegistryLookup(registryConfig, registryClient.lookup(serviceName)));
         }
-        int callTimeout = context.peer().option(Caller.TIMEOUT);
-        int discoveryTimeout = context.peer().option(Caller.SERVICE_DISCOVERY_TIMEOUT);
+        int callTimeout = context.peer().option(CallerOptions.TIMEOUT);
+        int discoveryTimeout = context.peer().option(GovernanceOptions.SERVICE_DISCOVERY_TIMEOUT);
         long timeout = Math.max(1, discoveryTimeout > 0 ? Math.min(callTimeout, discoveryTimeout) : callTimeout);
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
         Throwable lastFailure = null;

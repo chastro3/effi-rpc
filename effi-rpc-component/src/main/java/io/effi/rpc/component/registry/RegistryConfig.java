@@ -2,10 +2,10 @@ package io.effi.rpc.component.registry;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.TagComponent;
+import io.effi.rpc.component.registry.options.RegistryOptions;
 import io.effi.rpc.component.support.ThreadPool;
 import io.effi.rpc.config.IdentifiableConfig;
-import io.effi.rpc.config.OptionName;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.trait.Identifiable;
 
@@ -19,12 +19,6 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  */
 @ScopedComponent(scope = PLATFORM)
 public interface RegistryConfig extends Options.Supplier, Identifiable, TagComponent {
-
-    OptionName<Integer> CONNECT_TIMEOUT = OptionName.of("connectTimeout", 3000);
-
-    OptionName<Integer> RETRIES = OptionName.of("retries", 3);
-
-    OptionName<Integer> HEARTBEAT_INTERVAL =OptionName.of("heartbeatInterval", 5000);
 
     /**
      * Return the registry type.
@@ -96,7 +90,7 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
          * @param connectTimeout the connection timeout in milliseconds
          */
         public SELF connectTimeout(int connectTimeout) {
-            addOption(CONNECT_TIMEOUT, connectTimeout);
+            addOption(RegistryOptions.CONNECT_TIMEOUT, connectTimeout);
             return self();
         }
 
@@ -104,7 +98,7 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
          * Sets the number of retry attempts.
          */
         public SELF retries(int retries) {
-            addOption(RETRIES, retries);
+            addOption(RegistryOptions.RETRIES, retries);
             return self();
         }
 
@@ -112,7 +106,7 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
          * Sets the heartbeat interval configuration.
          */
         public SELF heartbeatInterval(int heartbeatInterval) {
-            addOption(HEARTBEAT_INTERVAL, heartbeatInterval);
+            addOption(RegistryOptions.HEARTBEAT_INTERVAL, heartbeatInterval);
             return self();
         }
     }

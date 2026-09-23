@@ -2,8 +2,6 @@ package io.effi.rpc.boot.confiurator;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.config.ConfigurableOptionName;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.ConfigurableCaller;
 import io.effi.rpc.context.ConfigurablePeer;
@@ -13,14 +11,13 @@ import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.StringUtil;
 
 import static io.effi.rpc.boot.confiurator.DefaultThreadPoolConfigurator.NAME;
-import static io.effi.rpc.config.OptionName.Strategy.CURRENT_FIRST;
+import static io.effi.rpc.context.options.ThreadPoolOptions.THREAD_POOL;
+import io.effi.rpc.context.options.ThreadPoolOptions;
 
 @Extension(value = NAME, primary = true)
 public class DefaultThreadPoolConfigurator implements ConfigurablePeer.ThreadPoolConfigurator {
 
     public static final String NAME = Constant.DEFAULT_NAME;
-
-    public static final OptionName<String> THREAD_POOL = ConfigurableOptionName.nameOf("threadPool", CURRENT_FIRST);
 
     private static final String CALLER_HYBRID_NAME = "caller-hybrid";
 

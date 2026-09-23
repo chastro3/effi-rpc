@@ -14,6 +14,7 @@ import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.util.StringUtil;
 
 import static io.effi.rpc.protocol.http.filter.HttpRequestInterceptor.NAME;
+import io.effi.rpc.context.options.CallerOptions;
 
 @Extension(value = NAME, tags = Tags.FORCE_ACTIVE)
 public class HttpRequestInterceptor implements Interceptor.CallUnit<HttpRequest, Caller<?>> {
@@ -25,11 +26,11 @@ public class HttpRequestInterceptor implements Interceptor.CallUnit<HttpRequest,
         HttpRequest request = context.message();
         Caller<?> caller = context.peer();
         HttpHeaders headers = request.headers();
-        String remoteApplication = caller.option(Caller.REMOTE_APPLICATION);
+        String remoteApplication = caller.option(CallerOptions.REMOTE_APPLICATION);
         if (StringUtil.isNotBlank(remoteApplication)) {
             headers.add(KeyConstant.REQUEST_REMOTE_APPLICATION, remoteApplication);
         }
-        String remoteModule = caller.option(Caller.REMOTE_MODULE);
+        String remoteModule = caller.option(CallerOptions.REMOTE_MODULE);
         if (StringUtil.isNotBlank(remoteModule)) {
             headers.add(KeyConstant.REQUEST_REMOTE_MODULE, remoteModule);
         }

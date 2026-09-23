@@ -7,8 +7,6 @@ import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.config.ConfigurableOptionName;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.registry.AbstractRegistryClient;
 import io.effi.rpc.registry.DefaultServiceInstance;
@@ -20,16 +18,12 @@ import io.effi.rpc.util.StringUtil;
 import java.util.List;
 import java.util.Map;
 
-import static io.effi.rpc.config.OptionName.Strategy.ONLY_CURRENT;
-
 /**
  * Implements {@link RegistryClient} using Nacos.
  * <p>
  * See <a href="https://github.com/alibaba/nacos">Nacos</a> for details.
  */
 public class NacosRegistryClient extends AbstractRegistryClient {
-
-    public static final OptionName<String> NACOS_PROJECT_NAME = ConfigurableOptionName.nameOf("projectName", ONLY_CURRENT);
 
     private final NamingService namingService;
 
@@ -105,7 +99,7 @@ public class NacosRegistryClient extends AbstractRegistryClient {
     }
 
     private NamingService createNamingService(RegistryConfig config) {
-        String projectName = config.option(NACOS_PROJECT_NAME);
+        String projectName = config.option(NacosOptions.PROJECT_NAME);
         if (StringUtil.isNotBlank(projectName))
             // nacos <project.id>
             System.setProperty("project.id", projectName);

@@ -15,6 +15,8 @@ import io.effi.rpc.util.TypeCapture;
 
 import java.lang.reflect.Method;
 
+import static io.effi.rpc.context.options.ServantOptions.LABEL;
+
 /**
  * Provides an abstract implementation of {@link Servant}.
  */
@@ -110,7 +112,7 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
         }
 
         public SELF label(String desc) {
-            addOption(Servant.LABEL, desc);
+            addOption(LABEL, desc);
             return self();
         }
     }

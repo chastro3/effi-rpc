@@ -1,6 +1,7 @@
 package io.effi.rpc.protocol.http.h1;
 
 import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.protocol.http.HttpOptions;
 import io.effi.rpc.transport.netty.ClientMessageAggregator;
 import io.effi.rpc.transport.netty.EndpointChannelConfigurer;
 import io.effi.rpc.transport.netty.NamedChannelHandler;
@@ -39,7 +40,7 @@ public class Http1ClientChannelConfigurer extends EndpointChannelConfigurer<Http
     }
 
     public HttpObjectAggregator newMessageAggregator() {
-        int maxMessageSize = endpoint.config().option(Http1EndpointConfig.MAX_MESSAGE_SIZE);
+        int maxMessageSize = endpoint.config().option(HttpOptions.MAX_MESSAGE_SIZE);
         return new HttpObjectAggregator(maxMessageSize);
     }
 }

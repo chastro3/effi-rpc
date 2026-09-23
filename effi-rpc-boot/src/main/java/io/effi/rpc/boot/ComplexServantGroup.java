@@ -1,7 +1,7 @@
 package io.effi.rpc.boot;
 
 import io.effi.rpc.compile.DynamicAccessor;
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
 import io.effi.rpc.util.ObjectUtil;

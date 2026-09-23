@@ -2,7 +2,7 @@ package io.effi.rpc.context.support;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.support.ThreadPool;
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.context.ConfigurableCaller;
 import io.effi.rpc.context.ConfigurablePeer;
@@ -17,7 +17,15 @@ import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.TypeCapture;
 
+import java.util.Arrays;
 import java.util.List;
+
+import static io.effi.rpc.component.serialization.options.CompressionOptions.COMPRESSOR;
+import static io.effi.rpc.context.options.ConfiguratorOptions.INTERCEPTOR_CHAIN_CONFIGURATOR;
+import static io.effi.rpc.context.options.ConfiguratorOptions.STAGE_CHAIN_CONFIGURATOR;
+import static io.effi.rpc.context.options.ConfiguratorOptions.THREAD_POOL_CONFIGURATOR;
+import static io.effi.rpc.context.options.PeerOptions.PATH;
+import static io.effi.rpc.context.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provides an abstract implementation of {@link Peer}.
@@ -158,10 +166,10 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     }
 
     private QueryPath findQueryPath() {
-        List<String> pathSegments = mergedOption(PATH);
-        return CollectionUtil.isEmpty(pathSegments)
+        String[] pathSegments = option(PATH);
+        return pathSegments == null || pathSegments.length == 0
                 ? QueryPath.empty()
-                : QueryPath.valueOf(pathSegments);
+                : QueryPath.valueOf(Arrays.asList(pathSegments));
     }
 
     private void configureThreadPool(B builder) {
@@ -240,7 +248,7 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
         }
 
         public SELF path(String path) {
-            options.addOption(PATH, path);
+            options.addOption(PATH, new String[]{path});
             return self();
         }
 

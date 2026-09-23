@@ -1,6 +1,6 @@
 package io.effi.rpc.context;
 
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 
 import java.util.Collection;
 

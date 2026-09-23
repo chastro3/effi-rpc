@@ -4,7 +4,7 @@ import io.effi.rpc.annotation.rpc.Call;
 import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallerGroup;
 import io.effi.rpc.context.Peer;
@@ -29,11 +29,15 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static io.effi.rpc.context.options.CallerOptions.PROXY;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 import static io.effi.rpc.boot.AnnotationSupport.annotationStyleParserForMethod;
 import static io.effi.rpc.boot.AnnotationSupport.checkAnnotationStyle;
+import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.context.options.PeerOptions;
 
 /**
  * Provide the annotation implementation of {@link CallerGroup}.
@@ -112,7 +116,7 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
     }
 
     private ScopedModule getModule(HierarchicalOptions options, ScopedApplication application) {
-        String moduleName = options.option(Peer.ASSOCIATED_MODULE);
+        String moduleName = options.option(PeerOptions.ASSOCIATED_MODULE);
         ScopedModule module = application.lookupModule(moduleName);
         return module == null ? application.defaultModule() : module;
     }
@@ -149,7 +153,7 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
     }
 
     private TransportProtocol getProtocol(HierarchicalOptions options, ScopedApplication application) {
-        String protocolName = options.option(Caller.PROTOCOL);
+        String protocolName = options.option(CallerOptions.PROTOCOL);
         if (StringUtil.isBlank(protocolName)) {
             return null;
         }

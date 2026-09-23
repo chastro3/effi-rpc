@@ -10,6 +10,7 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.FixedChannelPool;
 
 import java.net.InetSocketAddress;
+import io.effi.rpc.component.transport.options.ClientOptions;
 
 /**
  * Implements of {@link Client} using Netty with fixed channel pools for connection reuse.
@@ -27,7 +28,7 @@ public class NettyPoolClient extends NettyClient {
 
     @Override
     protected void configureChannelHandler(Bootstrap bootstrap) {
-        int maxConnections = config().option(ClientConfig.MAX_CONNECTIONS);
+        int maxConnections = config().option(ClientOptions.MAX_CONNECTIONS);
         this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
             @Override
             public void channelCreated(Channel ch) throws Exception {

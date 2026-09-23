@@ -1,6 +1,6 @@
 package io.effi.rpc.context.annotation;
 
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.parameter.ParameterBinding;
 import io.effi.rpc.context.parameter.ParameterLinking;

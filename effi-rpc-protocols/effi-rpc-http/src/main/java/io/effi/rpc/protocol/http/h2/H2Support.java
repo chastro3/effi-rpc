@@ -26,6 +26,7 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 
 import java.util.function.Supplier;
+import io.effi.rpc.protocol.http.h2.Http2Options;
 
 /**
  * Utility class for http2 operations.
@@ -150,11 +151,11 @@ public class H2Support {
      * Builds http2 settings.
      */
     public static Http2Settings createHttp2Settings(EndpointConfig config, boolean isClient) {
-        int initialWindows = config.option(Http2EndpointConfig.INITIAL_WINDOW_SIZE);
-        long maxConcurrentStreams = config.option(Http2EndpointConfig.MAX_CONCURRENT_STREAMS);
-        int maxFrameSize = config.option(Http2EndpointConfig.MAX_FRAME_SIZE);
-        int maxHeaderListSize = config.option(Http2EndpointConfig.MAX_HEADER_LIST_SIZE);
-        long headerTableSize = config.option(Http2EndpointConfig.HEADER_TABLE_SIZE);
+        int initialWindows = config.option(Http2Options.INITIAL_WINDOW_SIZE);
+        long maxConcurrentStreams = config.option(Http2Options.MAX_CONCURRENT_STREAMS);
+        int maxFrameSize = config.option(Http2Options.MAX_FRAME_SIZE);
+        int maxHeaderListSize = config.option(Http2Options.MAX_HEADER_LIST_SIZE);
+        long headerTableSize = config.option(Http2Options.HEADER_TABLE_SIZE);
         Http2Settings settings = new Http2Settings();
         settings.initialWindowSize(initialWindows);
         settings.maxConcurrentStreams(maxConcurrentStreams);
@@ -162,7 +163,7 @@ public class H2Support {
         settings.maxHeaderListSize(maxHeaderListSize);
         settings.headerTableSize(headerTableSize);
         if (isClient) {
-            boolean pushEnabled = config.option(Http2ClientConfig.PUSH_ENABLED);
+            boolean pushEnabled = config.option(Http2Options.PUSH_ENABLED);
             settings.pushEnabled(pushEnabled);
         }
         return settings;

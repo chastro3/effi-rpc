@@ -1,7 +1,7 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.util.TypeCapture;
 

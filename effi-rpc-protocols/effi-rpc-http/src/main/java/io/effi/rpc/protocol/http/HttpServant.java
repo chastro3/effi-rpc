@@ -9,6 +9,8 @@ import io.effi.rpc.serialization.json.JacksonSerializer;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 import io.netty.handler.codec.http.HttpMethod;
+import io.effi.rpc.context.options.SerializationOptions;
+import io.effi.rpc.protocol.http.HttpOptions;
 
 /**
  * Provides a standard http implementation of {@link Servant}.
@@ -25,7 +27,7 @@ public abstract class HttpServant extends AbstractServant {
     protected HttpServant(Builder builder) {
         super(builder);
         this.version = builder.version;
-        String method = option(HttpProtocol.HTTP_METHOD);
+        String method = option(HttpOptions.HTTP_METHOD);
         this.httpMethod = StringUtil.isNotBlank(method) ? HttpMethod.valueOf(method) : HttpMethod.POST;
         this.responseHeaders = builder.responseHeaders;
     }
@@ -65,7 +67,7 @@ public abstract class HttpServant extends AbstractServant {
             super(servantMethod, version.name());
             this.version = AssertUtil.notNull(version, "version");
             // TODO 优化配置
-            if (StringUtil.isBlank(option(Peer.SERIALIZER))) {
+            if (StringUtil.isBlank(option(SerializationOptions.SERIALIZER))) {
                 serializer(JacksonSerializer.NAME);
             }
         }
@@ -74,7 +76,7 @@ public abstract class HttpServant extends AbstractServant {
          * Sets the HTTP method for the callee.
          */
         public SELF method(HttpMethod method) {
-            addOption(HttpProtocol.HTTP_METHOD, method.name());
+            addOption(HttpOptions.HTTP_METHOD, method.name());
             return self();
         }
 

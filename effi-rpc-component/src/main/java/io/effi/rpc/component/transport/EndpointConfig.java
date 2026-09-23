@@ -1,7 +1,8 @@
 package io.effi.rpc.component.transport;
 
-import io.effi.rpc.config.OptionName;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.component.transport.options.TransportOptions;
+import io.effi.rpc.option.Options;
+import io.effi.rpc.config.IdentifiableConfig;
 import io.effi.rpc.trait.Fluent;
 import io.effi.rpc.trait.Identifiable;
 
@@ -12,14 +13,6 @@ import io.effi.rpc.trait.Identifiable;
  * protocol, protocol stack, and certificate settings for secure connections.
  */
 public interface EndpointConfig extends Options.Supplier, Identifiable {
-
-    OptionName<Integer> SEND_BUFFER_SIZE = OptionName.of("sendBufferSize");
-
-    OptionName<Integer> RECEIVE_BUFFER_SIZE = OptionName.of("receiveBufferSize");
-
-    OptionName<Integer> IDLE_COUNT_THRESHOLD = OptionName.of("idleCountThreshold", 6);
-
-    OptionName<Integer> IDLE_TRIGGER_INTERVAL = OptionName.of("idleTriggerInterval", 5000);
 
     /**
      * Returns the protocol id of the endpoint.
@@ -43,7 +36,7 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
          * Set the send buffer size.
          */
         default SELF sendBufferSize(int sendBufferSize) {
-            addOption(SEND_BUFFER_SIZE, sendBufferSize);
+            addOption(TransportOptions.SEND_BUFFER_SIZE, sendBufferSize);
             return self();
         }
 
@@ -51,7 +44,7 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
          * Set the receive buffer size.
          */
         default SELF receiveBufferSize(int receiveBufferSize) {
-            addOption(RECEIVE_BUFFER_SIZE, receiveBufferSize);
+            addOption(TransportOptions.RECEIVE_BUFFER_SIZE, receiveBufferSize);
             return self();
         }
 
@@ -59,7 +52,7 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
          * Sets the idle count threshold for closing connections.
          */
         default SELF idleCountThreshold(int ideCountThreshold) {
-            addOption(IDLE_COUNT_THRESHOLD, ideCountThreshold);
+            addOption(TransportOptions.IDLE_COUNT_THRESHOLD, ideCountThreshold);
             return self();
         }
 
@@ -67,18 +60,34 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
          * Sets the interval for triggering idle connections.
          */
         default SELF idleTriggerInterval(int idleTriggerInterval) {
-            addOption(IDLE_TRIGGER_INTERVAL, idleTriggerInterval);
+            addOption(TransportOptions.IDLE_TRIGGER_INTERVAL, idleTriggerInterval);
             return self();
         }
 
         /**
          * Sets the certificate configuration.
          */
-        default SELF certificate(CertificateConfig certificateConfig) {
-            addOption(CertificateConfig.NAME, certificateConfig);
+        SELF certificate(CertificateConfig certificateConfig);
+
+    }
+
+    /**
+     * Builds endpoint configurations with non-option transport fields.
+     *
+     * @param <T> built endpoint configuration type
+     * @param <SELF> concrete builder type
+     */
+    abstract class Builder<T extends EndpointConfig, SELF extends Builder<T, SELF>>
+            extends IdentifiableConfig.Builder<T, SELF>
+            implements Configurator<SELF> {
+
+        protected CertificateConfig certificateConfig;
+
+        @Override
+        public SELF certificate(CertificateConfig certificateConfig) {
+            this.certificateConfig = certificateConfig;
             return self();
         }
-
     }
 
 }

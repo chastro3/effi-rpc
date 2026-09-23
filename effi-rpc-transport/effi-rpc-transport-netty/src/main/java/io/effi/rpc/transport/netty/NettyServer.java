@@ -28,6 +28,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import io.effi.rpc.component.transport.options.ServerOptions;
+import io.effi.rpc.component.transport.options.TcpOptions;
+import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Implements {@link Server} using Netty.
@@ -138,26 +141,26 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
 
     @Override
     protected void configureOptions(ServerBootstrap bootstrap) {
-        int bossThreads = config.option(ServerConfig.ACCEPTOR_THREADS);
-        int workThreads = config.option(ServerConfig.IO_THREADS);
+        int bossThreads = config.option(ServerOptions.ACCEPTOR_THREADS);
+        int workThreads = config.option(ServerOptions.IO_THREADS);
         bossGroup = new NioEventLoopGroup(bossThreads, newThreadFactory("server-boss"));
         workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
         bootstrap.group(bossGroup, workerGroup)
                 .localAddress(localAddress())
                 .channel(NioServerSocketChannel.class);
-        configureIfValid(ServerConfig.ACCEPT_BACKLOG, val -> {
+        configureIfValid(ServerOptions.ACCEPT_BACKLOG, val -> {
             bootstrap.option(ChannelOption.SO_BACKLOG, val);
         });
-        configureIfValid(EndpointConfig.SEND_BUFFER_SIZE, val -> {
+        configureIfValid(TransportOptions.SEND_BUFFER_SIZE, val -> {
             bootstrap.childOption(ChannelOption.SO_SNDBUF, val);
         });
-        configureIfValid(EndpointConfig.RECEIVE_BUFFER_SIZE, val -> {
+        configureIfValid(TransportOptions.RECEIVE_BUFFER_SIZE, val -> {
             bootstrap.childOption(ChannelOption.SO_RCVBUF, val);
         });
-        configureIfValid(TcpEndpointConfig.NO_DELAY, val -> {
+        configureIfValid(TcpOptions.NO_DELAY, val -> {
             bootstrap.childOption(ChannelOption.TCP_NODELAY, val);
         });
-        configureIfValid(TcpEndpointConfig.KEEP_ALIVE, val -> {
+        configureIfValid(TcpOptions.KEEP_ALIVE, val -> {
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, val);
         });
     }

@@ -1,8 +1,9 @@
 package io.effi.rpc.protocol.http.h1;
 
+import io.effi.rpc.component.transport.CertificateConfig;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.config.IdentifiableConfig;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 
 
 /**
@@ -10,8 +11,8 @@ import io.effi.rpc.config.Options;
  */
 public class Http1ServerConfig extends Http1EndpointConfig implements ServerConfig {
 
-    Http1ServerConfig(String id, Options options) {
-        super(id, options);
+    Http1ServerConfig(String id, Options options, CertificateConfig certificateConfig) {
+        super(id, options, certificateConfig);
     }
 
     public static Http1ServerConfig defaultConfig() {
@@ -25,12 +26,12 @@ public class Http1ServerConfig extends Http1EndpointConfig implements ServerConf
     /**
      * Builds {@link Http1ServerConfig} instance.
      */
-    public static class Builder extends IdentifiableConfig.Builder<Http1ServerConfig, Builder>
+    public static class Builder extends EndpointConfig.Builder<Http1ServerConfig, Builder>
             implements Http1EndpointConfig.Configurator<Http1ServerConfig.Builder> {
 
         @Override
         public Http1ServerConfig build() {
-            return new Http1ServerConfig(id, options);
+            return new Http1ServerConfig(id, options, certificateConfig);
         }
     }
 }

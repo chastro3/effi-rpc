@@ -14,6 +14,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
+import io.effi.rpc.component.transport.options.ClientOptions;
+import io.effi.rpc.component.transport.options.TcpOptions;
+import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Implements {@link Client} using Netty.
@@ -59,22 +62,22 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
     }
 
     protected void configureOptions(Bootstrap bootstrap) {
-        int connectTimeout = config.option(ClientConfig.CONNECT_TIMEOUT);
+        int connectTimeout = config.option(ClientOptions.CONNECT_TIMEOUT);
         NioEventLoopGroup platformEventLoopGroup = platform.externalComponent(EVENT_LOOP_GROUP_KEY);
         bootstrap.group(platformEventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .remoteAddress(remoteAddress())
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
-        configureIfValid(EndpointConfig.SEND_BUFFER_SIZE, val -> {
+        configureIfValid(TransportOptions.SEND_BUFFER_SIZE, val -> {
             bootstrap.option(ChannelOption.SO_SNDBUF, val);
         });
-        configureIfValid(EndpointConfig.RECEIVE_BUFFER_SIZE, val -> {
+        configureIfValid(TransportOptions.RECEIVE_BUFFER_SIZE, val -> {
             bootstrap.option(ChannelOption.SO_RCVBUF, val);
         });
-        configureIfValid(TcpEndpointConfig.NO_DELAY, val -> {
+        configureIfValid(TcpOptions.NO_DELAY, val -> {
             bootstrap.option(ChannelOption.TCP_NODELAY, val);
         });
-        configureIfValid(TcpEndpointConfig.KEEP_ALIVE, val -> {
+        configureIfValid(TcpOptions.KEEP_ALIVE, val -> {
             bootstrap.option(ChannelOption.SO_KEEPALIVE, val);
         });
     }

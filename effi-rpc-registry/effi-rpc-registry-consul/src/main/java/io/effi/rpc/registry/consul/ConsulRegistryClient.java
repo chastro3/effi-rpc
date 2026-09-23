@@ -23,6 +23,7 @@ import io.vertx.ext.consul.Watch;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import io.effi.rpc.component.registry.options.RegistryOptions;
 
 /**
  * Implements {@link RegistryClient} using Consul.
@@ -62,7 +63,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                 .setId(instanceId)
                 .setAddress(instance.host())
                 .setPort(instance.port());
-        int heartbeatInterval = config.option(RegistryConfig.HEARTBEAT_INTERVAL);
+        int heartbeatInterval = config.option(RegistryOptions.HEARTBEAT_INTERVAL);
         CheckOptions checkOpts = new CheckOptions()
                 .setId(instanceId)
                 .setTtl((heartbeatInterval * 2) + "ms")
@@ -117,7 +118,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
     }
 
     private ConsulClient createConsulClient(RegistryConfig config) {
-        int connectTimeout = config.option(RegistryConfig.CONNECT_TIMEOUT);
+        int connectTimeout = config.option(RegistryOptions.CONNECT_TIMEOUT);
         String address = addresses[0];
         InetSocketAddress socketAddress = NetUtil.toInetSocketAddress(address);
         ConsulClientOptions options = new ConsulClientOptions()

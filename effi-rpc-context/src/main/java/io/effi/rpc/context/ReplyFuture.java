@@ -16,6 +16,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import io.effi.rpc.context.options.CallerOptions;
 
 public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>>> implements SmartURL.Supplier {
 
@@ -36,7 +37,7 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
         context.set(KeyConstant.ATTR_UNIQUE_ID, id);
         context.message().url().set(KeyConstant.ATTR_UNIQUE_ID, id);
         FUTURES.put(id, this);
-        Integer timeout = context.peer().option(Caller.TIMEOUT);
+        Integer timeout = context.peer().option(CallerOptions.TIMEOUT);
         timeout(timeout, TimeUnit.MILLISECONDS);
     }
 

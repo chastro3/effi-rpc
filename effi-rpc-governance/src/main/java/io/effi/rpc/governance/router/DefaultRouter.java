@@ -5,7 +5,6 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.Constant;
-import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.registry.ServiceInstance;
@@ -20,6 +19,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.effi.rpc.governance.router.DefaultRouter.NAME;
+import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.context.options.GovernanceOptions;
 
 /**
  * Provides the default implementation of {@link Router}.
@@ -34,9 +35,9 @@ public class DefaultRouter implements Router {
         SmartURL smartUrl = context.message().url();
         Caller<?> caller = context.peer();
         // filter by group
-        String group = caller.option(KeyConstant.GROUP);
+        String group = caller.option(GovernanceOptions.GROUP);
         if (!StringUtil.isBlank(group)) {
-            instances = instances.stream().filter(item -> Objects.equals(caller.option(KeyConstant.GROUP), group)).collect(Collectors.toList());
+            instances = instances.stream().filter(item -> Objects.equals(caller.option(GovernanceOptions.GROUP), group)).collect(Collectors.toList());
         }
         // filter by router rule
         ScopedModule module = context.module();

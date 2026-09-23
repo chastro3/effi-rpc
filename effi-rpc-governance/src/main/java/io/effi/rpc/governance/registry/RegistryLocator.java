@@ -4,8 +4,6 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.config.ConfigurableOptionName;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
@@ -27,15 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
 import static io.effi.rpc.governance.registry.RegistryLocator.Factory.NAME;
+import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.context.options.GovernanceOptions;
 
 /**
  * Resolves service URLs using ServiceDiscovery, Router, and LoadBalancer.
  */
 public final class RegistryLocator implements Locator {
-
-    public static final OptionName<String[]> REGISTRY = ConfigurableOptionName.nameOf("registry", MERGE_PARENT);
 
     private static final Logger logger = LoggerFactory.getLogger(RegistryLocator.class);
 
@@ -81,13 +78,13 @@ public final class RegistryLocator implements Locator {
         ScopedApplication application = context.module().application();
         // ServiceDiscovery
         // todo 优化
-        ServiceDiscovery serviceDiscovery = application.preferredExtension(ServiceDiscovery.class, caller.option(Caller.SERVICE_DISCOVERY));
+        ServiceDiscovery serviceDiscovery = application.preferredExtension(ServiceDiscovery.class, caller.option(GovernanceOptions.SERVICE_DISCOVERY));
         List<ServiceInstance> availableServiceInstances = serviceDiscovery.discover(serviceName, context, registryConfigs);
         // Router
-        Router router = application.preferredExtension(Router.class, caller.option(Caller.ROUTER));
+        Router router = application.preferredExtension(Router.class, caller.option(GovernanceOptions.ROUTER));
         List<ServiceInstance> finalServiceInstances = router.route(context, availableServiceInstances);
         // LoadBalance
-        LoadBalancer loadBalancer = application.preferredExtension(LoadBalancer.class, caller.option(Caller.LOAD_BALANCER));
+        LoadBalancer loadBalancer = application.preferredExtension(LoadBalancer.class, caller.option(GovernanceOptions.LOAD_BALANCER));
         ServiceInstance chosenServiceInstance = loadBalancer.select(context, finalServiceInstances);
         return InetSocketAddress.createUnresolved(chosenServiceInstance.host(), chosenServiceInstance.port());
     }
@@ -99,7 +96,7 @@ public final class RegistryLocator implements Locator {
 
         @Override
         public Locator fetch(String endpoint, Caller<?> caller) {
-            Collection<String> configuredNames = CollectionUtil.flatDistinctArray(caller.mergedOption(REGISTRY));
+            Collection<String> configuredNames = CollectionUtil.toHashSet(caller.option(GovernanceOptions.REGISTRY));
             Collection<RegistryConfig> registryConfigs = caller.platform()
                     .components(RegistryConfig.class, (name, registryConfig) ->
                             configuredNames.contains(name) || registryConfig.hasTags(Tags.FORCE_ACTIVE)

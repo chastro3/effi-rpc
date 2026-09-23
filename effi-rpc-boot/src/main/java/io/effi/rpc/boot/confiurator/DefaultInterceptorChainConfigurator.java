@@ -4,8 +4,6 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
 import io.effi.rpc.boot.confiurator.stage.ReplyInterceptStage;
-import io.effi.rpc.config.ConfigurableOptionName;
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.ConfigurableCaller;
@@ -31,17 +29,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static io.effi.rpc.boot.confiurator.DefaultInterceptorChainConfigurator.NAME;
-import static io.effi.rpc.config.OptionName.Strategy.MERGE_PARENT;
+import static io.effi.rpc.context.options.InterceptorOptions.EXCLUDE;
+import static io.effi.rpc.context.options.InterceptorOptions.INCLUDE;
 
 @SuppressWarnings("rawtypes")
 @Extension(value = NAME, primary = true)
 public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.InterceptorChainConfigurator {
 
     public static final String NAME = Constant.DEFAULT_NAME;
-
-    public static final OptionName<String[]> INTERCEPTOR = ConfigurableOptionName.nameOf("interceptor", MERGE_PARENT);
-
-    public static final OptionName<String[]> EXCLUDED_INTERCEPTOR = ConfigurableOptionName.nameOf("excludedInterceptor");
 
     @Override
     public void configure(ConfigurablePeer peer) {
@@ -112,9 +107,8 @@ public class DefaultInterceptorChainConfigurator implements ConfigurablePeer.Int
 
 
     private Map<String, Interceptor> lookupAvailableInterceptors(ConfigurablePeer peer) {
-        List<String[]> configuredNames = peer.mergedOption(INTERCEPTOR);
-        Collection<String> configuredInterceptors = CollectionUtil.flatDistinctArray(configuredNames);
-        String[] excludedNames = peer.option(EXCLUDED_INTERCEPTOR);
+        Collection<String> configuredInterceptors = CollectionUtil.toHashSet(peer.option(INCLUDE));
+        String[] excludedNames = peer.option(EXCLUDE);
         Set<String> excludedInterceptors = CollectionUtil.toHashSet(excludedNames);
         return peer.module().namedExtensions(Interceptor.class, (name, holder) ->
                 (configuredInterceptors.contains(name) || holder.hasTags(Tags.FORCE_ACTIVE))

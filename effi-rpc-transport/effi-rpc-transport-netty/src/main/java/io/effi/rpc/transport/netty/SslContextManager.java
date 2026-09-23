@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import io.effi.rpc.component.transport.options.TcpOptions;
 
 /**
  * Manages SSL contexts for both server and client sides.
@@ -108,7 +109,7 @@ public class SslContextManager {
     }
 
     private static boolean sslEnabled(EndpointConfig config) {
-        return config.option(TcpEndpointConfig.SSL);
+        return config.option(TcpOptions.SSL);
     }
 
     private static Pair<ArrayIdentifier<String>, String> generateSslContextKey(String[] supportedProtocols, String name) {

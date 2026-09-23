@@ -1,24 +1,22 @@
 package io.effi.rpc.protocol.http;
 
+import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.support.TcpEndpointConfig;
-import io.effi.rpc.config.ConfigurableOptionName;
-import io.effi.rpc.config.OptionName;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 
 import static io.effi.rpc.util.AssertUtil.notNull;
 
 public abstract class HttpEndpointConfig extends TcpEndpointConfig {
 
-    public static final OptionName<String> TRACING_POLICY = ConfigurableOptionName.nameOf("tracingPolicy");
-
-    public static final OptionName<Integer> DECODER_INITIAL_BUFFER_SIZE = ConfigurableOptionName.nameOf("decoderInitialBufferSize");
-
-    public static final OptionName<Integer> MAX_MESSAGE_SIZE = ConfigurableOptionName.<Integer>nameOf("maxMessageSize").defaultValue(1024 * 32);
-
     protected HttpVersion version;
 
-    protected HttpEndpointConfig(HttpVersion version, String id, Options options) {
-        super(notNull(version, "version").name(), id, options);
+    protected HttpEndpointConfig(
+            HttpVersion version,
+            String id,
+            Options options,
+            CertificateConfig certificateConfig
+    ) {
+        super(notNull(version, "version").name(), id, options, certificateConfig);
     }
 
     public HttpVersion protocolVersion() {
@@ -34,7 +32,7 @@ public abstract class HttpEndpointConfig extends TcpEndpointConfig {
          * Applies to both HTTP requests and responses.
          */
         default SELF maxMessageSize(int maxMessageSize) {
-            addOption(MAX_MESSAGE_SIZE, maxMessageSize);
+            addOption(HttpOptions.MAX_MESSAGE_SIZE, maxMessageSize);
             return self();
         }
 
@@ -44,7 +42,7 @@ public abstract class HttpEndpointConfig extends TcpEndpointConfig {
          * Controls how tracing information is collected and propagated.
          */
         default SELF tracingPolicy(String tracingPolicy) {
-            addOption(TRACING_POLICY, tracingPolicy);
+            addOption(HttpOptions.TRACING_POLICY, tracingPolicy);
             return self();
         }
 
@@ -54,7 +52,7 @@ public abstract class HttpEndpointConfig extends TcpEndpointConfig {
          * Defines the initial size of the buffer used during HTTP request decoding.
          */
         default SELF decoderInitialBufferSize(int decoderInitialBufferSize) {
-            addOption(DECODER_INITIAL_BUFFER_SIZE, decoderInitialBufferSize);
+            addOption(HttpOptions.DECODER_INITIAL_BUFFER_SIZE, decoderInitialBufferSize);
             return self();
         }
     }

@@ -1,9 +1,9 @@
 package io.effi.rpc;
 
 import io.effi.rpc.compression.Compressor;
-import io.effi.rpc.config.OptionName;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.serialization.Serializer;
+import io.effi.rpc.component.serialization.options.CompressionOptions;
 import io.effi.rpc.util.AssertUtil;
 
 import java.io.ByteArrayInputStream;
@@ -12,22 +12,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import static io.effi.rpc.option.OptionTypes.INTEGER;
 
 public class CompressibleSerializer implements Serializer {
-
-    public static final OptionName<Integer> MAX_DECOMPRESSED_BYTES =
-            OptionName.of("serializer.compression.maxDecompressedBytes", 16 * 1024 * 1024);
 
     private final Serializer serializer;
     private final Compressor compressor;
     private final int maxDecompressedBytes;
 
     public CompressibleSerializer(Serializer serializer, Compressor compressor) {
-        this(serializer, compressor, MAX_DECOMPRESSED_BYTES.defaultValue());
+        this(serializer, compressor, CompressionOptions.MAX_DECOMPRESSED_BYTES.defaultValue());
     }
 
     public CompressibleSerializer(Serializer serializer, Compressor compressor, Options options) {
-        this(serializer, compressor, options.option(MAX_DECOMPRESSED_BYTES));
+        this(serializer, compressor, options.option(CompressionOptions.MAX_DECOMPRESSED_BYTES));
     }
 
     public CompressibleSerializer(Serializer serializer, Compressor compressor, int maxDecompressedBytes) {

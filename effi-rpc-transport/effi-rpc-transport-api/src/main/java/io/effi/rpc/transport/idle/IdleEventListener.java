@@ -10,6 +10,7 @@ import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Listens for {@link IdleEvent} and handles idle timeout logic.
@@ -24,7 +25,7 @@ public class IdleEventListener implements EventListener<IdleEvent> {
         Channel channel = event.source();
         EndpointConfig config = channel.endpoint().config();
         AtomicInteger ideCount = channel.get(KeyConstant.IDLE_COUNT);
-        int idleCountThreshold = config.option(EndpointConfig.IDLE_COUNT_THRESHOLD);
+        int idleCountThreshold = config.option(TransportOptions.IDLE_COUNT_THRESHOLD);
         if (ideCount != null) {
             String enablePrintLog = System.getProperty(SystemKeys.PRINT_HEARTBEAT_LOG);
             if (!StringUtil.isBlank(enablePrintLog)

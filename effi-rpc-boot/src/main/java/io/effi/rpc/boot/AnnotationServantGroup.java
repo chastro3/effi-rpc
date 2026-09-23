@@ -5,7 +5,7 @@ import io.effi.rpc.annotation.rpc.ServeGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
@@ -24,6 +24,8 @@ import java.util.List;
 
 import static io.effi.rpc.boot.AnnotationSupport.annotationStyleParserForMethod;
 import static io.effi.rpc.boot.AnnotationSupport.checkAnnotationStyle;
+import io.effi.rpc.context.options.PeerOptions;
+import io.effi.rpc.context.options.ServantOptions;
 
 /**
  * Provide the annotation implementation of {@link ServantGroup}.
@@ -97,13 +99,13 @@ public class AnnotationServantGroup<T> extends ComplexServantGroup<T> {
     }
 
     private ScopedModule getModule(HierarchicalOptions options, ScopedApplication application) {
-        String moduleName = options.option(Peer.ASSOCIATED_MODULE);
+        String moduleName = options.option(PeerOptions.ASSOCIATED_MODULE);
         ScopedModule module = application.lookupModule(moduleName);
         return module == null ? application.defaultModule() : module;
     }
 
     private List<TransportProtocol> getSupportedProtocols(HierarchicalOptions options, ScopedApplication application) {
-        String[] protocolNames = options.option(Servant.DECLARED_PROTOCOL);
+        String[] protocolNames = options.option(ServantOptions.DECLARED_PROTOCOL);
         if (CollectionUtil.isEmpty(protocolNames)) {
             return Collections.emptyList();
         }

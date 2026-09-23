@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.EffiRpcFramework;
@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
+import io.effi.rpc.context.options.SerializationOptions;
 
 /**
  * Utility class for handling HTTP-related operations and transformations.
@@ -91,7 +92,7 @@ public final class HttpUtil {
         CharSequence contentType = headers.get(HttpHeaderNames.CONTENT_TYPE);
         MediaType mediaType;
         if (StringUtil.isBlank(contentType)) {
-            String serialization = options.option(Peer.SERIALIZER);
+            String serialization = options.option(SerializationOptions.SERIALIZER);
             mediaType = MediaType.fromSerialization(serialization);
             if (mediaType == null)
                 throw new IllegalArgumentException("Unsupported serialization ['" + serialization + "'] convert to MediaType");

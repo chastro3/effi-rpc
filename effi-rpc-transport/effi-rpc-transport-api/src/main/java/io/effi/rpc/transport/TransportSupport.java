@@ -23,6 +23,7 @@ import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.transport.message.InputMessage;
+import io.effi.rpc.context.options.SerializationOptions;
 
 /**
  * Provides transport layer operations.
@@ -40,7 +41,7 @@ public class TransportSupport {
 
     public static boolean inIOSerialization(Peer peer) {
         try {
-            Long serializationThreshold = peer.option(Peer.SERIALIZATION_THRESHOLD);
+            Long serializationThreshold = peer.option(SerializationOptions.SERIALIZATION_THRESHOLD);
             if (serializationThreshold == null || serializationThreshold <= 0) return true;
             double averageSerializationTime;
             if (peer instanceof Caller<?>) {
@@ -142,7 +143,7 @@ public class TransportSupport {
 
     public static boolean inIODeserialization(Peer peer) {
         try {
-            Long deserializationThreshold = peer.option(Peer.DESERIALIZATION_THRESHOLD);
+            Long deserializationThreshold = peer.option(SerializationOptions.DESERIALIZATION_THRESHOLD);
             if (deserializationThreshold == null || deserializationThreshold <= 0) return true;
             double averageDeserializationTime;
             if (peer instanceof Caller<?>) {

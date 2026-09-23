@@ -1,4 +1,4 @@
-package io.effi.rpc.config;
+package io.effi.rpc.option;
 
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
@@ -20,7 +20,6 @@ public class DefaultOptions implements Options {
         this(16);
     }
 
-
     public DefaultOptions(int initialCapacity) {
         this(new HashMap<>(initialCapacity));
     }
@@ -29,49 +28,44 @@ public class DefaultOptions implements Options {
         this.items = AssertUtil.notNull(items, "items");
     }
 
+    /**
+     * Returns the shared empty options instance.
+     */
     public static Options empty() {
         return EMPTY;
     }
 
     @Override
-    public <V> Options addOption(OptionName<V> name, V value) {
-        addOption(name.name(), value);
+    public <T> Options addOption(OptionName<T> name, T value) {
+        if (value != null) {
+            items.put(name.name(), value);
+        }
         return this;
     }
 
     @Override
-    public Options addOption(String name, Object value) {
-        if (value != null)
-            items.put(name, value);
-        return this;
-    }
-
-    @Override
-    public <V> V option(OptionName<V> name) {
-        V value = option(name.name());
+    public <T> T option(OptionName<T> name) {
+        T value = currentOption(name);
         return value == null ? name.defaultValue() : value;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <V> V option(String name) {
-        return (V) items.get(name);
+    public <T> T removeOption(OptionName<T> name) {
+        Object value = items.remove(name.name());
+        return value == null ? null : name.type().convert(value);
     }
 
-    @Override
-    public <V> V removeOption(OptionName<V> name) {
-        return removeOption(name.name());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <V> V removeOption(String name) {
-        return (V) items.remove(name);
-    }
-
+    /**
+     * Returns an unmodifiable view of all option values.
+     */
     @Override
     public Map<String, Object> items() {
         return Collections.unmodifiableMap(items);
+    }
+
+    protected <T> T currentOption(OptionName<T> name) {
+        Object value = items.get(name.name());
+        return value == null ? null : name.type().convert(value);
     }
 
     @Override

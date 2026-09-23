@@ -1,6 +1,6 @@
 package io.effi.rpc.context.annotation;
 
-import io.effi.rpc.config.OptionName;
+import io.effi.rpc.option.OptionName;
 
 import java.lang.annotation.Annotation;
 import java.util.function.Function;

@@ -1,14 +1,11 @@
-package io.effi.rpc.config;
+package io.effi.rpc.option;
 
 import io.effi.rpc.trait.FluentBuilder;
 
 import java.util.Map;
 
 /**
- * Manages options for retrieval and update.
- * <p>
- * Provides a centralized interface for setting, getting, and removing options
- * by name or typed option name, with support for default values.
+ * Stores and resolves typed options.
  */
 public interface Options {
 
@@ -29,69 +26,59 @@ public interface Options {
     }
 
     /**
-     * Sets the value by option name.
+     * Adds a typed option value.
+     *
+     * @param name option name
+     * @param value option value
+     * @return current options instance
      */
     <V> Options addOption(OptionName<V> name, V value);
 
     /**
-     * Sets the value by name.
-     */
-    <V> Options addOption(String name, V value);
-
-    /**
-     * Retrieves the value by option name.
+     * Returns the resolved value for the given option name.
+     *
+     * @param name option name
+     * @return resolved option value
      */
     <V> V option(OptionName<V> name);
 
     /**
-     * Retrieves the value by name.
-     */
-    <V> V option(String name);
-
-    /**
-     * Removes the value by name.
+     * Removes and returns the current value for the given option name.
+     *
+     * @param name option name
+     * @return removed option value
      */
     <V> V removeOption(OptionName<V> name);
 
     /**
-     * Removes the value by name.
-     */
-    <V> V removeOption(String name);
-
-    /**
-     * Returns all config entries.
+     * Returns an unmodifiable view of all option values.
      */
     Map<String, Object> items();
 
-
+    /**
+     * Returns the option value when present, otherwise the supplied default value.
+     *
+     * @param name option name
+     * @param defaultValue fallback value
+     * @return resolved option value
+     */
     default <V> V option(OptionName<V> name, V defaultValue) {
         V value = option(name);
         return value != null ? value : defaultValue;
     }
 
-    default <V> V option(String name, V defaultValue) {
-        V value = option(name);
-        return value != null ? value : defaultValue;
-    }
-
     /**
-     * Supplies access to the {@link Options}.
+     * Supplies access to an options instance.
      */
     interface Supplier extends Options {
 
         /**
-         * Returns the associated {@link Options}.
+         * Returns the associated options instance.
          */
         Options options();
 
         @Override
         default <V> Supplier addOption(OptionName<V> name, V value) {
-            options().addOption(name.name(), value);
-            return this;
-        }
-
-        @Override
-        default <V> Supplier addOption(String name, V value) {
             options().addOption(name, value);
             return this;
         }
@@ -102,17 +89,7 @@ public interface Options {
         }
 
         @Override
-        default <V> V option(String name) {
-            return options().option(name);
-        }
-
-        @Override
         default <V> V removeOption(OptionName<V> name) {
-            return options().removeOption(name);
-        }
-
-        @Override
-        default <V> V removeOption(String name) {
             return options().removeOption(name);
         }
 
@@ -123,9 +100,13 @@ public interface Options {
     }
 
     /**
-     * Builds {@link Supplier} instance and defines options.
+     * Builds an options-aware instance with fluent method chaining.
+     *
+     * @param <T> built instance type
+     * @param <SELF> concrete builder type
      */
-    interface Builder<T, SELF extends Builder<T, SELF>> extends FluentBuilder<T, SELF>, Supplier {
+    interface Builder<T, SELF extends Builder<T, SELF>>
+            extends FluentBuilder<T, SELF>, Supplier {
 
         @Override
         default <V> SELF addOption(OptionName<V> name, V value) {
@@ -133,14 +114,5 @@ public interface Options {
             return self();
         }
 
-        @Override
-        default <V> SELF addOption(String name, V value) {
-            options().addOption(name, value);
-            return self();
-        }
     }
-
 }
-
-
-

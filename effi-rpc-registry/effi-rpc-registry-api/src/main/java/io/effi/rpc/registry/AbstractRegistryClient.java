@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import io.effi.rpc.component.registry.options.RegistryOptions;
 
 /**
  * Provides an abstract implementation of {@link RegistryClient}.
@@ -80,9 +81,9 @@ public abstract class AbstractRegistryClient implements RegistryClient {
                 return;
             }
 
-            int retries = Math.max(0, config.option(RegistryConfig.RETRIES));
+            int retries = Math.max(0, config.option(RegistryOptions.RETRIES));
             if (attempt < retries) {
-                long retryInterval = Math.max(1, config.option(RegistryConfig.HEARTBEAT_INTERVAL));
+                long retryInterval = Math.max(1, config.option(RegistryOptions.HEARTBEAT_INTERVAL));
                 logger.warn("Failed to register instance '{}' of service '{}' at '{}', retrying {}/{}",
                         res.cause(), instance.id(), serviceName, config, attempt + 1, retries);
                 platform.singleComponent(Scheduler.class).addDisposable(
@@ -166,7 +167,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         if (!closed.compareAndSet(false, true)) {
             return;
         }
-        long timeout = Math.max(1, config.option(RegistryConfig.CONNECT_TIMEOUT));
+        long timeout = Math.max(1, config.option(RegistryOptions.CONNECT_TIMEOUT));
         deregisterServices()
                 .timeout(timeout, TimeUnit.MILLISECONDS)
                 .onComplete(res -> {

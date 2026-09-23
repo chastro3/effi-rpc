@@ -1,6 +1,5 @@
 package io.effi.rpc.component.transport;
 
-import io.effi.rpc.config.OptionName;
 import io.effi.rpc.trait.Identifiable;
 
 /**
@@ -9,9 +8,7 @@ import io.effi.rpc.trait.Identifiable;
  * Provides a standardized interface for managing certificate chains,
  * private keys, and trust certificates for TLS/SSL connections.
  */
-public interface CertificateConfig  extends Identifiable {
-
-    OptionName<CertificateConfig> NAME = OptionName.of("certificate");
+public interface CertificateConfig extends Identifiable {
 
     /**
      * Returns the byte array of the certificate chain.

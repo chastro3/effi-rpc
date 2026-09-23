@@ -1,7 +1,7 @@
 package io.effi.rpc.context.annotation;
 
-import io.effi.rpc.config.OptionName;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.OptionName;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.util.CollectionUtil;
 
 import java.lang.annotation.Annotation;
@@ -33,9 +33,13 @@ public class AnnotationOptionResolver<T extends AnnotatedElement, A extends Anno
         if (annotation != null) {
             if (CollectionUtil.isNotEmpty(kvMappers)) {
                 for (KVMapper<A, ?> kvMapper : kvMappers) {
-                    options.addOption(kvMapper.name().name(), kvMapper.valueGetter().apply(annotation));
+                    resolveOption(options, annotation, kvMapper);
                 }
             }
         }
+    }
+
+    private <V> void resolveOption(Options options, A annotation, KVMapper<A, V> mapper) {
+        options.addOption(mapper.name(), mapper.valueGetter().apply(annotation));
     }
 }

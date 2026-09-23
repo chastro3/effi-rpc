@@ -5,7 +5,7 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.config.HierarchicalOptions;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.parameter.ServantMethod;

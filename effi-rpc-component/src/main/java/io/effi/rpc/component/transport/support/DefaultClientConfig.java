@@ -1,8 +1,9 @@
 package io.effi.rpc.component.transport.support;
 
 import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.ProtocolStack;
-import io.effi.rpc.config.Options;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.util.Pair;
 
@@ -16,8 +17,14 @@ public class DefaultClientConfig extends AbstractEndpointConfig implements Clien
 
     private static final Map<Pair<String, ProtocolStack>, DefaultClientConfig> DEFAULT_CONFIGS = new ConcurrentHashMap<>(4);
 
-    public DefaultClientConfig(String protocol, ProtocolStack protocolStack, String id, Options options) {
-        super(protocol, protocolStack, id, options);
+    public DefaultClientConfig(
+            String protocol,
+            ProtocolStack protocolStack,
+            String id,
+            Options options,
+            CertificateConfig certificateConfig
+    ) {
+        super(protocol, protocolStack, id, options, certificateConfig);
     }
 
     /**
@@ -31,7 +38,13 @@ public class DefaultClientConfig extends AbstractEndpointConfig implements Clien
     public static DefaultClientConfig cached(String protocolName, ProtocolStack stack) {
         Pair<String, ProtocolStack> key = Pair.of(protocolName, stack);
         return DEFAULT_CONFIGS.computeIfAbsent(key, k ->
-                new DefaultClientConfig(protocolName, stack, defaultId(protocolName), Options.empty())
+                new DefaultClientConfig(
+                        protocolName,
+                        stack,
+                        defaultId(protocolName),
+                        Options.empty(),
+                        null
+                )
         );
     }
 
