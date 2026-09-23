@@ -1,14 +1,20 @@
 package io.effi.rpc.concurrent;
 
+import io.effi.rpc.util.AssertUtil;
+
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Promise<T> extends AbstractFuture<T> {
 
     public static final Promise<Void> VOID = completed(null);
+
+    private volatile BooleanSupplier cancelAction;
 
     public Promise() {
         super(null);
@@ -71,6 +77,33 @@ public class Promise<T> extends AbstractFuture<T> {
 
     public Promise<T> failure(Throwable cause) {
         return tryComplete(cause);
+    }
+
+    /**
+     * Configures the action used to propagate cancellation to an external operation.
+     */
+    public Promise<T> cancelAction(BooleanSupplier cancelAction) {
+        this.cancelAction = AssertUtil.notNull(cancelAction, "cancelAction");
+        return this;
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        if (completed()) {
+            return false;
+        }
+        BooleanSupplier action = cancelAction;
+        if (action != null) {
+            try {
+                if (!action.getAsBoolean()) {
+                    return false;
+                }
+            } catch (Throwable ignored) {
+                return false;
+            }
+        }
+        failure(new CancellationException("Promise cancelled"));
+        return true;
     }
 
     @Override

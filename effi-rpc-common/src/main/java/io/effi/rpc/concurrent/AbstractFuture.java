@@ -74,7 +74,7 @@ public abstract class AbstractFuture<T> implements Future<T> {
     @Override
     public Future<T> timeout(long delay, TimeUnit unit) {
         ScheduledFuture<?> scheduled = scheduler().schedule(() ->
-                tryComplete(timeoutException(delay, unit)),
+                tryComplete(timeoutException(delay, unit), true),
                 delay,
                 unit
         );
@@ -149,7 +149,7 @@ public abstract class AbstractFuture<T> implements Future<T> {
         try {
             while (!completed()) {
                 if (nanos <= 0L) {
-                    tryComplete(new TimeoutException("Future timed out"));
+                    tryComplete(timeoutException(timeout, unit), true);
                     break;
                 }
                 LockSupport.parkNanos(this, nanos);
@@ -171,11 +171,16 @@ public abstract class AbstractFuture<T> implements Future<T> {
 
     @SuppressWarnings("unchecked")
     protected AbstractFuture<T> tryComplete(Object value) {
+        tryComplete(value, false);
+        return this;
+    }
+
+    private void tryComplete(Object value, boolean timedOut) {
         Listener<Result<T>> l;
         Result<T> r;
         ScheduledFuture<?> timeoutTask;
         synchronized (this) {
-            if (result != null) return this;
+            if (result != null) return;
             r = (value instanceof Throwable)
                     ? Result.failure((Throwable) value)
                     : Result.success((T) value);
@@ -186,6 +191,11 @@ public abstract class AbstractFuture<T> implements Future<T> {
             timeoutFuture = null;
         }
         if (timeoutTask != null) timeoutTask.cancel(false);
+        try {
+            onCompletion(r, timedOut);
+        } catch (Throwable e) {
+            logger.error("Failed to handle future completion.", e);
+        }
         if (l != null) {
             try {
                 l.trigger(r);
@@ -196,7 +206,15 @@ public abstract class AbstractFuture<T> implements Future<T> {
             }
         }
         waiters.forEach(LockSupport::unpark);
-        return this;
+    }
+
+    /**
+     * Invoked exactly once after this future transitions to a terminal state.
+     *
+     * @param result the terminal result
+     * @param timedOut whether the terminal state was caused by timeout
+     */
+    protected void onCompletion(Result<T> result, boolean timedOut) {
     }
 
     private static ScheduledExecutorService initializeDefaultScheduler() {

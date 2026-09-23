@@ -9,16 +9,25 @@ import io.effi.rpc.concurrent.AbstractFuture;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.concurrent.Result;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.util.AssertUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import io.effi.rpc.context.options.CallerOptions;
 
 public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>>> implements SmartURL.Supplier {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReplyFuture.class);
 
     private static final Map<Long, ReplyFuture> FUTURES = new ConcurrentHashMap<>();
 
@@ -27,6 +36,12 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
     private final long id;
 
     private final CallContext<Request, Caller<?>> context;
+
+    private final AtomicReference<List<Runnable>> cancellationActions = new AtomicReference<>(List.of());
+
+    private final AtomicBoolean cancellationRequested = new AtomicBoolean(false);
+
+    private final AtomicBoolean terminal = new AtomicBoolean(false);
 
     private volatile Interaction.Result rawResult;
 
@@ -61,14 +76,50 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
         rawResult = result;
         if (result.succeeded()) tryComplete(replyContext);
         else tryComplete(result.cause());
-        FUTURES.remove(id);
         return this;
     }
 
     public ReplyFuture failure(EffiRpcException cause) {
         if (!completed()) {
             tryComplete(cause);
-            FUTURES.remove(id);
+        }
+        return this;
+    }
+
+    /**
+     * Registers a callback invoked only when this call is cancelled by timeout.
+     * The callback is executed at most once.
+     */
+    public ReplyFuture onCancel(Runnable action) {
+        AssertUtil.notNull(action, "action");
+        if (cancellationRequested.get()) {
+            runCancellationAction(action);
+            return this;
+        }
+        if (terminal.get()) {
+            return this;
+        }
+        cancellationActions.updateAndGet(actions -> {
+            List<Runnable> updated = new ArrayList<>(actions);
+            updated.add(action);
+            return List.copyOf(updated);
+        });
+        if (cancellationRequested.get()) {
+            AtomicBoolean removed = new AtomicBoolean(false);
+            cancellationActions.updateAndGet(actions -> {
+                if (!actions.contains(action)) {
+                    return actions;
+                }
+                List<Runnable> updated = new ArrayList<>(actions);
+                updated.remove(action);
+                removed.set(true);
+                return List.copyOf(updated);
+            });
+            if (removed.get()) {
+                runCancellationAction(action);
+            }
+        } else if (terminal.get()) {
+            cancellationActions.updateAndGet(actions -> removeCancellationAction(actions, action));
         }
         return this;
     }
@@ -131,6 +182,39 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
 
     public void withRawResult(Interaction.Result rawResult) {
         this.rawResult = rawResult;
+    }
+
+    @Override
+    protected void onCompletion(Result<ReplyContext<Response, Caller<?>>> result, boolean timedOut) {
+        FUTURES.remove(id);
+        if (timedOut) {
+            if (cancellationRequested.compareAndSet(false, true)) {
+                cancellationActions.getAndSet(List.of()).forEach(this::runCancellationAction);
+            }
+        } else {
+            terminal.set(true);
+            cancellationActions.set(List.of());
+        }
+    }
+
+    private List<Runnable> removeCancellationAction(List<Runnable> actions, Runnable action) {
+        if (!actions.contains(action)) {
+            return actions;
+        }
+        List<Runnable> updated = new ArrayList<>(actions);
+        updated.remove(action);
+        return List.copyOf(updated);
+    }
+
+    private void runCancellationAction(Runnable action) {
+        if (action == null) {
+            return;
+        }
+        try {
+            action.run();
+        } catch (Throwable e) {
+            logger.error("Failed to cancel reply future '{}'", e, id);
+        }
     }
 }
 

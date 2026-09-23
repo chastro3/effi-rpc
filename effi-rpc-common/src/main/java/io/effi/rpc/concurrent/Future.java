@@ -13,4 +13,14 @@ public interface Future<T> extends Result<T> {
     Future<T> timeout(long delay, TimeUnit unit);
 
     CompletableFuture<T> toCompletableFuture();
+
+    /**
+     * Attempts to cancel this future.
+     *
+     * @param mayInterruptIfRunning whether the operation may be interrupted
+     * @return {@code true} if cancellation was accepted
+     */
+    default boolean cancel(boolean mayInterruptIfRunning) {
+        return false;
+    }
 }

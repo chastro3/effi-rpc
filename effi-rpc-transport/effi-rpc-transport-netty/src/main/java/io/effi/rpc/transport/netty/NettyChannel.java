@@ -125,6 +125,7 @@ public final class NettyChannel extends AbstractChannel {
     private static <T extends Future<?>> Promise<NettyChannel>
     wrap(T future, Supplier<Channel> channelSupplier, Function<Channel, NettyChannel> wrapper) {
         Promise<NettyChannel> promise = new Promise<>();
+        promise.cancelAction(() -> future.cancel(false));
         future.addListener(result -> {
             if (result.isSuccess()) {
                 Channel channel = channelSupplier.get();

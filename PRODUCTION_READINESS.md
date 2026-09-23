@@ -48,7 +48,35 @@ Acceptance tests:
 - The total retry budget respects the call timeout.
 - Cancellation or timeout stops future retry attempts.
 
-### [ ] PR-02: Timeout and cancellation do not clean up call state
+### [x] PR-02: Timeout and cancellation do not clean up call state
+
+Status: core fix implemented.
+
+Implemented:
+
+- `ReplyFuture` now has a one-shot terminal cleanup hook and cancellation actions.
+- `FUTURES` removal is centralized in the terminal hook, including timeout completion.
+- `Promise.cancel()` can propagate cancellation to non-Netty futures.
+- Netty acquire promises propagate cancellation to the underlying Netty future.
+- `CallAttempt` atomically owns `ACQUIRING`, `ACTIVE`, `DONE`, and `CANCELLED` state.
+- A channel that arrives after timeout is closed without sending a request.
+- A channel active when timeout wins is closed, covering HTTP/1 pool eviction and HTTP/2
+  stream cancellation through the `Channel` abstraction.
+- `FutureResultStage` delegates acquire/send failure and cleanup to `CallAttempt`.
+
+Verification:
+
+- `CallAttemptTest.timeoutWhileAcquiringClosesLateChannelWithoutSending`
+- `CallAttemptTest.timeoutAfterSendClosesActiveChannel`
+- Both tests pass with a temporary Gradle init script while the repository-wide test task
+  remains disabled.
+
+Remaining integration acceptance:
+
+- Exercise timeout through a real `Http1Client`/`FixedChannelPool` and assert pool recovery.
+- Exercise timeout through a real `Http2Client` and assert the stream closes while the physical
+  connection remains reusable.
+- Add a response-versus-timeout concurrent race test when the normal test task is restored.
 
 Location:
 

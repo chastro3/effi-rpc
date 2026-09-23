@@ -10,12 +10,9 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.TransportSupport;
-import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
-import io.effi.rpc.transport.message.EncodableOutputMessage;
 
 import java.net.InetSocketAddress;
 
@@ -35,24 +32,7 @@ public class FutureResultStage implements Stage.CallUnit<Request, Caller<?>> {
         TransportProtocol protocol = TransportSupport.findProtocol(caller);
         Client client = protocol.supplyClient(caller.clientConfig(), remoteAddress, context.platform());
         ReplyFuture future = context.mode().newFuture(context);
-        client.fetchChannel().onComplete(res -> {
-            if (res.succeeded()) {
-                Channel channel = res.result();
-                var outputMessage = EncodableOutputMessage.create(context, channel, protocol.clientCodec());
-                channel.send(outputMessage)
-                        .onComplete(r -> {
-                            if (r.failed()) {
-                                EffiRpcException fail = TransportErrorCodes.CHANNEL_WRITE.fail(r.cause(), requestUrl.host());
-                                future.failure(fail);
-                            }
-                        });
-
-            } else {
-                EffiRpcException fail = TransportErrorCodes.FETCH_CHANNEL
-                        .fail(res.cause(), requestUrl.host(), requestUrl.scheme());
-                future.failure(fail);
-            }
-        });
+        CallAttempt attempt = new CallAttempt(future, client, protocol, context);
         future.onComplete(res -> {
             if (res.failed()) {
                 return;
@@ -64,6 +44,7 @@ public class FutureResultStage implements Stage.CallUnit<Request, Caller<?>> {
                 future.withRawResult(Interaction.Result.failure(context.message().url(), failure));
             }
         });
+        attempt.start();
         return Interaction.Result.success(context.message().url(), future);
     }
 }
