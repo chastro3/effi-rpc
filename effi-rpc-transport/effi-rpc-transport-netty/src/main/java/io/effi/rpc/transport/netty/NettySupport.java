@@ -71,7 +71,10 @@ public class NettySupport {
 
     public static ReplyFuture getBoundFuture(Channel channel) {
         Long futureId = channel.attr(FUTURE_ID).get();
-        return futureId == null ? null : ReplyFuture.lookup(futureId);
+        if (futureId == null) {
+            return null;
+        }
+        return ReplyFuture.lookup(NettyChannel.ensure(channel).platform(), futureId);
     }
 
     /**

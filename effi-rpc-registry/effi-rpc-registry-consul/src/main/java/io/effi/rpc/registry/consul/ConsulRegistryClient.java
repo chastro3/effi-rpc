@@ -9,6 +9,7 @@ import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.consul.CheckOptions;
@@ -93,7 +94,9 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                             .toList();
                     promise.success(instances);
                 })
-                .onFailure(promise::failure);
+                .onFailure(cause -> promise.failure(
+                        PredefinedErrorCode.REGISTRY_DISCOVER.fail(cause, serviceName, config)
+                ));
         return promise;
     }
 
@@ -145,7 +148,9 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
     private Promise<Void> toVoidFuture(Future<?> future) {
         Promise<Void> result = new Promise<>();
         future.onSuccess(v -> result.success(null))
-                .onFailure(result::failure);
+                .onFailure(cause -> result.failure(
+                        ConsulErrorCodes.OPERATION_FAILED.fail(cause, "toVoidFuture")
+                ));
         return result;
     }
 }

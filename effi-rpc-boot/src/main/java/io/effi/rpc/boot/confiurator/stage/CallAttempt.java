@@ -8,6 +8,7 @@ import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.TransportErrorCodes;
@@ -48,7 +49,7 @@ final class CallAttempt {
         this.client = client;
         this.protocol = protocol;
         this.context = context;
-        future.onCancel(this::cancel);
+        future.onCancel(reason -> cancel());
         future.onComplete(result -> finish());
     }
 
@@ -75,7 +76,7 @@ final class CallAttempt {
 
         AcquiringState acquiring = new AcquiringState(acquire);
         if (!state.compareAndSet(IdleState.INSTANCE, acquiring)) {
-            acquire.cancel(false);
+            acquire.cancel(PredefinedErrorCode.CALL_CANCELLED.fail("call attempt cancelled"));
             return;
         }
         acquire.onComplete(result -> onChannelAcquired(acquiring, result));
@@ -89,7 +90,7 @@ final class CallAttempt {
             return;
         }
 
-        Channel channel = result.result();
+        Channel channel = result.value();
         if (channel == null) {
             if (state.compareAndSet(acquiring, DoneState.INSTANCE)) {
                 future.failure(fetchFailure(new IllegalStateException("Channel acquisition returned null")));
@@ -132,7 +133,7 @@ final class CallAttempt {
     private void cancel() {
         State previous = transition(CancelledState.INSTANCE);
         if (previous instanceof AcquiringState acquiring) {
-            acquiring.acquire().cancel(false);
+            acquiring.acquire().cancel(PredefinedErrorCode.CALL_CANCELLED.fail("call attempt cancelled"));
         } else if (previous instanceof ActiveState active) {
             closeQuietly(active.channel());
         }
@@ -141,7 +142,7 @@ final class CallAttempt {
     private void finish() {
         State previous = transition(DoneState.INSTANCE);
         if (previous instanceof AcquiringState acquiring) {
-            acquiring.acquire().cancel(false);
+            acquiring.acquire().cancel(PredefinedErrorCode.CALL_CANCELLED.fail("call attempt cancelled"));
         }
     }
 

@@ -16,6 +16,7 @@ import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
 
 import java.net.InetSocketAddress;
@@ -60,13 +61,13 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     }
 
     @Override
-    public Promise<Void> register() {
+    public Future<Void> register() {
         if (active.get()) {
-            return Promise.completedVoid();
+            return Futures.completedVoid();
         }
         if (!starting.compareAndSet(false, true)) {
-            Promise<Void> current = registrationFuture;
-            return current != null ? current : Promise.completedVoid();
+            Future<Void> current = registrationFuture;
+            return current != null ? current : Futures.completedVoid();
         }
 
         Promise<Void> result = new Promise<>();
@@ -78,7 +79,7 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
             bindFutures.add(server.bind());
         }
 
-        Promise.allOf(bindFutures).onComplete(bindResult -> {
+        Futures.allOf(bindFutures).onComplete(bindResult -> {
             if (bindResult.failed()) {
                 logger.error("Failed to start service server(s).", bindResult.cause());
                 serverLaunchers.forEach(ServerLauncher::close);
@@ -109,10 +110,10 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     }
 
     @Override
-    public Promise<Void> deregister() {
+    public Future<Void> deregister() {
         if (!active.compareAndSet(true, false)) {
-            Promise<Void> current = deregistrationFuture;
-            return current != null ? current : Promise.completedVoid();
+            Future<Void> current = deregistrationFuture;
+            return current != null ? current : Futures.completedVoid();
         }
 
         Promise<Void> result = new Promise<>();
@@ -205,7 +206,7 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     private Future<Void> registerServiceInstances(List<ServiceInstance> serviceInstances) {
         if (CollectionUtil.isEmpty(registryConfigs)) {
             logger.warn("No available registry config(s)");
-            return Promise.completedVoid();
+            return Futures.completedVoid();
         }
 
         List<Future<Void>> futures = new ArrayList<>();
@@ -215,7 +216,7 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
                 futures.add(registryClient.register(serviceInstance));
             }
         }
-        return Promise.allOf(futures);
+        return Futures.allOf(futures);
     }
 
     private Future<Void> deregisterServiceInstances() {
@@ -226,6 +227,6 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
                 futures.add(registryClient.deregister(serviceInstance));
             }
         }
-        return Promise.allOf(futures);
+        return Futures.allOf(futures);
     }
 }

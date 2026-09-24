@@ -1,135 +1,218 @@
 package io.effi.rpc.concurrent;
 
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BooleanSupplier;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-public class Promise<T> extends AbstractFuture<T> {
+/**
+ * Thread-safe, single-assignment {@link Future} implementation.
+ */
+public final class Promise<T> implements Future<T> {
 
-    public static final Promise<Void> VOID = completed(null);
+    private static final Logger logger = LoggerFactory.getLogger(Promise.class);
 
-    private volatile BooleanSupplier cancelAction;
+    private final AtomicReference<Result<T>> result = new AtomicReference<>();
 
-    public Promise() {
-        super(null);
-    }
+    private final CompletableFuture<Result<T>> completion = new CompletableFuture<>();
 
-    public Promise(ScheduledExecutorService scheduler) {
-        super(scheduler);
-    }
+    private final ConcurrentLinkedQueue<Callback<T>> callbacks = new ConcurrentLinkedQueue<>();
 
-    public Promise(ScheduledExecutorService scheduler, Listener<Result<T>> listener) {
-        super(scheduler, listener);
-    }
+    private final Object cancellationLock = new Object();
 
-    public static <T> Promise<Void> asVoid(Future<T> promise) {
-        if (promise.completed() && promise.succeeded()) {
-            return VOID;
-        }
-        Promise<Void> voidPromise = new Promise<>();
-        promise.onComplete(result -> {
-            if (result.succeeded()) {
-                voidPromise.success(null);
-            } else {
-                voidPromise.failure(result.cause());
-            }
-        });
-        return voidPromise;
-    }
+    private final List<Consumer<EffiRpcException>> cancellationHandlers = new ArrayList<>();
+
+    private boolean cancellationRequested;
+
+    private EffiRpcException cancelReason;
+
+    private boolean terminal;
 
     public static <T> Promise<T> completed(T value) {
-        return new Promise<T>().success(value);
+        Promise<T> promise = new Promise<>();
+        promise.complete(Result.success(value));
+        return promise;
     }
 
-    public static Promise<Void> completedVoid() {
-        return VOID;
+    public static <T> Promise<T> failed(EffiRpcException cause) {
+        Promise<T> promise = new Promise<>();
+        promise.complete(Result.failure(cause));
+        return promise;
     }
 
-    public static Promise<Void> allOf(List<? extends Future<?>> futures) {
-        int size = futures.size();
-        if (size == 0) return VOID;
-
-        Promise<Void> result = new Promise<>();
-        AtomicInteger remaining = new AtomicInteger(size);
-
-        for (Future<?> future : futures) {
-            future.onComplete(r -> {
-                if (r.failed()) {
-                    result.failure(r.cause());
-                } else if (remaining.decrementAndGet() == 0) {
-                    result.success(null);
-                }
-            });
+    public boolean complete(Result<T> terminalResult) {
+        AssertUtil.notNull(terminalResult, "terminalResult");
+        if (!result.compareAndSet(null, terminalResult)) {
+            return false;
         }
-
-        return result;
+        synchronized (cancellationLock) {
+            terminal = true;
+            cancellationHandlers.clear();
+        }
+        publish(terminalResult);
+        return true;
     }
 
-    public Promise<T> success(T value) {
-        return tryComplete(value);
+    public boolean success(T value) {
+        return complete(Result.success(value));
     }
 
-    public Promise<T> failure(Throwable cause) {
-        return tryComplete(cause);
+    public boolean failure(EffiRpcException cause) {
+        return complete(Result.failure(cause));
     }
 
-    /**
-     * Configures the action used to propagate cancellation to an external operation.
-     */
-    public Promise<T> cancelAction(BooleanSupplier cancelAction) {
-        this.cancelAction = AssertUtil.notNull(cancelAction, "cancelAction");
+    public Promise<T> onCancel(Consumer<EffiRpcException> handler) {
+        AssertUtil.notNull(handler, "handler");
+        EffiRpcException reasonToRun = null;
+        synchronized (cancellationLock) {
+            if (terminal) {
+                return this;
+            }
+            if (cancellationRequested) {
+                reasonToRun = cancelReason;
+            } else {
+                cancellationHandlers.add(handler);
+                return this;
+            }
+        }
+        runCancellationHandler(handler, reasonToRun);
         return this;
     }
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        if (completed()) {
+    public boolean completed() {
+        return result.get() != null;
+    }
+
+    @Override
+    public Promise<T> onComplete(Consumer<Result<T>> callback) {
+        return onCompleteAsync(null, callback);
+    }
+
+    @Override
+    public Promise<T> onCompleteAsync(Executor executor, Consumer<Result<T>> callback) {
+        AssertUtil.notNull(callback, "callback");
+        Callback<T> entry = new Callback<>(executor, callback);
+        Result<T> current = result.get();
+        if (current != null) {
+            dispatch(entry, current);
+            return this;
+        }
+        callbacks.add(entry);
+        current = result.get();
+        if (current != null && callbacks.remove(entry)) {
+            dispatch(entry, current);
+        }
+        return this;
+    }
+
+    @Override
+    public CompletionStage<Result<T>> completion() {
+        return completion;
+    }
+
+    @Override
+    public Result<T> await() throws InterruptedException {
+        try {
+            return completion.get();
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
+    }
+
+    @Override
+    public Result<T> await(Deadline deadline) throws InterruptedException {
+        AssertUtil.notNull(deadline, "deadline");
+        if (deadline.isNone()) {
+            return await();
+        }
+        long remaining = deadline.remainingNanos();
+        if (remaining <= 0L) {
+            cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(deadline.remainingNanos()));
+            return completion.join();
+        }
+        try {
+            return completion.get(remaining, TimeUnit.NANOSECONDS);
+        } catch (TimeoutException e) {
+            cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(0L));
+            return completion.join();
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
+    }
+
+    @Override
+    public boolean cancel(EffiRpcException reason) {
+        AssertUtil.notNull(reason, "reason");
+        Result<T> cancelled = Result.failure(reason);
+        if (!result.compareAndSet(null, cancelled)) {
             return false;
         }
-        BooleanSupplier action = cancelAction;
-        if (action != null) {
-            try {
-                if (!action.getAsBoolean()) {
-                    return false;
-                }
-            } catch (Throwable ignored) {
-                return false;
-            }
+        List<Consumer<EffiRpcException>> handlers;
+        synchronized (cancellationLock) {
+            cancellationRequested = true;
+            cancelReason = reason;
+            handlers = List.copyOf(cancellationHandlers);
+            cancellationHandlers.clear();
         }
-        failure(new CancellationException("Promise cancelled"));
+        handlers.forEach(handler -> runCancellationHandler(handler, reason));
+        publish(cancelled);
         return true;
     }
 
-    @Override
-    public Promise<T> onComplete(Consumer<Result<T>> handler) {
-        return (Promise<T>) super.onComplete(handler);
+    private void publish(Result<T> terminalResult) {
+        completion.complete(terminalResult);
+        Callback<T> callback;
+        while ((callback = callbacks.poll()) != null) {
+            dispatch(callback, terminalResult);
+        }
     }
 
-    @Override
-    protected Promise<T> tryComplete(Object value) {
-        return (Promise<T>) super.tryComplete(value);
+    private void dispatch(Callback<T> callback, Result<T> terminalResult) {
+        Executor executor = callback.executor();
+        if (executor == null) {
+            invoke(callback.callback(), terminalResult);
+            return;
+        }
+        try {
+            executor.execute(() -> invoke(callback.callback(), terminalResult));
+        } catch (RejectedExecutionException e) {
+            logger.warn("Callback executor rejected completion; running inline", e);
+            invoke(callback.callback(), terminalResult);
+        }
     }
 
-    public <R> Promise<R> compose(Function<T, Future<R>> mapper) {
-        Promise<R> next = new Promise<>(scheduler);
-        onComplete(res -> {
-            if (res.succeeded()) {
-                Future<R> future = mapper.apply(res.result());
-                future.onComplete(r -> {
-                    if (r.succeeded()) next.success(r.result());
-                    else next.failure(r.cause());
-                });
-            } else {
-                next.failure(res.cause());
-            }
-        });
-        return next;
+    private void invoke(Consumer<Result<T>> callback, Result<T> terminalResult) {
+        try {
+            callback.accept(terminalResult);
+        } catch (Throwable e) {
+            logger.error("Future callback failed.", e);
+        }
+    }
+
+    private void runCancellationHandler(Consumer<EffiRpcException> handler, EffiRpcException reason) {
+        try {
+            handler.accept(reason);
+        } catch (Throwable e) {
+            logger.error("Future cancellation handler failed.", e);
+        }
+    }
+
+    private record Callback<T>(Executor executor, Consumer<Result<T>> callback) {
     }
 }
-

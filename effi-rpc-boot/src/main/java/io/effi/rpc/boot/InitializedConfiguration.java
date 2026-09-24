@@ -4,6 +4,7 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ComponentRegistry;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.context.CallFutureRegistry;
 import io.effi.rpc.component.event.DisruptorEventDispatcher;
 import io.effi.rpc.component.event.EventDispatcher;
 import io.effi.rpc.component.support.Scheduler;
@@ -15,6 +16,7 @@ import io.effi.rpc.transport.idle.IdleEvent;
 import io.effi.rpc.transport.idle.IdleEventListener;
 import io.effi.rpc.transport.idle.RefreshIdleCountEvent;
 import io.effi.rpc.transport.idle.RefreshIdleCountEventListener;
+import io.effi.rpc.transport.ChannelCallBindings;
 
 /**
  * Initializes configurations for the application and module,setting up event listeners and filters.
@@ -31,8 +33,11 @@ public class InitializedConfiguration {
         @Override
         public void onInitializing(ScopedPlatform platform) {
             ComponentRegistry registry = platform.registry();
+            CallFutureRegistry callFutureRegistry = new CallFutureRegistry();
             registry.register(Scheduler.class, new Scheduler())
-                    .register(EventDispatcher.class, new DisruptorEventDispatcher(platform));
+                    .register(EventDispatcher.class, new DisruptorEventDispatcher(platform))
+                    .register(CallFutureRegistry.class, callFutureRegistry)
+                    .register(ChannelCallBindings.class, new ChannelCallBindings(callFutureRegistry));
             EventDispatcher eventDispatcher = platform.singleComponent(EventDispatcher.class);
             eventDispatcher.registerListener(RefreshIdleCountEvent.class, new RefreshIdleCountEventListener());
             eventDispatcher.registerListener(IdleEvent.class, new IdleEventListener());

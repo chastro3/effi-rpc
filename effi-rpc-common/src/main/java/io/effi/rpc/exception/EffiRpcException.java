@@ -4,6 +4,7 @@ import io.effi.rpc.util.AssertUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Map;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
@@ -17,9 +18,16 @@ public class EffiRpcException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
+    private final Map<String, String> metadata;
+
     EffiRpcException(ErrorCode errorCode, Throwable e, Object... args) {
-        super(errorCode.render(args), e);
+        this(errorCode, errorCode.render(args), e, Map.of());
+    }
+
+    private EffiRpcException(ErrorCode errorCode, String message, Throwable cause, Map<String, String> metadata) {
+        super(message, cause);
         this.errorCode = errorCode;
+        this.metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
     }
 
     public static EffiRpcException wrap(ErrorCode errorCode, Object... args) {
@@ -49,12 +57,26 @@ public class EffiRpcException extends RuntimeException {
         }
     }
 
+    /**
+     * Adds or replaces protocol metadata while preserving the error code, message, and cause.
+     */
+    public EffiRpcException withMetadata(Map<String, String> metadata) {
+        return new EffiRpcException(errorCode, getMessage(), getCause(), metadata);
+    }
+
     public CompletionException toCompletionException() {
-        return new CompletionException(this.getMessage(), this.getCause());
+        return new CompletionException(this);
     }
 
     public ErrorCode errorCode() {
         return errorCode;
+    }
+
+    /**
+     * Returns immutable protocol metadata such as gRPC trailers.
+     */
+    public Map<String, String> metadata() {
+        return metadata;
     }
 }
 

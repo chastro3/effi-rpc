@@ -58,7 +58,13 @@ public class ConfigurableClientCodec<REQ extends Request, RESP extends Response>
     @Override
     public ReplyContext<Response, Caller<?>> decode(InputMessage inputMessage, Caller<?> caller) {
         SmartURL url = inputMessage.url();
-        ReplyFuture future = ReplyFuture.lookup(url);
+        ReplyFuture future = ReplyFuture.lookup(inputMessage.channel().platform(), url);
+        if (future == null) {
+            throw TransportErrorCodes.CHANNEL_READ.fail(
+                    new IllegalStateException("Reply future not found for url: " + url),
+                    inputMessage.channel().remoteAddress()
+            );
+        }
         CallContext<Request, Caller<?>> context = future.context();
         try {
             MetricsSupport.recordDeserializeStartTime(context);

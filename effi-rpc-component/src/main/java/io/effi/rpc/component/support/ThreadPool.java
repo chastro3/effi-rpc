@@ -3,6 +3,7 @@ package io.effi.rpc.component.support;
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.concurrent.ConcurrentErrorCodes;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.trait.Closeable;
@@ -35,11 +36,11 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
                     T result = supplier.get();
                     promise.success(result);
                 } catch (Throwable e) {
-                    promise.failure(e);
+                    promise.failure(ConcurrentErrorCodes.TASK_FAILED.fail(e, "submit"));
                 }
             });
         } catch (RejectedExecutionException e) {
-            promise.failure(e);
+            promise.failure(ConcurrentErrorCodes.TASK_REJECTED.fail(e, "submit"));
         }
         return promise;
     }
@@ -52,11 +53,11 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
                     task.run();
                     promise.success(null);
                 } catch (Throwable e) {
-                    promise.failure(e);
+                    promise.failure(ConcurrentErrorCodes.TASK_FAILED.fail(e, "submit"));
                 }
             });
         } catch (RejectedExecutionException e) {
-            promise.failure(e);
+            promise.failure(ConcurrentErrorCodes.TASK_REJECTED.fail(e, "submit"));
         }
         return promise;
     }

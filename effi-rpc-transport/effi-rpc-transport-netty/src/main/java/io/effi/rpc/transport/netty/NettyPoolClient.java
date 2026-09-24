@@ -4,6 +4,7 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.concurrent.Future;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
@@ -38,7 +39,7 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public Promise<NettyChannel> fetchChannel() {
+    public Future<NettyChannel> fetchChannel() {
         return NettyChannel.wrap(channelPool.acquire());
     }
 

@@ -87,7 +87,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
     public Response createResponse(Servant servant, Interaction.Result result) {
         if (servant instanceof HttpServant httpCallee) {
             int statusCode = 200;
-            Object value = result.result();
+            Object value = result.value();
             if (!result.succeeded()) {
                 value = result.cause().getMessage();
                 statusCode = 500;

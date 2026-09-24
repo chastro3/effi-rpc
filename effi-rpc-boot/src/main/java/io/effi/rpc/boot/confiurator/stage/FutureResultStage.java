@@ -38,7 +38,7 @@ public class FutureResultStage implements Stage.CallUnit<Request, Caller<?>> {
                 return;
             }
             try {
-                future.withRawResult(reverseStageChain.proceed(res.result()));
+                future.withRawResult(reverseStageChain.proceed(res.value()));
             } catch (Throwable e) {
                 EffiRpcException failure = InteractionErrorCodes.REPLY_STAGE_FAILED.fail(e, caller.id());
                 future.withRawResult(Interaction.Result.failure(context.message().url(), failure));

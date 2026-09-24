@@ -8,6 +8,7 @@ import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.util.GenericKey;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.concurrent.Future;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,7 +38,7 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
     }
 
     @Override
-    public Promise<NettyChannel> fetchChannel() {
+    public Future<NettyChannel> fetchChannel() {
         return channelFuture.ensure();
     }
 
@@ -53,7 +54,17 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
 
     @Override
     public void close() {
-        if (active()) fetchChannel().result().close();
+        if (!active()) {
+            return;
+        }
+        try {
+            NettyChannel channel = fetchChannel().await().value();
+            if (channel != null) {
+                channel.close();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override

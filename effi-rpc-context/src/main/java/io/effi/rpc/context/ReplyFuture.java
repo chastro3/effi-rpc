@@ -1,127 +1,138 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.concurrent.Deadline;
+import io.effi.rpc.concurrent.ConcurrentErrorCodes;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Futures;
+import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.concurrent.AbstractFuture;
-import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.concurrent.Promise;
-import io.effi.rpc.concurrent.Result;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.util.AssertUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import io.effi.rpc.context.options.CallerOptions;
 
-public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>>> implements SmartURL.Supplier {
+import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
 
-    private static final Logger logger = LoggerFactory.getLogger(ReplyFuture.class);
-
-    private static final Map<Long, ReplyFuture> FUTURES = new ConcurrentHashMap<>();
-
-    private static final AtomicLong INCREASE = new AtomicLong(0);
+/**
+ * Protocol-facing future for a unary call.
+ */
+public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, SmartURL.Supplier {
 
     private final long id;
 
     private final CallContext<Request, Caller<?>> context;
 
-    private final AtomicReference<List<Runnable>> cancellationActions = new AtomicReference<>(List.of());
-
-    private final AtomicBoolean cancellationRequested = new AtomicBoolean(false);
-
-    private final AtomicBoolean terminal = new AtomicBoolean(false);
+    private final Promise<ReplyContext<Response, Caller<?>>> delegate = new Promise<>();
 
     private volatile Interaction.Result rawResult;
 
     protected ReplyFuture(CallContext<Request, Caller<?>> context) {
-        super(findScheduler(context.platform()));
-        this.id = INCREASE.incrementAndGet();
-        this.context = context;
+        this.context = AssertUtil.notNull(context, "context");
+        CallFutureRegistry registry = context.platform().singleComponent(CallFutureRegistry.class);
+        AssertUtil.notNull(registry, "call future registry");
+        this.id = registry.register(this);
         context.set(KeyConstant.ATTR_UNIQUE_ID, id);
         context.message().url().set(KeyConstant.ATTR_UNIQUE_ID, id);
-        FUTURES.put(id, this);
-        Integer timeout = context.peer().option(CallerOptions.TIMEOUT);
-        timeout(timeout, TimeUnit.MILLISECONDS);
+        timeout(context.peer().option(TIMEOUT), TimeUnit.MILLISECONDS);
     }
 
-    public static ReplyFuture lookup(SmartURL url) {
-        Long id = url.get(KeyConstant.ATTR_UNIQUE_ID);
-        return id == null ? null : FUTURES.get(id);
+    public static ReplyFuture lookup(ScopedPlatform platform, SmartURL url) {
+        if (url == null) return null;
+        return lookup(platform, url.get(KeyConstant.ATTR_UNIQUE_ID));
     }
 
-    public static ReplyFuture lookup(long id) {
-        return FUTURES.get(id);
-    }
-
-    private static ScheduledExecutorService findScheduler(ScopedPlatform platform) {
-        Scheduler scheduler = platform.singleComponent(Scheduler.class);
-        return scheduler.disposableService();
+    public static ReplyFuture lookup(ScopedPlatform platform, Long callId) {
+        if (platform == null || callId == null) {
+            return null;
+        }
+        CallFutureRegistry registry = platform.singleComponent(CallFutureRegistry.class);
+        if (registry == null) {
+            return null;
+        }
+        Future<?> future = registry.lookup(callId);
+        return future instanceof ReplyFuture replyFuture ? replyFuture : null;
     }
 
     public ReplyFuture complete(ReplyContext<Response, Caller<?>> replyContext) {
-        if (completed()) return this;
+        if (delegate.completed()) {
+            return this;
+        }
         Interaction.Result result = replyContext.result();
         rawResult = result;
-        if (result.succeeded()) tryComplete(replyContext);
-        else tryComplete(result.cause());
+        if (result.succeeded()) {
+            delegate.success(replyContext);
+        } else {
+            delegate.failure(result.cause());
+        }
         return this;
     }
 
     public ReplyFuture failure(EffiRpcException cause) {
-        if (!completed()) {
-            tryComplete(cause);
-        }
+        delegate.failure(cause);
         return this;
     }
 
-    /**
-     * Registers a callback invoked only when this call is cancelled by timeout.
-     * The callback is executed at most once.
-     */
-    public ReplyFuture onCancel(Runnable action) {
-        AssertUtil.notNull(action, "action");
-        if (cancellationRequested.get()) {
-            runCancellationAction(action);
-            return this;
-        }
-        if (terminal.get()) {
-            return this;
-        }
-        cancellationActions.updateAndGet(actions -> {
-            List<Runnable> updated = new ArrayList<>(actions);
-            updated.add(action);
-            return List.copyOf(updated);
-        });
-        if (cancellationRequested.get()) {
-            AtomicBoolean removed = new AtomicBoolean(false);
-            cancellationActions.updateAndGet(actions -> {
-                if (!actions.contains(action)) {
-                    return actions;
-                }
-                List<Runnable> updated = new ArrayList<>(actions);
-                updated.remove(action);
-                removed.set(true);
-                return List.copyOf(updated);
-            });
-            if (removed.get()) {
-                runCancellationAction(action);
-            }
-        } else if (terminal.get()) {
-            cancellationActions.updateAndGet(actions -> removeCancellationAction(actions, action));
-        }
+    public ReplyFuture onCancel(Consumer<EffiRpcException> action) {
+        delegate.onCancel(action);
         return this;
+    }
+
+    public ReplyFuture timeout(long delay, TimeUnit unit) {
+        if (delay < 0) {
+            return this;
+        }
+        Deadline deadline = Deadline.after(delay, unit);
+        CompletableFuture.delayedExecutor(deadline.remainingNanos(), TimeUnit.NANOSECONDS)
+                .execute(() -> delegate.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(delay)));
+        return this;
+    }
+
+    @Override
+    public boolean completed() {
+        return delegate.completed();
+    }
+
+    @Override
+    public ReplyFuture onComplete(Consumer<Result<ReplyContext<Response, Caller<?>>>> handler) {
+        delegate.onComplete(handler);
+        return this;
+    }
+
+    @Override
+    public ReplyFuture onCompleteAsync(
+            Executor executor,
+            Consumer<Result<ReplyContext<Response, Caller<?>>>> handler
+    ) {
+        delegate.onCompleteAsync(executor, handler);
+        return this;
+    }
+
+    @Override
+    public CompletionStage<Result<ReplyContext<Response, Caller<?>>>> completion() {
+        return delegate.completion();
+    }
+
+    @Override
+    public Result<ReplyContext<Response, Caller<?>>> await() throws InterruptedException {
+        return delegate.await();
+    }
+
+    @Override
+    public Result<ReplyContext<Response, Caller<?>>> await(Deadline deadline) throws InterruptedException {
+        return delegate.await(deadline);
+    }
+
+    @Override
+    public boolean cancel(EffiRpcException reason) {
+        return delegate.cancel(reason);
     }
 
     @Override
@@ -129,25 +140,16 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
         return context.message().url();
     }
 
-    @Override
-    public ReplyFuture timeout(long delay, TimeUnit unit) {
-        super.timeout(delay, unit);
-        return this;
-    }
-
-    @Override
-    protected Throwable timeoutException(long delay, TimeUnit unit) {
-        return InteractionErrorCodes.SERVICE_CALL_TIMEOUT.fail(delay + " " + unit, id);
-    }
-
-    @Override
-    public ReplyFuture onComplete(Consumer<Result<ReplyContext<Response, Caller<?>>>> handler) {
-        return (ReplyFuture) super.onComplete(handler);
-    }
-
-    @Override
     public EffiRpcException cause() {
-        return (EffiRpcException) super.cause();
+        if (!delegate.completed()) {
+            return null;
+        }
+        try {
+            return delegate.await().cause();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return ConcurrentErrorCodes.INTERRUPTED.fail(e, "await");
+        }
     }
 
     public long id() {
@@ -158,63 +160,21 @@ public class ReplyFuture extends AbstractFuture<ReplyContext<Response, Caller<?>
         return context;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> Future<T> toResultFuture() {
-        Promise<T> promise = new Promise<>();
-        onComplete(res -> {
-            if (res.failed()) {
-                promise.failure(res.cause());
-                return;
-            }
-            Interaction.Result result = rawResult;
-            if (result == null) {
-                promise.failure(InteractionErrorCodes.REPLY_RESULT_MISSING.fail(id));
-                return;
-            }
-            if (result.succeeded()) {
-                promise.success((T) result.result());
-            } else {
-                promise.failure(result.cause());
-            }
-        });
-        return promise;
-    }
-
     public void withRawResult(Interaction.Result rawResult) {
         this.rawResult = rawResult;
     }
 
-    @Override
-    protected void onCompletion(Result<ReplyContext<Response, Caller<?>>> result, boolean timedOut) {
-        FUTURES.remove(id);
-        if (timedOut) {
-            if (cancellationRequested.compareAndSet(false, true)) {
-                cancellationActions.getAndSet(List.of()).forEach(this::runCancellationAction);
+    @SuppressWarnings("unchecked")
+    public <T> Future<T> toResultFuture() {
+        return Futures.compose(delegate, ignored -> {
+            Interaction.Result result = rawResult;
+            if (result == null) {
+                return Promise.failed(InteractionErrorCodes.REPLY_RESULT_MISSING.fail(id));
             }
-        } else {
-            terminal.set(true);
-            cancellationActions.set(List.of());
-        }
-    }
-
-    private List<Runnable> removeCancellationAction(List<Runnable> actions, Runnable action) {
-        if (!actions.contains(action)) {
-            return actions;
-        }
-        List<Runnable> updated = new ArrayList<>(actions);
-        updated.remove(action);
-        return List.copyOf(updated);
-    }
-
-    private void runCancellationAction(Runnable action) {
-        if (action == null) {
-            return;
-        }
-        try {
-            action.run();
-        } catch (Throwable e) {
-            logger.error("Failed to cancel reply future '{}'", e, id);
-        }
+            if (result.failed()) {
+                return Promise.failed(result.cause());
+            }
+            return Promise.completed((T) result.value());
+        });
     }
 }
-

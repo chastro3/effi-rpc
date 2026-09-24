@@ -76,7 +76,10 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
     private void addFailedListener(ChannelPromise promise, OutputMessage outputMessage) {
         promise.addListener(future -> {
             if (!future.isSuccess()) {
-                ReplyFuture replyFuture = ReplyFuture.lookup(outputMessage.url());
+                ReplyFuture replyFuture = ReplyFuture.lookup(
+                        outputMessage.channel().platform(),
+                        outputMessage.url()
+                );
                 if (replyFuture != null) {
                     InetSocketAddress remoteAddress = outputMessage.channel().remoteAddress();
                     EffiRpcException exception = TransportErrorCodes.CHANNEL_WRITE.fail(future.cause(), remoteAddress);

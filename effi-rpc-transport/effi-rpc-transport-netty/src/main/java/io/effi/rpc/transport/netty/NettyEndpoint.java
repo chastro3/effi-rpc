@@ -52,7 +52,19 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
     }
 
     protected boolean isActive(LazySingleton<Promise<NettyChannel>> future) {
-        return future.initialized() && future.ensure().succeeded();
+        if (!future.initialized()) {
+            return false;
+        }
+        Promise<NettyChannel> promise = future.ensure();
+        if (!promise.completed()) {
+            return false;
+        }
+        try {
+            return promise.await().succeeded();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     private ChannelConfigurer ensureChannelConfigurer(ChannelConfigurer channelConfigurer) {

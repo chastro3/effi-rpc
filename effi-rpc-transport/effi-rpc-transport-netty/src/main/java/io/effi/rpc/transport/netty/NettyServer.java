@@ -85,8 +85,13 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
         activeChannels.clear();
         if (serverChannelFuture.initialized()) {
             Promise<NettyChannel> bindResult = serverChannelFuture.ensure();
-            if (bindResult.succeeded() && bindResult.result() != null) {
-                bindResult.result().close();
+            try {
+                var result = bindResult.await();
+                if (result.succeeded() && result.value() != null) {
+                    result.value().close();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
         if (bossGroup != null) bossGroup.shutdownGracefully();

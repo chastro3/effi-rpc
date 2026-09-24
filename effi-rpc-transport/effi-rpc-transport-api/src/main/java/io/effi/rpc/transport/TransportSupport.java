@@ -106,8 +106,8 @@ public class TransportSupport {
     }
 
     public static void handleResponse(InputMessage inputMessage) {
-        ReplyFuture future = ReplyFuture.lookup(inputMessage.url());
         Channel channel = inputMessage.channel();
+        ReplyFuture future = ReplyFuture.lookup(channel.platform(), inputMessage.url());
         TransportProtocol protocol = channel.protocol();
         if (future != null) {
             ClientExchangeContextCodec clientCodec = protocol.clientCodec();

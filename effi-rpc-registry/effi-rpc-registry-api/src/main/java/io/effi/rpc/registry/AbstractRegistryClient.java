@@ -9,7 +9,9 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
 
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         String serviceName = instance.serviceName();
         Set<ServiceInstance> serviceInstances = registeredServiceInstances.computeIfAbsent(serviceName, k -> ConcurrentHashMap.newKeySet());
         if (!serviceInstances.add(instance)) {
-            return Promise.completedVoid();
+            return Futures.completedVoid();
         }
 
         Registration registration = createRegistration(instance);
@@ -118,7 +120,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
             DiscoveredService holder = new DiscoveredService();
             doLookup(serviceName).onComplete(res -> {
                 if (res.succeeded()) {
-                    List<ServiceInstance> instances = res.result();
+                    List<ServiceInstance> instances = res.value();
                     logger.info("Discovered {} instance(s) for '{}' '{}'", instances.size(), serviceName, config);
                     holder.complete(instances);
                     threadPool.execute(() -> {
@@ -168,8 +170,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
             return;
         }
         long timeout = Math.max(1, config.option(RegistryOptions.CONNECT_TIMEOUT));
-        deregisterServices()
-                .timeout(timeout, TimeUnit.MILLISECONDS)
+        Futures.withDeadline(deregisterServices(), Deadline.after(timeout, TimeUnit.MILLISECONDS))
                 .onComplete(res -> {
             subscribedHealthServices.clear();
             registeredServiceInstances.clear();
@@ -203,7 +204,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
     private Future<Void> deregisterServices() {
         if (registeredServiceInstances.isEmpty()) {
-            return Promise.completedVoid();
+            return Futures.completedVoid();
         }
         List<Future<Void>> futures = new ArrayList<>();
         for (Map.Entry<String, Set<ServiceInstance>> entry : registeredServiceInstances.entrySet()) {
@@ -211,7 +212,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
                 futures.add(deregister(instance));
             }
         }
-        return Promise.allOf(futures);
+        return Futures.allOf(futures);
     }
 
     private ThreadPool findThreadPool(RegistryConfig config, boolean needThreadPool) {

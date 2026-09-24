@@ -41,18 +41,18 @@ public class DefaultInteractionResult<T> implements Interaction.Result {
     }
 
     @Override
-    public T result() {
-        return result.result();
+    public T value() {
+        return result.value();
     }
 
     @Override
     public EffiRpcException cause() {
-        return (EffiRpcException) result.cause();
+        return result.cause();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <R> R excepted() {
-        return (R) result();
+        return (R) value();
     }
 }

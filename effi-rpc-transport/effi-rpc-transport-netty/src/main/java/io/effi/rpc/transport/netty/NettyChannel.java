@@ -1,5 +1,7 @@
 package io.effi.rpc.transport.netty;
 
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.internal.logging.Logger;
@@ -7,12 +9,13 @@ import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.AbstractChannel;
 import io.effi.rpc.transport.endpoint.ChannelTracker;
 import io.effi.rpc.transport.endpoint.Endpoint;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.ExceptionUtil;
 import io.effi.rpc.util.ObjectUtil;
 import io.effi.rpc.util.StringUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.util.concurrent.Future;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +63,7 @@ public final class NettyChannel extends AbstractChannel {
         return wrap(future, future::channel, NettyChannel::ensure);
     }
 
-    public static Promise<NettyChannel> wrap(Future<? extends Channel> future) {
+    public static Promise<NettyChannel> wrap(io.netty.util.concurrent.Future<? extends Channel> future) {
         return wrap(future, future::getNow, NettyChannel::ensure);
     }
 
@@ -100,8 +103,8 @@ public final class NettyChannel extends AbstractChannel {
 
 
     @Override
-    protected Promise<Void> doSend(Object message) {
-        return Promise.asVoid(wrap(channel.writeAndFlush(message)));
+    protected Future<Void> doSend(Object message) {
+        return Futures.asVoid(wrap(channel.writeAndFlush(message)));
     }
 
     public Channel channel() {
@@ -122,21 +125,27 @@ public final class NettyChannel extends AbstractChannel {
         return ensure(parent);
     }
 
-    private static <T extends Future<?>> Promise<NettyChannel>
+    private static <T extends io.netty.util.concurrent.Future<?>> Promise<NettyChannel>
     wrap(T future, Supplier<Channel> channelSupplier, Function<Channel, NettyChannel> wrapper) {
         Promise<NettyChannel> promise = new Promise<>();
-        promise.cancelAction(() -> future.cancel(false));
+        promise.onCancel(reason -> future.cancel(false));
         future.addListener(result -> {
             if (result.isSuccess()) {
                 Channel channel = channelSupplier.get();
                 try {
                     NettyChannel nettyChannel = wrapper.apply(channel);
+                    if (promise.completed()) {
+                        nettyChannel.close();
+                        return;
+                    }
                     promise.success(nettyChannel);
                 } catch (Exception e) {
-                    promise.failure(e);
+                    promise.failure(TransportErrorCodes.CHANNEL_EXCEPTION.fail(
+                            e, "unknown", ExceptionUtil.message(e)));
                 }
             } else {
-                promise.failure(result.cause());
+                promise.failure(TransportErrorCodes.CHANNEL_EXCEPTION.fail(
+                        result.cause(), "unknown", ExceptionUtil.message(result.cause())));
             }
         });
         return promise;
@@ -148,7 +157,7 @@ public final class NettyChannel extends AbstractChannel {
         channel.closeFuture().addListener(this::handleClose);
     }
 
-    private void handleClose(Future<? super Void> future) {
+    private void handleClose(io.netty.util.concurrent.Future<? super Void> future) {
         if (future.isSuccess()) {
             maybeUnTrackChannel();
             if (CHANNELS.remove(channel, this)) {

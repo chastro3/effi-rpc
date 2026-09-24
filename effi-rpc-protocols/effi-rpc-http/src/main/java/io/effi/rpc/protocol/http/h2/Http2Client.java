@@ -1,5 +1,7 @@
 package io.effi.rpc.protocol.http.h2;
 
+import io.effi.rpc.concurrent.Futures;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
@@ -26,8 +28,8 @@ public class Http2Client extends NettyPoolClient {
     }
 
     @Override
-    public Promise<NettyChannel> fetchChannel() {
-        return super.fetchChannel().compose(channel -> {
+    public Future<NettyChannel> fetchChannel() {
+        return Futures.compose(super.fetchChannel(), channel -> {
             Channel physicalChannel = channel.channel();
             Http2StreamChannelBootstrap bootstrap = H2Support.getBoundStreamBootstrap(physicalChannel);
             Promise<NettyChannel> h2ChannelFuture = NettyChannel.wrap(bootstrap.open());

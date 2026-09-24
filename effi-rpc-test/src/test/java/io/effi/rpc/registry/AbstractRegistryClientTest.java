@@ -5,7 +5,9 @@ import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.support.Scheduler;
 import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -60,10 +62,13 @@ class AbstractRegistryClientTest {
             return ignored -> {
                 if (attempts.incrementAndGet() == 1) {
                     Promise<Void> failed = new Promise<>();
-                    failed.failure(new IllegalStateException("first registration failed"));
+                    failed.failure(PredefinedErrorCode.COMMON.fail(
+                            new IllegalStateException("first registration failed"),
+                            "first registration failed"
+                    ));
                     return failed;
                 }
-                return Promise.completedVoid();
+                return Futures.completedVoid();
             };
         }
 
@@ -73,7 +78,7 @@ class AbstractRegistryClientTest {
 
         @Override
         protected Future<Void> doDeregister(ServiceInstance instance) {
-            return Promise.completedVoid();
+            return Futures.completedVoid();
         }
 
         @Override

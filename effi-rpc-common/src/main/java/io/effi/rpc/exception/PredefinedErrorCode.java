@@ -31,7 +31,10 @@ public enum PredefinedErrorCode implements ErrorCode {
     REGISTRY_SUBSCRIBE("0022", "Failed to subscribe services(s) for '{}' in registry at '{}'"),
     PROXY_CREATE("0023", "Failed to create proxy for '{}'"),
     CHANNEL_WRITE("0024", "Failed to write data to channel '{}'"),
-    CHANNEL_READ("0025", "Failed to read data from channel '{}'");
+    CHANNEL_READ("0025", "Failed to read data from channel '{}'"),
+    CALL_CANCELLED("0026", "Call was cancelled: '{}'"),
+    DEADLINE_EXCEEDED("0027", "Call deadline exceeded after '{}'"),
+    SERVICE_UNAVAILABLE("0028", "Remote service is unavailable: '{}'");
 
     private final String code;
 

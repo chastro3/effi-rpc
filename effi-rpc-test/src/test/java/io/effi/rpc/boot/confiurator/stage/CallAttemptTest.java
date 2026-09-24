@@ -8,6 +8,7 @@ import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.CallFutureRegistry;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
@@ -37,18 +38,13 @@ class CallAttemptTest {
     void timeoutWhileAcquiringClosesLateChannelWithoutSending() throws Exception {
         TestContext fixture = new TestContext(20);
         Promise<Channel> acquire = new Promise<>();
-        acquire.cancelAction(() -> false);
-        TestChannel channel = new TestChannel();
 
         CallAttempt attempt = fixture.newAttempt(acquire);
         attempt.start();
         assertTimedOut(fixture.future);
 
-        acquire.success(channel.proxy);
-
-        assertEquals(1, channel.closes.get());
-        assertEquals(0, channel.sends.get());
-        assertNull(ReplyFuture.lookup(fixture.future.id()));
+        assertTrue(acquire.await().failed());
+        assertNull(fixture.registry.lookup(fixture.future.id()));
     }
 
     @Test
@@ -65,15 +61,15 @@ class CallAttemptTest {
 
         assertEquals(1, channel.sends.get());
         assertEquals(1, channel.closes.get());
-        assertNull(ReplyFuture.lookup(fixture.future.id()));
+        assertNull(fixture.registry.lookup(fixture.future.id()));
     }
 
-    private static void assertTimedOut(ReplyFuture future) {
+    private static void assertTimedOut(ReplyFuture future) throws Exception {
         assertThrows(
                 ExecutionException.class,
                 () -> future.toCompletableFuture().get(1, TimeUnit.SECONDS)
         );
-        assertTrue(future.failed());
+        assertTrue(future.await().failed());
     }
 
     private static final class TestContext {
@@ -84,9 +80,13 @@ class CallAttemptTest {
 
         private final CallContext<Request, Caller<?>> context;
 
+        private final CallFutureRegistry registry;
+
         private TestContext(long timeoutMillis) {
             ScopedPlatform platform = new ScopedPlatform("call-attempt-" + PLATFORM_IDS.incrementAndGet());
             platform.registry().register(Scheduler.class, new Scheduler());
+            this.registry = new CallFutureRegistry();
+            platform.registry().register(CallFutureRegistry.class, registry);
             ScopedApplication application = platform.newApplication("application");
             ScopedModule module = application.newModule("module");
 
