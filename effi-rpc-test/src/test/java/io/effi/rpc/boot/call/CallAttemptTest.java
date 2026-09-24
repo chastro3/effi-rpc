@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator.stage;
+package io.effi.rpc.boot.call;
 
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
@@ -14,6 +14,7 @@ import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.support.Unary;
 import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.option.OptionName;
 import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.TransportProtocol;
@@ -41,7 +42,7 @@ class CallAttemptTest {
         Promise<Channel> acquire = new Promise<>();
 
         CallAttempt attempt = fixture.newAttempt(acquire);
-        attempt.start();
+        attempt.dispatch();
         assertTimedOut(fixture.future);
 
         assertTrue(acquire.await().failed());
@@ -55,7 +56,7 @@ class CallAttemptTest {
         TestChannel channel = new TestChannel();
 
         CallAttempt attempt = fixture.newAttempt(acquire);
-        attempt.start();
+        attempt.dispatch();
         acquire.success(channel.proxy);
 
         assertTimedOut(fixture.future);
@@ -85,7 +86,8 @@ class CallAttemptTest {
 
         private TestContext(long timeoutMillis) {
             ScopedPlatform platform = new ScopedPlatform("call-attempt-" + PLATFORM_IDS.incrementAndGet());
-            platform.registry().register(Scheduler.class, new Scheduler());
+            Scheduler scheduler = new Scheduler();
+            platform.registry().register(Scheduler.class, scheduler);
             this.registry = new CallFutureRegistry();
             platform.registry().register(CallFutureRegistry.class, registry);
             platform.registry().register(ChannelCallBindings.class, new ChannelCallBindings(registry));
@@ -108,6 +110,11 @@ class CallAttemptTest {
             });
             this.context = new CallContext<>(module, request, caller, Unary.MODE, new Object[0]);
             this.future = Unary.MODE.newFuture(context);
+            scheduler.addDisposable(
+                    () -> future.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(timeoutMillis)),
+                    timeoutMillis,
+                    TimeUnit.MILLISECONDS
+            );
         }
 
         private CallAttempt newAttempt(Future<? extends Channel> acquire) {
@@ -126,7 +133,7 @@ class CallAttemptTest {
                 }
                 return defaultValue(method.getReturnType());
             });
-            return new CallAttempt(future, client, protocol, context);
+            return new CallAttempt(future, client, protocol);
         }
     }
 

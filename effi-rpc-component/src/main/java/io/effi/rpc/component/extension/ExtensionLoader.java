@@ -5,13 +5,12 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ComponentDescriptor;
 import io.effi.rpc.component.ScopedContext;
 import io.effi.rpc.constant.ResourcePaths;
+import io.effi.rpc.trait.Cleanable;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ClassUtil;
-import io.effi.rpc.trait.Cleanable;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.Messages;
 import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.trait.Ordered;
 import io.effi.rpc.util.StringUtil;
 
 import java.io.BufferedReader;
@@ -20,32 +19,28 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 
 import static io.effi.rpc.util.StringUtil.format;
 
 /**
  * Loads and manages extension components of a specified type.
- * <p>
- * Scans, loads, and instantiates implementation classes annotated with {@link Extension},
- * managing them according to their configuration, including scope, conditional filtering,
- * and priority ordering.
- * <p>
- * Supports retrieving extension instances by id, obtaining the default extension,
- * and listing all instances that meet specified conditions.
- *
- * @param <T> the extension type, which must be an interface annotated with {@link Extensible}
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class ExtensionLoader<T> implements Cleanable {
 
-    private final Map<String, ExtensionEntry<T>> extensionEntries;
+    private static final Map<Class<?>, Map<String, Class>> CACHE = new ConcurrentHashMap<>();
 
-    private final Extensible extensible;
+    private final Map<String, ExtensionEntry<T>> extensionEntries;
 
     private final ScopedContext scopedContext;
 
@@ -58,13 +53,14 @@ public final class ExtensionLoader<T> implements Cleanable {
     private final boolean lazyLoaded;
 
     ExtensionLoader(ScopedContext scopedContext, Class<T> type, ComponentDescriptor descriptor) {
-        this.extensible = ensureExtensible(type);
         this.scopedContext = scopedContext;
         this.type = type;
         this.descriptor = descriptor;
+        Extensible extensible = requireExtensible(type);
+        Map<String, Class<? extends T>> extensionClasses = loadExtensionClasses(type);
+        this.extensionEntries = createEntries(extensionClasses);
+        this.primaryExtension = findPrimaryExtension(extensible, extensionClasses);
         this.lazyLoaded = extensible.lazyLoad();
-        this.extensionEntries = loadExtensionEntries(type);
-        this.primaryExtension = findPrimaryExtension();
     }
 
     public Class<T> type() {
@@ -99,8 +95,7 @@ public final class ExtensionLoader<T> implements Cleanable {
         }
         ExtensionEntry<T> entry = extensionEntries.get(extensionName);
         if (entry != null) return entry.extension();
-        if (!extensionName.equals(primaryExtension)
-                && StringUtil.isNotBlank(primaryExtension)) {
+        if (!extensionName.equals(primaryExtension) && StringUtil.isNotBlank(primaryExtension)) {
             ExtensionEntry<T> primaryEntry = extensionEntries.get(primaryExtension);
             if (primaryEntry != null) {
                 return primaryEntry.extension();
@@ -132,72 +127,102 @@ public final class ExtensionLoader<T> implements Cleanable {
         return ObjectUtil.simpleClassName(this) + "<" + type.getSimpleName() + ">";
     }
 
-    private Extensible ensureExtensible(Class<?> type) {
-        if (!type.isInterface())
-            throw new IllegalArgumentException("Extension type '" + type.getName() + "' must be an interface");
-        return AssertUtil.requireAnnotation(type, Extensible.class);
+    private Map<String, ExtensionEntry<T>> createEntries(Map<String, Class<? extends T>> extensionClasses) {
+        Map<Class<?>, ExtensionEntry<T>> entriesByType = new HashMap<>();
+        LinkedHashMap<String, ExtensionEntry<T>> result = new LinkedHashMap<>();
+        extensionClasses.forEach((name, extensionClass) -> {
+            ExtensionEntry<T> entry = entriesByType.computeIfAbsent(extensionClass, ignored ->
+                    new ExtensionEntry<>(this, extensionClass)
+            );
+            result.put(name, entry);
+        });
+        return result;
     }
 
-    /**
-     * Loads all available extensions for the specified type by scanning resources.
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, ExtensionEntry<T>> loadExtensionEntries(Class<T> type) {
-        String path = ResourcePaths.SPI_SERVICES_DIR + type.getTypeName();
+    private static <T> Map<String, Class<? extends T>> loadExtensionClasses(Class<T> type) {
+        return (Map<String, Class<? extends T>>) (Map<?, ?>) CACHE.computeIfAbsent(type, ExtensionLoader::scanExtensionClasses);
+    }
+
+    private static Map<String, Class> scanExtensionClasses(Class<?> rawType) {
+        String path = ResourcePaths.SPI_SERVICES_DIR + rawType.getTypeName();
         try {
-            ClassLoader classLoader = ClassUtil.findClassLoader(type);
+            ClassLoader classLoader = ClassUtil.findClassLoader(rawType);
             Enumeration<URL> resources = classLoader.getResources(path);
-            Map<Class<?>, ExtensionEntry<T>> extensionEntriesByType = new HashMap<>();
-            List<ExtensionEntry<T>> extensionEntries = new ArrayList<>();
-            List<ExtensionEntry<T>> overrideExtensionEntries = new ArrayList<>();
-            // Load and create ExtensionEntry instance for all valid extensions
+            Map<Class<?>, Extension> definitionsByType = new HashMap<>();
+            Set<Class<?>> normalTypes = new LinkedHashSet<>();
+            Set<Class<?>> overrideTypes = new LinkedHashSet<>();
             while (resources.hasMoreElements()) {
                 URL url = resources.nextElement();
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
-                    String extensionClassName;
-                    while ((extensionClassName = br.readLine()) != null) {
-                        Class<?> extensionClass = classLoader.loadClass(extensionClassName);
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+                    String className;
+                    while ((className = reader.readLine()) != null) {
+                        Class<?> extensionClass = classLoader.loadClass(className);
                         Extension extension = extensionClass.getAnnotation(Extension.class);
-                        if (type.isAssignableFrom(extensionClass) && extension != null) {
-                            ExtensionEntry<T> extensionEntry = extensionEntriesByType.computeIfAbsent(
-                                    extensionClass,
-                                    k -> new ExtensionEntry<>(this, (Class<? extends T>) extensionClass, extension)
-                            );
-                            if (extensionEntry.available()) {
-                                extensionEntries.add(extensionEntry);
-                                if (extensionEntry.canOverride()) {
-                                    overrideExtensionEntries.add(extensionEntry);
-                                }
-                            }
+                        if (!rawType.isAssignableFrom(extensionClass) || extension == null) {
+                            continue;
+                        }
+                        definitionsByType.putIfAbsent(extensionClass, extension);
+                        if (!available(extension, classLoader)) {
+                            continue;
+                        }
+                        if (extension.override()) {
+                            overrideTypes.add(extensionClass);
+                        } else {
+                            normalTypes.add(extensionClass);
                         }
                     }
                 }
             }
-            LinkedHashMap<String, ExtensionEntry<T>> result = new LinkedHashMap<>();
-            addEntries(result, extensionEntries);
-            addEntries(result, overrideExtensionEntries);
-            return result.isEmpty() ? Collections.emptyMap() : result;
+            LinkedHashMap<String, Class> entries = new LinkedHashMap<>();
+            addEntries(entries, definitionsByType, normalTypes);
+            addEntries(entries, definitionsByType, overrideTypes);
+            return Collections.unmodifiableMap(entries);
         } catch (Exception e) {
             throw new IllegalStateException(Messages.parseFile(path), e);
         }
     }
 
-    private void addEntries(LinkedHashMap<String, ExtensionEntry<T>> entriesMap, List<ExtensionEntry<T>> entries) {
-        List<ExtensionEntry<T>> sortedEntries = Ordered.sort(entries);
-        for (ExtensionEntry<T> entry : sortedEntries) {
-            for (String name : entry.names()) {
-                entriesMap.putIfAbsent(name, entry);
+    private static void addEntries(Map<String, Class> entries, Map<Class<?>, Extension> definitions, Set<Class<?>> types) {
+        List<Class<?>> sorted = new ArrayList<>(types);
+        sorted.sort(Comparator.comparingInt(type -> definitions.get(type).order()));
+        for (Class<?> type : sorted) {
+            Extension extension = definitions.get(type);
+            for (String name : StringUtil.deduplicate(extension.value())) {
+                entries.putIfAbsent(name, type);
             }
         }
     }
 
-    private String findPrimaryExtension() {
-        String primaryExtension = extensible.value();
-        if (StringUtil.isNotBlank(primaryExtension)) return primaryExtension;
-        for (Map.Entry<String, ExtensionEntry<T>> mapEntry : extensionEntries.entrySet()) {
-            ExtensionEntry<T> entry = mapEntry.getValue();
-            if (entry.primary()) return mapEntry.getKey();
+    private static <T> String findPrimaryExtension(Extensible extensible, Map<String, Class<? extends T>> entries) {
+        if (StringUtil.isNotBlank(extensible.value())) {
+            return extensible.value();
         }
-        return null;
+        return entries.entrySet().stream()
+                .filter(entry -> entry.getValue().getAnnotation(Extension.class).primary())
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static boolean available(Extension extension, ClassLoader classLoader) {
+        String[] classes = extension.onClass();
+        if (classes.length == 0) {
+            return true;
+        }
+        try {
+            for (String type : classes) {
+                classLoader.loadClass(type);
+            }
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    private static Extensible requireExtensible(Class<?> type) {
+        if (!type.isInterface()) {
+            throw new IllegalArgumentException("Extension type '" + type.getName() + "' must be an interface");
+        }
+        return AssertUtil.requireAnnotation(type, Extensible.class);
     }
 }

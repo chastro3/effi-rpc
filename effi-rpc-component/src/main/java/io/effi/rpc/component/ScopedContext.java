@@ -37,6 +37,8 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
 
     protected final AtomicBoolean active = new AtomicBoolean(false);
 
+    protected final AtomicBoolean closed = new AtomicBoolean(false);
+
     protected String name;
 
     protected Scope scope;
@@ -178,6 +180,9 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     public void start() {
+        if (closed.get()) {
+            throw new IllegalStateException("Scoped context '" + name + "' is already closed");
+        }
         if (active.compareAndSet(false, true)) {
             HookExecutor.start().execute(listeners, this, this::doStart);
         }
@@ -190,7 +195,8 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
 
     @Override
     public void close() {
-        if (active.compareAndSet(true, false)) {
+        if (closed.compareAndSet(false, true)) {
+            active.set(false);
             HookExecutor.close().execute(listeners, this, this::doClose);
             ObjectUtil.release(componentRepository);
             ObjectUtil.release(extensionRepository);

@@ -1,25 +1,19 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.ConcurrentErrorCodes;
+import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.util.AssertUtil;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
 
 /**
  * Protocol-facing future for a unary call.
@@ -34,14 +28,13 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
 
     private volatile Interaction.Result rawResult;
 
-    protected ReplyFuture(CallContext<Request, Caller<?>> context) {
+    public ReplyFuture(CallContext<Request, Caller<?>> context) {
         this.context = AssertUtil.notNull(context, "context");
         CallFutureRegistry registry = context.platform().singleComponent(CallFutureRegistry.class);
         AssertUtil.notNull(registry, "call future registry");
         this.id = registry.register(this);
         context.set(KeyConstant.ATTR_UNIQUE_ID, id);
         context.message().url().set(KeyConstant.ATTR_UNIQUE_ID, id);
-        timeout(context.peer().option(TIMEOUT), TimeUnit.MILLISECONDS);
     }
 
     public static ReplyFuture lookup(ScopedPlatform platform, SmartURL url) {
@@ -82,16 +75,6 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
 
     public ReplyFuture onCancel(Consumer<EffiRpcException> action) {
         delegate.onCancel(action);
-        return this;
-    }
-
-    public ReplyFuture timeout(long delay, TimeUnit unit) {
-        if (delay < 0) {
-            return this;
-        }
-        Deadline deadline = Deadline.after(delay, unit);
-        CompletableFuture.delayedExecutor(deadline.remainingNanos(), TimeUnit.NANOSECONDS)
-                .execute(() -> delegate.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(delay)));
         return this;
     }
 
@@ -164,17 +147,7 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
         this.rawResult = rawResult;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> Future<T> toResultFuture() {
-        return Futures.compose(delegate, ignored -> {
-            Interaction.Result result = rawResult;
-            if (result == null) {
-                return Promise.failed(InteractionErrorCodes.REPLY_RESULT_MISSING.fail(id));
-            }
-            if (result.failed()) {
-                return Promise.failed(result.cause());
-            }
-            return Promise.completed((T) result.value());
-        });
+    public Interaction.Result rawResult() {
+        return rawResult;
     }
 }

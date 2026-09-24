@@ -6,6 +6,7 @@ import io.effi.rpc.component.ScopedContext;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.TagComponent;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ClassUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.ObjectUtil;
@@ -42,10 +43,10 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
 
     private volatile T instance;
 
-    ExtensionEntry(ExtensionLoader<T> loader, Class<? extends T> type, Extension extension) {
+    ExtensionEntry(ExtensionLoader<T> loader, Class<? extends T> type) {
         this.loader = loader;
         this.type = type;
-        this.extension = extension;
+        this.extension = AssertUtil.requireAnnotation(type, Extension.class);
         this.names = StringUtil.deduplicate(extension.value());
         this.tags = Set.of(extension.tags());
         if (!loader.LazyLoaded() && singleton()) {
@@ -83,19 +84,27 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
             T result = instance;
             if (result != null) return result;
             synchronized (this) {
+                ensureActive();
                 result = instance;
                 return result != null ? result : (instance = newExtension());
             }
-        } else {
+        }
+        synchronized (this) {
+            ensureActive();
             return newExtension();
         }
     }
 
     @Override
-    public void clear() {
-        if (!cleared && instance != null) {
-            cleared = true;
-            ObjectUtil.release(instance);
+    public synchronized void clear() {
+        if (cleared) {
+            return;
+        }
+        cleared = true;
+        T current = instance;
+        instance = null;
+        if (current != null) {
+            ObjectUtil.release(current);
         }
     }
 
@@ -152,7 +161,7 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
             }
         }
         T finalInstance = extension;
-        maybeInjectScopedContext(extension, scopedContext);
+        injectScopedContext(extension, scopedContext);
         // Trigger all listeners for this type
         scopedContext.components(ExtensionLoadedListener.class, this::matchesExtensionType)
                 .forEach(listener -> ((ExtensionLoadedListener<T>) listener).onLoaded(finalInstance));
@@ -164,7 +173,7 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         return extensionType != null && extensionType.isAssignableFrom(type);
     }
 
-    private void maybeInjectScopedContext(Object target, ScopedContext context) {
+    private void injectScopedContext(Object target, ScopedContext context) {
         if (target instanceof ScopedPlatform.Acceptor acceptor
                 && context instanceof ScopedPlatform platform) {
             acceptor.accept(platform);
@@ -174,6 +183,12 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         } else if (target instanceof ScopedModule.Acceptor acceptor
                 && context instanceof ScopedModule module) {
             acceptor.accept(module);
+        }
+    }
+
+    private void ensureActive() {
+        if (cleared) {
+            throw new IllegalStateException("Extension '" + type.getName() + "' is already cleared");
         }
     }
 }

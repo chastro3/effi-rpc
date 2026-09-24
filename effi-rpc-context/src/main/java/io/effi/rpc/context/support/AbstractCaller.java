@@ -4,21 +4,16 @@ import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.support.DefaultClientConfig;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.constant.KeyConstant;
-import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallerGroup;
-import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Interceptor;
 import io.effi.rpc.context.InterceptorChainResolver;
 import io.effi.rpc.context.Locator;
 import io.effi.rpc.context.LocatorResolver;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.PeerDescriptor;
-import io.effi.rpc.context.ReplyFuture;
-import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.metrics.CallerMetrics;
-import io.effi.rpc.context.metrics.MetricsSupport;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
@@ -63,9 +58,7 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
 
     @Override
     public Future<R> call(Object... args) throws EffiRpcException {
-        return doCall(args, Unary.MODE)
-                .failureHandler(failureHandler)
-                .toResultFuture();
+        return new CallExecution<>(this, args, failureHandler).execute();
     }
 
     @Override
@@ -91,14 +84,6 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
     @Override
     public Interceptor.Chain replyInterceptorChain() {
         return replyInterceptorChain;
-    }
-
-    protected <T extends ReplyFuture> T doCall(Object[] args, Interaction.Mode<T> mode) {
-        Request request = protocol().createRequest(this, args);
-        CallContext<Request, Caller<?>> context = new CallContext<>(module, request, this, mode, args);
-        MetricsSupport.recordStartTime(context);
-        Interaction.Result result = callStageChain().proceed(context);
-        return result.excepted();
     }
 
     /**

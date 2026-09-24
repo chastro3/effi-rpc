@@ -6,6 +6,7 @@ import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.trait.Closeable;
 
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -32,9 +33,10 @@ public class Scheduler implements Closeable {
      * @param runnable the task to run
      * @param delay the initial delay before execution
      * @param unit the time unit for the delay
+     * @return the scheduled task
      */
-    public void addDisposable(Runnable runnable, long delay, TimeUnit unit) {
-        disposableService().schedule(runnable, delay, unit);
+    public ScheduledFuture<?> addDisposable(Runnable runnable, long delay, TimeUnit unit) {
+        return disposableService().schedule(runnable, delay, unit);
     }
 
     /**

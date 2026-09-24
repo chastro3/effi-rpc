@@ -1,6 +1,9 @@
 package io.effi.rpc.context.support.failure;
 
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.context.support.Unary;
 import io.effi.rpc.exception.EffiRpcException;
 
@@ -16,8 +19,8 @@ public class FailFast implements Unary.FailureHandler {
     public static final String NAME = "failFast";
 
     @Override
-    public void handle(Unary.ReplyFuture future, EffiRpcException e) throws EffiRpcException {
-        throw e;
+    public void handle(CallContext<Request, Caller<?>> context, int failureCount, EffiRpcException cause) throws EffiRpcException {
+        throw cause;
     }
 }
 
