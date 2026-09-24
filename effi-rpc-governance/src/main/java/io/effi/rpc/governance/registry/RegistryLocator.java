@@ -8,7 +8,10 @@ import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Locator;
+import io.effi.rpc.context.LocatorResolver;
+import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Request;
+import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.governance.lb.LoadBalancer;
 import io.effi.rpc.governance.router.Router;
 import io.effi.rpc.internal.logging.Logger;
@@ -25,8 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.effi.rpc.governance.registry.RegistryLocator.Factory.NAME;
-import io.effi.rpc.context.options.CallerOptions;
+import static io.effi.rpc.governance.registry.RegistryLocator.Resolver.NAME;
 import io.effi.rpc.context.options.GovernanceOptions;
 
 /**
@@ -90,17 +92,20 @@ public final class RegistryLocator implements Locator {
     }
 
     @Extension(value = NAME, primary = true)
-    public static class Factory implements Locator.Factory {
+    public static class Resolver implements LocatorResolver {
 
         public static final String NAME = "registry";
 
         @Override
-        public Locator fetch(String endpoint, Caller<?> caller) {
-            Collection<String> configuredNames = CollectionUtil.toHashSet(caller.option(GovernanceOptions.REGISTRY));
-            Collection<RegistryConfig> registryConfigs = caller.platform()
+        public Locator resolve(PeerDescriptor descriptor, ScopedPlatform platform) {
+            Collection<String> configuredNames = CollectionUtil.toHashSet(
+                    descriptor.options().option(GovernanceOptions.REGISTRY)
+            );
+            Collection<RegistryConfig> registryConfigs = platform
                     .components(RegistryConfig.class, (name, registryConfig) ->
                             configuredNames.contains(name) || registryConfig.hasTags(Tags.FORCE_ACTIVE)
                     );
+            String endpoint = descriptor.options().option(CallerOptions.ENDPOINT);
             return RegistryLocator.cached(endpoint, registryConfigs.toArray(RegistryConfig[]::new));
         }
 

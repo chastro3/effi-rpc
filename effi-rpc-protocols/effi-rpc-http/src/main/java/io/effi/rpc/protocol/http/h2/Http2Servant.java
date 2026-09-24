@@ -28,7 +28,7 @@ public class Http2Servant extends HttpServant {
         }
 
         @Override
-        public Http2Servant build() {
+        protected Http2Servant newInstance() {
             return new Http2Servant(this);
         }
 

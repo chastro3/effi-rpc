@@ -27,7 +27,7 @@ public class Http1Servant extends HttpServant {
         }
 
         @Override
-        public Http1Servant build() {
+        protected Http1Servant newInstance() {
             return new Http1Servant(this);
         }
     }

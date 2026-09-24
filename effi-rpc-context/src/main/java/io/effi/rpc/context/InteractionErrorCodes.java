@@ -19,6 +19,8 @@ public interface InteractionErrorCodes {
 
     ErrorCode REPLY_RESULT_MISSING = allocate("RPC reply result is missing for '{}'");
 
+    ErrorCode PROTOCOL_NOT_FOUND = allocate("Protocol '{}' was not found");
+
     private static ErrorCode allocate(String message) {
         return CONTEXT_ERROR_CODE_ALLOCATOR.next(message);
     }

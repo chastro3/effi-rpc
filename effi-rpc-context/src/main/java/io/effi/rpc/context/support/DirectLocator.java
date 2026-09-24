@@ -1,10 +1,14 @@
 package io.effi.rpc.context.support;
 
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Locator;
+import io.effi.rpc.context.LocatorResolver;
+import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Request;
+import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.NetUtil;
 
@@ -12,7 +16,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.effi.rpc.context.support.DirectLocator.Factory.NAME;
+import static io.effi.rpc.context.support.DirectLocator.Resolver.NAME;
 
 /**
  * Resolves the remote address directly, returning the predefined {@link InetSocketAddress}.
@@ -38,12 +42,13 @@ public final class DirectLocator implements Locator {
     }
 
     @Extension(value = NAME)
-    public static class Factory implements Locator.Factory {
+    public static class Resolver implements LocatorResolver {
 
         public static final String NAME = "direct";
 
         @Override
-        public Locator fetch(String endpoint, Caller<?> caller) {
+        public Locator resolve(PeerDescriptor descriptor, ScopedPlatform platform) {
+            String endpoint = descriptor.options().option(CallerOptions.ENDPOINT);
             return DirectLocator.cached(endpoint);
         }
     }

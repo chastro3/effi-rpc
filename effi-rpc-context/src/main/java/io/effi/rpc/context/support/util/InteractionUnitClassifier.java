@@ -1,8 +1,10 @@
 package io.effi.rpc.context.support.util;
 
 import io.effi.rpc.context.Interaction;
-import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Protocol;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.UnitType;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
@@ -34,12 +36,12 @@ import java.util.function.BiConsumer;
 @SuppressWarnings("rawtypes")
 public class InteractionUnitClassifier<T extends Interaction.Unit> {
 
-    private final Peer peer;
+    private final PeerDescriptor descriptor;
 
     private final List<Handler<T>> handlers = new ArrayList<>(4);
 
-    public InteractionUnitClassifier(Peer peer) {
-        this.peer = AssertUtil.notNull(peer, "peer");
+    public InteractionUnitClassifier(PeerDescriptor descriptor) {
+        this.descriptor = AssertUtil.notNull(descriptor, "descriptor");
     }
 
 
@@ -61,8 +63,11 @@ public class InteractionUnitClassifier<T extends Interaction.Unit> {
                 T value = entry.getValue();
                 UnitType<?, ?> type = UnitType.extract(value);
                 Class<?> sideType = type.peerType();
+                Class<?> peerType = descriptor.kind() == PeerDescriptor.Kind.CALLER
+                        ? Caller.class
+                        : Servant.class;
                 for (Handler<T> handler : handlers) {
-                    if (sideType.isAssignableFrom(peer.getClass())
+                    if (sideType.isAssignableFrom(peerType)
                             && handler.predicate.test(key, value, type, this)) {
                         handler.consumer.accept(key, value);
                     }
@@ -72,11 +77,11 @@ public class InteractionUnitClassifier<T extends Interaction.Unit> {
     }
 
     public boolean supportResponse(UnitType<?, ?> type) {
-        return type.messageType().isAssignableFrom(peer.protocol().responseType());
+        return type.messageType().isAssignableFrom(descriptor.protocol().responseType());
     }
 
     public boolean supportRequest(UnitType<?, ?> type) {
-        return type.messageType().isAssignableFrom(peer.protocol().requestType());
+        return type.messageType().isAssignableFrom(descriptor.protocol().requestType());
     }
 
 

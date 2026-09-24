@@ -1,7 +1,8 @@
 package io.effi.rpc.context.support;
 
-import io.effi.rpc.context.ConfigurableServant;
 import io.effi.rpc.context.InteractionErrorCodes;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
 import io.effi.rpc.context.metrics.CalleeMetrics;
@@ -18,44 +19,25 @@ import java.lang.reflect.Method;
 import static io.effi.rpc.context.options.ServantOptions.LABEL;
 
 /**
- * Provides an abstract implementation of {@link Servant}.
+ * Provides an immutable implementation of {@link Servant}.
  */
 @SuppressWarnings("rawtypes")
-public abstract class AbstractServant extends AbstractPeer<AbstractServant.Builder> implements ConfigurableServant {
+public abstract class AbstractServant extends AbstractPeer<AbstractServant.Builder> implements Servant {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractServant.class);
 
-    protected int methodIndex;
+    protected final int methodIndex;
 
-    protected ServantMethod<?> servantMethod;
+    protected final ServantMethod<?> servantMethod;
 
-    protected String label;
+    protected final String label;
 
     protected AbstractServant(Builder builder) {
         super(builder);
-    }
-
-    @Override
-    protected void initialize(Builder builder) {
-        super.initialize(builder);
         this.servantMethod = builder.servantMethod;
-        this.label = option(LABEL);
-        this.replyType = TypeCapture.of(method().getGenericReturnType());
+        this.label = builder.label();
         this.methodIndex = group().indexOf(this);
-    }
-
-    @Override
-    protected void onInitialized(Builder builder) {
-        super.onInitialized(builder);
         set(CalleeMetrics.GENERIC_KEY, new CalleeMetrics());
-        module.registry().register(Servant.class, this);
-        group().register(this);
-    }
-
-    @Override
-    public ConfigurableServant label(String label) {
-        this.label = AssertUtil.notBlank(label, "label");
-        return this;
     }
 
     @Override
@@ -99,20 +81,43 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
     }
 
     /**
-     * Builds {@link Servant} instance and defines configuration.
+     * Assembles a complete {@link Servant} before registering it.
      */
-    public abstract static class Builder<T extends Servant, SELF extends Builder<T, SELF>> extends AbstractPeer.Builder<T, SELF> {
+    public abstract static class Builder<T extends Servant, SELF extends Builder<T, SELF>>
+            extends AbstractPeer.Builder<T, SELF> {
 
         protected ServantMethod<?> servantMethod;
+
+        protected ServantGroup<?> group;
 
         protected Builder(ServantMethod<?> servantMethod, String protocol) {
             super(protocol);
             this.servantMethod = AssertUtil.notNull(servantMethod, "servantMethod");
             this.group = servantMethod.group();
+            this.replyType = TypeCapture.of(servantMethod.method().getGenericReturnType());
         }
 
-        public SELF label(String desc) {
-            addOption(LABEL, desc);
+        @Override
+        protected Class<? extends Peer> peerType() {
+            return Servant.class;
+        }
+
+        @Override
+        protected PeerDescriptor.Kind kind() {
+            return PeerDescriptor.Kind.SERVANT;
+        }
+
+        @Override
+        protected ServantGroup<?> group() {
+            return group;
+        }
+
+        public String label() {
+            return option(LABEL);
+        }
+
+        public SELF label(String label) {
+            addOption(LABEL, label);
             return self();
         }
     }

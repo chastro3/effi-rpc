@@ -26,7 +26,7 @@ public class Http2Caller<R> extends HttpCaller<R> {
         }
 
         @Override
-        public Http2Caller<T> build() {
+        protected Http2Caller<T> newInstance() {
             return new Http2Caller<>(this);
         }
     }

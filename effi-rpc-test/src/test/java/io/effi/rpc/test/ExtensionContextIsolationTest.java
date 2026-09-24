@@ -3,7 +3,7 @@ package io.effi.rpc.test;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.constant.Constant;
-import io.effi.rpc.context.ConfigurablePeer;
+import io.effi.rpc.context.StageChainResolver;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -18,12 +18,12 @@ class ExtensionContextIsolationTest {
         ScopedModule secondModule = platform.newApplication("second-application")
                 .newModule("second-module");
 
-        ConfigurablePeer.StageChainConfigurator first = firstModule.namedExtension(
-                ConfigurablePeer.StageChainConfigurator.class,
+        StageChainResolver first = firstModule.namedExtension(
+                StageChainResolver.class,
                 Constant.DEFAULT_NAME
         );
-        ConfigurablePeer.StageChainConfigurator second = secondModule.namedExtension(
-                ConfigurablePeer.StageChainConfigurator.class,
+        StageChainResolver second = secondModule.namedExtension(
+                StageChainResolver.class,
                 Constant.DEFAULT_NAME
         );
 
