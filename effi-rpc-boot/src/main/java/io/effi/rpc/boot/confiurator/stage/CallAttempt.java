@@ -11,11 +11,13 @@ import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
+import io.effi.rpc.util.AssertUtil;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -37,6 +39,8 @@ final class CallAttempt {
 
     private final CallContext<Request, Caller<?>> context;
 
+    private final ChannelCallBindings channelCallBindings;
+
     private final AtomicReference<State> state = new AtomicReference<>(IdleState.INSTANCE);
 
     CallAttempt(
@@ -49,6 +53,10 @@ final class CallAttempt {
         this.client = client;
         this.protocol = protocol;
         this.context = context;
+        this.channelCallBindings = AssertUtil.notNull(
+                context.platform().singleComponent(ChannelCallBindings.class),
+                "channel call bindings"
+        );
         future.onCancel(reason -> cancel());
         future.onComplete(result -> finish());
     }
@@ -106,6 +114,13 @@ final class CallAttempt {
             cancel();
             return;
         }
+        if (!channelCallBindings.bind(future.id(), channel)) {
+            closeQuietly(channel);
+            if (!future.completed()) {
+                future.failure(TransportErrorCodes.CHANNEL_INACTIVE.fail(channel));
+            }
+            return;
+        }
         send(channel);
     }
 
@@ -124,8 +139,9 @@ final class CallAttempt {
 
     private void handleWriteFailure(Channel channel, Throwable cause) {
         State previous = transition(DoneState.INSTANCE);
-        if (previous instanceof ActiveState) {
-            closeQuietly(channel);
+        if (previous instanceof ActiveState active) {
+            channelCallBindings.unbind(future.id(), active.channel());
+            closeQuietly(active.channel());
         }
         future.failure(writeFailure(cause));
     }
@@ -143,6 +159,8 @@ final class CallAttempt {
         State previous = transition(DoneState.INSTANCE);
         if (previous instanceof AcquiringState acquiring) {
             acquiring.acquire().cancel(PredefinedErrorCode.CALL_CANCELLED.fail("call attempt cancelled"));
+        } else if (previous instanceof ActiveState active) {
+            channelCallBindings.unbind(future.id(), active.channel());
         }
     }
 

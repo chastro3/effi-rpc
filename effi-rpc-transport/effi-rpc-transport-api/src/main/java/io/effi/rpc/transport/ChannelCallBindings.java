@@ -3,7 +3,6 @@ package io.effi.rpc.transport;
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.context.CallFutureRegistry;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.trait.Closeable;
 import io.effi.rpc.transport.endpoint.Channel;
 
@@ -84,7 +83,7 @@ public final class ChannelCallBindings implements Closeable {
             bindings = new HashMap<>(channelCalls);
             channelCalls.clear();
         }
-        EffiRpcException reason = PredefinedErrorCode.SERVICE_UNAVAILABLE.fail("platform is closing");
+        EffiRpcException reason = TransportErrorCodes.CALL_BINDINGS_CLOSED.fail();
         Set<Long> callIds = new HashSet<>();
         bindings.values().forEach(callIds::addAll);
         callIds.forEach(callId -> callFutureRegistry.cancel(callId, reason));

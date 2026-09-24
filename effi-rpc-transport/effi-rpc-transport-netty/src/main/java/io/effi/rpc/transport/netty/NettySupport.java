@@ -3,6 +3,7 @@ package io.effi.rpc.transport.netty;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.ReplyFuture;
+import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.util.AssertUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -66,7 +67,15 @@ public class NettySupport {
     }
 
     public static void unbindFutureId(Channel channel) {
-        channel.attr(FUTURE_ID).set(null);
+        Long futureId = channel.attr(FUTURE_ID).getAndSet(null);
+        if (futureId == null) {
+            return;
+        }
+        NettyChannel nettyChannel = NettyChannel.ensure(channel);
+        ChannelCallBindings bindings = nettyChannel.platform().singleComponent(ChannelCallBindings.class);
+        if (bindings != null) {
+            bindings.unbind(futureId, nettyChannel);
+        }
     }
 
     public static ReplyFuture getBoundFuture(Channel channel) {

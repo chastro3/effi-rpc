@@ -12,11 +12,11 @@ import io.effi.rpc.context.metrics.event.CalleeMetricsEvent;
 import io.effi.rpc.context.metrics.event.CalleeMetricsEventListener;
 import io.effi.rpc.context.metrics.event.CallerMetricsEvent;
 import io.effi.rpc.context.metrics.event.CallerMetricsEventListener;
+import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.idle.IdleEvent;
 import io.effi.rpc.transport.idle.IdleEventListener;
 import io.effi.rpc.transport.idle.RefreshIdleCountEvent;
 import io.effi.rpc.transport.idle.RefreshIdleCountEventListener;
-import io.effi.rpc.transport.ChannelCallBindings;
 
 /**
  * Initializes configurations for the application and module,setting up event listeners and filters.

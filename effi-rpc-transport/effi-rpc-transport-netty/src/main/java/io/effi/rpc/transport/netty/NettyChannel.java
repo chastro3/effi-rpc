@@ -9,6 +9,7 @@ import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.AbstractChannel;
 import io.effi.rpc.transport.endpoint.ChannelTracker;
 import io.effi.rpc.transport.endpoint.Endpoint;
+import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ExceptionUtil;
@@ -160,6 +161,7 @@ public final class NettyChannel extends AbstractChannel {
     private void handleClose(io.netty.util.concurrent.Future<? super Void> future) {
         if (future.isSuccess()) {
             maybeUnTrackChannel();
+            maybeCancelCalls();
             if (CHANNELS.remove(channel, this)) {
                 clear();
                 if (physical()) {
@@ -183,6 +185,13 @@ public final class NettyChannel extends AbstractChannel {
         if (physical()) {
             ChannelTracker channelTracker = findChannelTracker();
             if (channelTracker != null) channelTracker.remove(this);
+        }
+    }
+
+    private void maybeCancelCalls() {
+        ChannelCallBindings bindings = endpoint.platform().singleComponent(ChannelCallBindings.class);
+        if (bindings != null) {
+            bindings.cancelChannel(this, TransportErrorCodes.CHANNEL_INACTIVE.fail(this));
         }
     }
 

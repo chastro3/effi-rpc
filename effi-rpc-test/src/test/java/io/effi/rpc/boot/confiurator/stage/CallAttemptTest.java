@@ -15,6 +15,7 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.support.Unary;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.option.OptionName;
+import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
@@ -36,7 +37,7 @@ class CallAttemptTest {
 
     @Test
     void timeoutWhileAcquiringClosesLateChannelWithoutSending() throws Exception {
-        TestContext fixture = new TestContext(20);
+        TestContext fixture = new TestContext(200);
         Promise<Channel> acquire = new Promise<>();
 
         CallAttempt attempt = fixture.newAttempt(acquire);
@@ -49,7 +50,7 @@ class CallAttemptTest {
 
     @Test
     void timeoutAfterSendClosesActiveChannel() throws Exception {
-        TestContext fixture = new TestContext(20);
+        TestContext fixture = new TestContext(200);
         Promise<Channel> acquire = new Promise<>();
         TestChannel channel = new TestChannel();
 
@@ -87,6 +88,7 @@ class CallAttemptTest {
             platform.registry().register(Scheduler.class, new Scheduler());
             this.registry = new CallFutureRegistry();
             platform.registry().register(CallFutureRegistry.class, registry);
+            platform.registry().register(ChannelCallBindings.class, new ChannelCallBindings(registry));
             ScopedApplication application = platform.newApplication("application");
             ScopedModule module = application.newModule("module");
 

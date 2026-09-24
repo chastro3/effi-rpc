@@ -3,7 +3,6 @@ package io.effi.rpc.transport;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.context.CallFutureRegistry;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.transport.endpoint.Channel;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +25,7 @@ class ChannelCallBindingsTest {
         Channel channel = channel();
         assertTrue(bindings.bind(callId, channel));
 
-        EffiRpcException reason = PredefinedErrorCode.SERVICE_UNAVAILABLE.fail("channel closed");
+        EffiRpcException reason = TransportErrorCodes.CHANNEL_INACTIVE.fail(channel);
         bindings.cancelChannel(channel, reason);
 
         assertSame(reason, future.await().cause());
@@ -45,6 +44,21 @@ class ChannelCallBindingsTest {
 
         future.success("ok");
 
+        assertEquals(0, bindings.size());
+    }
+
+    @Test
+    void closeCancelsBoundCalls() throws Exception {
+        CallFutureRegistry futures = new CallFutureRegistry();
+        ChannelCallBindings bindings = new ChannelCallBindings(futures);
+        Promise<String> future = new Promise<>();
+        long callId = futures.register(future);
+        bindings.bind(callId, channel());
+
+        bindings.close();
+
+        assertEquals(TransportErrorCodes.CALL_BINDINGS_CLOSED.code(), future.await().cause().errorCode().code());
+        assertNull(futures.lookup(callId));
         assertEquals(0, bindings.size());
     }
 

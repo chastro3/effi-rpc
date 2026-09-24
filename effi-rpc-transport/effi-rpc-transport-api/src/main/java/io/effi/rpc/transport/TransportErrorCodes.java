@@ -16,6 +16,7 @@ public interface TransportErrorCodes {
     ErrorCode CHANNEL_READ = allocate("Failed to read data from channel '{}'");
     ErrorCode CHANNEL_EXCEPTION = allocate("Channel '{}' failed: {}");
     ErrorCode CLOSE_SERVER = allocate("Failed to close server at '{}'");
+    ErrorCode CALL_BINDINGS_CLOSED = allocate("Channel call bindings are closed");
     ErrorCode ENCODE = allocate("Failed to encode object '{}' from '{}'");
     ErrorCode DECODE = allocate("Failed to decode object '{}' from '{}'");
 
