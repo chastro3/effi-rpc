@@ -6,7 +6,7 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.transport.TransportErrorCodes;
-import io.effi.rpc.transport.TransportSupport;
+import io.effi.rpc.transport.ServerRequestHandler;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.transport.message.InputMessage;
 import io.effi.rpc.transport.message.OutputMessage;
@@ -33,10 +33,12 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
     private static final LazySingleton<NamedChannelHandler> LAZY_INITIALIZER =
             LazySingleton.from(() -> new NamedChannelHandler("serverMessageAggregator", new ServerMessageAggregator()));
 
+    private final ServerRequestHandler requestHandler = new ServerRequestHandler();
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof InputMessage inputMessage) {
-            TransportSupport.handleRequest(inputMessage);
+            requestHandler.handle(inputMessage);
         } else {
             logger.warn(Messages.onlySupport(Request.class));
         }
