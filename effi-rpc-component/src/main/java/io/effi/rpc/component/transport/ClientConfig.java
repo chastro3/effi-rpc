@@ -18,6 +18,16 @@ public interface ClientConfig extends EndpointConfig {
             return self();
         }
 
+        default SELF maxPendingAcquires(int maxPendingAcquires) {
+            addOption(ClientOptions.MAX_PENDING_ACQUIRES, maxPendingAcquires);
+            return self();
+        }
+
+        default SELF acquireTimeout(int acquireTimeout) {
+            addOption(ClientOptions.ACQUIRE_TIMEOUT, acquireTimeout);
+            return self();
+        }
+
         /**
          * Sets the connection timeout.
          */

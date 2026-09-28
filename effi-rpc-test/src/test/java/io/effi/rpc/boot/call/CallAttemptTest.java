@@ -40,12 +40,16 @@ class CallAttemptTest {
     void timeoutWhileAcquiringClosesLateChannelWithoutSending() throws Exception {
         TestContext fixture = new TestContext(200);
         Promise<Channel> acquire = new Promise<>();
+        TestChannel channel = new TestChannel();
 
         CallAttempt attempt = fixture.newAttempt(acquire);
         attempt.dispatch();
         assertTimedOut(fixture.future);
 
-        assertTrue(acquire.await().failed());
+        acquire.success(channel.proxy);
+
+        assertEquals(0, channel.sends.get());
+        assertEquals(1, channel.closes.get());
         assertNull(fixture.registry.lookup(fixture.future.id()));
     }
 

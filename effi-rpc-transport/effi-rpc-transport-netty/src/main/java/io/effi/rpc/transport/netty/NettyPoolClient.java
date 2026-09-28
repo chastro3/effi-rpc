@@ -3,11 +3,11 @@ package io.effi.rpc.transport.netty;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.transport.endpoint.Client;
-import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.concurrent.Future;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.FixedChannelPool;
 
 import java.net.InetSocketAddress;
@@ -30,12 +30,15 @@ public class NettyPoolClient extends NettyClient {
     @Override
     protected void configureChannelHandler(Bootstrap bootstrap) {
         int maxConnections = config().option(ClientOptions.MAX_CONNECTIONS);
+        int maxPendingAcquires = config().option(ClientOptions.MAX_PENDING_ACQUIRES);
+        int acquireTimeout = config().option(ClientOptions.ACQUIRE_TIMEOUT);
         this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
             @Override
             public void channelCreated(Channel ch) throws Exception {
                 configureChannel(ch);
             }
-        }, maxConnections);
+        }, ChannelHealthChecker.ACTIVE, FixedChannelPool.AcquireTimeoutAction.FAIL,
+                acquireTimeout, maxConnections, maxPendingAcquires);
     }
 
     @Override

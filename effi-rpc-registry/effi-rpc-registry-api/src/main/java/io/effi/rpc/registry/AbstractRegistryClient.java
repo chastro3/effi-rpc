@@ -209,7 +209,8 @@ public abstract class AbstractRegistryClient implements RegistryClient {
     }
 
     private void scheduleHeartbeat(RegisterTask task) {
-        scheduleIfOpen(task, 5, 10, TimeUnit.SECONDS);
+        long interval = Math.max(1, config.option(RegistryOptions.HEARTBEAT_INTERVAL));
+        scheduleIfOpen(task, interval, interval, TimeUnit.MILLISECONDS);
     }
 
     private void removeRegisteredInstance(String serviceName, ServiceInstance instance) {
@@ -247,7 +248,13 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         List<ServiceInstance> instances = outcome.value();
         logger.info("Discovered {} instance(s) for '{}' '{}'", instances.size(), serviceName, config);
         service.complete(instances);
-        threadPool.execute(() -> subscribe(serviceName));
+        threadPool.execute(() -> subscribe(serviceName)).onComplete(subscription -> {
+            if (subscription.failed()) {
+                subscribedHealthServices.remove(serviceName, service);
+                logger.error("Failed to schedule subscription for '{}' from '{}'",
+                        subscription.cause(), serviceName, config);
+            }
+        });
     }
 
     private void subscribe(String serviceName) {

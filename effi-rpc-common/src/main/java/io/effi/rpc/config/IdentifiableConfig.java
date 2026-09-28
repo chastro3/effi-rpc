@@ -5,6 +5,8 @@ import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.util.StringUtil;
 
+import java.util.UUID;
+
 /**
  * Provides an abstract base class for identifiable configurations.
  * <p>
@@ -34,7 +36,7 @@ public abstract class IdentifiableConfig implements Identifiable, Options.Suppli
 
     public static String checkId(String id, String prefix) {
         if (StringUtil.isNotBlank(id)) return id;
-        return prefix + "-" + Long.toHexString(System.currentTimeMillis());
+        return prefix + "-" + UUID.randomUUID();
     }
 
     /**

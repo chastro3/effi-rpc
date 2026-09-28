@@ -6,7 +6,6 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.ChannelCallBindings;
@@ -71,9 +70,9 @@ public final class CallAttempt {
             return;
         }
 
-        Acquiring acquiring = new Acquiring(acquire);
+        Acquiring acquiring = Acquiring.INSTANCE;
         if (!state.compareAndSet(Idle.INSTANCE, acquiring)) {
-            cancelAcquisition(acquiring);
+            acquire.onComplete(result -> onChannelAcquired(acquiring, result));
             return;
         }
         acquire.onComplete(result -> onChannelAcquired(acquiring, result));
@@ -137,18 +136,14 @@ public final class CallAttempt {
 
     private void cancel() {
         State previous = transition(Cancelled.INSTANCE);
-        if (previous instanceof Acquiring acquiring) {
-            cancelAcquisition(acquiring);
-        } else if (previous instanceof Active active) {
+        if (previous instanceof Active active) {
             closeQuietly(active.channel());
         }
     }
 
     private void release() {
         State previous = transition(Done.INSTANCE);
-        if (previous instanceof Acquiring acquiring) {
-            cancelAcquisition(acquiring);
-        } else if (previous instanceof Active active) {
+        if (previous instanceof Active active) {
             channelBindings.unbind(replyFuture.id(), active.channel());
         }
     }
@@ -157,10 +152,6 @@ public final class CallAttempt {
         if (state.compareAndSet(expected, Done.INSTANCE)) {
             replyFuture.failure(acquisitionFailure(cause));
         }
-    }
-
-    private static void cancelAcquisition(Acquiring acquiring) {
-        acquiring.channelFuture().cancel(PredefinedErrorCode.CALL_CANCELLED.fail("call attempt cancelled"));
     }
 
     private State transition(State target) {
@@ -203,7 +194,8 @@ public final class CallAttempt {
         INSTANCE
     }
 
-    private record Acquiring(Future<? extends Channel> channelFuture) implements State {
+    private enum Acquiring implements State {
+        INSTANCE
     }
 
     private record Active(Channel channel) implements State {

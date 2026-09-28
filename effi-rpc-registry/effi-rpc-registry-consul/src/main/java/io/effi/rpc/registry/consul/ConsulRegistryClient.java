@@ -75,8 +75,15 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
         opts.setCheckOptions(checkOpts);
         return (serviceInst) -> {
             opts.setMeta(serviceInst.metadata());
-            return toVoidFuture(consulClient.registerService(opts))
-                    .onComplete(res -> toVoidFuture(consulClient.passCheck(instanceId)));
+            Promise<Void> result = new Promise<>();
+            toVoidFuture(consulClient.registerService(opts)).onComplete(registration -> {
+                if (registration.failed()) {
+                    result.complete(registration);
+                    return;
+                }
+                toVoidFuture(consulClient.passCheck(instanceId)).onComplete(result::complete);
+            });
+            return result;
         };
     }
 

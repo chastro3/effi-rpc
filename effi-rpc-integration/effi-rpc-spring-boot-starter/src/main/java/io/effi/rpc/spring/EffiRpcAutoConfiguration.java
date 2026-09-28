@@ -38,4 +38,10 @@ public class EffiRpcAutoConfiguration {
     public EffiRpcBootstrap effiRpcBootstrap(ScopedApplication application) {
         return EffiRpcBootstrap.newInstance(application);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EffiRpcApplicationStarter effiRpcApplicationStarter(ApplicationContext context) {
+        return new EffiRpcApplicationStarter(context);
+    }
 }
