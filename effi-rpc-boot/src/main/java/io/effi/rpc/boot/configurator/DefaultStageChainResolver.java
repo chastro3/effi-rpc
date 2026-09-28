@@ -1,13 +1,13 @@
-package io.effi.rpc.boot.confiurator;
+package io.effi.rpc.boot.configurator;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.FutureResultStage;
-import io.effi.rpc.boot.confiurator.stage.InvokeServantStage;
-import io.effi.rpc.boot.confiurator.stage.LocatorStage;
-import io.effi.rpc.boot.confiurator.stage.ReplyInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.ReplyResultStage;
+import io.effi.rpc.boot.stage.CallInterceptorStage;
+import io.effi.rpc.boot.stage.ChosenInterceptorStage;
+import io.effi.rpc.boot.stage.CallAttemptStage;
+import io.effi.rpc.boot.stage.InvokeServantStage;
+import io.effi.rpc.boot.stage.LocatorStage;
+import io.effi.rpc.boot.stage.ReplyInterceptorStage;
+import io.effi.rpc.boot.stage.ReplyResultStage;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.PeerDescriptor;
@@ -19,7 +19,7 @@ import io.effi.rpc.util.ArrayIdentifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.effi.rpc.boot.confiurator.DefaultStageChainResolver.NAME;
+import static io.effi.rpc.boot.configurator.DefaultStageChainResolver.NAME;
 
 /**
  * Resolves the default stage chains for a peer.
@@ -40,13 +40,13 @@ public class DefaultStageChainResolver implements StageChainResolver, ScopedModu
     @Override
     public void accept(ScopedModule module) {
         String[] callerCallChainNames = {
-                CallInterceptStage.NAME, LocatorStage.NAME, ChosenInterceptStage.NAME, FutureResultStage.NAME
+                CallInterceptorStage.NAME, LocatorStage.NAME, ChosenInterceptorStage.NAME, CallAttemptStage.NAME
         };
         String[] servantCallChainNames = {
-                CallInterceptStage.NAME, InvokeServantStage.NAME
+                CallInterceptorStage.NAME, InvokeServantStage.NAME
         };
         String[] replyChainNames = {
-                ReplyInterceptStage.NAME, ReplyResultStage.NAME
+                ReplyInterceptorStage.NAME, ReplyResultStage.NAME
         };
         defaultCallerCallChain = resolveStageChain(module, callerCallChainNames);
         defaultServantCallChain = resolveStageChain(module, servantCallChainNames);

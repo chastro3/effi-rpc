@@ -13,24 +13,24 @@ import java.lang.reflect.Method;
 /**
  * Provide the default implementation of {@link ServantGroup}.
  */
-public class ComplexServantGroup<T> extends AbstractPeerGroup<Servant, T> implements ServantGroup<T> {
+public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implements ServantGroup<T> {
 
     protected DynamicAccessor methodAccess;
 
     protected String name;
 
-    protected ComplexServantGroup() {
+    protected DefaultServantGroup() {
     }
 
-    public ComplexServantGroup(T service) {
+    public DefaultServantGroup(T service) {
         this(null, service);
     }
 
-    public ComplexServantGroup(String name, T service) {
+    public DefaultServantGroup(String name, T service) {
         this(name, service, null, null);
     }
 
-    public ComplexServantGroup(String name, T service, Class<T> serviceType, HierarchicalOptions options) {
+    public DefaultServantGroup(String name, T service, Class<T> serviceType, HierarchicalOptions options) {
         initialize(name, service, serviceType, options);
     }
 

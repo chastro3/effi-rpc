@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator.stage;
+package io.effi.rpc.boot.stage;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.boot.call.CallAttempt;
@@ -17,12 +17,12 @@ import io.effi.rpc.transport.endpoint.Client;
 
 import java.net.InetSocketAddress;
 
-import static io.effi.rpc.boot.confiurator.stage.FutureResultStage.NAME;
+import static io.effi.rpc.boot.stage.CallAttemptStage.NAME;
 
 @Extension(NAME)
-public class FutureResultStage implements Stage.CallUnit<Request, Caller<?>> {
+public class CallAttemptStage implements Stage.CallUnit<Request, Caller<?>> {
 
-    public static final String NAME = "futureResultStage";
+    public static final String NAME = "callAttemptStage";
 
     @Override
     public Interaction.Result process(CallContext<Request, Caller<?>> context, Chain chain) {

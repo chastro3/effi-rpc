@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator.stage;
+package io.effi.rpc.boot.stage;
 
 
 import io.effi.rpc.annotation.component.Extension;
@@ -11,7 +11,7 @@ import io.effi.rpc.context.Stage;
 
 import java.net.InetSocketAddress;
 
-import static io.effi.rpc.boot.confiurator.stage.LocatorStage.NAME;
+import static io.effi.rpc.boot.stage.LocatorStage.NAME;
 
 @Extension(NAME)
 public class LocatorStage implements Stage.CallUnit<Request, Caller<?>> {

@@ -1,7 +1,7 @@
 package demo.provider;
 
 import io.effi.rpc.boot.ApplicationServiceRegistrar;
-import io.effi.rpc.boot.ComplexServantGroup;
+import io.effi.rpc.boot.DefaultServantGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.context.Servant;
@@ -31,7 +31,7 @@ public class ApiProvider {
     }
 
     private static Servant createServant(ScopedModule module) {
-        ComplexServantGroup<HelloService> group = new ComplexServantGroup<>(new HelloService());
+        DefaultServantGroup<HelloService> group = new DefaultServantGroup<>(new HelloService());
         ServantMethod<HelloService> servantMethod = new HttpServantMethodBuilder<>(group, "hello")
                 .mappedParameterType(String.class, Header.source("content-type"))
                 .mappedParameterType(Integer.class, Header.source("content-length"))

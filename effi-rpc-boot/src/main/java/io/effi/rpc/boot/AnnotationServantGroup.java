@@ -30,7 +30,7 @@ import io.effi.rpc.context.options.ServantOptions;
 /**
  * Provide the annotation implementation of {@link ServantGroup}.
  */
-public class AnnotationServantGroup<T> extends ComplexServantGroup<T> {
+public class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
 
     private final ServeGroup serviceAnnotation;
 

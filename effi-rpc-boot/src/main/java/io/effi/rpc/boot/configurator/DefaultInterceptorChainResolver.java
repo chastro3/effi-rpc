@@ -1,9 +1,9 @@
-package io.effi.rpc.boot.confiurator;
+package io.effi.rpc.boot.configurator;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.ReplyInterceptStage;
+import io.effi.rpc.boot.stage.CallInterceptorStage;
+import io.effi.rpc.boot.stage.ChosenInterceptorStage;
+import io.effi.rpc.boot.stage.ReplyInterceptorStage;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.Tags;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static io.effi.rpc.boot.confiurator.DefaultInterceptorChainResolver.NAME;
+import static io.effi.rpc.boot.configurator.DefaultInterceptorChainResolver.NAME;
 import static io.effi.rpc.context.options.InterceptorOptions.EXCLUDE;
 import static io.effi.rpc.context.options.InterceptorOptions.INCLUDE;
 import static io.effi.rpc.context.options.ResolverOptions.STAGE_CHAIN_RESOLVER;
@@ -88,9 +88,9 @@ public class DefaultInterceptorChainResolver implements InterceptorChainResolver
                 ? resolver.resolveReplyChain(descriptor, module)
                 : resolver.resolveCallChain(descriptor, module);
         String stageName = switch (type) {
-            case CALL -> CallInterceptStage.NAME;
-            case CHOSEN -> ChosenInterceptStage.NAME;
-            case REPLY -> ReplyInterceptStage.NAME;
+            case CALL -> CallInterceptorStage.NAME;
+            case CHOSEN -> ChosenInterceptorStage.NAME;
+            case REPLY -> ReplyInterceptorStage.NAME;
         };
         tryAddStageInterceptor(head, stageName, names, additionalInterceptors);
     }

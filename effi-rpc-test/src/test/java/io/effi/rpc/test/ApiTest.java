@@ -3,7 +3,7 @@ package io.effi.rpc.test;
 import io.effi.rpc.boot.AnnotationCallerGroup;
 import io.effi.rpc.boot.AnnotationServantGroup;
 import io.effi.rpc.boot.ApplicationServiceRegistrar;
-import io.effi.rpc.boot.ComplexServantGroup;
+import io.effi.rpc.boot.DefaultServantGroup;
 import io.effi.rpc.boot.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
@@ -57,7 +57,7 @@ public class ApiTest {
         ServerLauncher serverLauncher = ServerLauncher.attach(application, Http2ServerConfig.defaultConfig(), "192.168.188.1", 8090);
         ApplicationServiceRegistrar serviceRegistrar = new ApplicationServiceRegistrar(application);
         application.platform().registry().register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE));
-        ComplexServantGroup<HelloService> remoteService = new ComplexServantGroup<>(new HelloService());
+        DefaultServantGroup<HelloService> remoteService = new DefaultServantGroup<>(new HelloService());
         ServantMethod<HelloService> servantMethod = new HttpServantMethodBuilder<>(remoteService, "hello")
                 .mappedParameterType(String.class, ParamVar.source("id"))
                 .build();

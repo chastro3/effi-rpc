@@ -7,13 +7,13 @@ import io.effi.rpc.registry.RegistrationPreparer;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.registry.util.RegistryUtil;
 
-import static io.effi.rpc.boot.registry.DefaultRegistrationPreparer.NAME;
+import static io.effi.rpc.boot.registry.DefaultRegistrationMetadataPreparer.NAME;
 
 /**
- * Register default meta data to registry.
+ * Registers default metadata to the registry.
  */
 @Extension(NAME)
-public class DefaultRegistrationPreparer implements RegistrationPreparer {
+public class DefaultRegistrationMetadataPreparer implements RegistrationPreparer {
 
     public static final String NAME = Constant.DEFAULT_NAME;
 
@@ -21,8 +21,8 @@ public class DefaultRegistrationPreparer implements RegistrationPreparer {
     public void prepare(ServiceInstance instance) {
         ScopedApplication application = RegistryUtil.lookupApplication(instance);
         if (application != null) {
-            DefaultRegistryMetaData defaultRegistryMetaData = new DefaultRegistryMetaData(application);
-            instance.addMetadata(defaultRegistryMetaData.toMap());
+            DefaultRegistryMetadata metadata = new DefaultRegistryMetadata(application);
+            instance.addMetadata(metadata.toMap());
         }
     }
 }

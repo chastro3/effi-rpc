@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator.stage;
+package io.effi.rpc.boot.stage;
 
 
 import io.effi.rpc.annotation.component.Extension;
@@ -10,7 +10,7 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.exception.EffiRpcException;
 
-import static io.effi.rpc.boot.confiurator.stage.InvokeServantStage.NAME;
+import static io.effi.rpc.boot.stage.InvokeServantStage.NAME;
 
 @Extension(NAME)
 public class InvokeServantStage implements Stage.CallUnit<Request, Servant> {

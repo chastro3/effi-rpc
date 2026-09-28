@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator;
+package io.effi.rpc.boot.configurator;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ScopedPlatform;
@@ -10,7 +10,7 @@ import io.effi.rpc.context.ThreadPoolResolver;
 import io.effi.rpc.executor.RpcThreadPool;
 import io.effi.rpc.util.StringUtil;
 
-import static io.effi.rpc.boot.confiurator.DefaultThreadPoolResolver.NAME;
+import static io.effi.rpc.boot.configurator.DefaultThreadPoolResolver.NAME;
 import static io.effi.rpc.context.options.ThreadPoolOptions.THREAD_POOL;
 
 /**

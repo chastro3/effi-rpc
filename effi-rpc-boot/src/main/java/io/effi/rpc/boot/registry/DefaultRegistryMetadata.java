@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * SystemInfo.  todo 待优化
  */
-public class DefaultRegistryMetaData {
+public class DefaultRegistryMetadata {
 
     private static final OperatingSystemMXBean OS_BEAN = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 
@@ -29,11 +29,11 @@ public class DefaultRegistryMetaData {
 
     private double loadAverage;
 
-    public DefaultRegistryMetaData() {
+    public DefaultRegistryMetadata() {
 
     }
 
-    public DefaultRegistryMetaData(ScopedApplication application) {
+    public DefaultRegistryMetadata(ScopedApplication application) {
         // Get the server CPU usage
         cpuUsage = round(OS_BEAN.getCpuLoad());
         loadAverage = round(OS_BEAN.getSystemLoadAverage());
@@ -47,9 +47,10 @@ public class DefaultRegistryMetaData {
             activeService += module.componentCount(Servant.class);
         }
         services = activeService;
-        ApplicationServiceRegistrar serviceRegistrar = application.singleComponent(ApplicationServiceRegistrar.class);
+        ApplicationServiceRegistrar coordinator =
+                application.singleComponent(ApplicationServiceRegistrar.class);
         AtomicInteger activeConnection = new AtomicInteger();
-        for (ServerLauncher serverLauncher : serviceRegistrar.serverLaunchers()) {
+        for (ServerLauncher serverLauncher : coordinator.serverLaunchers()) {
             serverLauncher.server()
                     .ifPresent(server -> {
                         if (server instanceof ChannelTracker channelTracker) {
@@ -61,16 +62,16 @@ public class DefaultRegistryMetaData {
     }
 
     /**
-     * Converts map to DefaultRegistryMetaData.
+     * Converts map to DefaultRegistryMetadata.
      */
-    public static DefaultRegistryMetaData valueOf(Map<String, String> map) {
-        DefaultRegistryMetaData defaultRegistryMetaData = new DefaultRegistryMetaData();
-        defaultRegistryMetaData.cpuUsage(Double.parseDouble(map.get("cpuUsage")));
-        defaultRegistryMetaData.memoryUsage(Double.parseDouble(map.get("memoryUsage")));
-        defaultRegistryMetaData.connections(Long.parseLong(map.get("connections")));
-        defaultRegistryMetaData.services(Integer.parseInt(map.get("services")));
-        defaultRegistryMetaData.loadAverage(Double.parseDouble(map.get("loadAverage")));
-        return defaultRegistryMetaData;
+    public static DefaultRegistryMetadata valueOf(Map<String, String> map) {
+        DefaultRegistryMetadata metadata = new DefaultRegistryMetadata();
+        metadata.cpuUsage(Double.parseDouble(map.get("cpuUsage")));
+        metadata.memoryUsage(Double.parseDouble(map.get("memoryUsage")));
+        metadata.connections(Long.parseLong(map.get("connections")));
+        metadata.services(Integer.parseInt(map.get("services")));
+        metadata.loadAverage(Double.parseDouble(map.get("loadAverage")));
+        return metadata;
     }
 
     private static double round(double value) {
@@ -87,7 +88,7 @@ public class DefaultRegistryMetaData {
     /**
      * Sets the cpuUsage.
      */
-    public DefaultRegistryMetaData cpuUsage(double cpuUsage) {
+    public DefaultRegistryMetadata cpuUsage(double cpuUsage) {
         this.cpuUsage = cpuUsage;
         return this;
     }
@@ -102,7 +103,7 @@ public class DefaultRegistryMetaData {
     /**
      * Sets the memoryUsage.
      */
-    public DefaultRegistryMetaData memoryUsage(double memoryUsage) {
+    public DefaultRegistryMetadata memoryUsage(double memoryUsage) {
         this.memoryUsage = memoryUsage;
         return this;
     }
@@ -117,7 +118,7 @@ public class DefaultRegistryMetaData {
     /**
      * Sets the connections.
      */
-    public DefaultRegistryMetaData connections(long connections) {
+    public DefaultRegistryMetadata connections(long connections) {
         this.connections = connections;
         return this;
     }
@@ -132,7 +133,7 @@ public class DefaultRegistryMetaData {
     /**
      * Sets the services.
      */
-    public DefaultRegistryMetaData services(int services) {
+    public DefaultRegistryMetadata services(int services) {
         this.services = services;
         return this;
     }
@@ -147,7 +148,7 @@ public class DefaultRegistryMetaData {
     /**
      * Sets the loadAverage.
      */
-    public DefaultRegistryMetaData loadAverage(double loadAverage) {
+    public DefaultRegistryMetadata loadAverage(double loadAverage) {
         this.loadAverage = loadAverage;
         return this;
     }

@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator.stage;
+package io.effi.rpc.boot.stage;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.context.Interaction;
@@ -7,7 +7,7 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Stage;
 
-import static io.effi.rpc.boot.confiurator.stage.ReplyResultStage.NAME;
+import static io.effi.rpc.boot.stage.ReplyResultStage.NAME;
 
 @Extension(NAME)
 public class ReplyResultStage implements Stage.ReplyUnit<Response, Peer> {

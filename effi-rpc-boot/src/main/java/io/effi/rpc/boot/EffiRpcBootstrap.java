@@ -108,11 +108,12 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      */
     public Future<Void> start() {
         application.start();
-        ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
-        if (registrar == null) {
-            registrar = new ApplicationServiceRegistrar(application);
+        ApplicationServiceRegistrar coordinator =
+                application.singleComponent(ApplicationServiceRegistrar.class);
+        if (coordinator == null) {
+            coordinator = new ApplicationServiceRegistrar(application);
         }
-        Future<Void> startup = registrar.register();
+        Future<Void> startup = coordinator.register();
         startup.onComplete(result -> {
             if (result.failed()) {
                 application.close();
@@ -130,8 +131,9 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
     }
 
     public boolean ready() {
-        ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
-        return application.active() && registrar != null && registrar.active();
+        ApplicationServiceRegistrar coordinator =
+                application.singleComponent(ApplicationServiceRegistrar.class);
+        return application.active() && coordinator != null && coordinator.active();
     }
 
     public boolean live() {

@@ -27,12 +27,12 @@ class ApplicationServiceRegistrarTest {
                     occupied.getInetAddress().getHostAddress(),
                     occupied.getLocalPort()
             );
-            ApplicationServiceRegistrar registrar = new ApplicationServiceRegistrar(application);
+            ApplicationServiceRegistrar coordinator = new ApplicationServiceRegistrar(application);
 
-            Future<Void> result = registrar.register();
+            Future<Void> result = coordinator.register();
 
             assertThrows(CompletionException.class, () -> result.toCompletableFuture().join());
-            assertFalse(registrar.active());
+            assertFalse(coordinator.active());
         }
     }
 
@@ -40,12 +40,12 @@ class ApplicationServiceRegistrarTest {
     void registerAfterCloseFails() throws Exception {
         ScopedPlatform platform = new ScopedPlatform("closed-platform");
         ScopedApplication application = platform.newApplication("closed-application");
-        ApplicationServiceRegistrar registrar = new ApplicationServiceRegistrar(application);
+        ApplicationServiceRegistrar coordinator = new ApplicationServiceRegistrar(application);
 
-        registrar.deregister();
+        coordinator.deregister();
 
-        assertTrue(registrar.register().await().failed());
-        assertFalse(registrar.active());
+        assertTrue(coordinator.register().await().failed());
+        assertFalse(coordinator.active());
     }
 
     @Test

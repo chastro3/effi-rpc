@@ -1,4 +1,4 @@
-package io.effi.rpc.boot.confiurator.stage;
+package io.effi.rpc.boot.stage;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.context.CallContext;
@@ -7,7 +7,7 @@ import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 
-import static io.effi.rpc.boot.confiurator.stage.CallInterceptStage.NAME;
+import static io.effi.rpc.boot.stage.CallInterceptorStage.NAME;
 
 /**
  * Executes the call interceptor chain during the call phase.
@@ -15,9 +15,9 @@ import static io.effi.rpc.boot.confiurator.stage.CallInterceptStage.NAME;
  * @see io.effi.rpc.context.context.CallInterceptor
  */
 @Extension(NAME)
-public class CallInterceptStage implements Stage.CallUnit<Request, Peer> {
+public class CallInterceptorStage implements Stage.CallUnit<Request, Peer> {
 
-    public static final String NAME = "callInterceptStage";
+    public static final String NAME = "callInterceptorStage";
 
     @Override
     public Interaction.Result process(CallContext<Request, Peer> context, Chain chain) {

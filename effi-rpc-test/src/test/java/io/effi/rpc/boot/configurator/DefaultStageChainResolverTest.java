@@ -1,9 +1,9 @@
-package io.effi.rpc.boot.confiurator;
+package io.effi.rpc.boot.configurator;
 
-import io.effi.rpc.boot.confiurator.stage.CallInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.ChosenInterceptStage;
-import io.effi.rpc.boot.confiurator.stage.FutureResultStage;
-import io.effi.rpc.boot.confiurator.stage.LocatorStage;
+import io.effi.rpc.boot.stage.CallInterceptorStage;
+import io.effi.rpc.boot.stage.ChosenInterceptorStage;
+import io.effi.rpc.boot.stage.CallAttemptStage;
+import io.effi.rpc.boot.stage.LocatorStage;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.constant.Constant;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class DefaultStageChainResolverTest {
 
     private static final String[] CALLER_CALL_STAGES = {
-            CallInterceptStage.NAME, LocatorStage.NAME, ChosenInterceptStage.NAME, FutureResultStage.NAME
+            CallInterceptorStage.NAME, LocatorStage.NAME, ChosenInterceptorStage.NAME, CallAttemptStage.NAME
     };
 
     @Test

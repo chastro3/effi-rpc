@@ -27,17 +27,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Initializes configurations for the application and module,setting up event listeners and filters.
  */
-public class InitializedConfiguration {
+public class DefaultLifecycleConfiguration {
 
-    private static final String NAME = "initializedConfiguration";
+    private static final String NAME = "defaultLifecycleConfiguration";
 
-    private static final Logger logger = LoggerFactory.getLogger(InitializedConfiguration.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultLifecycleConfiguration.class);
 
     /**
      * Initializes the application.Registers default event listeners for various events.
      */
     @Extension(NAME)
-    public static class PlatformInitializedListener implements ScopedPlatform.Listener {
+    public static class PlatformLifecycleListener implements ScopedPlatform.Listener {
         @Override
         public void onInitializing(ScopedPlatform platform) {
             ComponentRegistry registry = platform.registry();
@@ -59,24 +59,26 @@ public class InitializedConfiguration {
      * Starts the application.
      */
     @Extension(NAME)
-    public static class ApplicationInitializedListener implements ScopedApplication.Listener {
+    public static class ApplicationLifecycleListener implements ScopedApplication.Listener {
         @Override
         public void onStarted(ScopedApplication application) {
-            ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
-            if (registrar == null) {
-                registrar = new ApplicationServiceRegistrar(application);
+            ApplicationServiceRegistrar coordinator =
+                    application.singleComponent(ApplicationServiceRegistrar.class);
+            if (coordinator == null) {
+                coordinator = new ApplicationServiceRegistrar(application);
             }
-            registrar.register();
+            coordinator.register();
         }
 
         @Override
         public void onClosing(ScopedApplication application) {
-            ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
-            if (registrar == null) {
+            ApplicationServiceRegistrar coordinator =
+                    application.singleComponent(ApplicationServiceRegistrar.class);
+            if (coordinator == null) {
                 return;
             }
             try {
-                Result<Void> result = registrar.deregister()
+                Result<Void> result = coordinator.deregister()
                         .await(Deadline.after(30, TimeUnit.SECONDS));
                 if (result.failed()) {
                     logger.error("Failed to stop application '{}'", result.cause(), application.name());
