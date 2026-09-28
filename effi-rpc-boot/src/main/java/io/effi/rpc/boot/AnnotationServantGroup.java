@@ -2,54 +2,41 @@ package io.effi.rpc.boot;
 
 import io.effi.rpc.annotation.rpc.Serve;
 import io.effi.rpc.annotation.rpc.ServeGroup;
-import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.Servant;
-import io.effi.rpc.context.ServantGroup;
 import io.effi.rpc.context.annotation.AnnotationStyle;
 import io.effi.rpc.context.annotation.AnnotationStyleResolver;
 import io.effi.rpc.context.parameter.ParameterBinding;
 import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.effi.rpc.boot.AnnotationSupport.annotationStyleParserForMethod;
 import static io.effi.rpc.boot.AnnotationSupport.checkAnnotationStyle;
-import io.effi.rpc.context.options.PeerOptions;
-import io.effi.rpc.context.options.ServantOptions;
+import static io.effi.rpc.context.options.ServantOptions.DECLARED_PROTOCOL;
 
 /**
- * Provide the annotation implementation of {@link ServantGroup}.
+ * Annotation-based implementation of {@link io.effi.rpc.context.ServantGroup}.
  */
-public class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
+public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
 
     private final ServeGroup serviceAnnotation;
 
     private final AnnotationStyle annotationStyle;
 
-    public AnnotationServantGroup(T service, ScopedApplication application) {
-        this(service, null, application);
+    private AnnotationServantGroup(Builder<T> builder) {
+        super(builder);
+        this.serviceAnnotation = builder.serviceAnnotation;
+        this.annotationStyle = builder.annotationStyle;
     }
 
-    public AnnotationServantGroup(T service, Class<T> serviceType, ScopedApplication application) {
-        AssertUtil.notNull(application, "application");
-        AssertUtil.notNull(service, "service");
-        serviceType = checkServiceType(service, serviceType);
-        ServeGroup rpcService = ensureServiceAnnotation(serviceType);
-        HierarchicalOptions options = parseOptions(rpcService, application);
-        initialize(rpcService.value(), service, serviceType, options);
-        this.annotationStyle = checkAnnotationStyle(serviceType, options);
-        this.serviceAnnotation = rpcService;
-        parseServant(serviceType, application);
+    public static <T> AnnotationServantGroup.Builder<T> builder() {
+        return new Builder<T>();
     }
 
     public ServeGroup serviceAnnotation() {
@@ -60,66 +47,89 @@ public class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
         return annotationStyle;
     }
 
-    private HierarchicalOptions parseOptions(ServeGroup serveGroup, ScopedApplication application) {
-        HierarchicalOptions options = HierarchicalOptions.create()
-                .withOwner(this)
-                .withParent(application.serveOptions());
-        return AnnotationSupport.fillOption(serveGroup, options);
-    }
+    public static final class Builder<T>
+            extends DefaultServantGroup.Builder<
+            AnnotationServantGroup<T>,
+            T,
+            AnnotationServantGroup.Builder<T>> {
 
-    private void parseServant(Class<T> serviceType, ScopedApplication application) {
-        List<Method> methods = AnnotationSupport.filterMethods(serviceType.getMethods());
-        for (Method method : methods) {
-            HierarchicalOptions serveOptions = parseServeOption(method);
-            ServantMethod<T> servantMethod = getMethodMapper(serveOptions, method);
-            ScopedModule module = getModule(serveOptions, application);
-            List<TransportProtocol> supportedProtocols = getSupportedProtocols(serveOptions, application);
-            if (CollectionUtil.isNotEmpty(supportedProtocols)) {
-                supportedProtocols.forEach(protocol -> protocol.createServant(servantMethod, serveOptions, module));
+        private ServeGroup serviceAnnotation;
+
+        private AnnotationStyle annotationStyle;
+
+        private Builder() {
+        }
+
+        @Override
+        protected void resolve() {
+            super.resolve();
+            if (options.parent() == null) {
+                options.withParent(module.serveOptions());
+            }
+            serviceAnnotation = AssertUtil.requireAnnotation(targetType, ServeGroup.class);
+            name = serviceAnnotation.value();
+            AnnotationSupport.fillOption(serviceAnnotation, options);
+            annotationStyle = checkAnnotationStyle(targetType, options);
+        }
+
+        @Override
+        protected AnnotationServantGroup<T> newInstance() {
+            return new AnnotationServantGroup<>(this);
+        }
+
+        @Override
+        protected void resolveComponents(AnnotationServantGroup<T> group) {
+            for (Method method : AnnotationSupport.filterMethods(targetType.getMethods())) {
+                HierarchicalOptions methodOptions = HierarchicalOptions.create()
+                        .withOwner(group)
+                        .withParent(options);
+                AnnotationSupport.fillOption(method.getAnnotation(Serve.class), methodOptions);
+
+                ScopedModule methodModule = resolveModule(methodOptions);
+                ServantMethod<T> servantMethod = new ServantMethod<>(
+                        group,
+                        method,
+                        parameterBindings(methodOptions, method)
+                );
+                for (TransportProtocol protocol : resolveProtocols(methodModule, methodOptions)) {
+                    protocol.createServant(servantMethod, methodOptions, methodModule);
+                }
             }
         }
-    }
 
-    private HierarchicalOptions parseServeOption(Method method) {
-        HierarchicalOptions serveOptions = HierarchicalOptions.create().withParent(options);
-        Serve serve = method.getAnnotation(Serve.class);
-        return AnnotationSupport.fillOption(serve, serveOptions);
-    }
-
-    private ServantMethod<T> getMethodMapper(HierarchicalOptions options, Method method) {
-        AnnotationStyleResolver methodAnnotationStyleResolver = annotationStyleParserForMethod(options, annotationStyle);
-        ParameterBinding[] bindings;
-        if (methodAnnotationStyleResolver != null && methodAnnotationStyleResolver.supports(method)) {
-            bindings = methodAnnotationStyleResolver.resolveParameterBinding(method);
-            methodAnnotationStyleResolver.resolveMethod(method, options);
-        } else {
-            bindings = ParameterBinding.emptyResolvers(method);
+        @Override
+        protected void checkState(AnnotationServantGroup<T> group) {
+            super.checkState(group);
+            AssertUtil.notNull(group.target(), "target");
+            AssertUtil.notNull(group.serviceAnnotation(), "serviceAnnotation");
+            AssertUtil.notNull(group.annotationStyle(), "annotationStyle");
         }
-        return new ServantMethod<>(this, method, bindings);
-    }
 
-    private ScopedModule getModule(HierarchicalOptions options, ScopedApplication application) {
-        String moduleName = options.option(PeerOptions.ASSOCIATED_MODULE);
-        ScopedModule module = application.lookupModule(moduleName);
-        return module == null ? application.defaultModule() : module;
-    }
-
-    private List<TransportProtocol> getSupportedProtocols(HierarchicalOptions options, ScopedApplication application) {
-        String[] protocolNames = options.option(ServantOptions.DECLARED_PROTOCOL);
-        if (CollectionUtil.isEmpty(protocolNames)) {
-            return Collections.emptyList();
+        private List<TransportProtocol> resolveProtocols(
+                ScopedModule module,
+                HierarchicalOptions options
+        ) {
+            String[] protocolNames = options.option(DECLARED_PROTOCOL);
+            if (CollectionUtil.isEmpty(protocolNames)) {
+                return List.of();
+            }
+            return Arrays.stream(protocolNames)
+                    .map(name -> {
+                        TransportProtocol protocol = module.platform()
+                                .namedExtension(TransportProtocol.class, name);
+                        return AssertUtil.notNull(protocol, "protocol");
+                    })
+                    .toList();
         }
-        List<TransportProtocol> result = new ArrayList<>();
-        ScopedPlatform platform = application.platform();
-        for (String protocolName : protocolNames) {
-            TransportProtocol protocol = platform.namedExtension(TransportProtocol.class, protocolName);
-            result.add(protocol);
+
+        private ParameterBinding[] parameterBindings(HierarchicalOptions options, Method method) {
+            AnnotationStyleResolver resolver = annotationStyleParserForMethod(options, annotationStyle);
+            if (resolver != null && resolver.supports(method)) {
+                ParameterBinding[] bindings = resolver.resolveParameterBinding(method);
+                resolver.resolveMethod(method, options);
+                return bindings;
+            }
+            return ParameterBinding.emptyResolvers(method);
         }
-        return result;
     }
-
-    private ServeGroup ensureServiceAnnotation(Class<T> targetType) {
-        return AssertUtil.requireAnnotation(targetType, ServeGroup.class);
-    }
-
 }

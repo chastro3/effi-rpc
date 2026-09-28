@@ -22,6 +22,12 @@ public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implem
     protected DefaultServantGroup() {
     }
 
+    protected DefaultServantGroup(DefaultServantGroup.Builder<?, T, ?> builder) {
+        super(builder);
+        this.name = checkName(builder.name, targetType);
+        this.methodAccess = DynamicAccessor.fetch(targetType);
+    }
+
     public DefaultServantGroup(T service) {
         this(null, service);
     }
@@ -80,8 +86,26 @@ public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implem
     }
 
     protected HierarchicalOptions checkOptions(HierarchicalOptions options) {
-        if (options == null)
+        if (options == null) {
             options = HierarchicalOptions.create().withOwner(this);
+        } else {
+            options.withOwner(this);
+        }
         return options;
+    }
+
+    /**
+     * Assembles a servant group with an optional explicit service type.
+     */
+    public abstract static class Builder<
+            G extends DefaultServantGroup<T>,
+            T,
+            SELF extends Builder<G, T, SELF>>
+            extends AbstractPeerGroup.Builder<G, Servant, T, SELF> {
+
+        public SELF serviceType(Class<T> serviceType) {
+            this.targetType = serviceType;
+            return self();
+        }
     }
 }

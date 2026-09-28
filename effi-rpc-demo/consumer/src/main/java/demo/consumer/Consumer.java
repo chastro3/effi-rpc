@@ -94,7 +94,11 @@ public class Consumer {
                 .registry()
                 .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.CONSUMER, Tags.FORCE_ACTIVE));
 //                .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("nacos://127.0.0.1:8848").build());
-        AnnotationCallerGroup<HelloClient> callerGroup = new AnnotationCallerGroup<>(HelloClient.class, application);
+        AnnotationCallerGroup<HelloClient> callerGroup = AnnotationCallerGroup
+                .<HelloClient>builder()
+                .targetType(HelloClient.class)
+                .module(application.defaultModule())
+                .build();
         HelloClient helloClient = callerGroup.target();
 //        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 //        scheduledExecutorService.scheduleAtFixedRate(() -> {

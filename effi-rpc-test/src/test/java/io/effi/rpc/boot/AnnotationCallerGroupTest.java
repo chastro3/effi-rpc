@@ -20,7 +20,7 @@ class AnnotationCallerGroupTest {
     void asyncCallReturnsCompletableFuture() {
         Caller<Object> caller = caller();
 
-        Object result = AnnotationCallerGroup.invokeCaller(caller, RpcType.ASYNC, new Object[0]);
+        Object result = AbstractCallerGroup.invokeCaller(caller, RpcType.ASYNC, new Object[0]);
 
         assertTrue(result instanceof CompletableFuture);
         assertEquals("ok", ((CompletableFuture<?>) result).join());
@@ -33,7 +33,7 @@ class AnnotationCallerGroupTest {
                 new ParameterLinking(method.getParameters()[0], null)
         };
 
-        Object[] wrapped = AnnotationCallerGroup.wrapArgs(linkings, new Object[]{"value"}, null);
+        Object[] wrapped = AbstractCallerGroup.wrapArgs(linkings, new Object[]{"value"}, null);
 
         assertSame("value", wrapped[0]);
     }

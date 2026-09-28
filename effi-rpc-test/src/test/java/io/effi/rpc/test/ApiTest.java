@@ -98,13 +98,21 @@ public class ApiTest {
 
     @Test
     public void annotatedRemoteService() {
-        AnnotationServantGroup<HelloService> remoteService = new AnnotationServantGroup<>(new HelloService(), application);
+        AnnotationServantGroup<HelloService> remoteService = AnnotationServantGroup
+                .<HelloService>builder()
+                .target(new HelloService())
+                .module(application.defaultModule())
+                .build();
         System.out.println(remoteService);
     }
 
     @Test
     public void annotationRemoteCaller() {
-        AnnotationCallerGroup<HelloClient> remoteCaller = new AnnotationCallerGroup<>(HelloClient.class, application);
+        AnnotationCallerGroup<HelloClient> remoteCaller = AnnotationCallerGroup
+                .<HelloClient>builder()
+                .targetType(HelloClient.class)
+                .module(application.defaultModule())
+                .build();
         System.out.println(remoteCaller);
     }
 

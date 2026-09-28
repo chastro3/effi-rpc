@@ -36,6 +36,9 @@ public interface HierarchicalOptions extends Options {
         return new DefaultHierarchicalOptions(items);
     }
 
+    @Override
+    <V> HierarchicalOptions addOption(OptionName<V> name, V value);
+
     /**
      * Assigns the parent options.
      *

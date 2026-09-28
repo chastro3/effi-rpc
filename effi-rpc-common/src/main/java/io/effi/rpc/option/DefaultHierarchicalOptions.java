@@ -25,6 +25,12 @@ public class DefaultHierarchicalOptions extends DefaultOptions implements Hierar
     }
 
     @Override
+    public <T> HierarchicalOptions addOption(OptionName<T> name, T value) {
+        super.addOption(name, value);
+        return this;
+    }
+
+    @Override
     public <V> V option(OptionName<V> name) {
         V value = resolveOption(name);
         return value == null ? name.defaultValue() : value;

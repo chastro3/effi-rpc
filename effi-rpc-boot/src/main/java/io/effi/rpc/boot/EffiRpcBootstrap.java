@@ -81,7 +81,10 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      * @return the updated EffiRpcBootstrap instance
      */
     public EffiRpcBootstrap service(Object service) {
-        new AnnotationServantGroup<>(service, application);
+        AnnotationServantGroup.builder()
+                .target(service)
+                .module(application.defaultModule())
+                .build();
         return this;
     }
 
