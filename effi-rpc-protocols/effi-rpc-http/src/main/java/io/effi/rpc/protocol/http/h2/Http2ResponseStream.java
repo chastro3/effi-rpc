@@ -8,8 +8,8 @@ import io.netty.handler.codec.http2.Http2FrameStream;
  */
 public class Http2ResponseStream extends Http2MessageStream {
 
-    public Http2ResponseStream(Http2FrameStream stream) {
-        super(stream);
+    public Http2ResponseStream(Http2FrameStream stream, int maxMessageSize) {
+        super(stream, maxMessageSize);
     }
 
     public int statusCode() {

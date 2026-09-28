@@ -4,13 +4,13 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.component.support.ThreadPool;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,17 +73,45 @@ class AbstractRegistryClientTest {
     }
 
     @Test
-    void discoveryUpdatesReplaceSnapshot() {
-        AbstractRegistryClient.DiscoveredService service = new AbstractRegistryClient.DiscoveredService();
+    void lookupReturnsLatestSnapshotAfterSubscriptionUpdate() throws Exception {
+        ScopedPlatform platform = new ScopedPlatform("registry-snapshot-platform");
+        Scheduler scheduler = new Scheduler();
+        platform.registry().register(Scheduler.class, scheduler);
+        RegistryConfig config = DefaultRegistryConfig.builder()
+                .type("test")
+                .address("127.0.0.1:1")
+                .build();
+        TestRegistryClient client = new TestRegistryClient(config, platform);
         ServiceInstance first = instance("first");
         ServiceInstance second = instance("second");
+        client.discovered = List.of(first, second);
 
-        service.update(List.of(first, second));
-        List<ServiceInstance> previous = service.instanceRef.get();
-        service.update(List.of(first));
+        assertEquals(List.of(first, second), client.lookup("test-service").await().value());
 
-        assertEquals(2, previous.size());
-        assertEquals(List.of(first), service.instanceRef.get());
+        client.onServicesUpdated("test-service", List.of(first));
+
+        assertEquals(List.of(first), client.lookup("test-service").await().value());
+        client.close();
+        scheduler.close();
+    }
+
+    @Test
+    void closeShutsDownOwnedThreadPool() {
+        ScopedPlatform platform = new ScopedPlatform("registry-owned-pool-platform");
+        Scheduler scheduler = new Scheduler();
+        platform.registry().register(Scheduler.class, scheduler);
+        RegistryConfig config = DefaultRegistryConfig.builder()
+                .type("test")
+                .address("127.0.0.1:1")
+                .build();
+        TestRegistryClient client = new TestRegistryClient(config, platform);
+
+        assertTrue(client.threadPool.active());
+
+        client.close();
+
+        assertFalse(client.threadPool.active());
+        scheduler.close();
     }
 
     private static ServiceInstance instance(String id) {
@@ -100,8 +128,10 @@ class AbstractRegistryClientTest {
 
         private final AtomicInteger attempts = new AtomicInteger();
 
+        private List<ServiceInstance> discovered = List.of();
+
         private TestRegistryClient(RegistryConfig config, ScopedPlatform platform) {
-            super(config, platform, false);
+            super(config, platform);
         }
 
         @Override
@@ -135,7 +165,7 @@ class AbstractRegistryClientTest {
 
         @Override
         protected Future<List<ServiceInstance>> doLookup(String serviceName) {
-            return Promise.completed(Collections.emptyList());
+            return Promise.completed(discovered);
         }
 
         @Override

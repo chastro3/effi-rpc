@@ -6,13 +6,13 @@ import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.trait.Closeable;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface ServiceRegistrar extends ScopedApplication.Supplier, Closeable {
 
-    List<ServiceInstance> serviceInstances();
+    Collection<ServiceInstance> serviceInstances();
 
-    List<RegistryConfig> registryConfigs();
+    Collection<RegistryConfig> registryConfigs();
 
     Future<Void> register();
 

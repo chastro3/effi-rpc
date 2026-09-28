@@ -62,11 +62,11 @@ public class InitializedConfiguration {
     public static class ApplicationInitializedListener implements ScopedApplication.Listener {
         @Override
         public void onStarted(ScopedApplication application) {
-            ApplicationServiceRegistrar applicationServiceRegistrar = application.singleComponent(ApplicationServiceRegistrar.class);
-            if (applicationServiceRegistrar == null) {
-                applicationServiceRegistrar = new ApplicationServiceRegistrar(application);
+            ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
+            if (registrar == null) {
+                registrar = new ApplicationServiceRegistrar(application);
             }
-            applicationServiceRegistrar.register();
+            registrar.register();
         }
 
         @Override

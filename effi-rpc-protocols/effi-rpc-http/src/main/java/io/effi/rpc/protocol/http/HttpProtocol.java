@@ -13,6 +13,7 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
@@ -82,8 +83,9 @@ public abstract class HttpProtocol extends AbstractProtocol {
             int statusCode = 200;
             Object value = result.value();
             if (!result.succeeded()) {
-                value = result.cause().getMessage();
-                statusCode = 500;
+                EffiRpcException cause = result.cause();
+                value = cause.getMessage();
+                statusCode = errorStatus(cause);
             }
             HttpHeaders headers = version().newHeaders();
             headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
@@ -129,7 +131,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
                     "Expected an HTTP request but received " + ObjectUtil.simpleClassName(inputMessage)
             );
         }
-        int statusCode = cause.errorCode() == InteractionErrorCodes.SERVANT_NOT_FOUND ? 404 : 500;
+        int statusCode = errorStatus(cause);
         HttpHeaders headers = version().newHeaders();
         headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
         headers.set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
@@ -139,7 +141,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
                 .statusCode(statusCode)
                 .url(request.url())
                 .headers(headers)
-                .body(cause.getMessage().getBytes())
+                .body(cause.getMessage())
                 .build();
     }
 
@@ -177,6 +179,17 @@ public abstract class HttpProtocol extends AbstractProtocol {
             return Interaction.Result.success(response.url(), response.body());
         }
         return Interaction.Result.failure(response.url(), response.cause());
+    }
+
+    private static int errorStatus(EffiRpcException cause) {
+        if (cause.errorCode() == InteractionErrorCodes.SERVANT_NOT_FOUND) {
+            return 404;
+        }
+        if (cause.errorCode() == PredefinedErrorCode.SERVICE_UNAVAILABLE
+                || cause.errorCode() == InteractionErrorCodes.SERVER_OVERLOADED) {
+            return 503;
+        }
+        return 500;
     }
 
 }

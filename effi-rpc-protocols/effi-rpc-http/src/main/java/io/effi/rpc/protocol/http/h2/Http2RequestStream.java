@@ -15,8 +15,8 @@ public class Http2RequestStream extends Http2MessageStream {
 
     private SmartURL requestSmartUrl;
 
-    public Http2RequestStream(NettyChannel channel, Http2FrameStream stream) {
-        super(stream);
+    public Http2RequestStream(NettyChannel channel, Http2FrameStream stream, int maxMessageSize) {
+        super(stream, maxMessageSize);
         this.channel = channel;
     }
 

@@ -1,7 +1,7 @@
 package demo.provider;
 
-import io.effi.rpc.boot.ApplicationServiceRegistrar;
 import io.effi.rpc.boot.ComplexServantGroup;
+import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.context.Servant;
@@ -24,10 +24,10 @@ public class ApiProvider {
     public static void main(String[] args) {
         ScopedModule module = ScopedModule.defaultInstance();
         Servant servant = createServant(module);
-        ApplicationServiceRegistrar.forApplication(module.application())
+        EffiRpcBootstrap.newInstance(module.application())
                 .server(Http2ServerConfig.defaultConfig(), 8090)
                 .registry(DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build())
-                .register();
+                .start();
     }
 
     private static Servant createServant(ScopedModule module) {

@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http2.*;
+import io.netty.handler.codec.TooLongFrameException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,10 +20,13 @@ public abstract class Http2MessageStream {
 
     protected CompositeByteBuf compositeByteBuf;
 
-    protected AtomicBoolean endStream;
+    protected final AtomicBoolean endStream;
 
-    public Http2MessageStream(Http2FrameStream stream) {
+    private final int maxMessageSize;
+
+    public Http2MessageStream(Http2FrameStream stream, int maxMessageSize) {
         this.stream = stream;
+        this.maxMessageSize = maxMessageSize;
         headers = new DefaultHttp2Headers();
         endStream = new AtomicBoolean(false);
     }
@@ -44,14 +48,26 @@ public abstract class Http2MessageStream {
      */
     public void parseDataFrame(Http2DataFrame dataFrame) {
         ByteBuf byteBuf = dataFrame.content();
-        writeData(byteBuf);
+        try {
+            if (!byteBuf.isReadable()) {
+                dataFrame.release();
+            } else {
+                writeData(byteBuf);
+            }
+        } catch (RuntimeException e) {
+            dataFrame.release();
+            throw e;
+        }
         if (dataFrame.isEndStream()) end();
-
     }
 
     private void writeData(ByteBuf byteBuf) {
-        if (byteBuf == null || !byteBuf.isReadable()) {
-            return;
+        int readableBytes = byteBuf.readableBytes();
+        int accumulated = compositeByteBuf == null ? 0 : compositeByteBuf.readableBytes();
+        if (readableBytes > maxMessageSize - accumulated) {
+            throw new TooLongFrameException(
+                    "HTTP/2 message exceeds the configured maximum size of " + maxMessageSize + " bytes"
+            );
         }
         if (compositeByteBuf == null) {
             compositeByteBuf = ByteBufAllocator.DEFAULT.compositeBuffer();
@@ -77,16 +93,20 @@ public abstract class Http2MessageStream {
         return headers;
     }
 
-    /**
-     * Returns the current body.
-     *
-     * @return
-     */
-    public ByteBuf body() {
+    public ByteBuf takeBody() {
         if (!endStream.get()) {
             throw new IllegalStateException("Stream is not end");
         }
-        return compositeByteBuf == null ? Unpooled.EMPTY_BUFFER : compositeByteBuf;
+        ByteBuf body = compositeByteBuf == null ? Unpooled.EMPTY_BUFFER : compositeByteBuf;
+        compositeByteBuf = null;
+        return body;
+    }
+
+    public void close() {
+        if (compositeByteBuf != null) {
+            compositeByteBuf.release();
+            compositeByteBuf = null;
+        }
     }
 
     /**

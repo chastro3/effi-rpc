@@ -28,7 +28,7 @@ public class NacosRegistryClient extends AbstractRegistryClient {
     private final NamingService namingService;
 
     protected NacosRegistryClient(RegistryConfig config, ScopedPlatform platform) {
-        super(config, platform, true);
+        super(config, platform);
         this.namingService = createNamingService(config);
     }
 

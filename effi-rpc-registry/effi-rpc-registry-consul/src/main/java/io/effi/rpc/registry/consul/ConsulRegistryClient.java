@@ -24,6 +24,7 @@ import io.vertx.ext.consul.Watch;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import io.effi.rpc.component.registry.options.RegistryOptions;
 
 /**
@@ -34,13 +35,15 @@ import io.effi.rpc.component.registry.options.RegistryOptions;
  */
 public class ConsulRegistryClient extends AbstractRegistryClient {
 
-    private static final Vertx vertx = Vertx.vertx();
+    private final Vertx vertx = Vertx.vertx();
 
     private final ConsulClient consulClient;
 
+    private final Map<String, Watch<?>> watches = new ConcurrentHashMap<>();
+
     protected ConsulRegistryClient(RegistryConfig config, ScopedPlatform platform) {
         // todo 提供vertx 的 consul config
-        super(config, platform, true);
+        super(config, platform);
         this.consulClient = createConsulClient(config);
     }
 
@@ -102,7 +105,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
 
     @Override
     protected void doSubscribe(String serviceName) throws Throwable {
-        Watch.service(serviceName, vertx).setHandler(res -> {
+        Watch<?> watch = Watch.service(serviceName, vertx).setHandler(res -> {
             if (res.succeeded()) {
                 List<ServiceEntry> serviceEntries = res.nextResult().getList();
                 List<ServiceInstance> healthInstances = serviceEntries.stream()
@@ -112,12 +115,17 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                         .map(this::toServiceInstance).toList();
                 onServicesUpdated(serviceName, healthInstances);
             }
-        }).start();
+        });
+        watches.put(serviceName, watch);
+        watch.start();
     }
 
     @Override
     public void doClose() throws Throwable {
+        watches.values().forEach(Watch::stop);
+        watches.clear();
         consulClient.close();
+        vertx.close().toCompletionStage().toCompletableFuture().join();
     }
 
     private ConsulClient createConsulClient(RegistryConfig config) {

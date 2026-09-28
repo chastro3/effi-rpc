@@ -26,7 +26,7 @@ public class ApiConsumer {
                 .module(ScopedModule.defaultInstance())
                 .build();
         ExecutorService executorService = Executors.newFixedThreadPool(200);
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 200; i++) {
             executorService.execute(() -> {
                 Future<String> future = caller.call("xxx", Header.target(Map.of("content-type", "application/json")));
                 System.out.println(future.toCompletableFuture().join());

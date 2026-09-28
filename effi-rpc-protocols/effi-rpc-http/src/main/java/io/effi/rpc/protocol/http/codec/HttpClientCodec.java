@@ -1,9 +1,11 @@
 package io.effi.rpc.protocol.http.codec;
 
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.InteractionErrorCodes;
+import io.effi.rpc.exception.DefaultErrorCode;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.protocol.http.HttpCaller;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
@@ -21,13 +23,14 @@ import io.effi.rpc.transport.netty.NettySupport;
 import io.effi.rpc.util.Messages;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
  * Implements HTTP client codec for encoding HTTP requests and decoding HTTP responses.
  * - Encodes outbound HTTP requests into network messages.
  * - Decodes inbound HTTP responses into response objects.
  */
-public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpResponse, HttpCaller<?>> {
+public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpResponse, Caller<?>> {
 
 
     @Override
@@ -50,7 +53,7 @@ public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpRespon
     }
 
     @Override
-    public HttpResponse decode(InputMessage inputMessage, HttpCaller<?> side) {
+    public HttpResponse decode(InputMessage inputMessage, Caller<?> side) {
         try {
             if (inputMessage instanceof HttpDuplexResponse response) {
                 ScopedPlatform platform = response.channel().platform();
@@ -58,7 +61,7 @@ public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpRespon
                 if (response.succeeded()) {
                     response.body(body);
                 } else {
-                    EffiRpcException fail = InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(body);
+                    EffiRpcException fail = error(response, body);
                     response.body(fail);
                 }
                 return response;
@@ -67,5 +70,16 @@ public class HttpClientCodec implements Encoder<HttpRequest>, Decoder<HttpRespon
             throw TransportErrorCodes.DECODE.fail(e, HttpResponse.class, inputMessage.getClass());
         }
         throw new IllegalStateException(Messages.onlySupport(HttpDuplexResponse.class));
+    }
+
+    private static EffiRpcException error(HttpResponse response, Object body) {
+        int statusCode = response.statusCode();
+        if (statusCode == HttpResponseStatus.NOT_FOUND.code()) {
+            return DefaultErrorCode.valueOf(InteractionErrorCodes.SERVANT_NOT_FOUND.code(), "{}").fail(body);
+        }
+        if (statusCode == HttpResponseStatus.SERVICE_UNAVAILABLE.code()) {
+            return PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(body);
+        }
+        return InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(body);
     }
 }

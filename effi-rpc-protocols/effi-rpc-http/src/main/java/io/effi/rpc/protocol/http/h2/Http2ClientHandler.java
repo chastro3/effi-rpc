@@ -73,9 +73,27 @@ public final class Http2ClientHandler extends FutureBinder {
         if (responseStream != null && responseStream.endStream()) {
             HttpResponse httpResponse = H2Support.fromHttp2ResponseStream(responseStream, ctx, context);
             ctx.fireChannelRead(httpResponse);
-            H2Support.removeResponseStream(ctx, responseStream);
+            H2Support.removeResponseStream(ctx);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        try {
+            super.channelInactive(ctx);
+        } finally {
+            H2Support.releaseResponseStream(ctx);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        try {
+            super.exceptionCaught(ctx, cause);
+        } finally {
+            H2Support.releaseResponseStream(ctx);
+        }
     }
 }

@@ -6,6 +6,7 @@ import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.protocol.http.HttpCaller;
+import io.effi.rpc.protocol.http.HttpOptions;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.transport.netty.NettyChannel;
@@ -26,7 +27,6 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 
 import java.util.function.Supplier;
-import io.effi.rpc.protocol.http.h2.Http2Options;
 
 /**
  * Utility class for http2 operations.
@@ -37,9 +37,11 @@ public class H2Support {
 
     public static final String[] SUPPORTED_PROTOCOL = new String[]{ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1};
 
-    private static final String REQUEST_STREAM_PREFIX = "request-stream-";
+    private static final AttributeKey<Http2RequestStream> REQUEST_STREAM_KEY =
+            AttributeKey.valueOf("effi-rpc.h2.request-stream");
 
-    private static final String RESPONSE_STREAM_PREFIX = "response-stream-";
+    private static final AttributeKey<Http2ResponseStream> RESPONSE_STREAM_KEY =
+            AttributeKey.valueOf("effi-rpc.h2.response-stream");
 
     public static void bindStreamBootstrap(Channel channel, Http2StreamChannelBootstrap streamBootstrap) {
         channel.attr(H2_STREAM_BOOTSTRAP_KEY).set(streamBootstrap);
@@ -55,31 +57,53 @@ public class H2Support {
      * todo 优化为null的时候
      */
     public static Http2RequestStream getOrCreateRequestStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
-        String streamKey = REQUEST_STREAM_PREFIX + stream.id();
         NettyChannel nettyChannel = NettyChannel.ensure(ctx.channel());
-        return getOrCreateStream(streamKey, ctx, () -> new Http2RequestStream(nettyChannel, stream));
+        return getOrCreateStream(
+                ctx,
+                REQUEST_STREAM_KEY,
+                () -> new Http2RequestStream(
+                        nettyChannel,
+                        stream,
+                        nettyChannel.endpoint().config().option(HttpOptions.MAX_MESSAGE_SIZE)
+                )
+        );
     }
 
     /**
      * Gets or creates http2 response stream from channel,Create if it doesn't exist.
      */
     public static Http2ResponseStream getOrCreateResponseStream(ChannelHandlerContext ctx, Http2FrameStream stream) {
-        String streamKey = RESPONSE_STREAM_PREFIX + stream.id();
-        return getOrCreateStream(streamKey, ctx, () -> new Http2ResponseStream(stream));
+        NettyChannel nettyChannel = NettyChannel.ensure(ctx.channel());
+        return getOrCreateStream(
+                ctx,
+                RESPONSE_STREAM_KEY,
+                () -> new Http2ResponseStream(
+                        stream,
+                        nettyChannel.endpoint().config().option(HttpOptions.MAX_MESSAGE_SIZE)
+                )
+        );
     }
 
     /**
      * Removes http2 request stream from channel.
      */
-    public static void removeRequestStream(ChannelHandlerContext ctx, Http2RequestStream requestStream) {
-        removeStream(ctx, REQUEST_STREAM_PREFIX + requestStream.stream().id());
+    public static void removeRequestStream(ChannelHandlerContext ctx) {
+        removeStream(ctx, REQUEST_STREAM_KEY);
     }
 
     /**
      * Removes http2 response stream from channel.
      */
-    public static void removeResponseStream(ChannelHandlerContext ctx, Http2ResponseStream responseStream) {
-        removeStream(ctx, RESPONSE_STREAM_PREFIX + responseStream.stream().id());
+    public static void removeResponseStream(ChannelHandlerContext ctx) {
+        removeStream(ctx, RESPONSE_STREAM_KEY);
+    }
+
+    public static void releaseRequestStream(ChannelHandlerContext ctx) {
+        closeStream(ctx, REQUEST_STREAM_KEY);
+    }
+
+    public static void releaseResponseStream(ChannelHandlerContext ctx) {
+        closeStream(ctx, RESPONSE_STREAM_KEY);
     }
 
     /**
@@ -130,7 +154,7 @@ public class H2Support {
                 .headers(responseStream.headers())
                 .build()
                 .channel(NettyChannel.ensure(ctx.channel()))
-                .input(NettySupport.newInputStream(responseStream.body()));
+                .input(NettySupport.newInputStream(responseStream.takeBody()));
     }
 
     /**
@@ -144,7 +168,7 @@ public class H2Support {
                 .headers(requestStream.headers)
                 .build()
                 .channel(NettyChannel.ensure(ctx.channel()))
-                .input(NettySupport.newInputStream(requestStream.body()));
+                .input(NettySupport.newInputStream(requestStream.takeBody()));
     }
 
     /**
@@ -169,8 +193,7 @@ public class H2Support {
         return settings;
     }
 
-    private static <T extends Http2MessageStream> T getOrCreateStream(String streamKey, ChannelHandlerContext ctx, Supplier<T> creator) {
-        AttributeKey<T> streamAttributeKey = AttributeKey.valueOf(streamKey);
+    private static <T extends Http2MessageStream> T getOrCreateStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey, Supplier<T> creator) {
         Attribute<T> streamAttribute = ctx.channel().attr(streamAttributeKey);
         T nettyHttp2Stream = streamAttribute.get();
         if (nettyHttp2Stream == null) {
@@ -180,10 +203,15 @@ public class H2Support {
         return nettyHttp2Stream;
     }
 
-    private static void removeStream(ChannelHandlerContext ctx, String streamKey) {
-        AttributeKey<Http2MessageStream> streamAttributeKey = AttributeKey.valueOf(streamKey);
-        Attribute<Http2MessageStream> streamMessageAttribute = ctx.channel().attr(streamAttributeKey);
-        streamMessageAttribute.set(null);
+    private static <T extends Http2MessageStream> T removeStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey) {
+        return ctx.channel().attr(streamAttributeKey).getAndSet(null);
+    }
+
+    private static <T extends Http2MessageStream> void closeStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey) {
+        T stream = removeStream(ctx, streamAttributeKey);
+        if (stream != null) {
+            stream.close();
+        }
     }
 
 }

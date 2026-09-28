@@ -47,4 +47,23 @@ class ApplicationServiceRegistrarTest {
         assertTrue(registrar.register().await().failed());
         assertFalse(registrar.active());
     }
+
+    @Test
+    void bootstrapStartFailureClosesApplication() throws Exception {
+        try (ServerSocket occupied = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            ScopedPlatform platform = new ScopedPlatform("bootstrap-failure-platform");
+            ScopedApplication application = platform.newApplication("bootstrap-failure-application");
+            EffiRpcBootstrap bootstrap = EffiRpcBootstrap.newInstance(application)
+                    .server(
+                            Http1ServerConfig.defaultConfig(),
+                            occupied.getInetAddress().getHostAddress(),
+                            occupied.getLocalPort()
+                    );
+
+            Future<Void> startup = bootstrap.start();
+            assertThrows(CompletionException.class, () -> startup.toCompletableFuture().join());
+
+            assertFalse(application.active());
+        }
+    }
 }

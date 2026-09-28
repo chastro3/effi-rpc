@@ -47,12 +47,30 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
         if (requestStream != null && requestStream.endStream()) {
             HttpRequest httpRequest = H2Support.fromHtt2RequestStream(requestStream, ctx);
             ctx.fireChannelRead(httpRequest);
-            H2Support.removeRequestStream(ctx, requestStream);
+            H2Support.removeRequestStream(ctx);
         }
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        try {
+            super.channelInactive(ctx);
+        } finally {
+            H2Support.releaseRequestStream(ctx);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        try {
+            super.exceptionCaught(ctx, cause);
+        } finally {
+            H2Support.releaseRequestStream(ctx);
+        }
     }
 }
