@@ -1,5 +1,35 @@
 # Effi RPC Production Readiness Blockers
 
+## Status Update (2026-09-28)
+
+The sections below are the original audit baseline and are kept for history.
+Their status is superseded by this summary.
+
+Completed:
+
+- Startup readiness and shutdown race protection.
+- Scheduler and default thread-pool ownership.
+- TLS hostname verification and SNI.
+- Netty write-buffer watermarks and overload responses.
+- Registry heartbeat cancellation and immutable discovery snapshots.
+- Retrying only explicitly transient failures, with exponential backoff and jitter.
+- Group and router-rule routing.
+- Concurrent listener registration and removal.
+- Enabled the standard test task; only two manual `ApiTest` cases remain disabled.
+- Basic timeout, thread-pool, connection-pool, readiness, and liveness metrics.
+
+Remaining architectural item:
+
+- `Locator.locate(...)` is synchronous, so service discovery can still block
+  its calling thread until the registry future completes. Removing this requires
+  making the locator contract and stage chain asynchronous; the snapshot,
+  timeout, and stale-instance problems are already fixed.
+
+Verification:
+
+- `.\gradlew.bat build --no-daemon --no-configuration-cache`
+- Completed successfully with 59 Gradle tasks, including the enabled test task.
+
 Baseline commit: `207b91c` (`feat: harden dynamic accessor generation`)
 
 Audit date: `2026-09-23`

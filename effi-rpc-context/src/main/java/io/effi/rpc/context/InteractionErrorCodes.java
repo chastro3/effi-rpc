@@ -15,6 +15,8 @@ public interface InteractionErrorCodes {
 
     ErrorCode SERVANT_INVOCATION_FAILED = allocate("Failed to invoke Servant: '{}'");
 
+    ErrorCode SERVER_OVERLOADED = allocate("Server '{}' is overloaded");
+
     ErrorCode REPLY_STAGE_FAILED = allocate("Failed to process RPC reply for '{}'");
 
     ErrorCode REPLY_RESULT_MISSING = allocate("RPC reply result is missing for '{}'");

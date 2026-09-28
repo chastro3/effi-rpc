@@ -69,10 +69,10 @@ Check the wrapper:
 .\gradlew.bat --version
 ```
 
-Build all modules while deliberately skipping the currently non-runnable tests:
+Build and test all modules:
 
 ```powershell
-.\gradlew.bat build -x test --no-daemon --no-configuration-cache
+.\gradlew.bat build --no-daemon --no-configuration-cache
 ```
 
 Compile one module:
@@ -88,20 +88,10 @@ reads `Task.project` during execution. Always include
 
 ## Test Constraints
 
-Do not run plain `build`, `test`, or `check` as the baseline verification until
-the test sources are repaired:
+The `effi-rpc-test` test task is enabled. Two manual-only cases remain disabled:
 
-- `effi-rpc-test/src/test/java/io/effi/rpc/test/ApiTest.java` blocks forever in
-  `serverExport()` on `new CountDownLatch(1).await()`.
-- The same class blocks in `annotationStyle()` on `System.in.read()`.
-- `effi-rpc-test/build.gradle.kts` disables the `test` task, so the standard
-  build does not execute these tests today.
+- `ApiTest.serverExport()` requires an external Consul registry.
+- `ApiTest.annotationStyle()` is a manual annotation-style stress test.
 
-After those issues are fixed, the full command should become:
-
-```powershell
-.\gradlew.bat build --no-daemon --no-configuration-cache
-```
-
-Last verified: `2026-09-20`; the `build -x test` command completed
-successfully with 57 Gradle tasks.
+Last verified: `2026-09-28`; `.\gradlew.bat build` completed successfully
+with 59 Gradle tasks, including the enabled test task.

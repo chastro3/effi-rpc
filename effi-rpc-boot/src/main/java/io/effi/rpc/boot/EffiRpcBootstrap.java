@@ -5,18 +5,22 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.config.RouterConfig;
+import io.effi.rpc.concurrent.Deadline;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.util.CollectionUtil;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Bootstrap class for initializing and configuring EffiRpc framework.
  */
 public class EffiRpcBootstrap extends ScopedApplication.Holder {
 
-    private static final Logger logger = LoggerFactory.getLogger(EffiRpcBootstrap.class);
+    private static final long START_TIMEOUT_SECONDS = 30L;
 
     EffiRpcBootstrap(ScopedApplication application) {
         super(application);
@@ -46,17 +50,17 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
         return new EffiRpcBootstrap(application);
     }
 
-    public EffiRpcBootstrap applyServer(ServerConfig serverConfig, int port) {
+    public EffiRpcBootstrap server(ServerConfig serverConfig, int port) {
         ServerLauncher.attach(application, serverConfig, port);
         return this;
     }
 
-    public EffiRpcBootstrap applyServer(ServerConfig serverConfig, String host, int port) {
+    public EffiRpcBootstrap server(ServerConfig serverConfig, String host, int port) {
         ServerLauncher.attach(application, serverConfig, host, port);
         return this;
     }
 
-    public EffiRpcBootstrap applyServer(ServerConfig serverConfig, InetSocketAddress boundAddress) {
+    public EffiRpcBootstrap server(ServerConfig serverConfig, InetSocketAddress boundAddress) {
         ServerLauncher.attach(application, serverConfig, boundAddress);
         return this;
     }
@@ -100,12 +104,38 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
         return this;
     }
 
+    public EffiRpcBootstrap router(RouterConfig routerConfig) {
+        application.defaultModule().registry().register(RouterConfig.class, routerConfig);
+        return this;
+    }
+
     /**
      * Starts the EffiRpc application.
      */
     public EffiRpcBootstrap start() {
-        application.start();
+        Result<Void> result;
+        try {
+            result = startAsync().await(Deadline.after(START_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CompletionException(e);
+        }
+        if (result.failed()) {
+            throw new CompletionException(result.cause());
+        }
         return this;
+    }
+
+    /**
+     * Starts the EffiRpc application and completes when the application is ready.
+     */
+    public Future<Void> startAsync() {
+        application.start();
+        ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
+        if (registrar == null) {
+            registrar = new ApplicationServiceRegistrar(application);
+        }
+        return registrar.register();
     }
 
     /**
@@ -114,6 +144,15 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
     public EffiRpcBootstrap stop() {
         application.close();
         return this;
+    }
+
+    public boolean ready() {
+        ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
+        return application.active() && registrar != null && registrar.active();
+    }
+
+    public boolean live() {
+        return application.active();
     }
 
     /**

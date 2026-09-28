@@ -14,16 +14,21 @@ import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.metrics.MetricsSupport;
+import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
+import static io.effi.rpc.context.options.FaultToleranceOptions.RETRY_BACKOFF;
+import static io.effi.rpc.context.options.FaultToleranceOptions.RETRY_JITTER;
+import static io.effi.rpc.context.options.FaultToleranceOptions.RETRY_MAX_BACKOFF;
 
 /**
  * Executes one logical unary call, including deadline control and retry attempts.
@@ -154,11 +159,21 @@ public final class CallExecution<R> {
             return;
         }
         try {
-            scheduler.addDisposable(this::dispatch, 0L, TimeUnit.NANOSECONDS);
+            scheduler.addDisposable(this::dispatch, retryDelayMillis(), TimeUnit.MILLISECONDS);
         } catch (Throwable ignored) {
             // Fall back to inline retry when the scheduler is shutting down.
             dispatch();
         }
+    }
+
+    private long retryDelayMillis() {
+        long delay = Math.max(0, caller.option(RETRY_BACKOFF));
+        long max = Math.max(delay, caller.option(RETRY_MAX_BACKOFF));
+        for (int i = 1; i < failureCount.get() && delay < max; i++) {
+            delay = Math.min(max, delay * 2);
+        }
+        int jitter = Math.max(0, caller.option(RETRY_JITTER));
+        return delay + (jitter == 0 ? 0 : ThreadLocalRandom.current().nextLong(jitter + 1L));
     }
 
     private void onCancelled(EffiRpcException reason) {
@@ -174,7 +189,7 @@ public final class CallExecution<R> {
         if (!deadline.expired()) {
             return false;
         }
-        completion.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(0L));
+        failDeadline();
         return true;
     }
 
@@ -197,6 +212,14 @@ public final class CallExecution<R> {
     }
 
     private void onDeadline() {
+        failDeadline();
+    }
+
+    private void failDeadline() {
+        CallerMetrics metrics = caller.get(CallerMetrics.GENERIC_KEY);
+        if (metrics != null) {
+            metrics.timeoutCount().increment();
+        }
         completion.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(0L));
     }
 

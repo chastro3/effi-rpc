@@ -59,7 +59,7 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
         this.options = parseOption(callGroup, application);
         this.annotationStyle = checkAnnotationStyle(targetType, options);
         parseCaller(targetType, application);
-        onInitialized(targetType, createProxy(application));
+        onInitialized(targetType, createProxy(targetType, application));
     }
 
     public CallGroup clientAnnotation() {
@@ -109,7 +109,7 @@ public class AnnotationCallerGroup<T> extends AbstractPeerGroup<Caller<?>, T> im
         }
     }
 
-    private T createProxy(ScopedApplication application) {
+    private T createProxy(Class<T> targetType, ScopedApplication application) {
         String proxyName = proxy();
         ProxyFactory proxyFactory = application.platform().namedExtension(ProxyFactory.class, proxyName);
         return proxyFactory.createProxy(targetType, this);

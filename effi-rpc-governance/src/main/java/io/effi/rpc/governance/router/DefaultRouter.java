@@ -1,22 +1,18 @@
 package io.effi.rpc.governance.router;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.StringUtil;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static io.effi.rpc.governance.router.DefaultRouter.NAME;
 import io.effi.rpc.context.options.CallerOptions;
@@ -34,28 +30,23 @@ public class DefaultRouter implements Router {
     public List<ServiceInstance> route(CallContext<?, Caller<?>> context, List<ServiceInstance> instances) {
         SmartURL smartUrl = context.message().url();
         Caller<?> caller = context.peer();
-        // filter by group
+        List<ServiceInstance> candidates = instances;
         String group = caller.option(GovernanceOptions.GROUP);
         if (!StringUtil.isBlank(group)) {
-            instances = instances.stream().filter(item -> Objects.equals(caller.option(GovernanceOptions.GROUP), group)).collect(Collectors.toList());
+            candidates = instances.stream()
+                    .filter(instance -> Objects.equals(group, instance.metadata().get(KeyConstant.GROUP)))
+                    .toList();
         }
-        // filter by router rule
-        ScopedModule module = context.module();
-        Collection<RouterConfig> routerConfigs = Collections.emptyList();
-        LinkedList<ServiceInstance> result = new LinkedList<>();
-        boolean hadConfig = false;
-        for (RouterConfig routerConfig : routerConfigs) {
-            Pattern urlPattern = Pattern.compile(routerConfig.urlRegex());
-            if (urlPattern.matcher(smartUrl.toString()).find()) {
-                hadConfig = true;
-                for (ServiceInstance instance : instances) {
-                    Pattern targetPattern = Pattern.compile(routerConfig.matchTargetRegex());
-                    if (targetPattern.matcher(instance.toString()).find()) {
-                        result.add(instance);
-                    }
-                }
-            }
+        RouterConfig routerConfig = context.module().singleComponent(RouterConfig.class);
+        if (routerConfig == null || !Pattern.compile(routerConfig.urlRegex()).matcher(smartUrl.toString()).find()) {
+            return candidates;
         }
-        return hadConfig ? result : instances;
+        String targetRegex = StringUtil.isBlank(routerConfig.matchTargetRegex())
+                ? ".*"
+                : routerConfig.matchTargetRegex();
+        Pattern targetPattern = Pattern.compile(targetRegex);
+        return candidates.stream()
+                .filter(instance -> targetPattern.matcher(instance.toString()).find())
+                .toList();
     }
 }

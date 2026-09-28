@@ -3,6 +3,7 @@ package io.effi.rpc.transport;
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Protocol;
+import io.effi.rpc.context.Response;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
 import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
@@ -27,19 +28,13 @@ public interface TransportProtocol extends Transporter, Protocol {
     ScopedModule lookupModule(InputMessage inputMessage);
 
     /**
-     * Sends a response when no servant can handle the request.
-     *
-     * @param inputMessage the request
-     */
-    void sendServantNotFound(InputMessage inputMessage);
-
-    /**
-     * Sends an error response for a failed request.
+     * Creates a protocol-specific response for a failed request.
      *
      * @param inputMessage the request
      * @param cause the failure cause
+     * @return the error response
      */
-    void sendError(InputMessage inputMessage, EffiRpcException cause);
+    Response createErrorResponse(InputMessage inputMessage, EffiRpcException cause);
 
     /**
      * Returns the server-side codec.

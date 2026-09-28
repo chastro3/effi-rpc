@@ -25,6 +25,6 @@ dependencies {
 }
 
 tasks.test {
-    enabled = false
+    enabled = true
     useJUnitPlatform()
 }

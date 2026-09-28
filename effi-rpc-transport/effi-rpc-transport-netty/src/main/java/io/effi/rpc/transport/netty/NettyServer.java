@@ -152,7 +152,8 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
         workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
         bootstrap.group(bossGroup, workerGroup)
                 .localAddress(localAddress())
-                .channel(NioServerSocketChannel.class);
+                .channel(NioServerSocketChannel.class)
+                .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, NettySupport.newWriteBufferWaterMark(config));
         configureIfValid(ServerOptions.ACCEPT_BACKLOG, val -> {
             bootstrap.option(ChannelOption.SO_BACKLOG, val);
         });

@@ -32,6 +32,7 @@ import io.effi.rpc.test.service.HelloService;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.TypeCapture;
 import io.netty.handler.codec.http.HttpMethod;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -49,6 +50,7 @@ public class ApiTest {
             .newApplication("test");
 
     @Test
+    @Disabled("Manual service export against an external Consul registry")
     public void serverExport() throws Exception {
         ScopedModule module = application.defaultModule();
         // 创建一个service host
@@ -76,6 +78,13 @@ public class ApiTest {
 
     @Test
     public void caller(){
+        application.platform().registry().register(
+                RegistryConfig.class,
+                DefaultRegistryConfig.builder()
+                        .authority("consul://127.0.0.1:8500")
+                        .build()
+                        .addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE)
+        );
         Http2Caller<String> caller = Http2Caller.<String>builder(new TypeCapture<>() {})
                 .path("//hello")
                 .module(application.defaultModule())
@@ -100,6 +109,7 @@ public class ApiTest {
     }
 
     @Test
+    @Disabled("Manual annotation-style stress test")
     public void annotationStyle() throws IOException {
         ExecutorService executorService = Executors.newFixedThreadPool(200);
         for (int i = 0; i < 200; i++) {

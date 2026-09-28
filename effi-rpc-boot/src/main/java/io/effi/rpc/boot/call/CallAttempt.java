@@ -3,6 +3,7 @@ package io.effi.rpc.boot.call;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
@@ -17,6 +18,7 @@ import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.util.AssertUtil;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
 
 /**
  * Owns the transport resources of one client call attempt.
@@ -100,7 +102,7 @@ public final class CallAttempt {
         if (!channelBindings.bind(replyFuture.id(), channel)) {
             closeQuietly(channel);
             if (!replyFuture.completed()) {
-                replyFuture.failure(TransportErrorCodes.CHANNEL_INACTIVE.fail(channel));
+                replyFuture.failure(retryable(TransportErrorCodes.CHANNEL_INACTIVE.fail(channel)));
             }
             return;
         }
@@ -175,11 +177,15 @@ public final class CallAttempt {
 
     private EffiRpcException acquisitionFailure(Throwable cause) {
         SmartURL url = replyFuture.context().message().url();
-        return TransportErrorCodes.FETCH_CHANNEL.fail(cause, url.host(), url.scheme());
+        return retryable(TransportErrorCodes.FETCH_CHANNEL.fail(cause, url.host(), url.scheme()));
     }
 
     private EffiRpcException writeFailure(Throwable cause) {
         return TransportErrorCodes.CHANNEL_WRITE.fail(cause, replyFuture.context().message().url().host());
+    }
+
+    private static EffiRpcException retryable(EffiRpcException cause) {
+        return cause.withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
     }
 
     private void closeQuietly(Channel channel) {

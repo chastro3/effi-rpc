@@ -2,6 +2,7 @@ package io.effi.rpc.executor;
 
 import io.effi.rpc.constant.Constant;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -51,4 +52,21 @@ public class RpcThreadPool extends ThreadPoolExecutor {
         executors().forEach(ExecutorService::shutdown);
     }
 
+    @Override
+    public void shutdown() {
+        try {
+            super.shutdown();
+        } finally {
+            EXECUTORS.remove(this);
+        }
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        try {
+            return super.shutdownNow();
+        } finally {
+            EXECUTORS.remove(this);
+        }
+    }
 }

@@ -5,11 +5,13 @@ import io.effi.rpc.executor.ConfigurableThreadFactory;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.trait.Closeable;
 
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Kind.SINGLE;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
@@ -20,12 +22,16 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 @ScopedComponent(scope = PLATFORM, kind = SINGLE)
 public class Scheduler implements Closeable {
 
-    private static final LazySingleton<ScheduledExecutorService> DEFAULT_SCHEDULER =
-            LazySingleton.from(Scheduler::initializeDefaultPeriodicService);
+    private static final long SHUTDOWN_TIMEOUT_SECONDS = 5L;
 
     private ScheduledExecutorService disposableService;
 
     private ScheduledExecutorService periodicService;
+
+    private final LazySingleton<ScheduledExecutorService> defaultService =
+            LazySingleton.from(Scheduler::createScheduler);
+
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     /**
      * Schedules a disposable task.
@@ -36,6 +42,7 @@ public class Scheduler implements Closeable {
      * @return the scheduled task
      */
     public ScheduledFuture<?> addDisposable(Runnable runnable, long delay, TimeUnit unit) {
+        ensureOpen();
         return disposableService().schedule(runnable, delay, unit);
     }
 
@@ -47,8 +54,9 @@ public class Scheduler implements Closeable {
      * @param interval the interval between executions
      * @param unit the time unit for delay and interval
      */
-    public void addPeriodic(Runnable runnable, long delay, long interval, TimeUnit unit) {
-        periodicService().scheduleAtFixedRate(runnable, delay, interval, unit);
+    public ScheduledFuture<?> addPeriodic(Runnable runnable, long delay, long interval, TimeUnit unit) {
+        ensureOpen();
+        return periodicService().scheduleAtFixedRate(runnable, delay, interval, unit);
     }
 
     public Scheduler disposableService(ScheduledExecutorService disposableService) {
@@ -62,36 +70,54 @@ public class Scheduler implements Closeable {
     }
 
     public ScheduledExecutorService disposableService() {
-        return disposableService != null ? disposableService : DEFAULT_SCHEDULER.ensure();
+        ensureOpen();
+        return disposableService != null ? disposableService : defaultService.ensure();
     }
 
     public ScheduledExecutorService periodicService() {
-        return periodicService != null ? periodicService : DEFAULT_SCHEDULER.ensure();
+        ensureOpen();
+        return periodicService != null ? periodicService : defaultService.ensure();
     }
 
     @Override
     public void close() {
-        if (active()) {
-            if (disposableService != null) {
-                disposableService.shutdown();
-            }
-            if (periodicService != null) {
-                periodicService.shutdown();
-            }
-            if (DEFAULT_SCHEDULER.initialized()) {
-                DEFAULT_SCHEDULER.ensure().shutdown();
-            }
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+        shutdown(disposableService);
+        shutdown(periodicService);
+        if (defaultService.initialized()) {
+            shutdown(defaultService.ensure());
         }
     }
 
     @Override
     public boolean active() {
-        return !(!DEFAULT_SCHEDULER.initialized()
-                && disposableService() == null
-                && periodicService() == null);
+        return !closed.get();
     }
 
-    private static ScheduledThreadPoolExecutor initializeDefaultPeriodicService() {
+    private void ensureOpen() {
+        if (closed.get()) {
+            throw new RejectedExecutionException("Scheduler is closed");
+        }
+    }
+
+    private static void shutdown(ScheduledExecutorService executor) {
+        if (executor == null) {
+            return;
+        }
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            executor.shutdownNow();
+        }
+    }
+
+    private static ScheduledExecutorService createScheduler() {
         ThreadFactory threadFactory = new ConfigurableThreadFactory()
                 .namePrefix("rpc-periodic-scheduler")
                 .daemon(true);

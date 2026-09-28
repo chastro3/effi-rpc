@@ -2,11 +2,16 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.transport.endpoint.Endpoint;
+import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.util.AssertUtil;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+
+import javax.net.ssl.SSLParameters;
+import java.net.InetSocketAddress;
 
 /**
  * Provides a base implementation of {@link EndpointChannelConfigurer} for an endpoint.
@@ -43,8 +48,24 @@ public abstract class EndpointChannelConfigurer<E extends Endpoint> implements C
 
     protected void configureSslHandlerIfAbsent(ChannelPipeline pipeline) {
         if (sslContext != null && pipeline.get(SslHandler.class) == null) {
-            pipeline.addLast("sslHandler", sslContext.newHandler(pipeline.channel().alloc()));
+            pipeline.addLast("sslHandler", createSslHandler(pipeline.channel().alloc()));
         }
+    }
+
+    protected SslHandler createSslHandler(ByteBufAllocator allocator) {
+        if (endpoint instanceof Client client) {
+            InetSocketAddress remoteAddress = client.remoteAddress();
+            SslHandler handler = sslContext.newHandler(
+                    allocator,
+                    remoteAddress.getHostString(),
+                    remoteAddress.getPort()
+            );
+            SSLParameters parameters = handler.engine().getSSLParameters();
+            parameters.setEndpointIdentificationAlgorithm("HTTPS");
+            handler.engine().setSSLParameters(parameters);
+            return handler;
+        }
+        return sslContext.newHandler(allocator);
     }
 
     protected void configureIdleDetectionHandlerIfAbsent(ChannelPipeline pipeline) {

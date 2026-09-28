@@ -12,6 +12,7 @@ public interface TransportErrorCodes {
     ErrorCode FETCH_CHANNEL = allocate("Failed to fetch channel to '{}' over '{}' protocol");
     ErrorCode CLOSE_CHANNEL = allocate("Failed to close remote channel to '{}'");
     ErrorCode CHANNEL_INACTIVE = allocate("Channel '{}' is not active");
+    ErrorCode CHANNEL_OVERLOADED = allocate("Channel '{}' is not writable");
     ErrorCode CHANNEL_WRITE = allocate("Failed to write data to channel '{}'");
     ErrorCode CHANNEL_READ = allocate("Failed to read data from channel '{}'");
     ErrorCode CHANNEL_EXCEPTION = allocate("Channel '{}' failed: {}");

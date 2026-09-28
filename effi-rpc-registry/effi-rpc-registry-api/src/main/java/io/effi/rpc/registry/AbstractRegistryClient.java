@@ -8,11 +8,11 @@ import io.effi.rpc.executor.RpcThreadPool;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.exception.PredefinedErrorCode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -45,13 +46,18 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
     protected final ThreadPool threadPool;
 
+    protected final Scheduler scheduler;
+
     protected final String[] addresses;
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
+    private final Set<ScheduledFuture<?>> scheduledTasks = ConcurrentHashMap.newKeySet();
+
     protected AbstractRegistryClient(RegistryConfig config, ScopedPlatform platform, boolean needThreadPool) {
         this.config = AssertUtil.notNull(config, "config");
         this.platform = AssertUtil.notNull(platform, "platform");
+        this.scheduler = AssertUtil.notNull(platform.singleComponent(Scheduler.class), "scheduler");
         this.threadPool = findThreadPool(config, needThreadPool);
         this.addresses = config.address().split(",");
     }
@@ -75,8 +81,12 @@ public abstract class AbstractRegistryClient implements RegistryClient {
                           int attempt, Promise<Void> result) {
         registerTask.execute().onComplete(res -> {
             if (res.succeeded()) {
-                platform.singleComponent(Scheduler.class)
-                        .addPeriodic(registerTask, 5, 10, TimeUnit.SECONDS);
+                if (closed.get()) {
+                    removeRegisteredInstance(serviceName, instance);
+                    result.failure(PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(config));
+                    return;
+                }
+                schedule(registerTask, 5, 10, TimeUnit.SECONDS);
                 logger.info("Registered instance '{}' of service '{}' at '{}'",
                         instance.id(), serviceName, config);
                 result.success(null);
@@ -88,9 +98,10 @@ public abstract class AbstractRegistryClient implements RegistryClient {
                 long retryInterval = Math.max(1, config.option(RegistryOptions.HEARTBEAT_INTERVAL));
                 logger.warn("Failed to register instance '{}' of service '{}' at '{}', retrying {}/{}",
                         res.cause(), instance.id(), serviceName, config, attempt + 1, retries);
-                platform.singleComponent(Scheduler.class).addDisposable(
+                schedule(
                         () -> register(instance, serviceName, registerTask, attempt + 1, result),
                         retryInterval,
+                        0,
                         TimeUnit.MILLISECONDS
                 );
                 return;
@@ -116,9 +127,15 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
     @Override
     public Future<List<ServiceInstance>> lookup(String serviceName) {
-        return subscribedHealthServices.computeIfAbsent(serviceName, k -> {
+        if (closed.get()) {
+            return Promise.failed(PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(config));
+        }
+        DiscoveredService discoveredService = subscribedHealthServices.computeIfAbsent(serviceName, k -> {
             DiscoveredService holder = new DiscoveredService();
             doLookup(serviceName).onComplete(res -> {
+                if (closed.get()) {
+                    return;
+                }
                 if (res.succeeded()) {
                     List<ServiceInstance> instances = res.value();
                     logger.info("Discovered {} instance(s) for '{}' '{}'", instances.size(), serviceName, config);
@@ -139,7 +156,12 @@ public abstract class AbstractRegistryClient implements RegistryClient {
                 }
             });
             return holder;
-        }).promise();
+        });
+        if (closed.get()) {
+            subscribedHealthServices.remove(serviceName, discoveredService);
+            return Promise.failed(PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(config));
+        }
+        return discoveredService.promise();
 
     }
 
@@ -169,6 +191,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         if (!closed.compareAndSet(false, true)) {
             return;
         }
+        cancelScheduledTasks();
         long timeout = Math.max(1, config.option(RegistryOptions.CONNECT_TIMEOUT));
         Futures.withDeadline(deregisterServices(), Deadline.after(timeout, TimeUnit.MILLISECONDS))
                 .onComplete(res -> {
@@ -188,7 +211,11 @@ public abstract class AbstractRegistryClient implements RegistryClient {
     }
 
     protected void onServicesUpdated(String serviceName, List<ServiceInstance> instances) {
-        subscribedHealthServices.get(serviceName).update(instances);
+        DiscoveredService discoveredService = subscribedHealthServices.get(serviceName);
+        if (discoveredService == null) {
+            return;
+        }
+        discoveredService.update(instances);
         logger.trace("Updated {} instance(s) for '{}' from '{}'", instances.size(), serviceName, config);
     }
 
@@ -215,6 +242,24 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         return Futures.allOf(futures);
     }
 
+    private void schedule(Runnable task, long delay, long interval, TimeUnit unit) {
+        if (closed.get()) {
+            return;
+        }
+        ScheduledFuture<?> future = interval > 0
+                ? scheduler.addPeriodic(task, delay, interval, unit)
+                : scheduler.addDisposable(task, delay, unit);
+        scheduledTasks.add(future);
+        if (closed.get() && future.cancel(false)) {
+            scheduledTasks.remove(future);
+        }
+    }
+
+    private void cancelScheduledTasks() {
+        scheduledTasks.forEach(task -> task.cancel(false));
+        scheduledTasks.clear();
+    }
+
     private ThreadPool findThreadPool(RegistryConfig config, boolean needThreadPool) {
         if (!needThreadPool) return null;
         ThreadPool threadedPool = config.threadPool();
@@ -236,7 +281,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         }
 
         void update(List<ServiceInstance> instances) {
-            CollectionUtil.replaceIfMatch(instanceRef.get(), instances, (o, n) -> o.id().equals(n.id()));
+            instanceRef.set(List.copyOf(instances));
         }
 
         Promise<List<ServiceInstance>> promise() {

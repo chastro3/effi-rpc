@@ -78,7 +78,8 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
         bootstrap.group(platformEventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .remoteAddress(remoteAddress())
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
+                .option(ChannelOption.WRITE_BUFFER_WATER_MARK, NettySupport.newWriteBufferWaterMark(config));
         configureIfValid(TransportOptions.SEND_BUFFER_SIZE, val -> {
             bootstrap.option(ChannelOption.SO_SNDBUF, val);
         });

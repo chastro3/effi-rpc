@@ -5,10 +5,10 @@ import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.util.ObjectUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Provides an abstract implementation of {@link EventDispatcher}.
@@ -25,7 +25,7 @@ public abstract class AbstractEventDispatcher extends ScopedPlatform.Holder impl
 
     @Override
     public <E extends Event<?>> void registerListener(Class<E> eventType, EventListener<E> listener) {
-        listenerMap.computeIfAbsent(eventType, k -> new ArrayList<>()).add(listener);
+        listenerMap.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>()).add(listener);
         logger.debug("Registered {}<{}>", ObjectUtil.simpleClassName(listener), ObjectUtil.simpleClassName(eventType));
     }
 

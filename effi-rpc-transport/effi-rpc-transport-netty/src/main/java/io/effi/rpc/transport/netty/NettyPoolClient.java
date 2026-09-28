@@ -56,5 +56,15 @@ public class NettyPoolClient extends NettyClient {
     public void release(Channel channel) {
         channelPool.release(channel);
     }
+
+    public PoolMetrics poolMetrics() {
+        return new PoolMetrics(
+                channelPool.acquiredChannelCount(),
+                config().option(ClientOptions.MAX_CONNECTIONS)
+        );
+    }
+
+    public record PoolMetrics(int acquired, int maxConnections) {
+    }
 }
 

@@ -63,6 +63,16 @@ public class ConfigurableServerCodec<RESP extends Response, REQ extends Request>
 
     @SuppressWarnings("unchecked")
     @Override
+    public OutputMessage encode(Response response, Channel channel) {
+        try {
+            return encoder.encode((RESP) response, channel);
+        } catch (Exception e) {
+            throw TransportErrorCodes.ENCODE.fail(e, OutputMessage.class, response.getClass());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public CallContext<Request, Servant> decode(InputMessage inputMessage, Servant servant) {
         long startTime = System.nanoTime();
         try {

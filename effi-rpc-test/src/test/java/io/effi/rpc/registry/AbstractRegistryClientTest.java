@@ -12,9 +12,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AbstractRegistryClientTest {
 
@@ -42,6 +45,55 @@ class AbstractRegistryClientTest {
 
         assertEquals(2, client.attempts.get());
         assertEquals(1, client.registeredServiceInstances.get("test-service").size());
+    }
+
+    @Test
+    void closeCancelsHeartbeatTasks() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        executor.setRemoveOnCancelPolicy(true);
+        Scheduler scheduler = new Scheduler()
+                .disposableService(executor)
+                .periodicService(executor);
+        ScopedPlatform platform = new ScopedPlatform("registry-close-platform");
+        platform.registry().register(Scheduler.class, scheduler);
+        RegistryConfig config = DefaultRegistryConfig.builder()
+                .type("test")
+                .address("127.0.0.1:1")
+                .build();
+        TestRegistryClient client = new TestRegistryClient(config, platform);
+        ServiceInstance instance = instance("instance-close");
+
+        client.register(instance).toCompletableFuture().join();
+        assertFalse(executor.getQueue().isEmpty());
+
+        client.close();
+
+        assertTrue(executor.getQueue().isEmpty());
+        scheduler.close();
+    }
+
+    @Test
+    void discoveryUpdatesReplaceSnapshot() {
+        AbstractRegistryClient.DiscoveredService service = new AbstractRegistryClient.DiscoveredService();
+        ServiceInstance first = instance("first");
+        ServiceInstance second = instance("second");
+
+        service.update(List.of(first, second));
+        List<ServiceInstance> previous = service.instanceRef.get();
+        service.update(List.of(first));
+
+        assertEquals(2, previous.size());
+        assertEquals(List.of(first), service.instanceRef.get());
+    }
+
+    private static ServiceInstance instance(String id) {
+        return DefaultServiceInstance.builder()
+                .id(id)
+                .serviceName("test-service")
+                .protocol("http/1.1")
+                .host("127.0.0.1")
+                .port(8080)
+                .build();
     }
 
     private static final class TestRegistryClient extends AbstractRegistryClient {

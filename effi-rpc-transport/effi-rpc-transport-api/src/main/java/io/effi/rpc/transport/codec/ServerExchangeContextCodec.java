@@ -29,6 +29,15 @@ public interface ServerExchangeContextCodec extends Encoder<ReplyContext<Respons
     OutputMessage encode(ReplyContext<Response, Servant> context, Channel channel);
 
     /**
+     * Encodes a response that was created outside a normal invocation context.
+     *
+     * @param response the response to encode
+     * @param channel the associated channel
+     * @return the encoded output message
+     */
+    OutputMessage encode(Response response, Channel channel);
+
+    /**
      * Decodes the input message into a call context using the given callee.
      *
      * @param inputMessage the message to decode

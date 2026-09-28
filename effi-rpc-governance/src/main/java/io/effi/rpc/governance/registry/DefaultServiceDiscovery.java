@@ -15,15 +15,15 @@ import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Result;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static io.effi.rpc.governance.registry.DefaultServiceDiscovery.NAME;
 import io.effi.rpc.context.options.CallerOptions;
@@ -54,27 +54,24 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
         }
         int callTimeout = context.peer().option(CallerOptions.TIMEOUT);
         int discoveryTimeout = context.peer().option(GovernanceOptions.SERVICE_DISCOVERY_TIMEOUT);
-        long timeout = Math.max(1, discoveryTimeout > 0 ? Math.min(callTimeout, discoveryTimeout) : callTimeout);
-        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
+        Deadline deadline = discoveryDeadline(callTimeout, discoveryTimeout);
         Throwable lastFailure = null;
         RegistryConfig lastFailureRegistry = null;
         for (RegistryLookup lookup : lookups) {
-            List<ServiceInstance> discoveredInstances;
+            Result<List<ServiceInstance>> lookupResult;
             try {
-                long remaining = deadline - System.nanoTime();
-                if (remaining <= 0) {
-                    throw new TimeoutException("Service discovery timed out");
-                }
-                discoveredInstances = lookup.future().toCompletableFuture().get(remaining, TimeUnit.NANOSECONDS);
+                lookupResult = lookup.future().await(deadline);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw PredefinedErrorCode.REGISTRY_DISCOVER.fail(e, serviceName, lookup.registryConfig());
-            } catch (ExecutionException | TimeoutException e) {
-                lastFailure = e instanceof ExecutionException && e.getCause() != null ? e.getCause() : e;
+            }
+            if (lookupResult.failed()) {
+                lastFailure = lookupResult.cause();
                 lastFailureRegistry = lookup.registryConfig();
                 logger.warn("Failed to discover service '{}' from registry '{}'", lastFailure, serviceName, lastFailureRegistry);
                 continue;
             }
+            List<ServiceInstance> discoveredInstances = lookupResult.value();
             if (CollectionUtil.isNotEmpty(discoveredInstances)) {
                 for (ServiceInstance discoveredInstance : discoveredInstances) {
                     if (discoveredInstance.protocol().equals(smartUrl.scheme())) {
@@ -93,6 +90,13 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
             throw InteractionErrorCodes.SERVICE_INSTANCE_NOT_FOUND.fail(serviceName);
         }
         return availableInstances;
+    }
+
+    private static Deadline discoveryDeadline(int callTimeout, int discoveryTimeout) {
+        long timeout = discoveryTimeout > 0
+                ? (callTimeout > 0 ? Math.min(callTimeout, discoveryTimeout) : discoveryTimeout)
+                : callTimeout;
+        return timeout < 0 ? Deadline.none() : Deadline.after(timeout, TimeUnit.MILLISECONDS);
     }
 
     private record RegistryLookup(RegistryConfig registryConfig, Future<List<ServiceInstance>> future) {

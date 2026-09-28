@@ -25,7 +25,7 @@ public class ApiProvider {
         ScopedModule module = ScopedModule.defaultInstance();
         Servant servant = createServant(module);
         ApplicationServiceRegistrar.forApplication(module.application())
-                .attachServer(Http2ServerConfig.defaultConfig(), 8090)
+                .server(Http2ServerConfig.defaultConfig(), 8090)
                 .registry(DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build())
                 .register();
     }

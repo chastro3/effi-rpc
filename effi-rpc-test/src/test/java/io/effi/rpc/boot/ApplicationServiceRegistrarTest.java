@@ -12,6 +12,7 @@ import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApplicationServiceRegistrarTest {
 
@@ -33,5 +34,17 @@ class ApplicationServiceRegistrarTest {
             assertThrows(CompletionException.class, () -> result.toCompletableFuture().join());
             assertFalse(registrar.active());
         }
+    }
+
+    @Test
+    void registerAfterCloseFails() throws Exception {
+        ScopedPlatform platform = new ScopedPlatform("closed-platform");
+        ScopedApplication application = platform.newApplication("closed-application");
+        ApplicationServiceRegistrar registrar = new ApplicationServiceRegistrar(application);
+
+        registrar.deregister();
+
+        assertTrue(registrar.register().await().failed());
+        assertFalse(registrar.active());
     }
 }

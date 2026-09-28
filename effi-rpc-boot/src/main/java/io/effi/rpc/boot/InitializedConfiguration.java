@@ -8,15 +8,21 @@ import io.effi.rpc.context.CallFutureRegistry;
 import io.effi.rpc.component.event.DisruptorEventDispatcher;
 import io.effi.rpc.component.event.EventDispatcher;
 import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.concurrent.Deadline;
+import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.context.metrics.event.CalleeMetricsEvent;
 import io.effi.rpc.context.metrics.event.CalleeMetricsEventListener;
 import io.effi.rpc.context.metrics.event.CallerMetricsEvent;
 import io.effi.rpc.context.metrics.event.CallerMetricsEventListener;
+import io.effi.rpc.internal.logging.Logger;
+import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.idle.IdleEvent;
 import io.effi.rpc.transport.idle.IdleEventListener;
 import io.effi.rpc.transport.idle.RefreshIdleCountEvent;
 import io.effi.rpc.transport.idle.RefreshIdleCountEventListener;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Initializes configurations for the application and module,setting up event listeners and filters.
@@ -24,6 +30,8 @@ import io.effi.rpc.transport.idle.RefreshIdleCountEventListener;
 public class InitializedConfiguration {
 
     private static final String NAME = "initializedConfiguration";
+
+    private static final Logger logger = LoggerFactory.getLogger(InitializedConfiguration.class);
 
     /**
      * Initializes the application.Registers default event listeners for various events.
@@ -59,6 +67,24 @@ public class InitializedConfiguration {
                 applicationServiceRegistrar = new ApplicationServiceRegistrar(application);
             }
             applicationServiceRegistrar.register();
+        }
+
+        @Override
+        public void onClosing(ScopedApplication application) {
+            ApplicationServiceRegistrar registrar = application.singleComponent(ApplicationServiceRegistrar.class);
+            if (registrar == null) {
+                return;
+            }
+            try {
+                Result<Void> result = registrar.deregister()
+                        .await(Deadline.after(30, TimeUnit.SECONDS));
+                if (result.failed()) {
+                    logger.error("Failed to stop application '{}'", result.cause(), application.name());
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.warn("Interrupted while stopping application '{}'", e, application.name());
+            }
         }
     }
 }

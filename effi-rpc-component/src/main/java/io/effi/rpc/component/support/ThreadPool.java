@@ -10,6 +10,8 @@ import io.effi.rpc.trait.Closeable;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
@@ -62,6 +64,13 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
         return promise;
     }
 
+    public Metrics metrics() {
+        if (executor instanceof ThreadPoolExecutor pool) {
+            return new Metrics(pool.getActiveCount(), pool.getQueue().size(), pool.getCompletedTaskCount());
+        }
+        return new Metrics(-1, -1, -1);
+    }
+
     @Override
     public boolean active() {
         return !executor.isShutdown();
@@ -70,5 +79,16 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
     @Override
     public void close() {
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            executor.shutdownNow();
+        }
+    }
+
+    public record Metrics(int activeCount, int queueSize, long completedTaskCount) {
     }
 }

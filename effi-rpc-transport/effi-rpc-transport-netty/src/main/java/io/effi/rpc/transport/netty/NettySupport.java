@@ -1,9 +1,11 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.transport.ChannelCallBindings;
+import io.effi.rpc.component.transport.options.TransportOptions;
 import io.effi.rpc.util.AssertUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -11,6 +13,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 
@@ -31,6 +34,12 @@ public class NettySupport {
                 configure.accept(channel);
             }
         };
+    }
+
+    public static WriteBufferWaterMark newWriteBufferWaterMark(EndpointConfig config) {
+        int low = Math.max(0, config.option(TransportOptions.WRITE_BUFFER_LOW_WATER_MARK));
+        int high = Math.max(low, config.option(TransportOptions.WRITE_BUFFER_HIGH_WATER_MARK));
+        return new WriteBufferWaterMark(low, high);
     }
 
     public static ByteBufOutputStream newOutputStream(NettyChannel channel) {

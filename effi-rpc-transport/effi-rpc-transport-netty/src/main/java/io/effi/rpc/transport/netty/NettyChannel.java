@@ -105,6 +105,11 @@ public final class NettyChannel extends AbstractChannel {
 
     @Override
     protected Future<Void> doSend(Object message) {
+        if (!channel.isWritable()) {
+            Promise<Void> promise = new Promise<>();
+            promise.failure(TransportErrorCodes.CHANNEL_OVERLOADED.fail(this));
+            return promise;
+        }
         return Futures.asVoid(wrap(channel.writeAndFlush(message)));
     }
 

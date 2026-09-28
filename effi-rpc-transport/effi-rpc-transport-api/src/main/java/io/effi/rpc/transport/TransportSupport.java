@@ -2,6 +2,7 @@ package io.effi.rpc.transport;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
@@ -21,9 +22,10 @@ import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
 import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
-import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.transport.message.InputMessage;
 import io.effi.rpc.context.options.SerializationOptions;
+
+import java.util.Map;
 
 /**
  * Provides transport layer operations.
@@ -61,6 +63,7 @@ public class TransportSupport {
         SmartURL smartUrl = inputMessage.url();
         Channel channel = inputMessage.channel();
         TransportProtocol protocol = channel.protocol();
+        ServerExchange exchange = ServerExchange.of(inputMessage);
         try {
             ScopedModule module = protocol.lookupModule(inputMessage);
             if (module == null) {
@@ -68,7 +71,10 @@ public class TransportSupport {
             }
             Servant servant = module.namedComponent(Servant.class, Peer.buildId(smartUrl.scheme(), smartUrl.path()));
             if (servant == null) {
-                protocol.sendServantNotFound(inputMessage);
+                exchange.fail(InteractionErrorCodes.SERVANT_NOT_FOUND.fail(
+                        smartUrl.baseUrl(),
+                        channel.remoteAddress()
+                ));
                 inputMessage.close();
                 return;
             }
@@ -81,26 +87,35 @@ public class TransportSupport {
                     var replyContext = new ReplyContext<>(callContext, response, result);
                     servant.replyStageChain().proceed(replyContext);
                     if (callContext.message().needReply()) {
-                        var outputMessage = EncodableOutputMessage.create(replyContext, channel, serverCodec);
-                        channel.send(outputMessage);
+                        exchange.reply(replyContext);
                     }
                 } catch (Throwable e) {
                     EffiRpcException failure = e instanceof EffiRpcException effiRpcException
                             ? effiRpcException
                             : InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(e, servant.id());
-                    protocol.sendError(inputMessage, failure);
+                    exchange.fail(failure);
                 } finally {
                     inputMessage.close();
                 }
             }).onComplete(res -> {
-                if (res.failed()) logger.error(res.cause());
+                if (res.failed()) {
+                    EffiRpcException failure = InteractionErrorCodes.SERVER_OVERLOADED
+                            .fail(res.cause(), servant.id())
+                            .withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
+                    try {
+                        exchange.fail(failure);
+                    } finally {
+                        inputMessage.close();
+                    }
+                    logger.error(failure.getMessage(), failure);
+                }
             });
         } catch (Throwable e) {
             EffiRpcException failure = e instanceof EffiRpcException effiRpcException
                     ? effiRpcException
                     : TransportErrorCodes.DECODE.fail(e, Request.class, inputMessage.getClass());
             try (inputMessage) {
-                protocol.sendError(inputMessage, failure);
+                exchange.fail(failure);
             }
         }
     }

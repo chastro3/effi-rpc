@@ -1,13 +1,13 @@
 package io.effi.rpc.boot.confiurator;
 
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.support.ThreadPool;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.ThreadPoolResolver;
 import io.effi.rpc.executor.RpcThreadPool;
-import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.StringUtil;
 
 import static io.effi.rpc.boot.confiurator.DefaultThreadPoolResolver.NAME;
@@ -25,12 +25,6 @@ public class DefaultThreadPoolResolver implements ThreadPoolResolver {
 
     private static final String SERVANT_HYBRID_NAME = "servant-hybrid";
 
-    private final LazySingleton<ThreadPool> callerHybridThreadPool = LazySingleton.from(() ->
-            new ThreadPool(CALLER_HYBRID_NAME, RpcThreadPool.defaultCPUExecutor(CALLER_HYBRID_NAME)));
-
-    private final LazySingleton<ThreadPool> servantHybridThreadPool = LazySingleton.from(() ->
-            new ThreadPool(SERVANT_HYBRID_NAME, RpcThreadPool.defaultIOExecutor(SERVANT_HYBRID_NAME)));
-
     @Override
     public ThreadPool resolve(PeerDescriptor descriptor, ScopedModule module) {
         String configuredName = descriptor.options().option(THREAD_POOL);
@@ -41,7 +35,22 @@ public class DefaultThreadPoolResolver implements ThreadPoolResolver {
             }
         }
         return descriptor.kind() == PeerDescriptor.Kind.CALLER
-                ? callerHybridThreadPool.ensure()
-                : servantHybridThreadPool.ensure();
+                ? resolveDefault(module.platform(), CALLER_HYBRID_NAME, false)
+                : resolveDefault(module.platform(), SERVANT_HYBRID_NAME, true);
+    }
+
+    private ThreadPool resolveDefault(ScopedPlatform platform, String name, boolean io) {
+        synchronized (platform) {
+            ThreadPool existing = platform.namedComponent(ThreadPool.class, name);
+            if (existing != null) {
+                return existing;
+            }
+            ThreadPool threadPool = new ThreadPool(
+                    name,
+                    io ? RpcThreadPool.defaultIOExecutor(name) : RpcThreadPool.defaultCPUExecutor(name)
+            );
+            platform.registry().register(ThreadPool.class, name, threadPool);
+            return threadPool;
+        }
     }
 }

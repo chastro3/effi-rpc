@@ -1,10 +1,15 @@
 package io.effi.rpc.config;
 
+import io.effi.rpc.annotation.component.ScopedComponent;
 import org.intellij.lang.annotations.Language;
+
+import static io.effi.rpc.annotation.component.ScopedComponent.Kind.SINGLE;
+import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 
 /**
  * Router config.
  */
+@ScopedComponent(scope = MODULE, kind = SINGLE)
 public class RouterConfig {
 
     private final String urlRegex;

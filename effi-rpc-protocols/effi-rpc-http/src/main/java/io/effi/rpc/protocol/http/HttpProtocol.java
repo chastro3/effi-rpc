@@ -13,8 +13,6 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
 import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
@@ -29,15 +27,12 @@ import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
 import io.effi.rpc.transport.codec.ConfigurableClientCodec;
 import io.effi.rpc.transport.codec.ConfigurableServerCodec;
 import io.effi.rpc.transport.codec.ServerExchangeContextCodec;
-import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
-import io.effi.rpc.transport.message.OutputMessage;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.Messages;
 import io.effi.rpc.util.ObjectUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
 
@@ -46,8 +41,6 @@ import java.util.Map;
  * Provides a standard http implementation of {@link TransportProtocol}.
  */
 public abstract class HttpProtocol extends AbstractProtocol {
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpProtocol.class);
 
     private static final Map<CharSequence, CharSequence> REGULAR_REQUEST_HEADERS = HttpUtil.regularRequestHeaders();
 
@@ -130,43 +123,23 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
-    public void sendServantNotFound(InputMessage inputMessage) {
-        sendErrorResponse(inputMessage, 404, InteractionErrorCodes.SERVANT_NOT_FOUND.fail(
-                inputMessage.url().baseUrl(),
-                inputMessage.channel().remoteAddress()
-        ));
-    }
-
-    @Override
-    public void sendError(InputMessage inputMessage, EffiRpcException cause) {
-        sendErrorResponse(inputMessage, 500, cause);
-    }
-
-    private void sendErrorResponse(InputMessage inputMessage, int statusCode, EffiRpcException cause) {
-        if (!(inputMessage instanceof HttpRequest request) || !request.needReply()) {
-            return;
+    public Response createErrorResponse(InputMessage inputMessage, EffiRpcException cause) {
+        if (!(inputMessage instanceof HttpRequest request)) {
+            throw new IllegalArgumentException(
+                    "Expected an HTTP request but received " + ObjectUtil.simpleClassName(inputMessage)
+            );
         }
-        HttpResponse response = createErrorResponse(request, inputMessage.channel(), statusCode, cause);
-        OutputMessage outputMessage = new HttpServerCodec().encode(response, inputMessage.channel());
-        inputMessage.channel().send(outputMessage).onComplete(result -> {
-            if (result.failed()) {
-                logger.error("Failed to send HTTP error response to '{}'.", result.cause(),
-                        inputMessage.channel().remoteAddress());
-            }
-        });
-    }
-
-    private HttpResponse createErrorResponse(Request request, Channel channel, int statusCode, EffiRpcException ex) {
+        int statusCode = cause.errorCode() == InteractionErrorCodes.SERVANT_NOT_FOUND ? 404 : 500;
         HttpHeaders headers = version().newHeaders();
         headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
         headers.set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
         return HttpDuplexResponse.builder()
                 .version(version)
-                .method(HttpMethod.GET)
+                .method(request.method())
                 .statusCode(statusCode)
                 .url(request.url())
                 .headers(headers)
-                .body(ex.getMessage().getBytes())
+                .body(cause.getMessage().getBytes())
                 .build();
     }
 

@@ -47,6 +47,8 @@ public interface KeyConstant {
 
     String TIMESTAMP = "timestamp";
 
+    String RETRYABLE = "retryable";
+
     String URL = "url";
 
     String PASSWORD = "password";
