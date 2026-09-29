@@ -99,7 +99,7 @@ public class Consumer {
                 .targetType(HelloClient.class)
                 .module(application.defaultModule())
                 .build();
-        HelloClient helloClient = callerGroup.target();
+        HelloClient helloClient = callerGroup.proxy();
 //        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 //        scheduledExecutorService.scheduleAtFixedRate(() -> {
 //

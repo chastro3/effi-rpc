@@ -5,7 +5,6 @@ import io.effi.rpc.component.transport.support.DefaultClientConfig;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.CallerGroup;
 import io.effi.rpc.context.Interceptor;
 import io.effi.rpc.context.InterceptorChainResolver;
 import io.effi.rpc.context.Locator;
@@ -94,8 +93,6 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
             extends AbstractPeer.Builder<T, SELF> {
 
         protected Locator locator;
-
-        protected CallerGroup<?> group;
 
         protected ClientConfig clientConfig;
 
@@ -206,16 +203,6 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
         public SELF failureHandler(String failureHandler) {
             addOption(FAILURE_HANDLER, failureHandler);
             return self();
-        }
-
-        public SELF group(CallerGroup<?> group) {
-            this.group = group;
-            return self();
-        }
-
-        @Override
-        protected CallerGroup<?> group() {
-            return group;
         }
 
         private Locator ensureLocator(PeerDescriptor descriptor) {

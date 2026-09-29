@@ -11,12 +11,22 @@ public interface ServantGroup<T> extends PeerGroup<Servant, T> {
     String name();
 
     /**
+     * Returns the service implementation.
+     */
+    T service();
+
+    /**
      * Retrieves the index of the specified callee.
      *
      * @param servant the callee whose index is to be retrieved
      * @return the index of the callee
      */
     int indexOf(Servant servant);
+
+    /**
+     * Invokes one method on the service implementation.
+     */
+    <R> R invoke(Servant servant, Object... args);
 
 }
 

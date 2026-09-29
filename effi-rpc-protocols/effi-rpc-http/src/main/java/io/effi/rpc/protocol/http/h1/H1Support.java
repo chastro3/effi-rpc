@@ -35,13 +35,18 @@ public class H1Support {
                 .url(NettySupport.createRequestUrl(channel, request.uri()))
                 .headers(request.headers())
                 .build()
+                .channel(channel)
                 .input(NettySupport.newInputStream(request.content()));
     }
 
     /**
      * Converts from netty's full http response.
      */
-    public static HttpResponse fromFullHttpResponse(FullHttpResponse response, CallContext<Request, Caller<?>> context) {
+    public static HttpResponse fromFullHttpResponse(
+            FullHttpResponse response,
+            CallContext<Request, Caller<?>> context,
+            NettyChannel channel
+    ) {
         Http1Caller<?> caller = (Http1Caller<?>) context.peer();
         return HttpDuplexResponse.builder()
                 .version(Http1Protocol.VERSION)
@@ -50,6 +55,7 @@ public class H1Support {
                 .url(context.message().url())
                 .headers(response.headers())
                 .build()
+                .channel(channel)
                 .input(NettySupport.newInputStream(response.content()));
     }
 

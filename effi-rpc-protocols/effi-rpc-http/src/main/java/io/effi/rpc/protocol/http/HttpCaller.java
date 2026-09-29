@@ -66,9 +66,14 @@ public abstract class HttpCaller<R> extends AbstractCaller<R> {
         protected Builder(HttpVersion version, TypeCapture<?> returnType) {
             super(returnType, version.name());
             this.version = AssertUtil.notNull(version, "version");
+        }
+
+        @Override
+        protected void validate() {
             if (StringUtil.isBlank(option(SerializationOptions.SERIALIZER))) {
                 serializer(JacksonSerializer.NAME);
             }
+            super.validate();
         }
 
         /**

@@ -1,4 +1,5 @@
 dependencies {
+    implementation(project(":effi-rpc-demo:api"))
     implementation(project(":effi-rpc-protocols:effi-rpc-http"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api")
     implementation(project(":effi-rpc-registry:effi-rpc-registry-consul"))
@@ -19,6 +20,12 @@ application {
 //    applicationDefaultJvmArgs = listOf(
 //        "-agentlib:native-image-agent=config-output-dir=${buildDir}/native-image,config-write-period-secs=60,config-write-initial-delay-secs=5"
 //    )
+}
+
+tasks.register<JavaExec>("runInterfaceConsumer") {
+    group = "application"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("demo.consumer.InterfaceConsumer")
 }
 
 graalvmNative {

@@ -7,6 +7,7 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.protocol.http.FutureBinder;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
+import io.effi.rpc.transport.netty.NettyChannel;
 import io.effi.rpc.util.AssertUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -36,7 +37,6 @@ public final class Http1ClientHandler extends FutureBinder {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         HttpDuplexRequest request = (HttpDuplexRequest) msg;
@@ -47,7 +47,7 @@ public final class Http1ClientHandler extends FutureBinder {
     @Override
     protected boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, CallContext<Request, Caller<?>> context) throws Exception {
         if (msg instanceof FullHttpResponse fullHttpResponse) {
-            msg = H1Support.fromFullHttpResponse(fullHttpResponse, context);
+            msg = H1Support.fromFullHttpResponse(fullHttpResponse, context, NettyChannel.ensure(ctx.channel()));
             ctx.fireChannelRead(msg);
             client.release(ctx.channel());
         }

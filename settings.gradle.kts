@@ -36,6 +36,7 @@ modules {
     }
     module("effi-rpc-test")
     module("effi-rpc-demo") {
+        module("api")
         module("consumer", { it.enableProcessor() })
         module("provider", { it.enableProcessor() })
     }

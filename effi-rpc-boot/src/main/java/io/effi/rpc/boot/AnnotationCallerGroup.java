@@ -91,13 +91,16 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
         @Override
         protected void checkState(AnnotationCallerGroup<T> group) {
             super.checkState(group);
-            AssertUtil.notNull(group.target(), "target");
+            AssertUtil.notNull(group.proxy(), "proxy");
             AssertUtil.notNull(group.clientAnnotation(), "callGroup");
             AssertUtil.notNull(group.annotationStyle(), "annotationStyle");
         }
 
         private TransportProtocol resolveProtocol(ScopedModule module, HierarchicalOptions options) {
             String protocolName = options.option(PROTOCOL);
+            if (StringUtil.isBlank(protocolName)) {
+                protocolName = this.protocolName;
+            }
             if (StringUtil.isBlank(protocolName)) {
                 throw new IllegalStateException("No transport protocol configured for RPC method");
             }

@@ -5,6 +5,9 @@ package io.effi.rpc.context;
  */
 public interface CallerGroup<T> extends PeerGroup<Caller<?>, T> {
 
-    String proxy();
+    /**
+     * Returns the client proxy exposed to callers.
+     */
+    T proxy();
 }
 

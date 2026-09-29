@@ -11,13 +11,9 @@ public interface PeerGroup<P extends Peer, T> extends HierarchicalOptions.Suppli
 
     Class<T> targetType();
 
-    T target();
-
     void register(P peer);
 
     P lookup(String id);
-
-    <R> R invoke(P peer, Object... args);
 
     Collection<P> values();
 

@@ -40,14 +40,7 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
 
     public static final class Builder<T> extends DefaultServantGroup.Builder<InterfaceServantGroup<T>, T, InterfaceServantGroup.Builder<T>> {
 
-        private String protocolName;
-
         private Builder() {
-        }
-
-        public InterfaceServantGroup.Builder<T> protocol(String protocolName) {
-            this.protocolName = protocolName;
-            return this;
         }
 
         @Override
@@ -83,7 +76,7 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
                         .withParent(options);
                 methodOptions.addOption(PATH, new String[]{path});
                 ScopedModule methodModule = resolveModule(methodOptions);
-                Method targetMethod = targetMethod(target, interfaceMethod);
+                Method targetMethod = targetMethod(service, interfaceMethod);
                 MethodBinding binding = MethodBinding.positional(interfaceMethod, PositionParameterBinder.INSTANCE);
                 ServantMethod<T> servantMethod = new ServantMethod<>(group, targetMethod, binding);
                 protocol.createServant(servantMethod, methodOptions, methodModule);

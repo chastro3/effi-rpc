@@ -28,7 +28,7 @@ class InterfaceServantGroupTest {
                 IllegalArgumentException.class,
                 () -> InterfaceServantGroup.<DuplicateService>builder()
                         .targetType(DuplicateService.class)
-                        .target(new DuplicateServiceImpl())
+                        .service(new DuplicateServiceImpl())
                         .module(module)
                         .protocol(Http1Protocol.NAME)
                         .build()

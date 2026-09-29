@@ -66,10 +66,15 @@ public abstract class HttpServant extends AbstractServant {
         protected Builder(HttpVersion version, ServantMethod<?> servantMethod) {
             super(servantMethod, version.name());
             this.version = AssertUtil.notNull(version, "version");
+        }
+
+        @Override
+        protected void validate() {
             // TODO 优化配置
             if (StringUtil.isBlank(option(SerializationOptions.SERIALIZER))) {
                 serializer(JacksonSerializer.NAME);
             }
+            super.validate();
         }
 
         /**

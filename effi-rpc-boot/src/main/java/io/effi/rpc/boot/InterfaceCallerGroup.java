@@ -29,14 +29,7 @@ public final class InterfaceCallerGroup<T> extends AbstractCallerGroup<T> {
 
     public static final class Builder<T> extends AbstractCallerGroup.Builder<InterfaceCallerGroup<T>, T, InterfaceCallerGroup.Builder<T>> {
 
-        private String protocolName;
-
         private Builder() {
-        }
-
-        public InterfaceCallerGroup.Builder<T> protocol(String protocolName) {
-            this.protocolName = protocolName;
-            return this;
         }
 
         @Override

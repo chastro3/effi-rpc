@@ -12,6 +12,7 @@ import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -92,7 +93,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
         @Override
         protected void checkState(AnnotationServantGroup<T> group) {
             super.checkState(group);
-            AssertUtil.notNull(group.target(), "target");
+            AssertUtil.notNull(group.service(), "service");
             AssertUtil.notNull(group.serviceAnnotation(), "serviceAnnotation");
             AssertUtil.notNull(group.annotationStyle(), "annotationStyle");
         }
@@ -100,7 +101,10 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
         private List<TransportProtocol> resolveProtocols(ScopedModule module, HierarchicalOptions options) {
             String[] protocolNames = options.option(DECLARED_PROTOCOL);
             if (CollectionUtil.isEmpty(protocolNames)) {
-                return List.of();
+                if (StringUtil.isBlank(protocolName)) {
+                    return List.of();
+                }
+                protocolNames = new String[]{protocolName};
             }
             return Arrays.stream(protocolNames)
                     .map(name -> {

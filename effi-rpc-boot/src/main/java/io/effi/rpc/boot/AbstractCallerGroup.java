@@ -22,6 +22,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 import static io.effi.rpc.context.options.CallerOptions.PROXY;
+import static io.effi.rpc.context.options.CallerOptions.ENDPOINT;
+import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
+import static io.effi.rpc.context.options.GovernanceOptions.LOCATOR;
+import static io.effi.rpc.context.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provides the common proxy and caller registry behavior for caller groups.
@@ -33,15 +37,17 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
 
     private final String proxyName;
 
+    private final T proxy;
+
     protected AbstractCallerGroup(Builder<?, T, ?> builder) {
         super(builder);
         this.proxyName = builder.proxyName;
-        onInitialized(targetType, createProxy(builder.module));
+        this.proxy = createProxy(builder.module);
     }
 
     @Override
-    public final String proxy() {
-        return proxyName;
+    public final T proxy() {
+        return proxy;
     }
 
     @Override
@@ -54,9 +60,8 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         return invokeCaller(methodCaller.caller(), methodCaller.rpcType(), invocation);
     }
 
-    @Override
-    public <R> R invoke(Caller<?> caller, Object... args) {
-        return null;
+    public final String proxyName() {
+        return proxyName;
     }
 
     protected final void registerMethodCaller(Method method, Caller<?> caller, RpcType rpcType, MethodBinding binding) {
@@ -92,11 +97,38 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
 
         protected String proxyName;
 
+        protected String protocolName;
+
         protected Builder() {
         }
 
         public SELF proxy(String proxyName) {
             this.proxyName = proxyName;
+            return self();
+        }
+
+        public SELF protocol(String protocolName) {
+            this.protocolName = AssertUtil.notBlank(protocolName, "protocol");
+            return self();
+        }
+
+        public SELF endpoint(String target) {
+            addOption(ENDPOINT, target);
+            return self();
+        }
+
+        public SELF locator(String locator) {
+            addOption(LOCATOR, locator);
+            return self();
+        }
+
+        public SELF serializer(String serializer) {
+            addOption(SERIALIZER, serializer);
+            return self();
+        }
+
+        public SELF timeout(int timeout) {
+            addOption(TIMEOUT, timeout);
             return self();
         }
 

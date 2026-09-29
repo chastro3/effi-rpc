@@ -100,7 +100,7 @@ public class ApiTest {
     public void annotatedRemoteService() {
         AnnotationServantGroup<HelloService> remoteService = AnnotationServantGroup
                 .<HelloService>builder()
-                .target(new HelloService())
+                .service(new HelloService())
                 .module(application.defaultModule())
                 .build();
         System.out.println(remoteService);

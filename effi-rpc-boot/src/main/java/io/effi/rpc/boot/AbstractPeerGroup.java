@@ -8,7 +8,6 @@ import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.option.OptionName;
 import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
@@ -24,8 +23,6 @@ public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<
 
     protected Class<T> targetType;
 
-    protected T target;
-
     protected final Map<String, P> values = new LinkedHashMap<>();
 
     protected HierarchicalOptions options;
@@ -35,23 +32,16 @@ public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<
 
     protected AbstractPeerGroup(Builder<?, P, T, ?> builder) {
         this.targetType = builder.targetType;
-        this.target = builder.target;
         this.options = builder.options.withOwner(this);
     }
 
-    protected void onInitialized(Class<T> targetType, T target) {
+    protected void onInitialized(Class<T> targetType) {
         this.targetType = targetType;
-        this.target = target;
     }
 
     @Override
     public Class<T> targetType() {
         return targetType;
-    }
-
-    @Override
-    public T target() {
-        return target;
     }
 
     @Override
@@ -83,8 +73,6 @@ public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<
 
         protected Class<T> targetType;
 
-        protected T target;
-
         protected HierarchicalOptions options = HierarchicalOptions.create();
 
         protected ScopedModule module;
@@ -92,11 +80,6 @@ public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<
         protected String name;
 
         protected Builder() {
-        }
-
-        public SELF target(T target) {
-            this.target = target;
-            return self();
         }
 
         public SELF targetType(Class<T> targetType) {
@@ -143,14 +126,10 @@ public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<
 
         protected void validate() {
             AssertUtil.notNull(module, "module");
-            AssertUtil.valid(targetType != null || target != null, "targetType or target must be configured");
+            AssertUtil.notNull(targetType, "targetType");
         }
 
-        @SuppressWarnings("unchecked")
         protected void resolve() {
-            if (targetType == null) {
-                targetType = (Class<T>) ReflectionUtil.getTargetClass(target.getClass());
-            }
         }
 
         protected void prepare() {
