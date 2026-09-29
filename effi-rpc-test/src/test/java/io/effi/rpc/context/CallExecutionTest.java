@@ -8,6 +8,7 @@ import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.support.CallExecution;
 import io.effi.rpc.context.support.Unary;
+import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.option.OptionName;
@@ -188,7 +189,11 @@ class CallExecutionTest {
         }
 
         private CallExecution<String> newExecution() {
-            return new CallExecution<>(caller, new Object[0], failureHandler);
+            return new CallExecution<>(
+                    caller,
+                    new PositionalInvocation(new Object[0]),
+                    failureHandler
+            );
         }
 
         private ReplyFuture lastAttempt() throws InterruptedException {

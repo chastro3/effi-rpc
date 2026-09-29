@@ -101,6 +101,9 @@ public final class ReflectionUtil {
         if (parameterType.isPrimitive()) {
             parameterType = primitiveToWrapper(parameterType);
         }
+        if (parameterType.isInstance(object)) {
+            return object;
+        }
 
         try {
             if (parameterType == Integer.class) {

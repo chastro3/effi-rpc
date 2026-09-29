@@ -13,6 +13,7 @@ import io.effi.rpc.context.LocatorResolver;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Stage;
+import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AssertUtil;
@@ -57,8 +58,8 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
     }
 
     @Override
-    public Future<R> call(Object... args) throws EffiRpcException {
-        return new CallExecution<>(this, args, failureHandler).execute();
+    public Future<R> call(Invocation invocation) throws EffiRpcException {
+        return new CallExecution<>(this, invocation, failureHandler).execute();
     }
 
     @Override

@@ -5,7 +5,8 @@ import io.effi.rpc.annotation.rpc.ServeGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.annotation.AnnotationStyle;
 import io.effi.rpc.context.annotation.AnnotationStyleResolver;
-import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
@@ -47,11 +48,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
         return annotationStyle;
     }
 
-    public static final class Builder<T>
-            extends DefaultServantGroup.Builder<
-            AnnotationServantGroup<T>,
-            T,
-            AnnotationServantGroup.Builder<T>> {
+    public static final class Builder<T> extends DefaultServantGroup.Builder<AnnotationServantGroup<T>, T, AnnotationServantGroup.Builder<T>> {
 
         private ServeGroup serviceAnnotation;
 
@@ -84,13 +81,8 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
                         .withOwner(group)
                         .withParent(options);
                 AnnotationSupport.fillOption(method.getAnnotation(Serve.class), methodOptions);
-
                 ScopedModule methodModule = resolveModule(methodOptions);
-                ServantMethod<T> servantMethod = new ServantMethod<>(
-                        group,
-                        method,
-                        parameterBindings(methodOptions, method)
-                );
+                ServantMethod<T> servantMethod = new ServantMethod<>(group, method, methodBinding(methodOptions, method));
                 for (TransportProtocol protocol : resolveProtocols(methodModule, methodOptions)) {
                     protocol.createServant(servantMethod, methodOptions, methodModule);
                 }
@@ -105,10 +97,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
             AssertUtil.notNull(group.annotationStyle(), "annotationStyle");
         }
 
-        private List<TransportProtocol> resolveProtocols(
-                ScopedModule module,
-                HierarchicalOptions options
-        ) {
+        private List<TransportProtocol> resolveProtocols(ScopedModule module, HierarchicalOptions options) {
             String[] protocolNames = options.option(DECLARED_PROTOCOL);
             if (CollectionUtil.isEmpty(protocolNames)) {
                 return List.of();
@@ -122,14 +111,14 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
                     .toList();
         }
 
-        private ParameterBinding[] parameterBindings(HierarchicalOptions options, Method method) {
+        private MethodBinding methodBinding(HierarchicalOptions options, Method method) {
             AnnotationStyleResolver resolver = annotationStyleParserForMethod(options, annotationStyle);
             if (resolver != null && resolver.supports(method)) {
-                ParameterBinding[] bindings = resolver.resolveParameterBinding(method);
+                MethodBinding binding = resolver.resolveMethodBinding(method);
                 resolver.resolveMethod(method, options);
-                return bindings;
+                return binding;
             }
-            return ParameterBinding.emptyResolvers(method);
+            return MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
         }
     }
 }

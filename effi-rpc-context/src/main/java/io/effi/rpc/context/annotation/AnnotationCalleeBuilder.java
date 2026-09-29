@@ -3,7 +3,7 @@ package io.effi.rpc.context.annotation;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
-import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.Builder;
@@ -52,8 +52,8 @@ public class AnnotationCalleeBuilder<S> {
         AnnotationStyleResolver styleResolver = AnnotationStyle.getInstance(style).resolver();
         HierarchicalOptions options = HierarchicalOptions.create().withOwner(servantGroup);
         styleResolver.resolveType(servantGroup.targetType(), options);
-        ParameterBinding[] bindings = styleResolver.resolveParameterBinding(method);
-        ServantMethod<S> servantMethod = new ServantMethod<>(servantGroup, method, bindings);
+        MethodBinding binding = styleResolver.resolveMethodBinding(method);
+        ServantMethod<S> servantMethod = new ServantMethod<>(servantGroup, method, binding);
         HierarchicalOptions serveOptions = styleResolver.resolveMethod(method, HierarchicalOptions.create());
         return builder.apply(servantMethod, serveOptions).build();
     }

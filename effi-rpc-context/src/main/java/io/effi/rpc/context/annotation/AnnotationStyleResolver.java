@@ -2,8 +2,7 @@ package io.effi.rpc.context.annotation;
 
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.context.parameter.ParameterBinding;
-import io.effi.rpc.context.parameter.ParameterLinking;
+import io.effi.rpc.context.parameter.MethodBinding;
 
 import java.lang.reflect.Method;
 
@@ -33,20 +32,12 @@ public interface AnnotationStyleResolver {
     HierarchicalOptions resolveMethod(Method method, HierarchicalOptions options);
 
     /**
-     * Resolves the caller's parameter mapping.
+     * Resolves all parameter bindings for the method.
      *
-     * @param method the method for parameter mapping
-     * @return an array of parameter mappers
+     * @param method the method for parameter binding
+     * @return the method binding
      */
-    ParameterLinking[] resolveParameterLinking(Method method);
-
-    /**
-     * Resolves the servant's parameter binding from method.
-     *
-     * @param method the method for parameter mapping
-     * @return an array of parameter bindings
-     */
-    ParameterBinding[] resolveParameterBinding(Method method);
+    MethodBinding resolveMethodBinding(Method method);
 
     /**
      * Checks if the method is supported.

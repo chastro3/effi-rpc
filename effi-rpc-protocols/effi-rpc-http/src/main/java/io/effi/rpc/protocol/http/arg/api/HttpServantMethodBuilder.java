@@ -3,12 +3,14 @@ package io.effi.rpc.protocol.http.arg.api;
 import io.effi.rpc.trait.Builder;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.context.ServantGroup;
-import io.effi.rpc.context.parameter.*;
+import io.effi.rpc.context.parameter.Argument;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.protocol.http.arg.binder.HttpParameterBinders;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Builds a MethodMapper for a specific method in a remote service.
@@ -19,7 +21,9 @@ public class HttpServantMethodBuilder<T> implements Builder<ServantMethod<T>> {
 
     private final String methodName;
 
-    private final List<Mapping> argMapping = new ArrayList<>();
+    private Mapping[] mappings = new Mapping[0];
+
+    private int mappingCount;
 
     public HttpServantMethodBuilder(ServantGroup<T> service, String methodName) {
         this.service = AssertUtil.notNull(service, "service");
@@ -27,47 +31,40 @@ public class HttpServantMethodBuilder<T> implements Builder<ServantMethod<T>> {
     }
 
     /**
-     * Specifies the parameter type for mapping.
-     */
-    public HttpServantMethodBuilder<T> parameterType(Class<?> parameterType) {
-        return mappedParameterType(parameterType, null);
-    }
-
-    /**
      * Maps a parameter type to an Argument.
      */
     public HttpServantMethodBuilder<T> mappedParameterType(Class<?> argType, Argument mappedArg) {
-        Mapping mapping = new Mapping(argType, mappedArg);
-        argMapping.add(mapping);
+        if (mappingCount == mappings.length) {
+            Mapping[] expanded = new Mapping[mappings.length == 0 ? 4 : mappings.length * 2];
+            System.arraycopy(mappings, 0, expanded, 0, mappings.length);
+            mappings = expanded;
+        }
+        mappings[mappingCount++] = new Mapping(argType, mappedArg);
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public ServantMethod<T> build() {
         Method method = validMethod();
         Parameter[] parameters = method.getParameters();
-        ParameterBinding[] wrappers = new ParameterBinding[parameters.length];
-        for (int i = 0; i < argMapping.size(); i++) {
-            Argument arg = argMapping.get(i).mappedArg();
-            ParameterResolver<?> resolver = null;
-            if (arg instanceof PathVar<?> pathVar && pathVar.get() instanceof Argument.Source) {
-                resolver = new HttpPathResolver((PathVar<Argument.Source>) pathVar);
-            } else if (arg instanceof ParamVar<?> paramVar && paramVar.get() instanceof Argument.Source) {
-                resolver = new HttpParamResolver((ParamVar<Argument.Source>) paramVar);
-            } else if (arg instanceof Header<?> header && header.get() instanceof Argument.Source) {
-                resolver = new HttpHeaderResolver((Header<Argument.Source>) header);
-            } else if (arg instanceof Body<?> body) {
-                resolver = new HttpBodyResolver(body);
-            }
-            wrappers[i] = new ParameterBinding(parameters[i], resolver);
+        AssertUtil.valid(
+                mappingCount == parameters.length,
+                "mapped parameter count does not match method signature"
+        );
+        ParameterBinding[] bindings = new ParameterBinding[parameters.length];
+        for (int i = 0; i < mappingCount; i++) {
+            Argument argument = mappings[i].mappedArg();
+            bindings[i] = new ParameterBinding(i, parameters[i], HttpParameterBinders.bind(argument));
         }
-        return new ServantMethod<>(service, method, wrappers);
+        return new ServantMethod<>(service, method, MethodBinding.of(method, bindings));
     }
 
     private Method validMethod() {
         Class<T> targetType = service.targetType();
-        Class<?>[] parameterTypes = argMapping.stream().map(Mapping::argType).toArray(Class[]::new);
+        Class<?>[] parameterTypes = new Class<?>[mappingCount];
+        for (int i = 0; i < mappingCount; i++) {
+            parameterTypes[i] = mappings[i].argType();
+        }
         try {
             return targetType.getMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {

@@ -8,12 +8,12 @@ import java.lang.reflect.Method;
 /**
  * Maps methods to remote service calls.
  */
-public record ServantMethod<T>(ServantGroup<T> group, Method method, ParameterBinding[] bindings) {
+public record ServantMethod<T>(ServantGroup<T> group, Method method, MethodBinding binding) {
 
-    public ServantMethod(ServantGroup<T> group, Method method, ParameterBinding[] bindings) {
+    public ServantMethod(ServantGroup<T> group, Method method, MethodBinding binding) {
         this.group = AssertUtil.notNull(group, "group");
         this.method = AssertUtil.notNull(method, "method");
-        this.bindings = bindings == null ? ParameterBinding.emptyResolvers(method) : bindings;
+        this.binding = AssertUtil.notNull(binding, "binding");
     }
 
     @Override

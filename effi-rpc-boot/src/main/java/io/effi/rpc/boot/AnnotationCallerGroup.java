@@ -6,7 +6,8 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.annotation.AnnotationStyle;
 import io.effi.rpc.context.annotation.AnnotationStyleResolver;
-import io.effi.rpc.context.parameter.ParameterLinking;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
@@ -81,9 +82,9 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
                 ScopedModule methodModule = resolveModule(methodOptions);
                 TransportProtocol protocol = resolveProtocol(methodModule, methodOptions);
                 ReturnType returnType = returnType(method);
-                ParameterLinking[] linkings = parameterLinkings(methodOptions, method);
+                MethodBinding binding = methodBinding(methodOptions, method);
                 Caller<?> caller = protocol.createCaller(returnType.typeCapture(), methodOptions, methodModule);
-                group.registerMethodCaller(method, caller, returnType.rpcType(), linkings);
+                group.registerMethodCaller(method, caller, returnType.rpcType(), binding);
             }
         }
 
@@ -105,17 +106,17 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
             return protocol;
         }
 
-        private ParameterLinking[] parameterLinkings(HierarchicalOptions options, Method method) {
+        private MethodBinding methodBinding(HierarchicalOptions options, Method method) {
             AnnotationStyleResolver resolver = annotationStyleParserForMethod(options, annotationStyle);
             if (resolver != null && resolver.supports(method)) {
-                ParameterLinking[] linkings = resolver.resolveParameterLinking(method);
+                MethodBinding binding = resolver.resolveMethodBinding(method);
                 resolver.resolveMethod(method, options);
-                return linkings;
+                return binding;
             }
             if (method.getParameterCount() > 0) {
                 throw new IllegalStateException("No annotation style configured for RPC method parameters: " + method.toGenericString());
             }
-            return ParameterLinking.emptyWrappers(method);
+            return MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
         }
     }
 }

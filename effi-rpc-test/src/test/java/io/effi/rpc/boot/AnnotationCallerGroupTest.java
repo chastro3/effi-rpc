@@ -3,7 +3,11 @@ package io.effi.rpc.boot;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.RpcType;
-import io.effi.rpc.context.parameter.ParameterLinking;
+import io.effi.rpc.context.invocation.MethodInvocation;
+import io.effi.rpc.context.invocation.PositionalInvocation;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.MethodBinder;
+import io.effi.rpc.context.parameter.PositionParameterBinder;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -20,7 +24,11 @@ class AnnotationCallerGroupTest {
     void asyncCallReturnsCompletableFuture() {
         Caller<Object> caller = caller();
 
-        Object result = AbstractCallerGroup.invokeCaller(caller, RpcType.ASYNC, new Object[0]);
+        Object result = AbstractCallerGroup.invokeCaller(
+                caller,
+                RpcType.ASYNC,
+                new PositionalInvocation(new Object[0])
+        );
 
         assertTrue(result instanceof CompletableFuture);
         assertEquals("ok", ((CompletableFuture<?>) result).join());
@@ -29,13 +37,10 @@ class AnnotationCallerGroupTest {
     @Test
     void argumentWithoutWrapperIsPassedThrough() throws NoSuchMethodException {
         Method method = SampleClient.class.getDeclaredMethod("call", String.class);
-        ParameterLinking[] linkings = {
-                new ParameterLinking(method.getParameters()[0], null)
-        };
+        MethodBinding binding = MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
+        MethodInvocation invocation = new MethodBinder(binding).bind(new Object[]{"value"});
 
-        Object[] wrapped = AbstractCallerGroup.wrapArgs(linkings, new Object[]{"value"}, null);
-
-        assertSame("value", wrapped[0]);
+        assertSame("value", invocation.arguments().get(0));
     }
 
     @SuppressWarnings("unchecked")

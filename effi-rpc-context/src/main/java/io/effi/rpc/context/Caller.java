@@ -2,6 +2,8 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.context.invocation.Invocation;
+import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.concurrent.Future;
 
@@ -34,15 +36,23 @@ public interface Caller<R> extends Peer {
     /**
      * Initiates an asynchronous RPC call with the specified arguments.
      *
-     * @param args the arguments to pass to the remote service
+     * @param invocation the method invocation to send
      * @return a {@link Future} containing the result
      * @throws EffiRpcException if an error occurs during the call
      */
-    Future<R> call(Object... args) throws EffiRpcException;
+    Future<R> call(Invocation invocation) throws EffiRpcException;
+
+    default Future<R> call(Object... args) throws EffiRpcException {
+        return call(new PositionalInvocation(args));
+    }
 
     @SuppressWarnings("unchecked")
+    default <T> T blockingCall(Invocation invocation) throws EffiRpcException {
+        return (T) call(invocation).toCompletableFuture().join();
+    }
+
     default <T> T blockingCall(Object... args) throws EffiRpcException {
-        return (T) call(args).toCompletableFuture().join();
+        return blockingCall(new PositionalInvocation(args));
     }
 
 }

@@ -22,7 +22,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Implements {@link io.effi.rpc.transport.endpoint.Channel} using Netty.
@@ -132,7 +131,7 @@ public final class NettyChannel extends AbstractChannel {
     }
 
     private static <T extends io.netty.util.concurrent.Future<?>> Promise<NettyChannel>
-    wrap(T future, Supplier<Channel> channelSupplier, Function<Channel, NettyChannel> wrapper) {
+    wrap(T future, java.util.function.Supplier<Channel> channelSupplier, Function<Channel, NettyChannel> wrapper) {
         Promise<NettyChannel> promise = new Promise<>();
         promise.onCancel(reason -> future.cancel(false));
         future.addListener(result -> {

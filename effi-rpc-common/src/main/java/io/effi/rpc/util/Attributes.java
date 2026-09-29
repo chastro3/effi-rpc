@@ -2,8 +2,6 @@ package io.effi.rpc.util;
 
 import io.effi.rpc.trait.Cleanable;
 
-import java.util.function.Supplier;
-
 /**
  * Manages a collection of attributes, allowing storage, retrieval, and removal.
  */
@@ -22,7 +20,7 @@ public interface Attributes extends Cleanable {
     /**
      * Computes and stores a value if absent.
      */
-    <T> T computeIfAbsent(GenericKey<T> key, Supplier<T> creator);
+    <T> T computeIfAbsent(GenericKey<T> key, java.util.function.Supplier<T> creator);
 
     /**
      * Sets the value for the key.
@@ -33,6 +31,43 @@ public interface Attributes extends Cleanable {
      * Removes the attribute for the key.
      */
     Attributes remove(GenericKey<?> key);
+
+    interface Supplier extends Attributes {
+
+        @Override
+        default <T> T get(GenericKey<T> key) {
+            return attributes().get(key);
+        }
+
+        @Override
+        default <T> T getOrDefault(GenericKey<T> key, T defaultValue) {
+            return attributes().getOrDefault(key, defaultValue);
+        }
+
+        @Override
+        default <T> T computeIfAbsent(GenericKey<T> key, java.util.function.Supplier<T> creator) {
+            return attributes().computeIfAbsent(key, creator);
+        }
+
+        @Override
+        default <T> T set(GenericKey<T> key, T value) {
+            return attributes().set(key, value);
+        }
+
+        @Override
+        default Attributes remove(GenericKey<?> key) {
+            attributes().remove(key);
+            return this;
+        }
+
+        @Override
+        default void clear() {
+            attributes().clear();
+        }
+
+        Attributes attributes();
+
+    }
 }
 
 

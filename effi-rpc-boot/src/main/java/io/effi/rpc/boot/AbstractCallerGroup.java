@@ -4,12 +4,12 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallerGroup;
 import io.effi.rpc.context.RpcType;
-import io.effi.rpc.context.annotation.AnnotationParameterWrapper;
-import io.effi.rpc.context.parameter.ParameterLinking;
+import io.effi.rpc.context.invocation.Invocation;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.proxy.InvocationHandler;
 import io.effi.rpc.proxy.ProxyFactory;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.TypeCapture;
 
@@ -50,8 +50,8 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         if (methodCaller == null) {
             throw new IllegalStateException("No RPC mapping configured for method: " + method.toGenericString());
         }
-        Object[] arguments = wrapArgs(methodCaller.linkings(), args, methodCaller.caller());
-        return invokeCaller(methodCaller.caller(), methodCaller.rpcType(), arguments);
+        Invocation invocation = methodCaller.binder().bind(args);
+        return invokeCaller(methodCaller.caller(), methodCaller.rpcType(), invocation);
     }
 
     @Override
@@ -59,12 +59,12 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         return null;
     }
 
-    protected final void registerMethodCaller(Method method, Caller<?> caller, RpcType rpcType, ParameterLinking[] linkings) {
+    protected final void registerMethodCaller(Method method, Caller<?> caller, RpcType rpcType, MethodBinding binding) {
         AssertUtil.notNull(method, "method");
         AssertUtil.notNull(caller, "caller");
         AssertUtil.notNull(rpcType, "rpcType");
-        AssertUtil.notNull(linkings, "linkings");
-        MethodCaller previous = methodCallers.putIfAbsent(method, new MethodCaller(caller, rpcType, linkings));
+        AssertUtil.notNull(binding, "binding");
+        MethodCaller previous = methodCallers.putIfAbsent(method, new MethodCaller(caller, rpcType, new MethodBinder(binding)));
         AssertUtil.valid(previous == null, "Duplicate caller mapping for method: {}", method.toGenericString());
         register(caller);
     }
@@ -74,29 +74,14 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         return proxyFactory.createProxy(targetType, this);
     }
 
-    static Object invokeCaller(Caller<?> caller, RpcType rpcType, Object[] args) {
+    static Object invokeCaller(Caller<?> caller, RpcType rpcType, Invocation invocation) {
         return switch (rpcType) {
-            case SYNC -> caller.blockingCall(args);
-            case ASYNC -> caller.call(args).toCompletableFuture();
+            case SYNC -> caller.blockingCall(invocation);
+            case ASYNC -> caller.call(invocation).toCompletableFuture();
         };
     }
 
-    static Object[] wrapArgs(ParameterLinking[] linkings, Object[] args, Caller<?> caller) {
-        if (CollectionUtil.isEmpty(args)) {
-            return new Object[0];
-        }
-        Object[] result = new Object[linkings.length];
-        for (int i = 0; i < linkings.length; i++) {
-            ParameterLinking linking = linkings[i];
-            AnnotationParameterWrapper<?> wrapper = linking.wrapper();
-            result[i] = wrapper == null
-                    ? args[i]
-                    : wrapper.wrap(args[i], linking.parameter(), caller);
-        }
-        return result;
-    }
-
-    private record MethodCaller(Caller<?> caller, RpcType rpcType, ParameterLinking[] linkings) {
+    private record MethodCaller(Caller<?> caller, RpcType rpcType, MethodBinder binder) {
     }
 
     /**

@@ -4,6 +4,8 @@ import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ProtocolStack;
+import io.effi.rpc.config.QueryPath;
+import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.Caller;
@@ -12,6 +14,7 @@ import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Servant;
+import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.protocol.http.codec.HttpClientCodec;
@@ -35,6 +38,7 @@ import io.effi.rpc.util.Messages;
 import io.effi.rpc.util.ObjectUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
 
+import java.util.Arrays;
 import java.util.Map;
 
 
@@ -55,12 +59,13 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
-    public Request createRequest(Caller<?> caller, Object[] args) {
+    public Request createRequest(Caller<?> caller, Invocation invocation) {
         if (caller instanceof HttpCaller<?> httpCaller) {
-            HttpInvocation argumentWrapper = new HttpInvocation(caller, args);
+            Map<String, String> pathVariables = invocation.get(HttpInvocationKeys.PATH_VARIABLES);
+            Map<String, String> queryParameters = invocation.get(HttpInvocationKeys.QUERY_PARAMETERS);
+            Map<String, String> argumentHeaders = invocation.get(HttpInvocationKeys.HEADERS);
             HttpHeaders headers = version().newHeaders();
             headers.add(REGULAR_REQUEST_HEADERS.entrySet());
-            Map<String, String> argumentHeaders = argumentWrapper.headers();
             if (CollectionUtil.isNotEmpty(argumentHeaders)) {
                 headers.add(argumentHeaders.entrySet());
             }
@@ -68,14 +73,13 @@ public abstract class HttpProtocol extends AbstractProtocol {
             return HttpDuplexRequest.builder()
                     .version(version)
                     .method(httpCaller.httpMethod())
-                    .url(argumentWrapper.requestUrl())
+                    .url(createRequestUrl(caller, pathVariables, queryParameters))
                     .headers(headers)
-                    .body(argumentWrapper.body())
+                    .body(requestBody(invocation))
                     .build();
         }
         throw new IllegalArgumentException(Messages.unSupport("caller", caller.getClass()));
     }
-
 
     @Override
     public Response createResponse(Servant servant, Interaction.Result result) {
@@ -127,9 +131,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
     @Override
     public Response createErrorResponse(InputMessage inputMessage, EffiRpcException cause) {
         if (!(inputMessage instanceof HttpRequest request)) {
-            throw new IllegalArgumentException(
-                    "Expected an HTTP request but received " + ObjectUtil.simpleClassName(inputMessage)
-            );
+            throw new IllegalArgumentException("Expected an HTTP request but received " + ObjectUtil.simpleClassName(inputMessage));
         }
         int statusCode = errorStatus(cause);
         HttpHeaders headers = version().newHeaders();
@@ -159,6 +161,21 @@ public abstract class HttpProtocol extends AbstractProtocol {
         return version;
     }
 
+    private SmartURL createRequestUrl(Caller<?> caller, Map<String, String> pathVariables, Map<String, String> queryParameters) {
+        String[] realPath = caller.queryPath().render(pathVariables);
+        return SmartURL.builder()
+                .scheme(caller.protocol().name())
+                .queryParams(queryParameters)
+                .path(QueryPath.valueOf(Arrays.asList(realPath)))
+                .build();
+    }
+
+    private Object requestBody(Invocation invocation) {
+        return invocation.arguments().isEmpty()
+                ? invocation.get(HttpInvocationKeys.BODY)
+                : invocation.arguments().values();
+    }
+
     private ClientExchangeContextCodec createClientCodec() {
         HttpClientCodec clientCodec = new HttpClientCodec();
         return new ConfigurableClientCodec<HttpRequest, HttpResponse>()
@@ -171,7 +188,8 @@ public abstract class HttpProtocol extends AbstractProtocol {
         HttpServerCodec serverCodec = new HttpServerCodec();
         return new ConfigurableServerCodec<HttpResponse, HttpRequest>()
                 .encoder(serverCodec)
-                .decoder(serverCodec);
+                .decoder(serverCodec)
+                .invocationResolver(new HttpInvocationResolver());
     }
 
     private Interaction.Result extractResult(HttpResponse response) {

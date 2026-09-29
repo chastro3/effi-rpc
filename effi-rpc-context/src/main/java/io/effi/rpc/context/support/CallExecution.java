@@ -13,8 +13,9 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
-import io.effi.rpc.context.metrics.MetricsSupport;
+import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
+import io.effi.rpc.context.metrics.MetricsSupport;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 
@@ -37,7 +38,7 @@ public final class CallExecution<R> {
 
     private final Caller<R> caller;
 
-    private final Object[] args;
+    private final Invocation invocation;
 
     private final Unary.FailureHandler failureHandler;
 
@@ -55,9 +56,9 @@ public final class CallExecution<R> {
 
     private volatile ScheduledFuture<?> deadlineTask;
 
-    public CallExecution(Caller<R> caller, Object[] args, Unary.FailureHandler failureHandler) {
+    public CallExecution(Caller<R> caller, Invocation invocation, Unary.FailureHandler failureHandler) {
         this.caller = caller;
-        this.args = args;
+        this.invocation = invocation;
         this.failureHandler = failureHandler;
         this.deadline = deadline(caller);
         this.completion.onCancel(this::onCancelled);
@@ -237,8 +238,8 @@ public final class CallExecution<R> {
     }
 
     private CallContext<Request, Caller<?>> newContext() {
-        Request request = caller.protocol().createRequest(caller, args);
-        return new CallContext<>(caller.module(), request, caller, Unary.MODE, args);
+        Request request = caller.protocol().createRequest(caller, invocation);
+        return new CallContext<>(caller.module(), request, caller, Unary.MODE, invocation.arguments().values());
     }
 
     private static Deadline deadline(Caller<?> caller) {

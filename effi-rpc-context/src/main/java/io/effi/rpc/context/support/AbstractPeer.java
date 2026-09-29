@@ -59,6 +59,7 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
         this.callInterceptorChain = builder.callInterceptorChain;
         this.replyInterceptorChain = builder.replyInterceptorChain;
         this.id = Peer.buildId(descriptor.protocol().name(), descriptor.path().path());
+        this.descriptor.options().withOwner(this);
     }
 
     @Override

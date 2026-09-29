@@ -20,7 +20,6 @@ import java.util.Map;
 /**
  * Provides an abstract implementation of {@link PeerGroup}.
  */
-@SuppressWarnings("rawtypes")
 public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<P, T> {
 
     protected Class<T> targetType;

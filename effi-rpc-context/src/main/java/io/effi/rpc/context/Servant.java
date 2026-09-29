@@ -1,7 +1,7 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
-import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.context.parameter.MethodBinder;
 
 import java.lang.reflect.Method;
 
@@ -42,7 +42,7 @@ public interface Servant extends Peer {
     /**
      * Returns parameter bindings for the method.
      */
-    ParameterBinding[] parameterBindings();
+    MethodBinder methodBinder();
 
     /**
      * Returns a description of this servant.

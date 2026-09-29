@@ -2,7 +2,6 @@ package io.effi.rpc.util;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Provides an abstract implementation of {@link Attributes}.
@@ -26,7 +25,7 @@ public abstract class AbstractAttributes implements Attributes {
     }
 
     @Override
-    public <T> T computeIfAbsent(GenericKey<T> key, Supplier<T> creator) {
+    public <T> T computeIfAbsent(GenericKey<T> key, java.util.function.Supplier<T> creator) {
         return (T) delayedAttributes().computeIfAbsent(key, k -> creator.get());
     }
 

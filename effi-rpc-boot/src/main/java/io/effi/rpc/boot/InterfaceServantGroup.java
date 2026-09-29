@@ -1,7 +1,8 @@
 package io.effi.rpc.boot;
 
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
@@ -33,18 +34,11 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
                     interfaceMethod.getParameterTypes()
             );
         } catch (NoSuchMethodException e) {
-            throw new IllegalStateException(
-                    "Implementation method not found: " + interfaceMethod.toGenericString(),
-                    e
-            );
+            throw new IllegalStateException("Implementation method not found: " + interfaceMethod.toGenericString(), e);
         }
     }
 
-    public static final class Builder<T>
-            extends DefaultServantGroup.Builder<
-            InterfaceServantGroup<T>,
-            T,
-            InterfaceServantGroup.Builder<T>> {
+    public static final class Builder<T> extends DefaultServantGroup.Builder<InterfaceServantGroup<T>, T, InterfaceServantGroup.Builder<T>> {
 
         private String protocolName;
 
@@ -84,18 +78,14 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
             for (Method interfaceMethod : AnnotationSupport.filterMethods(targetType.getMethods())) {
                 String path = methodPath(interfaceMethod);
                 AssertUtil.valid(paths.add(path), "Duplicate RPC method path: {}", path);
-
                 HierarchicalOptions methodOptions = HierarchicalOptions.create()
                         .withOwner(group)
                         .withParent(options);
                 methodOptions.addOption(PATH, new String[]{path});
                 ScopedModule methodModule = resolveModule(methodOptions);
                 Method targetMethod = targetMethod(target, interfaceMethod);
-                ServantMethod<T> servantMethod = new ServantMethod<>(
-                        group,
-                        targetMethod,
-                        ParameterBinding.emptyResolvers(targetMethod)
-                );
+                MethodBinding binding = MethodBinding.positional(interfaceMethod, PositionParameterBinder.INSTANCE);
+                ServantMethod<T> servantMethod = new ServantMethod<>(group, targetMethod, binding);
                 protocol.createServant(servantMethod, methodOptions, methodModule);
             }
         }

@@ -2,12 +2,15 @@ package io.effi.rpc.boot;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.parameter.ParameterLinking;
+import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 
 import static io.effi.rpc.context.options.PeerOptions.PATH;
 
@@ -58,17 +61,20 @@ public final class InterfaceCallerGroup<T> extends AbstractCallerGroup<T> {
 
         @Override
         protected void resolveComponents(InterfaceCallerGroup<T> group) {
+            Set<String> paths = new HashSet<>();
             for (Method method : AnnotationSupport.filterMethods(targetType.getMethods())) {
+                String path = methodPath(method);
+                AssertUtil.valid(paths.add(path), "Duplicate RPC method path: {}", path);
                 HierarchicalOptions methodOptions = HierarchicalOptions.create()
                         .withOwner(group)
                         .withParent(options);
-                methodOptions.addOption(PATH, new String[]{methodPath(method)});
+                methodOptions.addOption(PATH, new String[]{path});
                 ScopedModule methodModule = resolveModule(methodOptions);
                 TransportProtocol protocol = protocol(methodModule);
                 ReturnType returnType = returnType(method);
-                ParameterLinking[] linkings = ParameterLinking.emptyWrappers(method);
+                MethodBinding binding = MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
                 Caller<?> caller = protocol.createCaller(returnType.typeCapture(), methodOptions, methodModule);
-                group.registerMethodCaller(method, caller, returnType.rpcType(), linkings);
+                group.registerMethodCaller(method, caller, returnType.rpcType(), binding);
             }
         }
 

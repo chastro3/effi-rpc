@@ -1,6 +1,8 @@
 package io.effi.rpc.serialization.json;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -47,6 +49,29 @@ public class JacksonSerializer extends AbstractSerializer {
             return jsonMapper.readValue(in, String.class);
         }
         return jsonMapper.readValue(in, jsonMapper.constructType(type));
+    }
+
+    @Override
+    public Object[] deserializeValues(InputStream in, Type[] types) throws IOException {
+        try (JsonParser parser = jsonMapper.getFactory().createParser(in)) {
+            if (parser.nextToken() != JsonToken.START_ARRAY) {
+                throw new IOException("Expected JSON array");
+            }
+            Object[] values = new Object[types.length];
+            for (int i = 0; i < types.length; i++) {
+                JsonToken token = parser.nextToken();
+                if (token == JsonToken.END_ARRAY) {
+                    throw new IOException("JSON array contains fewer values than parameters");
+                }
+                values[i] = token == JsonToken.VALUE_NULL
+                        ? null
+                        : jsonMapper.readValue(parser, jsonMapper.constructType(types[i]));
+            }
+            if (parser.nextToken() != JsonToken.END_ARRAY) {
+                throw new IOException("JSON array contains more values than parameters");
+            }
+            return values;
+        }
     }
 
     public JsonMapper jsonMapper() {

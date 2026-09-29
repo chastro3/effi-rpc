@@ -2,17 +2,10 @@ package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.option.Options;
-import io.effi.rpc.config.QueryPath;
-import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.EffiRpcFramework;
-import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.Servant;
-import io.effi.rpc.context.annotation.Body;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
 import io.effi.rpc.serialization.Serializer;
-import io.effi.rpc.transport.TransportErrorCodes;
-import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.FileUtil;
 import io.effi.rpc.util.StringUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -20,7 +13,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -59,28 +51,6 @@ public final class HttpUtil {
                 HttpHeaderNames.SERVER, IDENTIFY
         );
     }
-
-    public static Object getBody(HttpRequest request, Body body, Parameter parameter, Servant servant) {
-        try {
-            return decodeBody(servant.platform(), request, request.body(), parameter.getParameterizedType());
-        } catch (IOException e) {
-            throw TransportErrorCodes.DECODE.fail(e, request.getClass(), parameter.getType());
-        }
-    }
-
-    public static String findPathForVar(SmartURL url, String pathVarName, Servant servant) {
-        //todo 待完善
-        if (url == null || StringUtil.isBlank(pathVarName)) {
-            return null;
-        }
-        QueryPath queryPath = servant.queryPath();
-        Map<String, String> varMap = queryPath.match(url.path());
-        if (CollectionUtil.isNotEmpty(varMap)) {
-            return varMap.get(pathVarName);
-        }
-        return null;
-    }
-
 
     /**
      * Adds the Content-Type header based on the provided URL parameters or existing header.
@@ -128,6 +98,11 @@ public final class HttpUtil {
         }
         CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
         return ensureSerializer(platform, contentType).deserialize(in, bodyType);
+    }
+
+    public static Serializer serializer(ScopedPlatform platform, HttpMessage message) throws IOException {
+        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        return ensureSerializer(platform, contentType);
     }
 
     /**

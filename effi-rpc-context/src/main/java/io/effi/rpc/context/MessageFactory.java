@@ -1,5 +1,7 @@
 package io.effi.rpc.context;
 
+import io.effi.rpc.context.invocation.Invocation;
+
 /**
  * Creates protocol-specific request and response messages.
  * <p>
@@ -12,10 +14,10 @@ public interface MessageFactory {
      * Creates a request from the specified caller and arguments.
      *
      * @param caller the caller initiating the request
-     * @param args   the request arguments
+     * @param invocation the method invocation
      * @return the created request
      */
-    Request createRequest(Caller<?> caller, Object[] args);
+    Request createRequest(Caller<?> caller, Invocation invocation);
 
     /**
      * Creates a response from the specified servant and result.

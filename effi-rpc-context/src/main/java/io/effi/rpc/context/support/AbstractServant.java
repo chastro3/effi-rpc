@@ -6,7 +6,7 @@ import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
 import io.effi.rpc.context.metrics.CalleeMetrics;
-import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
@@ -30,11 +30,14 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
 
     protected final ServantMethod<?> servantMethod;
 
+    protected final MethodBinder methodBinder;
+
     protected final String label;
 
     protected AbstractServant(Builder builder) {
         super(builder);
         this.servantMethod = builder.servantMethod;
+        this.methodBinder = new MethodBinder(servantMethod.binding());
         this.label = builder.label();
         this.methodIndex = group().indexOf(this);
         set(CalleeMetrics.GENERIC_KEY, new CalleeMetrics());
@@ -51,8 +54,8 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
     }
 
     @Override
-    public ParameterBinding[] parameterBindings() {
-        return servantMethod.bindings();
+    public MethodBinder methodBinder() {
+        return methodBinder;
     }
 
     @Override
