@@ -6,7 +6,10 @@ dependencies {
     implementation(project(":effi-rpc-registry:effi-rpc-registry-nacos"))
     implementation(project(":effi-rpc-marshalling"))
     implementation(project(":effi-rpc-proxy"))
+    implementation(project(":effi-rpc-integration:effi-rpc-spring-boot-starter"))
     implementation("org.slf4j:slf4j-api")
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("tools.jackson.core:jackson-databind")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic")
 }
@@ -26,6 +29,12 @@ tasks.register<JavaExec>("runInterfaceConsumer") {
     group = "application"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("demo.consumer.InterfaceConsumer")
+}
+
+tasks.register<JavaExec>("runSpringConsumer") {
+    group = "application"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("demo.consumer.spring.Application")
 }
 
 graalvmNative {

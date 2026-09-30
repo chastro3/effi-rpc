@@ -28,8 +28,10 @@ public class EffiRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ScopedPlatform effiRpcPlatform() {
-        return ScopedPlatform.defaultInstance().name("spring-platform");
+    public ScopedPlatform effiRpcPlatform(EffiRpcProperties properties) {
+        ScopedPlatform platform = ScopedPlatform.defaultInstance().name("spring-platform");
+        EffiRpcInfrastructure.registerRegistries(platform, properties);
+        return platform;
     }
 
     @Bean
@@ -41,7 +43,9 @@ public class EffiRpcAutoConfiguration {
         );
         applicationName = StringUtil.isBlankOrDefault(applicationName, context.getApplicationName());
         applicationName = StringUtil.isBlankOrDefault(applicationName, "default");
-        return platform.defaultApplication().name(applicationName);
+        ScopedApplication application = platform.defaultApplication().name(applicationName);
+        EffiRpcInfrastructure.attachServers(application, properties);
+        return application;
     }
 
     @Bean
@@ -61,12 +65,6 @@ public class EffiRpcAutoConfiguration {
     @ConditionalOnMissingBean
     public EffiRpcProviderExporter effiRpcProviderExporter() {
         return new EffiRpcProviderExporter();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public EffiRpcInfrastructureInitializer effiRpcInfrastructureInitializer() {
-        return new EffiRpcInfrastructureInitializer();
     }
 
     @Bean

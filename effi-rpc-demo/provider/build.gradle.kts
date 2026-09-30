@@ -30,6 +30,12 @@ tasks.register<JavaExec>("runInterfaceProvider") {
     mainClass.set("demo.provider.InterfaceProvider")
 }
 
+tasks.register<JavaExec>("runSpringProvider") {
+    group = "application"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("demo.provider.spring.Application")
+}
+
 graalvmNative {
     binaries.all {
         // common options

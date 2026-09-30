@@ -9,15 +9,12 @@ import io.effi.rpc.component.registry.options.RegistryOptions;
 import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.component.transport.options.ServerOptions;
 import io.effi.rpc.constant.Tags;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
 import io.effi.rpc.protocol.http.h2.Http2Protocol;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 import io.effi.rpc.util.CollectionUtil;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,28 +22,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Registers application-level servers and registries before the RPC lifecycle starts.
+ * Applies Spring Boot infrastructure properties to the RPC platform and application.
  */
-public final class EffiRpcInfrastructureInitializer implements SmartInitializingSingleton, BeanFactoryAware {
+final class EffiRpcInfrastructure {
 
-    private BeanFactory beanFactory;
-
-    @Override
-    public void afterSingletonsInstantiated() {
-        EffiRpcProperties properties = beanFactory.getBeanProvider(EffiRpcProperties.class)
-                .getIfAvailable(EffiRpcProperties::defaults);
-        ScopedPlatform platform = beanFactory.getBean(ScopedPlatform.class);
-        ScopedApplication application = beanFactory.getBean(ScopedApplication.class);
-        registerRegistries(platform, properties);
-        attachServers(application, properties);
+    private EffiRpcInfrastructure() {
     }
 
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
-
-    private void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
+    static void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
         List<String> providerRegistries = properties.provider().common().registries();
         for (Map.Entry<String, EffiRpcProperties.Registry> entry : properties.registries().entrySet()) {
             String name = entry.getKey();
@@ -60,8 +43,13 @@ public final class EffiRpcInfrastructureInitializer implements SmartInitializing
                     .heartbeatInterval(millis(registry.heartbeatInterval(), RegistryOptions.HEARTBEAT_INTERVAL.defaultValue()))
                     .build();
             List<String> tags = new ArrayList<>(registry.tags());
-            if (providerRegistries.contains(name) && !tags.contains(Tags.PROVIDER)) {
-                tags.add(Tags.PROVIDER);
+            if (providerRegistries.contains(name)) {
+                if (!tags.contains(Tags.PROVIDER)) {
+                    tags.add(Tags.PROVIDER);
+                }
+                if (!tags.contains(Tags.FORCE_ACTIVE)) {
+                    tags.add(Tags.FORCE_ACTIVE);
+                }
             }
             if (CollectionUtil.isNotEmpty(tags)) {
                 config.addTags(tags.toArray(String[]::new));
@@ -70,7 +58,7 @@ public final class EffiRpcInfrastructureInitializer implements SmartInitializing
         }
     }
 
-    private void attachServers(ScopedApplication application, EffiRpcProperties properties) {
+    static void attachServers(ScopedApplication application, EffiRpcProperties properties) {
         for (Map.Entry<String, EffiRpcProperties.Server> entry : properties.servers().entrySet()) {
             String name = entry.getKey();
             EffiRpcProperties.Server server = entry.getValue();
@@ -84,29 +72,28 @@ public final class EffiRpcInfrastructureInitializer implements SmartInitializing
         }
     }
 
-    private ServerConfig createServerConfig(String name, EffiRpcProperties.Server server) {
+    private static ServerConfig createServerConfig(String name, EffiRpcProperties.Server server) {
         String protocol = server.protocol();
         if (Http1Protocol.NAME.equals(protocol)) {
             Http1ServerConfig.Builder builder = Http1ServerConfig.builder().id(name);
-            if (server.acceptorThreads() != null) {
-                builder.addOption(ServerOptions.ACCEPTOR_THREADS, server.acceptorThreads());
-            }
-            if (server.ioThreads() != null) {
-                builder.addOption(ServerOptions.IO_THREADS, server.ioThreads());
-            }
+            configureServer(builder, server);
             return builder.build();
         }
         if (Http2Protocol.NAME.equals(protocol)) {
             Http2ServerConfig.Builder builder = Http2ServerConfig.builder().id(name);
-            if (server.acceptorThreads() != null) {
-                builder.addOption(ServerOptions.ACCEPTOR_THREADS, server.acceptorThreads());
-            }
-            if (server.ioThreads() != null) {
-                builder.addOption(ServerOptions.IO_THREADS, server.ioThreads());
-            }
+            configureServer(builder, server);
             return builder.build();
         }
         throw new IllegalStateException("Unsupported server protocol '" + protocol + "' for server '" + name + "'");
+    }
+
+    private static void configureServer(Options.Supplier builder, EffiRpcProperties.Server server) {
+        if (server.acceptorThreads() != null) {
+            builder.addOption(ServerOptions.ACCEPTOR_THREADS, server.acceptorThreads());
+        }
+        if (server.ioThreads() != null) {
+            builder.addOption(ServerOptions.IO_THREADS, server.ioThreads());
+        }
     }
 
     private static int millis(Duration duration, int defaultValue) {

@@ -83,7 +83,10 @@ public final class NettyChannel extends AbstractChannel {
 
     @Override
     public void close() {
-        channel.close();
+        ChannelFuture closeFuture = channel.close();
+        if (!channel.eventLoop().inEventLoop()) {
+            closeFuture.awaitUninterruptibly();
+        }
     }
 
     @Override

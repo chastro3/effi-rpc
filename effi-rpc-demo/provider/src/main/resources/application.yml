@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: spring-provider
+
+server:
+  port: 18080
+
+effi:
+  rpc:
+    application:
+      name: spring-provider
+    servers:
+      http1:
+        protocol: http/1.1
+        host: 127.0.0.1
+        port: 18092
+    registries:
+      consul:
+        type: consul
+        address: 127.0.0.1:8500
+
+    provider:
+      common:
+        protocols:
+          - http/1.1
+        registries:
+          - consul

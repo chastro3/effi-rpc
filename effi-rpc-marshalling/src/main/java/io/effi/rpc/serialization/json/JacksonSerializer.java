@@ -5,6 +5,7 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -64,7 +65,9 @@ public class JacksonSerializer extends AbstractSerializer {
                 }
                 values[i] = token == JsonToken.VALUE_NULL
                         ? null
-                        : jsonMapper.readValue(parser, jsonMapper.constructType(types[i]));
+                        : jsonMapper.readerFor(jsonMapper.constructType(types[i]))
+                                .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                                .readValue(parser);
             }
             if (parser.nextToken() != JsonToken.END_ARRAY) {
                 throw new IOException("JSON array contains more values than parameters");

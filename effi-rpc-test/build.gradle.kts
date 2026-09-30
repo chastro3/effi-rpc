@@ -21,6 +21,7 @@ dependencies {
     implementation("org.openjdk.jmh:jmh-core")
     annotationProcessor(platform(project(":effi-rpc-bom")))
     annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess")
+    testAnnotationProcessor(project(":effi-rpc-processor"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.platform:junit-platform-launcher")
 }

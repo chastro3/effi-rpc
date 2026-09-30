@@ -52,22 +52,26 @@ public final class ExtensionLoader<T> implements Cleanable {
 
     private final boolean lazyLoaded;
 
+    private volatile boolean loaded;
+
+    private boolean loading;
+
     ExtensionLoader(ScopedContext scopedContext, Class<T> type, ComponentDescriptor descriptor) {
         this.scopedContext = scopedContext;
         this.type = type;
         this.descriptor = descriptor;
         Extensible extensible = requireExtensible(type);
         Map<String, Class<? extends T>> extensionClasses = loadExtensionClasses(type);
+        this.lazyLoaded = extensible.lazyLoad();
         this.extensionEntries = createEntries(extensionClasses);
         this.primaryExtension = findPrimaryExtension(extensible, extensionClasses);
-        this.lazyLoaded = extensible.lazyLoad();
     }
 
     public Class<T> type() {
         return type;
     }
 
-    public boolean LazyLoaded() {
+    public boolean lazyLoaded() {
         return lazyLoaded;
     }
 
@@ -125,6 +129,29 @@ public final class ExtensionLoader<T> implements Cleanable {
     @Override
     public String toString() {
         return ObjectUtil.simpleClassName(this) + "<" + type.getSimpleName() + ">";
+    }
+
+    ExtensionLoader<T> load() {
+        if (loaded || lazyLoaded) {
+            return this;
+        }
+        synchronized (this) {
+            if (loaded || loading) {
+                return this;
+            }
+            loading = true;
+            try {
+                for (ExtensionEntry<T> entry : new LinkedHashSet<>(extensionEntries.values())) {
+                    if (entry.singleton()) {
+                        entry.extension();
+                    }
+                }
+                loaded = true;
+            } finally {
+                loading = false;
+            }
+        }
+        return this;
     }
 
     private Map<String, ExtensionEntry<T>> createEntries(Map<String, Class<? extends T>> extensionClasses) {

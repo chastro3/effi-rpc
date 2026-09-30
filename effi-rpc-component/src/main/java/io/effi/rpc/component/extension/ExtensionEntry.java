@@ -49,9 +49,6 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         this.extension = AssertUtil.requireAnnotation(type, Extension.class);
         this.names = StringUtil.deduplicate(extension.value());
         this.tags = Set.of(extension.tags());
-        if (!loader.LazyLoaded() && singleton()) {
-            this.instance = newExtension();
-        }
     }
 
     @Override

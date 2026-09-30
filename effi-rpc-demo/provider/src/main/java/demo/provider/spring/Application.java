@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import demo.provider.interfaceapi.InterfaceHelloServiceImpl;
 
 /**
  * @Author WenBo Zhou
@@ -27,4 +28,10 @@ public class Application {
                 .ssl(false)
                 .build();
     }
+
+    @Bean
+    public InterfaceHelloServiceImpl interfaceHelloServiceImpl() {
+        return new InterfaceHelloServiceImpl();
+    }
+
 }

@@ -109,6 +109,7 @@ public final class EffiRpcConsumerRegistrar implements BeanDefinitionRegistryPos
                 .genericBeanDefinition(EffiRpcConsumerFactoryBean.class)
                 .addConstructorArgValue(consumerType)
                 .addConstructorArgValue(mode)
+                .setPrimary(true)
                 .getBeanDefinition());
     }
 }

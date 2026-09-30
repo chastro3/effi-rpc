@@ -33,10 +33,9 @@ public class ExtensionRepository implements ScopedContextOwned, ExtensionAccesso
     @Override
     public <T> ExtensionLoader<T> extensionLoader(Class<T> type) {
         AssertUtil.notNull(type, "extension type");
-        return (ExtensionLoader<T>) loaders.computeIfAbsent(type, k -> {
-            ComponentDescriptor descriptor = ensureComponentDescriptor(type);
-            return new ExtensionLoader<>(owner, type, descriptor);
-        });
+        return ((ExtensionLoader<T>) loaders.computeIfAbsent(type, k ->
+                new ExtensionLoader<>(owner, type, ensureComponentDescriptor(type))
+        )).load();
     }
 
     @Override
