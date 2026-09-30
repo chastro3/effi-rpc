@@ -41,6 +41,9 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
 
     /**
      * Parses a URL string into a {@link SmartURL} object.
+     *
+     * @param url URL string
+     * @return parsed URL
      */
     public static SmartURL valueOf(String url) {
         AssertUtil.notBlank(url, "url");
@@ -85,15 +88,31 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
                 .build();
     }
 
+    /**
+     * Returns a new URL builder.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Adds or replaces a query parameter.
+     *
+     * @param name parameter name
+     * @param value parameter value
+     * @return this URL
+     */
     public SmartURL addQueryParam(String name, String value) {
         this.queryParams.put(name, value);
         return this;
     }
 
+    /**
+     * Adds or replaces query parameters.
+     *
+     * @param params query parameters
+     * @return this URL
+     */
     public SmartURL addQueryParams(Map<String, String> params) {
         if (CollectionUtil.isNotEmpty(params)) {
             this.queryParams.putAll(params);
@@ -101,19 +120,44 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
         return this;
     }
 
+    /**
+     * Returns a query parameter value.
+     *
+     * @param name parameter name
+     * @return parameter value, or {@code null} when absent
+     */
     public String getQueryParam(String name) {
         return queryParams.get(name);
     }
 
+    /**
+     * Returns a query parameter value or the supplied default.
+     *
+     * @param name parameter name
+     * @param defaultValue fallback value
+     * @return parameter value, or the default when absent
+     */
     public String getQueryParam(String name, String defaultValue) {
         return queryParams.getOrDefault(name, defaultValue);
     }
 
+    /**
+     * Removes a query parameter.
+     *
+     * @param name parameter name
+     * @return this URL
+     */
     public SmartURL removeQueryParam(String name) {
         this.queryParams.remove(name);
         return this;
     }
 
+    /**
+     * Sets the host and port from an address.
+     *
+     * @param address socket address
+     * @return this URL
+     */
     public SmartURL address(InetSocketAddress address) {
         if (address != null) {
             this.host = address.getHostString();
@@ -122,18 +166,30 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
         return this;
     }
 
+    /**
+     * Returns the URL scheme.
+     */
     public String scheme() {
         return scheme;
     }
 
+    /**
+     * Returns the URL host.
+     */
     public String host() {
         return host;
     }
 
+    /**
+     * Returns the URL port.
+     */
     public int port() {
         return port;
     }
 
+    /**
+     * Returns the host and port.
+     */
     public String address() {
         if (StringUtil.isBlank(host)) {
             return StringUtil.empty();
@@ -141,33 +197,54 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
         return host + ":" + port;
     }
 
+    /**
+     * Returns the URL path.
+     */
     public String path() {
         return queryPath == null
                 ? StringUtil.empty()
                 : queryPath.path();
     }
 
+    /**
+     * Returns the encoded query string.
+     */
     public String query() {
         return URLUtil.toQueryParam(queryParams);
     }
 
+    /**
+     * Returns the query parameters.
+     */
     public Map<String, String> queryParams() {
         return Collections.unmodifiableMap(queryParams);
     }
 
+    /**
+     * Returns the path and encoded query string.
+     */
     public String queryPath() {
         String query = query();
         return path() + (StringUtil.isBlank(query) ? "" : ("?" + query));
     }
 
+    /**
+     * Returns the scheme and authority.
+     */
     public String origin() {
         return scheme + "://" + address();
     }
 
+    /**
+     * Returns the origin and path.
+     */
     public String baseUrl() {
         return origin() + "/" + path();
     }
 
+    /**
+     * Returns the origin, path, and query string.
+     */
     public String fullPath() {
         return origin() + "/" + queryPath();
     }
@@ -175,7 +252,6 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
 
     @Override
     public SmartURL replicate() {
-        //        config.accessor.putAll(this.accessor);
         return builder()
                 .scheme(scheme)
                 .host(host)
@@ -220,25 +296,55 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
         Builder() {
         }
 
+        /**
+         * Sets the URL scheme.
+         *
+         * @param scheme URL scheme
+         * @return this builder
+         */
         public Builder scheme(String scheme) {
             this.scheme = scheme;
             return this;
         }
 
+        /**
+         * Sets the URL host.
+         *
+         * @param host URL host
+         * @return this builder
+         */
         public Builder host(String host) {
             this.host = host;
             return this;
         }
 
+        /**
+         * Sets the URL port.
+         *
+         * @param port URL port
+         * @return this builder
+         */
         public Builder port(int port) {
             this.port = port;
             return this;
         }
 
+        /**
+         * Sets the host and port from an address string.
+         *
+         * @param address address string
+         * @return this builder
+         */
         public Builder address(String address) {
             return address(NetUtil.toInetSocketAddress(address));
         }
 
+        /**
+         * Sets the host and port from a socket address.
+         *
+         * @param address socket address
+         * @return this builder
+         */
         public Builder address(InetSocketAddress address) {
             if (address != null) {
                 host(address.getHostString());
@@ -247,16 +353,34 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
             return this;
         }
 
+        /**
+         * Sets the URL path from a string.
+         *
+         * @param path URL path
+         * @return this builder
+         */
         public Builder path(String path) {
             return path(QueryPath.valueOf(path));
         }
 
+        /**
+         * Sets the URL path.
+         *
+         * @param path URL path
+         * @return this builder
+         */
         public Builder path(QueryPath path) {
             this.queryPath = path;
             queryParams(path.queryParams());
             return this;
         }
 
+        /**
+         * Adds query parameters.
+         *
+         * @param params query parameters
+         * @return this builder
+         */
         public Builder queryParams(Map<String, String> params) {
             if (CollectionUtil.isNotEmpty(params)) {
                 this.queryParams.putAll(params);

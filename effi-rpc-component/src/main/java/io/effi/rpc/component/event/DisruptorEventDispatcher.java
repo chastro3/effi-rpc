@@ -7,7 +7,7 @@ import com.lmax.disruptor.dsl.Disruptor;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.executor.RpcThreadFactory;
+import io.effi.rpc.executor.ConfigurableThreadFactory;
 import io.effi.rpc.util.ObjectUtil;
 
 /**
@@ -59,7 +59,9 @@ public class DisruptorEventDispatcher extends AbstractEventDispatcher {
         Disruptor<EventHolder<?>> disruptor = new Disruptor<>(
                 EventHolder::new,
                 bufferSize,
-                new RpcThreadFactory("disruptor-event-handler"));
+                new ConfigurableThreadFactory()
+                        .namePrefix("disruptor-event-handler")
+                        .daemon(false));
         RingBuffer<EventHolder<?>> ringBuffer = disruptor.getRingBuffer();
         DisruptorEventHandler<?>[] handlers = new DisruptorEventHandler<?>[subscribes];
         for (int i = 0; i < subscribes; i++) {

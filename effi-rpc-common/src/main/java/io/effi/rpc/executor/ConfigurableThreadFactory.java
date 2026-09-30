@@ -6,6 +6,9 @@ import io.effi.rpc.logging.LoggerFactory;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Creates configurable RPC worker threads.
+ */
 public class ConfigurableThreadFactory implements ThreadFactory {
 
     private static final Thread.UncaughtExceptionHandler DEFAULT_EXCEPTION_HANDLER = new DefaultUncaughtExceptionHandler();
@@ -37,27 +40,54 @@ public class ConfigurableThreadFactory implements ThreadFactory {
         return t;
     }
 
+    /**
+     * Sets the worker thread name prefix.
+     *
+     * @param namePrefix thread name prefix
+     * @return this factory
+     */
     public ConfigurableThreadFactory namePrefix(String namePrefix) {
         this.namePrefix = namePrefix;
         return this;
     }
 
+    /**
+     * Sets whether created threads are daemon threads.
+     *
+     * @param daemon daemon flag, or {@code null} to inherit the current thread setting
+     * @return this factory
+     */
     public ConfigurableThreadFactory daemon(Boolean daemon) {
         this.daemon = daemon;
         return this;
     }
 
+    /**
+     * Sets the worker thread priority.
+     *
+     * @param priority thread priority, or {@code null} to inherit the current thread priority
+     * @return this factory
+     */
     public ConfigurableThreadFactory priority(Integer priority) {
         this.priority = priority;
         return this;
     }
 
+    /**
+     * Sets the uncaught exception handler for created threads.
+     *
+     * @param exceptionHandler uncaught exception handler
+     * @return this factory
+     */
     public ConfigurableThreadFactory exceptionHandler(Thread.UncaughtExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
         return this;
     }
 
 
+    /**
+     * Logs uncaught exceptions raised by RPC worker threads.
+     */
     public static class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
         private static final Logger logger = LoggerFactory.getLogger(DefaultUncaughtExceptionHandler.class);

@@ -44,6 +44,13 @@ public final class CollectionUtil {
         return true;
     }
 
+    /**
+     * Flattens nested iterables into a sorted distinct collection.
+     *
+     * @param collection nested iterables
+     * @param <T> comparable element type
+     * @return sorted distinct elements
+     */
     public static <T extends Comparable> Collection<T> flatDistinctCollection(Collection<? extends Iterable<T>> collection) {
         if (isEmpty(collection)) return Collections.emptySet();
         TreeSet<T> result = new TreeSet<>();
@@ -57,6 +64,13 @@ public final class CollectionUtil {
         return result.isEmpty() ? Collections.emptySet() : result;
     }
 
+    /**
+     * Flattens nested arrays into a sorted distinct collection.
+     *
+     * @param collection nested arrays
+     * @param <T> comparable element type
+     * @return sorted distinct elements
+     */
     public static <T extends Comparable> Collection<T> flatDistinctArray(Collection<? extends T[]> collection) {
         if (isEmpty(collection)) return Collections.emptySet();
         TreeSet<T> result = new TreeSet<>();
@@ -216,6 +230,10 @@ public final class CollectionUtil {
      * Merges multiple collections into a single set.
      * <p>
      * Duplicates are eliminated. Returns an empty list if input is empty.
+     *
+     * @param collections collections to merge
+     * @param <E> element type
+     * @return merged distinct elements
      */
     @SafeVarargs
     public static <E> Collection<E> merge(Collection<E>... collections) {

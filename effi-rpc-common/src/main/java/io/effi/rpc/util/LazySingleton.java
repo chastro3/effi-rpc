@@ -20,11 +20,25 @@ public class LazySingleton<T> {
         this.creator = creator;
     }
 
+    /**
+     * Creates a lazy singleton initialized by the supplied supplier.
+     *
+     * @param creator instance supplier
+     * @param <T> instance type
+     * @return lazy singleton
+     */
     public static <T> LazySingleton<T> from(Supplier<T> creator) {
         AssertUtil.notNull(creator, "creator");
         return new LazySingleton<>(lazy -> creator.get());
     }
 
+    /**
+     * Creates a lazy singleton initialized by the supplied factory.
+     *
+     * @param creator instance factory
+     * @param <T> instance type
+     * @return lazy singleton
+     */
     public static <T> LazySingleton<T> from(Function<LazySingleton<T>, T> creator) {
         AssertUtil.notNull(creator, "creator");
         return new LazySingleton<>(creator);
@@ -34,6 +48,8 @@ public class LazySingleton<T> {
      * Exposes a pre-created instance to be used if initialization hasn't yet occurred.
      * <p>
      * This is useful for breaking cycles during recursive or reentrant initialization.
+     *
+     * @param value pre-created instance
      */
     public void expose(T value) {
         if (value == null) return;
@@ -48,9 +64,8 @@ public class LazySingleton<T> {
     }
 
     /**
-     * Returns the instance, initializing it if necessary.
+     * Returns the initialized instance, creating it on first access.
      *
-     * @return the initialized instance
      * @throws IllegalStateException if the creator returns {@code null}
      */
     public T ensure() {

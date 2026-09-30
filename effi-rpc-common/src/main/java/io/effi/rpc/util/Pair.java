@@ -18,14 +18,27 @@ public final class Pair<L, R> implements Comparable<Pair<L, R>> {
         this.right = right;
     }
 
+    /**
+     * Creates a pair from the supplied values.
+     *
+     * @param left left value
+     * @param right right value
+     * @return immutable pair
+     */
     public static <L, R> Pair<L, R> of(L left, R right) {
         return new Pair<>(left, right);
     }
 
+    /**
+     * Returns the left value.
+     */
     public L left() {
         return left;
     }
 
+    /**
+     * Returns the right value.
+     */
     public R right() {
         return right;
     }

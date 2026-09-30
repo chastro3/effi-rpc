@@ -2,22 +2,18 @@ package io.effi.rpc.executor;
 
 import io.effi.rpc.constant.Constant;
 
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.*;
 
 /**
- * Rpc ThreadPool Config.
+ * Implements RPC-specific defaults for {@link ThreadPoolExecutor}.
  */
 public class RpcThreadPool extends ThreadPoolExecutor {
-
-    private static final Set<ThreadPoolExecutor> EXECUTORS = new CopyOnWriteArraySet<>();
 
     public RpcThreadPool(int corePoolSize, int maximumPoolSize, String namePrefix) {
         this(corePoolSize, maximumPoolSize,
                 Constant.DEFAULT_KEEP_ALIVE, TimeUnit.SECONDS,
                 new LinkedBlockingDeque<>(Constant.DEFAULT_CAPACITY),
-                new RpcThreadFactory(namePrefix, false),
+                new ConfigurableThreadFactory().namePrefix(namePrefix).daemon(false),
                 new AbortPolicy());
     }
 
@@ -27,46 +23,25 @@ public class RpcThreadPool extends ThreadPoolExecutor {
                          ThreadFactory threadFactory,
                          RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
-        EXECUTORS.add(this);
     }
 
     /**
-     * The default I/O thread pool.
+     * Returns the default I/O thread pool.
+     *
+     * @param namePrefix worker thread name prefix
+     * @return configured I/O executor
      */
     public static ExecutorService defaultIOExecutor(String namePrefix) {
         return new RpcThreadPool(Constant.DEFAULT_IO_THREADS, Constant.DEFAULT_MAX_IO_THREADS, namePrefix);
     }
 
     /**
-     * The default CPU thread pool.
+     * Returns the default CPU thread pool.
+     *
+     * @param namePrefix worker thread name prefix
+     * @return configured CPU executor
      */
     public static ExecutorService defaultCPUExecutor(String namePrefix) {
         return new RpcThreadPool(Constant.DEFAULT_CPU_THREADS, Constant.DEFAULT_MAX_CPU_THREADS, namePrefix);
-    }
-
-    public static Set<ThreadPoolExecutor> executors() {
-        return EXECUTORS;
-    }
-
-    public static void clear() {
-        executors().forEach(ExecutorService::shutdown);
-    }
-
-    @Override
-    public void shutdown() {
-        try {
-            super.shutdown();
-        } finally {
-            EXECUTORS.remove(this);
-        }
-    }
-
-    @Override
-    public List<Runnable> shutdownNow() {
-        try {
-            return super.shutdownNow();
-        } finally {
-            EXECUTORS.remove(this);
-        }
     }
 }

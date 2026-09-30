@@ -2,6 +2,9 @@ package io.effi.rpc.util;
 
 import java.util.Arrays;
 
+/**
+ * Provides array-based identity using value equality and hashing.
+ */
 public final class ArrayIdentifier<T> implements Comparable<ArrayIdentifier<T>> {
 
     private static final ArrayIdentifier<?> EMPTY = new ArrayIdentifier<>(new Object[0]);
@@ -14,12 +17,21 @@ public final class ArrayIdentifier<T> implements Comparable<ArrayIdentifier<T>> 
         this.hash = computeHash(elements);
     }
 
+    /**
+     * Creates an array identifier from the supplied elements.
+     *
+     * @param elements identifier elements
+     * @return array identifier
+     */
     @SafeVarargs
     public static <T> ArrayIdentifier<T> of(T... elements) {
         if (CollectionUtil.isEmpty(elements)) return empty();
         return new ArrayIdentifier<>(elements);
     }
 
+    /**
+     * Returns the shared empty array identifier.
+     */
     @SuppressWarnings("unchecked")
     public static <T> ArrayIdentifier<T> empty() {
         return (ArrayIdentifier<T>) EMPTY;

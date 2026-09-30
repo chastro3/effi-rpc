@@ -9,16 +9,16 @@ package io.effi.rpc.hook;
  */
 public interface InitializeHook<T> extends Hook<T> {
 
-   /**
-    * Invoked before the target is initialized.
-    */
-   default void onInitializing(T target) {
-   }
+    /**
+     * Invoked before the target is initialized.
+     */
+    default void onInitializing(T target) {
+    }
 
-   /**
-    * Invoked after the target has been initialized.
-    */
-   default void onInitialized(T target) {
-   }
+    /**
+     * Invoked after the target has been initialized.
+     */
+    default void onInitialized(T target) {
+    }
 
 }

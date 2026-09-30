@@ -11,12 +11,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Provides url operations.
+ * Provides URL query parameter operations.
  */
 public final class URLUtil {
 
+    private URLUtil() {
+    }
+
     /**
      * Converts a map of parameters into an encoded query string.
+     *
+     * @param params query parameters
+     * @return encoded query string
      */
     public static String toQueryParam(Map<String, String> params) {
         try {
@@ -28,6 +34,11 @@ public final class URLUtil {
 
     /**
      * Converts a map of parameters into a query string with URL encoding using the specified encoding.
+     *
+     * @param params query parameters
+     * @param encoding character encoding name
+     * @return encoded query string
+     * @throws UnsupportedEncodingException if the encoding is unsupported
      */
     public static String toQueryParam(Map<String, String> params, String encoding) throws UnsupportedEncodingException {
         if (CollectionUtil.isEmpty(params)) return StringUtil.empty();
@@ -55,6 +66,9 @@ public final class URLUtil {
 
     /**
      * Parses query parameters from a URL string and returns them as a map.
+     *
+     * @param paramsString query parameter string
+     * @return decoded query parameters, or {@code null} when none are present
      */
     public static Map<String, String> parseQueryParam(String paramsString) {
         try {
@@ -67,6 +81,11 @@ public final class URLUtil {
     /**
      * Parses the query parameters from a string and returns them as a map.
      * Invalid formats are ignored without exceptions.
+     *
+     * @param paramsString query parameter string
+     * @param encoding character encoding name
+     * @return decoded query parameters, or {@code null} when none are present
+     * @throws UnsupportedEncodingException if the encoding is unsupported
      */
     public static Map<String, String> parseQueryParam(String paramsString, String encoding) throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<>();
@@ -99,7 +118,5 @@ public final class URLUtil {
         return params.isEmpty() ? null : params;
     }
 
-    private URLUtil() {
-    }
 }
 

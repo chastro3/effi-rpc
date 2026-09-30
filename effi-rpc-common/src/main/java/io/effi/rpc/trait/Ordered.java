@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Define objects with order values for precedence-based sorting.
+ * Defines objects with order values for precedence-based sorting.
  * <p>
  * Provides ordering capabilities for objects with lower values indicating
  * higher priority, enabling sorted collections and maps based on precedence.
@@ -25,7 +25,10 @@ public interface Ordered {
     int DEFAULT = 5;
 
     /**
-     * Sort {@link Ordered} objects by order values.
+     * Sorts {@link Ordered} objects by ascending order value.
+     *
+     * @param values values to sort
+     * @return the input list after sorting
      */
     static <T extends Ordered> List<T> sort(List<T> values) {
         if (CollectionUtil.isEmpty(values)) {
@@ -35,6 +38,16 @@ public interface Ordered {
         return values;
     }
 
+    /**
+     * Sorts map entries by ascending order value and maps each value.
+     *
+     * @param map source map
+     * @param mapper value mapper
+     * @param <K> key type
+     * @param <V> ordered value type
+     * @param <R> mapped value type
+     * @return insertion-ordered map containing mapped values
+     */
     static <K, V extends Ordered, R> Map<K, R> sort(Map<K, V> map, Function<V, R> mapper) {
         if (CollectionUtil.isEmpty(map)) {
             return Collections.emptyMap();
@@ -49,6 +62,9 @@ public interface Ordered {
         return result;
     }
 
+    /**
+     * Returns the precedence value, where lower values run first.
+     */
     default int order() {
         return DEFAULT;
     }

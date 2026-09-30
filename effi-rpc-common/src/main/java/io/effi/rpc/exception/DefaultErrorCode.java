@@ -16,6 +16,13 @@ public class DefaultErrorCode implements ErrorCode {
         this.message = AssertUtil.notBlank(message, "message");
     }
 
+    /**
+     * Creates a default error code.
+     *
+     * @param code error code
+     * @param message error message
+     * @return default error code
+     */
     public static DefaultErrorCode valueOf(String code, String message) {
         return new DefaultErrorCode(code, message);
     }

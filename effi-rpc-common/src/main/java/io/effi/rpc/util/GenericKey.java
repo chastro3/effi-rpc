@@ -16,11 +16,20 @@ public final class GenericKey<T> {
         this.name = name;
     }
 
+    /**
+     * Returns the shared typed key for the supplied name.
+     *
+     * @param name key name
+     * @return typed key
+     */
     @SuppressWarnings("unchecked")
     public static <T> GenericKey<T> valueOf(String name) {
         return (GenericKey<T>) KEY_POOL.computeIfAbsent(name, k -> new GenericKey<T>(name));
     }
 
+    /**
+     * Returns the key name.
+     */
     public String name() {
         return name;
     }

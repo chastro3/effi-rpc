@@ -30,10 +30,25 @@ public class EffiRpcException extends RuntimeException {
         this.metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
     }
 
+    /**
+     * Creates an RPC exception from an error code and message arguments.
+     *
+     * @param errorCode error code
+     * @param args message arguments
+     * @return RPC exception
+     */
     public static EffiRpcException wrap(ErrorCode errorCode, Object... args) {
         return wrap(errorCode, null, args);
     }
 
+    /**
+     * Creates an RPC exception from an error code, wrapped failure, and message arguments.
+     *
+     * @param errorCode error code
+     * @param wrapped wrapped failure, or {@code null} when absent
+     * @param args message arguments
+     * @return RPC exception with the effective cause
+     */
     public static EffiRpcException wrap(ErrorCode errorCode, Throwable wrapped, Object... args) {
         AssertUtil.notNull(errorCode, "error code");
         if (wrapped == null) {
@@ -59,15 +74,24 @@ public class EffiRpcException extends RuntimeException {
 
     /**
      * Adds or replaces protocol metadata while preserving the error code, message, and cause.
+     *
+     * @param metadata protocol metadata
+     * @return exception carrying the supplied metadata
      */
     public EffiRpcException withMetadata(Map<String, String> metadata) {
         return new EffiRpcException(errorCode, getMessage(), getCause(), metadata);
     }
 
+    /**
+     * Returns a completion exception wrapping this exception.
+     */
     public CompletionException toCompletionException() {
         return new CompletionException(this);
     }
 
+    /**
+     * Returns the error code.
+     */
     public ErrorCode errorCode() {
         return errorCode;
     }

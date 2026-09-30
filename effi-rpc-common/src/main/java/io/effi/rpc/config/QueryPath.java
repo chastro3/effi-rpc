@@ -32,17 +32,28 @@ public class QueryPath {
         this.queryParams = params;
     }
 
+    /**
+     * Returns the shared empty query path.
+     */
     public static QueryPath empty() {
         return EMPTY;
     }
 
+    /**
+     * Creates a query path from path segments.
+     *
+     * @param pathSegments path segments
+     * @return query path
+     */
     public static QueryPath valueOf(Collection<String> pathSegments) {
         return valueOf(String.join("/", pathSegments));
     }
 
     /**
-     * Creates a QueryPath instance from a URL string.
-     * Returns empty instance if input is blank.
+     * Creates a query path from a URL path and query string.
+     *
+     * @param input URL path and query string
+     * @return query path, or the empty path when the input is blank
      */
     public static QueryPath valueOf(String input) {
         String path = null;
@@ -76,7 +87,6 @@ public class QueryPath {
      * @param variables the map of variable names to replacement values
      * @return the rendered path segments array
      */
-
     public String[] render(Map<String, String> variables) {
         if (CollectionUtil.isEmpty(pathSegments)) return StringUtil.emptyArray();
         String[] result = Arrays.copyOf(pathSegments, pathSegments.length);
@@ -91,6 +101,12 @@ public class QueryPath {
         return result;
     }
 
+    /**
+     * Indicates whether the supplied path matches this template.
+     *
+     * @param realPath actual path
+     * @return {@code true} when the path matches
+     */
     public boolean matches(String realPath) {
         return match(realPath) != null;
     }
@@ -131,8 +147,44 @@ public class QueryPath {
     }
 
     /**
-     * Splits path into non-empty segments.
+     * Returns the normalized path.
      */
+    public String path() {
+        return path;
+    }
+
+    /**
+     * Indicates whether this path contains variables.
+     */
+    public boolean hasPathVariable() {
+        return pathVariables != null && pathVariables.length > 0;
+    }
+
+    /**
+     * Returns the path segments.
+     */
+    public String[] pathSegments() {
+        return pathSegments;
+    }
+
+    /**
+     * Returns the query parameter map.
+     */
+    public Map<String, String> queryParams() {
+        return queryParams;
+    }
+
+    @Override
+    public String toString() {
+        String path = path();
+        String queryParam = URLUtil.toQueryParam(queryParams);
+        if (StringUtil.isBlank(path)) {
+            return queryParam;
+        } else {
+            return path + (StringUtil.isBlank(queryParam) ? "" : ("?" + queryParam));
+        }
+    }
+
     private String[] splitPath(String path) {
         if (StringUtil.isBlank(path)) {
             return StringUtil.emptyArray();
@@ -149,33 +201,6 @@ public class QueryPath {
         return list.isEmpty()
                 ? StringUtil.emptyArray()
                 : list.toArray(StringUtil.emptyArray());
-    }
-
-    public String path() {
-        return path;
-    }
-
-    public boolean hasPathVariable() {
-        return pathVariables != null && pathVariables.length > 0;
-    }
-
-    public String[] pathSegments() {
-        return pathSegments;
-    }
-
-    public Map<String, String> queryParams() {
-        return queryParams;
-    }
-
-    @Override
-    public String toString() {
-        String path = path();
-        String queryParam = URLUtil.toQueryParam(queryParams);
-        if (StringUtil.isBlank(path)) {
-            return queryParam;
-        } else {
-            return path + (StringUtil.isBlank(queryParam) ? "" : ("?" + queryParam));
-        }
     }
 
     /**

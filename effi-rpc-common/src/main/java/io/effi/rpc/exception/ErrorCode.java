@@ -40,6 +40,12 @@ public interface ErrorCode {
         return EffiRpcException.wrap(this, cause, args);
     }
 
+    /**
+     * Creates an {@link EffiRpcException} with this error code and the provided arguments.
+     *
+     * @param args the arguments to format the message
+     * @return the created exception
+     */
     default EffiRpcException fail(Object... args) {
         return fail(null, args);
     }

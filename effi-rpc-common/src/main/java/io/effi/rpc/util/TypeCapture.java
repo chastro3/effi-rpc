@@ -20,8 +20,7 @@ public abstract class TypeCapture<T> {
     private final Class<? super T> rawType;
 
     /**
-     * Constructs a TypeToken that captures the generic type of the
-     * subclass. This is achieved by using an anonymous class.
+     * Creates a type capture from the generic superclass of an anonymous subclass.
      */
     protected TypeCapture() {
         this.type = extractSuperType();
@@ -33,14 +32,26 @@ public abstract class TypeCapture<T> {
         this.rawType = extractRawType(type);
     }
 
+    /**
+     * Creates a type capture for the supplied type.
+     *
+     * @param type captured type
+     * @return type capture
+     */
     public static <T> TypeCapture<T> of(Type type) {
         return new TypeCapture<>(type) {};
     }
 
+    /**
+     * Returns the captured type.
+     */
     public Type type() {
         return type;
     }
 
+    /**
+     * Returns the raw class of the captured type.
+     */
     public Class<? super T> rawType() {
         return rawType;
     }

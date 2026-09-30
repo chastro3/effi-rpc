@@ -24,6 +24,18 @@ public abstract class IdentifiableConfig implements Identifiable, Options.Suppli
         this.options = options;
     }
 
+    /**
+     * Returns the supplied identifier or generates one with the specified prefix.
+     *
+     * @param id candidate identifier
+     * @param prefix fallback identifier prefix
+     * @return supplied identifier or generated identifier
+     */
+    public static String checkId(String id, String prefix) {
+        if (StringUtil.isNotBlank(id)) return id;
+        return prefix + "-" + UUID.randomUUID();
+    }
+
     @Override
     public Options options() {
         return options;
@@ -32,11 +44,6 @@ public abstract class IdentifiableConfig implements Identifiable, Options.Suppli
     @Override
     public String id() {
         return id;
-    }
-
-    public static String checkId(String id, String prefix) {
-        if (StringUtil.isNotBlank(id)) return id;
-        return prefix + "-" + UUID.randomUUID();
     }
 
     /**
@@ -48,6 +55,12 @@ public abstract class IdentifiableConfig implements Identifiable, Options.Suppli
 
         protected Options options = Options.create();
 
+        /**
+         * Sets the configuration identifier.
+         *
+         * @param id configuration identifier
+         * @return this builder
+         */
         public SELF id(String id) {
             this.id = id;
             return self();

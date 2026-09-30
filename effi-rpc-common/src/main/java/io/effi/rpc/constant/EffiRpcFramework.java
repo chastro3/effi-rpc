@@ -7,16 +7,28 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * Provides framework version and Java runtime metadata.
+ */
 public final class EffiRpcFramework {
 
     private static final String VERSION = loadVersion();
 
     private static final int JAVA_VERSION = findJavaVersion();
 
+    private EffiRpcFramework() {
+    }
+
+    /**
+     * Returns the framework version.
+     */
     public static String version() {
         return VERSION;
     }
 
+    /**
+     * Returns the Java feature version.
+     */
     public static int javaVersion() {
         return JAVA_VERSION;
     }
