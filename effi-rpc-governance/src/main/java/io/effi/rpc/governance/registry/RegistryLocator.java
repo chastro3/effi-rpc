@@ -65,6 +65,10 @@ public final class RegistryLocator implements Locator {
         );
     }
 
+    static void evict(ScopedPlatform platform) {
+        CACHE.keySet().removeIf(key -> key.platform() == platform);
+    }
+
     /**
      * Starts discovery for every registry config at most once per locator.
      */

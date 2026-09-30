@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractTransporter implements Transporter {
 
-    protected final Map<String, Client> clients = new ConcurrentHashMap<>();
+    protected final Map<EndpointKey, Client> clients = new ConcurrentHashMap<>();
 
     protected final Map<String, Server> servers = new ConcurrentHashMap<>();
 
@@ -29,7 +29,8 @@ public abstract class AbstractTransporter implements Transporter {
 
     @Override
     public Client supplyClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
-        return clients.computeIfAbsent(NetUtil.toAddress(remoteAddress), k -> createClient(config, remoteAddress, platform));
+        EndpointKey key = new EndpointKey(NetUtil.toAddress(remoteAddress), config.id());
+        return clients.computeIfAbsent(key, k -> createClient(config, remoteAddress, platform));
     }
 
     @Override
@@ -53,4 +54,7 @@ public abstract class AbstractTransporter implements Transporter {
     protected abstract Server createServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform);
 
     protected abstract Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform);
+
+    private record EndpointKey(String address, String configId) {
+    }
 }

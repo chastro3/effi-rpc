@@ -1,9 +1,11 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.component.transport.support.TcpEndpointConfig;
+import io.effi.rpc.component.transport.options.ServerOptions;
+import io.effi.rpc.component.transport.options.TcpOptions;
+import io.effi.rpc.component.transport.options.TransportOptions;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.internal.logging.Logger;
 import io.effi.rpc.internal.logging.LoggerFactory;
@@ -13,13 +15,14 @@ import io.effi.rpc.transport.endpoint.ChannelTracker;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.concurrent.Promise;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.Future;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -27,10 +30,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import io.effi.rpc.component.transport.options.ServerOptions;
-import io.effi.rpc.component.transport.options.TcpOptions;
-import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Implements {@link Server} using Netty.
@@ -41,6 +42,8 @@ import io.effi.rpc.component.transport.options.TransportOptions;
 public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Server, ChannelTracker {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
+
+    private static final long SHUTDOWN_TIMEOUT_SECONDS = 5L;
 
     protected NioEventLoopGroup bossGroup;
 
@@ -94,9 +97,33 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
                 Thread.currentThread().interrupt();
             }
         }
-        if (bossGroup != null) bossGroup.shutdownGracefully();
-        if (workerGroup != null) workerGroup.shutdownGracefully();
+        Future<?> bossShutdown = shutdownGracefully(bossGroup);
+        Future<?> workerShutdown = shutdownGracefully(workerGroup);
+        awaitShutdown(bossShutdown, "server-boss");
+        awaitShutdown(workerShutdown, "server-worker");
 
+    }
+
+    private Future<?> shutdownGracefully(EventLoopGroup group) {
+        if (group == null) {
+            return null;
+        }
+        return group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private void awaitShutdown(Future<?> shutdown, String name) {
+        if (shutdown == null) {
+            return;
+        }
+        try {
+            if (!shutdown.await(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                logger.warn("Timed out waiting for {} event loop to stop", name);
+                shutdown.cancel(false);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            shutdown.cancel(false);
+        }
     }
 
     @Override

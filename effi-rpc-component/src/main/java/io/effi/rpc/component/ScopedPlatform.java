@@ -100,6 +100,7 @@ public final class ScopedPlatform extends ScopedContext {
     @Override
     protected void doClose() {
         applications().forEach(ScopedApplication::close);
+        PLATFORMS.remove(name, this);
     }
 
     /**

@@ -39,6 +39,17 @@ class RegistryLocatorTest {
     }
 
     @Test
+    void evictsCachedLocatorWhenPlatformCloses() {
+        ScopedPlatform platform = new ScopedPlatform("registry-locator-close-platform");
+        RegistryConfig config = consulConfig();
+        RegistryLocator first = RegistryLocator.cached(platform, "hello", config);
+
+        platform.close();
+
+        assertNotSame(first, RegistryLocator.cached(platform, "hello", config));
+    }
+
+    @Test
     void preloadsDiscoveryOnceForSharedLocator() {
         ScopedPlatform platform = new ScopedPlatform("registry-locator-preload-platform");
         CountingRegistryClient client = new CountingRegistryClient(platform);
