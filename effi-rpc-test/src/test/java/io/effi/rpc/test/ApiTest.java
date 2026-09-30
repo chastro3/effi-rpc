@@ -108,6 +108,13 @@ public class ApiTest {
 
     @Test
     public void annotationRemoteCaller() {
+        application.platform().registry().register(
+                RegistryConfig.class,
+                DefaultRegistryConfig.builder()
+                        .authority("consul://127.0.0.1:8500")
+                        .build()
+                        .addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE)
+        );
         AnnotationCallerGroup<HelloClient> remoteCaller = AnnotationCallerGroup
                 .<HelloClient>builder()
                 .targetType(HelloClient.class)

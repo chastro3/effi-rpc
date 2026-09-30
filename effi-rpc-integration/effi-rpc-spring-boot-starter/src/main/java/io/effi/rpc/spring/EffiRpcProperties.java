@@ -1,5 +1,7 @@
 package io.effi.rpc.spring;
 
+import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.util.StringUtil;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -9,7 +11,7 @@ import java.util.Map;
 /**
  * Immutable Spring Boot configuration for Effi RPC.
  */
-@ConfigurationProperties(prefix = "effi.rpc")
+@ConfigurationProperties(prefix = "effi.rpc", ignoreUnknownFields = false)
 public record EffiRpcProperties(
         Boolean enabled,
         Application application,
@@ -44,7 +46,9 @@ public record EffiRpcProperties(
     ) {
 
         public Server {
-            host = host == null || host.isBlank() ? "0.0.0.0" : host;
+            host = StringUtil.isBlank(host)
+                    ? StringUtil.isBlankOrDefault(NetUtil.localHost(), "127.0.0.1")
+                    : host;
         }
     }
 
@@ -135,7 +139,6 @@ public record EffiRpcProperties(
 
     public record ProviderCommon(
             List<String> protocols,
-            String server,
             String serializer,
             String compression,
             String threadPool,
@@ -149,7 +152,7 @@ public record EffiRpcProperties(
         }
 
         public static ProviderCommon defaults() {
-            return new ProviderCommon(null, null, null, null, null, null, null);
+            return new ProviderCommon(null, null, null, null, null, null);
         }
     }
 }

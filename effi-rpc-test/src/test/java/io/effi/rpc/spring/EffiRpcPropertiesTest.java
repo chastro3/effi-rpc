@@ -12,6 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class EffiRpcPropertiesTest {
 
@@ -36,6 +37,14 @@ class EffiRpcPropertiesTest {
         assertEquals("order-service", target.endpoint());
         assertEquals(TestConsumer.class, target.interfaces().get(0));
         assertEquals(Http1Protocol.NAME, properties.provider().common().protocols().get(0));
+    }
+
+    @Test
+    void serverHostDefaultsToRoutableAddress() {
+        EffiRpcProperties.Server server =
+                new EffiRpcProperties.Server(null, null, null, null, null);
+        assertNotNull(server.host());
+        assertNotEquals("0.0.0.0", server.host());
     }
 
     interface TestConsumer {

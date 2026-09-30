@@ -8,7 +8,10 @@ import org.springframework.context.SmartLifecycle;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
-public class EffiRpcApplicationStarter implements SmartLifecycle {
+/**
+ * Starts and stops the RPC application as the outer Spring lifecycle.
+ */
+public final class EffiRpcApplicationLifecycle implements SmartLifecycle {
 
     private static final long START_TIMEOUT_SECONDS = 30L;
 
@@ -16,7 +19,7 @@ public class EffiRpcApplicationStarter implements SmartLifecycle {
 
     private volatile boolean running;
 
-    public EffiRpcApplicationStarter(EffiRpcBootstrap bootstrap) {
+    public EffiRpcApplicationLifecycle(EffiRpcBootstrap bootstrap) {
         this.bootstrap = bootstrap;
     }
 
@@ -40,8 +43,11 @@ public class EffiRpcApplicationStarter implements SmartLifecycle {
         if (!running) {
             return;
         }
-        bootstrap.stop();
-        running = false;
+        try {
+            bootstrap.stop();
+        } finally {
+            running = false;
+        }
     }
 
     @Override

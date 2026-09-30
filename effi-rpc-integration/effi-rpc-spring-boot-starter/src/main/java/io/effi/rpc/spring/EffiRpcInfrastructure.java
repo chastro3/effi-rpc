@@ -15,11 +15,15 @@ import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
 import io.effi.rpc.protocol.http.h2.Http2Protocol;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.NetUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Applies Spring Boot infrastructure properties to the RPC platform and application.
@@ -31,13 +35,20 @@ final class EffiRpcInfrastructure {
 
     static void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
         List<String> providerRegistries = properties.provider().common().registries();
+        Set<String> registryNames = new LinkedHashSet<>(properties.registries().keySet());
+        for (String providerRegistry : providerRegistries) {
+            if (!registryNames.contains(providerRegistry)) {
+                throw new IllegalStateException("Provider registry '" + providerRegistry
+                        + "' is not defined. Available registries: " + registryNames);
+            }
+        }
         for (Map.Entry<String, EffiRpcProperties.Registry> entry : properties.registries().entrySet()) {
             String name = entry.getKey();
             EffiRpcProperties.Registry registry = entry.getValue();
             DefaultRegistryConfig config = DefaultRegistryConfig.builder()
                     .id(name)
-                    .type(registry.type())
-                    .address(registry.address())
+                    .type(requireText(registry.type(), "type", "registry '" + name + "'"))
+                    .address(requireText(registry.address(), "address", "registry '" + name + "'"))
                     .connectTimeout(millis(registry.connectTimeout(), RegistryOptions.CONNECT_TIMEOUT.defaultValue()))
                     .retries(registry.retries() == null ? RegistryOptions.RETRIES.defaultValue() : registry.retries())
                     .heartbeatInterval(millis(registry.heartbeatInterval(), RegistryOptions.HEARTBEAT_INTERVAL.defaultValue()))
@@ -74,6 +85,12 @@ final class EffiRpcInfrastructure {
 
     private static ServerConfig createServerConfig(String name, EffiRpcProperties.Server server) {
         String protocol = server.protocol();
+        if (StringUtil.isBlank(protocol)) {
+            throw new IllegalStateException("Server protocol is required for server '" + name + "'");
+        }
+        if (server.port() != null && !NetUtil.isValidPort(server.port())) {
+            throw new IllegalStateException("Server port is invalid for server '" + name + "': " + server.port());
+        }
         if (Http1Protocol.NAME.equals(protocol)) {
             Http1ServerConfig.Builder builder = Http1ServerConfig.builder().id(name);
             configureServer(builder, server);
@@ -98,5 +115,12 @@ final class EffiRpcInfrastructure {
 
     private static int millis(Duration duration, int defaultValue) {
         return duration == null ? defaultValue : Math.toIntExact(duration.toMillis());
+    }
+
+    private static String requireText(String value, String property, String owner) {
+        if (StringUtil.isBlank(value)) {
+            throw new IllegalStateException("Property '" + property + "' is required for " + owner);
+        }
+        return value;
     }
 }

@@ -8,113 +8,158 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Configures an RPC caller (consumer) method.
+ * Defines consumer-side call contract and caller overrides.
+ * <p>
+ * A method-level declaration overrides the group defaults supplied by {@link CallGroup#call()}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Documented
 public @interface Call {
 
-    String endpoint() default "";
-
-    String locator() default "";
-
     /**
-     * Specifies request path.
+     * Specifies the method path.
      */
     String path() default "";
 
     /**
-     * Defines annotation style.
-     */
-    String style() default "";
-
-    /**
-     * Specifies protocol type.
+     * Specifies the transport protocol extension name.
      */
     String protocol() default "";
 
-
     /**
-     * Sets remote application name.
+     * Specifies the serializer extension name.
      */
-    String remoteApplication() default "";
+    String serializer() default "";
 
     /**
-     * Sets remote module name.
+     * Specifies the compressor extension name.
      */
-    String remoteModule() default "";
+    String compressor() default "";
 
     /**
-     * Applies client configuration.
+     * Specifies the thread pool extension name.
      */
-    String clientConfig() default "";
+    String threadPool() default "";
 
     /**
-     * Applies filters.
+     * Specifies the interceptor names included in the execution chain.
      */
-    String[] interceptor() default "";
+    String[] interceptors() default {};
 
     /**
-     * Registers registries.
+     * Specifies the interceptor names excluded from the execution chain.
      */
-    String[] registry() default "";
+    String[] excludeInterceptors() default {};
 
     /**
-     * Specifies serialization type.
+     * Specifies the locator extension name.
      */
-    String serialization() default "";
+    String locator() default "";
 
     /**
-     * Specifies compression type.
+     * Specifies the registry configuration names.
      */
-    String compression() default "";
+    String[] registry() default {};
 
     /**
-     * Sets module name.
+     * Specifies the load balancer extension name.
      */
-    String module() default "";
+    String loadBalancer() default "";
 
     /**
-     * Sets timeout in milliseconds.
+     * Specifies the router extension name.
      */
-    int timeout() default -1;
+    String router() default "";
 
     /**
-     * Sets service discovery timeout in milliseconds.
+     * Specifies the service discovery extension name.
      */
-    int serviceDiscoveryTimeout() default -1;
+    String serviceDiscovery() default "";
 
     /**
-     * Sets retry count.
+     * Specifies the governance group name.
      */
-    int retries() default -1;
+    String group() default "";
 
     /**
-     * Defines load balancing strategy.
-     */
-    String loadBalance() default "";
-
-    /**
-     * Defines failure handle policy.
+     * Specifies the failure handler extension name.
      */
     String failureHandler() default "";
 
     /**
-     * Sets serialization threshold.
+     * Specifies the target endpoint.
+     */
+    String endpoint() default "";
+
+    /**
+     * Specifies the remote application name.
+     */
+    String remoteApplication() default "";
+
+    /**
+     * Specifies the remote module name.
+     */
+    String remoteModule() default "";
+
+    /**
+     * Specifies the remote platform name.
+     */
+    String remotePlatform() default "";
+
+    /**
+     * Specifies the named client configuration.
+     */
+    String clientConfig() default "";
+
+    /**
+     * Specifies the associated module name.
+     */
+    String module() default "";
+
+    /**
+     * Specifies the annotation style extension name.
+     */
+    String annotationStyle() default "";
+
+    /**
+     * Specifies the call timeout in milliseconds.
+     */
+    int timeoutMillis() default -1;
+
+    /**
+     * Specifies the service discovery timeout in milliseconds.
+     */
+    int serviceDiscoveryTimeoutMillis() default -1;
+
+    /**
+     * Specifies the retry count.
+     */
+    int retries() default -1;
+
+    /**
+     * Specifies the initial retry backoff in milliseconds.
+     */
+    int retryBackoffMillis() default -1;
+
+    /**
+     * Specifies the maximum retry backoff in milliseconds.
+     */
+    int retryMaxBackoffMillis() default -1;
+
+    /**
+     * Specifies the retry jitter in milliseconds.
+     */
+    int retryJitterMillis() default -1;
+
+    /**
+     * Specifies the serialization threshold used for I/O serialization decisions.
      */
     long serializationThreshold() default -1;
 
     /**
-     * Sets deserialization threshold.
+     * Specifies the deserialization threshold used for I/O deserialization decisions.
      */
     long deserializationThreshold() default -1;
-
-    /**
-     * Specifies thread pool name.
-     */
-    String threadPool() default "";
 }
-
-
 

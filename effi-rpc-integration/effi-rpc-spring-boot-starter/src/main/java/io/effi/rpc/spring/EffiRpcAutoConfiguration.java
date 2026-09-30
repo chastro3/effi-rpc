@@ -22,14 +22,21 @@ import org.springframework.core.env.Environment;
 public class EffiRpcAutoConfiguration {
 
     @Bean
-    public static EffiRpcComponentBeanPostProcessor effiRpcComponentBeanPostProcessor() {
-        return new EffiRpcComponentBeanPostProcessor();
+    @ConditionalOnMissingBean
+    public static EffiRpcScopedComponentRegistrar effiRpcScopedComponentRegistrar() {
+        return new EffiRpcScopedComponentRegistrar();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public static EffiRpcProviderExporter effiRpcProviderExporter() {
+        return new EffiRpcProviderExporter();
     }
 
     @Bean
     @ConditionalOnMissingBean
     public ScopedPlatform effiRpcPlatform(EffiRpcProperties properties) {
-        ScopedPlatform platform = ScopedPlatform.defaultInstance().name("spring-platform");
+        ScopedPlatform platform = new ScopedPlatform("spring-platform");
         EffiRpcInfrastructure.registerRegistries(platform, properties);
         return platform;
     }
@@ -63,13 +70,7 @@ public class EffiRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public EffiRpcProviderExporter effiRpcProviderExporter() {
-        return new EffiRpcProviderExporter();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public EffiRpcApplicationStarter effiRpcApplicationStarter(EffiRpcBootstrap bootstrap) {
-        return new EffiRpcApplicationStarter(bootstrap);
+    public EffiRpcApplicationLifecycle effiRpcApplicationLifecycle(EffiRpcBootstrap bootstrap) {
+        return new EffiRpcApplicationLifecycle(bootstrap);
     }
 }

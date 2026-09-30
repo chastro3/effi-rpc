@@ -1,9 +1,16 @@
 package io.effi.rpc.annotation.rpc;
 
-import java.lang.annotation.*;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Configures an RPC servant (provider) method.
+ * Defines provider-side method contract and servant overrides.
+ * <p>
+ * A method-level declaration overrides the group defaults supplied by {@link ServeGroup#serve()}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -11,65 +18,68 @@ import java.lang.annotation.*;
 public @interface Serve {
 
     /**
-     * Specifies request path.
+     * Specifies the method path.
      */
     String path() default "";
 
     /**
-     * Defines annotation style.
-     */
-    String style() default "";
-
-    /**
-     * Declares supported protocols.
+     * Specifies the protocols exposed by the servant.
      */
     String[] protocol() default {};
 
     /**
-     * Lists excluded ports.
+     * Specifies the serializer extension name.
      */
-    int[] excludedPort() default {};
+    String serializer() default "";
 
     /**
-     * Sets module name.
+     * Specifies the compressor extension name.
+     */
+    String compressor() default "";
+
+    /**
+     * Specifies the thread pool extension name.
+     */
+    String threadPool() default "";
+
+    /**
+     * Specifies the interceptor names included in the execution chain.
+     */
+    String[] interceptors() default {};
+
+    /**
+     * Specifies the interceptor names excluded from the execution chain.
+     */
+    String[] excludeInterceptors() default {};
+
+    /**
+     * Specifies the associated module name.
      */
     String module() default "";
 
     /**
-     * Applies filters.
+     * Specifies the annotation style extension name.
      */
-    String[] interceptor() default "";
+    String annotationStyle() default "";
 
     /**
-     * Describes callee.
+     * Specifies the servant label.
      */
-    String desc() default "";
+    String label() default "";
 
     /**
-     * Specifies serialization type.
+     * Specifies the ports excluded from servant exposure.
      */
-    String serialization() default "";
+    int[] excludedPort() default {};
 
     /**
-     * Specifies compression type.
-     */
-    String compression() default "";
-
-    /**
-     * Sets serialization threshold.
+     * Specifies the serialization threshold used for I/O serialization decisions.
      */
     long serializationThreshold() default -1;
 
     /**
-     * Sets deserialization threshold.
+     * Specifies the deserialization threshold used for I/O deserialization decisions.
      */
     long deserializationThreshold() default -1;
-
-    /**
-     * Specifies thread pool name.
-     */
-    String threadPool() default "";
 }
-
-
 

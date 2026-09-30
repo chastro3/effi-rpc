@@ -62,7 +62,7 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
                 options.withParent(module.callOptions());
             }
             callGroup = AssertUtil.requireAnnotation(targetType, CallGroup.class);
-            AnnotationSupport.fillOption(callGroup, options);
+            AnnotationSupport.apply(callGroup, options);
             annotationStyle = checkAnnotationStyle(targetType, options);
             resolveProxy();
         }
@@ -78,7 +78,7 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
                 HierarchicalOptions methodOptions = HierarchicalOptions.create()
                         .withOwner(group)
                         .withParent(options);
-                AnnotationSupport.fillOption(method.getAnnotation(Call.class), methodOptions);
+                AnnotationSupport.apply(method.getAnnotation(Call.class), methodOptions);
                 ScopedModule methodModule = resolveModule(methodOptions);
                 TransportProtocol protocol = resolveProtocol(methodModule, methodOptions);
                 ReturnType returnType = returnType(method);

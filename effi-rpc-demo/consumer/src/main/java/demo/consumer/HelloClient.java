@@ -16,9 +16,7 @@ import jakarta.ws.rs.QueryParam;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-@CallGroup(
-        call = @Call(endpoint = "provider")
-)
+@CallGroup(endpoint = "provider")
 public interface HelloClient {
 
     @GET
@@ -27,14 +25,15 @@ public interface HelloClient {
 
     @POST
     @Path("helloList")
-    @Call(path = "helloList", protocol = Http1Protocol.NAME, style = JaxRsStyleResolver.NAME)
+    @Call(path = "helloList", protocol = Http1Protocol.NAME, annotationStyle = JaxRsStyleResolver.NAME)
     List<ParentObject> helloList(@QueryParam("name") String name,
                                  @HeaderParam("content-type11") String contentType,
                                  @Body List<ParentObject> list);
 
     @POST
     @Path("helloList")
-    @Call(path = "helloList", protocol = Http2Protocol.NAME, style = JaxRsStyleResolver.NAME, clientConfig = "h2-client")
+    @Call(path = "helloList", protocol = Http2Protocol.NAME, annotationStyle = JaxRsStyleResolver.NAME,
+            clientConfig = "h2-client")
     CompletableFuture<List<ParentObject>> helloListAsync(@QueryParam("name") String name,
                                                          @HeaderParam("content-type111") String contentType,
                                                          @Body List<ParentObject> list);

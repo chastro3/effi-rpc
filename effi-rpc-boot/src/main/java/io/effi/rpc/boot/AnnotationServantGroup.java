@@ -66,7 +66,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
             }
             serviceAnnotation = AssertUtil.requireAnnotation(targetType, ServeGroup.class);
             name = serviceAnnotation.value();
-            AnnotationSupport.fillOption(serviceAnnotation, options);
+            AnnotationSupport.apply(serviceAnnotation, options);
             annotationStyle = checkAnnotationStyle(targetType, options);
         }
 
@@ -81,7 +81,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
                 HierarchicalOptions methodOptions = HierarchicalOptions.create()
                         .withOwner(group)
                         .withParent(options);
-                AnnotationSupport.fillOption(method.getAnnotation(Serve.class), methodOptions);
+                AnnotationSupport.apply(method.getAnnotation(Serve.class), methodOptions);
                 ScopedModule methodModule = resolveModule(methodOptions);
                 ServantMethod<T> servantMethod = new ServantMethod<>(group, method, methodBinding(methodOptions, method));
                 for (TransportProtocol protocol : resolveProtocols(methodModule, methodOptions)) {

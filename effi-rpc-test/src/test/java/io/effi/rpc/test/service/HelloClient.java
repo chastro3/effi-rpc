@@ -14,6 +14,6 @@ public interface HelloClient {
 
     @GET
     @Path("hello1")
-    @Call(path = "hello", protocol = Http2Protocol.NAME, style = JaxRsStyleResolver.NAME)
+    @Call(path = "hello", protocol = Http2Protocol.NAME, annotationStyle = JaxRsStyleResolver.NAME)
     String hello(@QueryParam("name") String name, @QueryParam("age") int age);
 }

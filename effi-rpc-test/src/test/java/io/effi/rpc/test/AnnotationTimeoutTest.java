@@ -9,7 +9,11 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.context.options.FaultToleranceOptions;
+import io.effi.rpc.context.options.GovernanceOptions;
+import io.effi.rpc.context.options.InterceptorOptions;
 
 class AnnotationTimeoutTest {
 
@@ -18,7 +22,7 @@ class AnnotationTimeoutTest {
         Method method = AnnotatedClient.class.getDeclaredMethod("defaultTimeout");
         HierarchicalOptions options = HierarchicalOptions.create();
 
-        AnnotationSupport.fillOption(method.getAnnotation(Call.class), options);
+        AnnotationSupport.apply(method.getAnnotation(Call.class), options);
 
         assertEquals(CallerOptions.TIMEOUT.defaultValue(), options.option(CallerOptions.TIMEOUT));
     }
@@ -28,9 +32,37 @@ class AnnotationTimeoutTest {
         Method method = AnnotatedClient.class.getDeclaredMethod("explicitTimeout");
         HierarchicalOptions options = HierarchicalOptions.create();
 
-        AnnotationSupport.fillOption(method.getAnnotation(Call.class), options);
+        AnnotationSupport.apply(method.getAnnotation(Call.class), options);
 
         assertEquals(1500, options.option(CallerOptions.TIMEOUT));
+    }
+
+    @Test
+    void blankAnnotationValuesDoNotOverrideConfiguredDefaults() throws NoSuchMethodException {
+        Method method = AnnotatedClient.class.getDeclaredMethod("defaultTimeout");
+        HierarchicalOptions options = HierarchicalOptions.create();
+        options.addOption(CallerOptions.ENDPOINT, "configured-endpoint");
+        options.addOption(CallerOptions.PROTOCOL, "configured-protocol");
+
+        AnnotationSupport.apply(method.getAnnotation(Call.class), options);
+
+        assertEquals("configured-endpoint", options.option(CallerOptions.ENDPOINT));
+        assertEquals("configured-protocol", options.option(CallerOptions.PROTOCOL));
+    }
+
+    @Test
+    void callerOptionsMapToCoreOptions() throws NoSuchMethodException {
+        Method method = AnnotatedClient.class.getDeclaredMethod("configured");
+        HierarchicalOptions options = HierarchicalOptions.create();
+
+        AnnotationSupport.apply(method.getAnnotation(Call.class), options);
+
+        assertEquals(2, options.option(FaultToleranceOptions.RETRIES));
+        assertEquals("roundRobin", options.option(GovernanceOptions.LOAD_BALANCER));
+        assertEquals("canary", options.option(GovernanceOptions.ROUTER));
+        assertEquals("registry-discovery", options.option(GovernanceOptions.SERVICE_DISCOVERY));
+        assertEquals("blue", options.option(GovernanceOptions.GROUP));
+        assertArrayEquals(new String[]{"auth"}, options.option(InterceptorOptions.EXCLUDE));
     }
 
     private static final class AnnotatedClient {
@@ -39,8 +71,19 @@ class AnnotationTimeoutTest {
         void defaultTimeout() {
         }
 
-        @Call(timeout = 1500)
+        @Call(timeoutMillis = 1500)
         void explicitTimeout() {
+        }
+
+        @Call(
+                retries = 2,
+                loadBalancer = "roundRobin",
+                router = "canary",
+                serviceDiscovery = "registry-discovery",
+                group = "blue",
+                excludeInterceptors = {"auth"}
+        )
+        void configured() {
         }
     }
 }

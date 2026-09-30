@@ -36,7 +36,7 @@ public class HelloService extends CallLogInterceptor {
 
     @POST
     @Path("helloList")
-    @Serve(path = "helloList", style = JaxRsStyleResolver.NAME)
+    @Serve(path = "helloList", annotationStyle = JaxRsStyleResolver.NAME)
     public List<ParentObject> helloList(@QueryParam("name") String name,
                                         @HeaderParam("content-type") String contentType,
                                         @Body List<ParentObject> list) {
