@@ -145,6 +145,7 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
             }
         }
 
+        // todo 这一块 内部不是很优雅
         protected final ReturnType returnType(Method method) {
             Type type = method.getGenericReturnType();
             if (type instanceof ParameterizedType parameterizedType
