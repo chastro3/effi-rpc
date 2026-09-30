@@ -4,7 +4,6 @@ import io.effi.rpc.benchmark.model.ParentObject;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.serialization.Serializer;
 import io.effi.rpc.serialization.json.JacksonSerializer;
-import io.effi.rpc.serialization.msgpack.MsgPackSerializer;
 import io.effi.rpc.util.TypeCapture;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -35,27 +34,22 @@ import java.util.concurrent.TimeUnit;
 public class SerializationTest {
 
     Serializer jsonSerializer;
-    Serializer msgpackSerializer;
 
     Type type;
 
     byte[] jsonBytes;
-    byte[] msgpackBytes;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         ScopedPlatform platform = ScopedPlatform.defaultInstance();
         jsonSerializer = platform.namedExtension(Serializer.class, JacksonSerializer.NAME);
-        msgpackSerializer = platform.namedExtension(Serializer.class, MsgPackSerializer.NAME);
 
         List<ParentObject> objList = ParentObject.getObjList();
         TypeCapture<List<ParentObject>> typeCapture = new TypeCapture<>() {
         };
         type = typeCapture.type();
         ByteArrayOutputStream jsonOut = new ByteArrayOutputStream();
-        ByteArrayOutputStream msgpackOut = new ByteArrayOutputStream();
         jsonSerializer.serialize(objList, jsonOut);
-        msgpackSerializer.serialize(objList,msgpackOut);
     }
 
 //    @Benchmark
@@ -64,18 +58,8 @@ public class SerializationTest {
 //    }
 //
 //    @Benchmark
-//    public byte[] serializeByMsgpack() {
-//        return msgpackSerializer.serialize(ParentObject.getObjList());
-//    }
-//
-//    @Benchmark
 //    public Object deserializeByJson() {
 //        return jsonSerializer.deserialize(jsonBytes, type);
-//    }
-//
-//    @Benchmark
-//    public Object deserializeByMsgpack() {
-//        return msgpackSerializer.deserialize(msgpackBytes, type);
 //    }
 
     public static void main(String[] args) throws RunnerException {

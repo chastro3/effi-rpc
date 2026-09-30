@@ -1,3 +1,3 @@
 dependencies {
-    implementation("org.springframework.boot:spring-boot-autoconfigure")
+    api("org.springframework.boot:spring-boot-autoconfigure")
 }

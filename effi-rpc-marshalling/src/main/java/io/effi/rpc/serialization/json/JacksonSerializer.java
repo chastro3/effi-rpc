@@ -1,13 +1,12 @@
 package io.effi.rpc.serialization.json;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.serialization.AbstractSerializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +18,7 @@ import static io.effi.rpc.serialization.json.JacksonSerializer.NAME;
 /**
  * Implements {@link io.effi.rpc.serialization.Serializer} using Jackson.
  */
-@Extension(value = NAME, onClass = "com.fasterxml.jackson.databind.ObjectMapper")
+@Extension(value = NAME, onClass = "tools.jackson.databind.ObjectMapper")
 public class JacksonSerializer extends AbstractSerializer {
 
     public static final String NAME = "jackson";
@@ -29,8 +28,8 @@ public class JacksonSerializer extends AbstractSerializer {
     public JacksonSerializer() {
         this.jsonMapper = JsonMapper.builder()
                 .enable(MapperFeature.PROPAGATE_TRANSIENT_MARKER)
-                .visibility(
-                        VisibilityChecker.Std.defaultInstance()
+                .changeDefaultVisibility(
+                        visibilityChecker -> visibilityChecker
                                 .withGetterVisibility(JsonAutoDetect.Visibility.ANY)
                                 .withSetterVisibility(JsonAutoDetect.Visibility.ANY)
                                 .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
@@ -53,7 +52,7 @@ public class JacksonSerializer extends AbstractSerializer {
 
     @Override
     public Object[] deserialize(InputStream in, Type[] types) throws IOException {
-        try (JsonParser parser = jsonMapper.getFactory().createParser(in)) {
+        try (JsonParser parser = jsonMapper.tokenStreamFactory().createParser(in)) {
             if (parser.nextToken() != JsonToken.START_ARRAY) {
                 throw new IOException("Expected JSON array");
             }

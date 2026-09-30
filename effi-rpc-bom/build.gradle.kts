@@ -3,22 +3,24 @@ plugins {
 }
 description = "Manage dependency versions."
 
-val jspecifyVersion = "1.0.0"
-val jetbrainsVersion = "24.1.0"
-val junitVersion = "5.10.0"
-val vertxVersion = "4.5.14"
-val nettyVersion = "4.1.121.Final"
-val springBootVersion = "3.2.0"
-val protobufBufVersion = "3.25.3"
-val jclVersion = "1.3.4"
-val nacosVersion = "2.3.0"
-val asmVersion = "9.7.1"
-val kryoVersion = "5.5.0"
-val msgPackVersion = "0.9.8"
+val jspecifyVersion = "1.0.1"
+val jetbrainsVersion = "26.1.0"
+val junitVersion = "6.1.3"
+val vertxVersion = "5.2.0"
+val nettyVersion = "4.2.18.Final"
+val springBootVersion = "4.1.1"
+val protobufBufVersion = "4.36.2"
+val jclVersion = "1.4.0"
+val nacosVersion = "3.2.4"
+val asmVersion = "9.10.1"
+val kryoVersion = "5.6.2"
 val disruptorVersion = "4.0.0"
-val lz4Version = "1.8.0"
-val snappyVersion = "1.1.10.5"
-val consulVersion = "1.5.1"
+val lz4Version = "1.8.1"
+val snappyVersion = "1.1.10.8"
+val consulVersion = "1.12.1"
+val jctoolsVersion = "4.0.7"
+val autoCommonVersion = "1.2.2"
+val jmhVersion = "1.37"
 
 javaPlatform {
     allowDependencies()
@@ -40,10 +42,13 @@ dependencies {
         api("org.kiwiproject:consul-client:$consulVersion")
         api("com.alibaba.nacos:nacos-client:$nacosVersion")
         api("com.esotericsoftware:kryo:$kryoVersion")
-        api("org.msgpack:jackson-dataformat-msgpack:$msgPackVersion")
         api("com.lmax:disruptor:$disruptorVersion")
-        api("org.lz4:lz4-java:$lz4Version")
+        api("at.yawk.lz4:lz4-java:$lz4Version")
         api("org.xerial.snappy:snappy-java:$snappyVersion")
+        api("org.jctools:jctools-core:$jctoolsVersion")
+        api("com.google.auto:auto-common:$autoCommonVersion")
+        api("org.openjdk.jmh:jmh-core:$jmhVersion")
+        api("org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion")
         rootProject.subprojects.forEach({
             if (it.publishEnabled() && it.name != project.name)
                 api("${it.group}:${it.name}:${it.version}")

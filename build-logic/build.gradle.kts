@@ -18,7 +18,7 @@ gradlePlugin {
 }
 
 dependencies {
-    implementation("com.gradleup.nmcp:nmcp:1.0.2")
+    implementation("com.gradleup.nmcp:nmcp:1.6.2")
 }
 
 fun RepositoryHandler.defaultRepositories() {

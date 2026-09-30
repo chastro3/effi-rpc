@@ -1,6 +1,5 @@
 package io.effi.rpc.spring;
 
-
 import io.effi.rpc.component.ComponentDescriptor;
 import io.effi.rpc.component.ScopedContext;
 import org.springframework.aop.support.AopUtils;
@@ -12,7 +11,7 @@ import org.springframework.context.ApplicationContextAware;
 import java.util.List;
 import java.util.Map;
 
-public class EffiRpcComponentRegister implements ApplicationContextAware, BeanPostProcessor {
+public class EffiRpcComponentBeanPostProcessor implements ApplicationContextAware, BeanPostProcessor {
 
     private ApplicationContext applicationContext;
 
@@ -24,16 +23,17 @@ public class EffiRpcComponentRegister implements ApplicationContextAware, BeanPo
     @SuppressWarnings("unchecked")
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof ScopedContext) {
+            return bean;
+        }
         Class<?> beanType = AopUtils.getTargetClass(bean);
         List<Class<?>> scopedComponentTypes = ComponentDescriptor.findSupportedComponentTypes(beanType);
-        if (!scopedComponentTypes.isEmpty()) {
-            for (Class<?> scopedComponentType : scopedComponentTypes) {
-                ComponentDescriptor descriptor = ComponentDescriptor.lookup(scopedComponentType);
-                Map<String, ? extends ScopedContext> beansOfType = applicationContext.getBeansOfType(descriptor.scopedContextType());
-                for (ScopedContext scopedContext : beansOfType.values()) {
-                    if (!(bean instanceof ScopedContext))
-                        scopedContext.registry().register((Class<Object>) scopedComponentType, beanName, bean);
-                }
+        for (Class<?> scopedComponentType : scopedComponentTypes) {
+            ComponentDescriptor descriptor = ComponentDescriptor.lookup(scopedComponentType);
+            Map<String, ? extends ScopedContext> scopedContexts =
+                    applicationContext.getBeansOfType(descriptor.scopedContextType());
+            for (ScopedContext scopedContext : scopedContexts.values()) {
+                scopedContext.registry().register((Class<Object>) scopedComponentType, beanName, bean);
             }
         }
         return bean;

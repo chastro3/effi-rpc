@@ -69,6 +69,7 @@ public final class AnnotationSupport {
             options.addOption(PeerOptions.PATH, new String[]{call.path()});
             options.addOption(PeerOptions.ANNOTATION_STYLE, call.style());
             options.addOption(CallerOptions.PROTOCOL, call.protocol());
+            options.addOption(GovernanceOptions.LOCATOR, call.locator());
             options.addOption(CallerOptions.REMOTE_APPLICATION, call.remoteApplication());
             options.addOption(CallerOptions.REMOTE_MODULE, call.remoteModule());
             options.addOption(CallerOptions.CLIENT, call.clientConfig());

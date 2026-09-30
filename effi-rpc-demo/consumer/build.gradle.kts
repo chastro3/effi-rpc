@@ -8,10 +8,10 @@ dependencies {
     implementation(project(":effi-rpc-proxy"))
     implementation("org.slf4j:slf4j-api")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    implementation("ch.qos.logback:logback-classic:1.5.16")
+    implementation("ch.qos.logback:logback-classic")
 }
 plugins {
-    id("org.graalvm.buildtools.native") version "0.10.6"
+    id("org.graalvm.buildtools.native") version "1.1.14"
     id("application")
 }
 

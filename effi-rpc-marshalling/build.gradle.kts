@@ -5,12 +5,11 @@ description = "Data serialization and compression support."
 dependencies {
     api(project(":effi-rpc-component"))
     // serialization
-    compileOnly("com.fasterxml.jackson.core:jackson-databind")
+    compileOnly("tools.jackson.core:jackson-databind")
     compileOnly("com.esotericsoftware:kryo")
-    compileOnly("org.msgpack:jackson-dataformat-msgpack")
     compileOnly("com.google.protobuf:protobuf-java")
     compileOnly("com.google.protobuf:protobuf-java-util")
     // compression
-    compileOnly("org.lz4:lz4-java")
+    compileOnly("at.yawk.lz4:lz4-java")
     compileOnly("org.xerial.snappy:snappy-java")
 }

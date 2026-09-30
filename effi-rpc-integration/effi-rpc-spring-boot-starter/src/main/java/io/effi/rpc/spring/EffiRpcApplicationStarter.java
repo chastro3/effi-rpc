@@ -3,7 +3,6 @@ package io.effi.rpc.spring;
 import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Result;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 
 import java.util.concurrent.CompletionException;
@@ -13,17 +12,16 @@ public class EffiRpcApplicationStarter implements SmartLifecycle {
 
     private static final long START_TIMEOUT_SECONDS = 30L;
 
-    private final ApplicationContext applicationContext;
+    private final EffiRpcBootstrap bootstrap;
 
     private volatile boolean running;
 
-    public EffiRpcApplicationStarter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    public EffiRpcApplicationStarter(EffiRpcBootstrap bootstrap) {
+        this.bootstrap = bootstrap;
     }
 
     @Override
     public void start() {
-        EffiRpcBootstrap bootstrap = applicationContext.getBean(EffiRpcBootstrap.class);
         try {
             Result<Void> result = bootstrap.start()
                     .await(Deadline.after(START_TIMEOUT_SECONDS, TimeUnit.SECONDS));
@@ -42,7 +40,7 @@ public class EffiRpcApplicationStarter implements SmartLifecycle {
         if (!running) {
             return;
         }
-        applicationContext.getBean(EffiRpcBootstrap.class).stop();
+        bootstrap.stop();
         running = false;
     }
 

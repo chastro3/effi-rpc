@@ -4,6 +4,7 @@ pluginManagement {
 plugins {
     id("internal-module-loader")
 }
+pluginManager.apply("com.gradleup.nmcp.settings")
 rootProject.name = "effi-rpc"
 
 modules {
