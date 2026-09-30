@@ -72,7 +72,10 @@ public class NacosRegistryClient extends AbstractRegistryClient {
         return threadPool.execute(() -> {
             try {
                 List<Instance> instances = namingService.selectInstances(serviceName, true);
-                return instances.stream().map(this::toServiceInstance).toList();
+                return instances.stream()
+                        .filter(NacosRegistryClient::hasProtocolMetadata)
+                        .map(this::toServiceInstance)
+                        .toList();
             } catch (NacosException e) {
                 throw NacosErrorCodes.LOOKUP_INSTANCE.fail(e);
             }
@@ -85,7 +88,9 @@ public class NacosRegistryClient extends AbstractRegistryClient {
             if (event instanceof NamingEvent namingEvent) {
                 List<Instance> instances = namingEvent.getInstances();
                 List<ServiceInstance> healthServerInstances = instances.stream()
-                        .filter(instance -> instance.isHealthy() && instance.getMetadata().containsKey(KeyConstant.PROTOCOL))
+                        .filter(instance ->
+                                instance.isHealthy()
+                                        && hasProtocolMetadata(instance))
                         .map(this::toServiceInstance)
                         .toList();
                 onServicesUpdated(serviceName, healthServerInstances);
@@ -108,6 +113,11 @@ public class NacosRegistryClient extends AbstractRegistryClient {
         } catch (NacosException e) {
             throw NacosErrorCodes.NAMING_SERVICE_CREATE.fail(e);
         }
+    }
+
+    private static boolean hasProtocolMetadata(Instance instance) {
+        Map<String, String> metadata = instance.getMetadata();
+        return metadata != null && metadata.containsKey(KeyConstant.PROTOCOL);
     }
 
     private ServiceInstance toServiceInstance(Instance instance) {

@@ -100,6 +100,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                 .onSuccess(serviceEntries -> {
                     List<ServiceInstance> instances = serviceEntries.getList()
                             .stream()
+                            .filter(ConsulRegistryClient::hasProtocolMetadata)
                             .map(this::toServiceInstance)
                             .toList();
                     promise.success(instances);
@@ -118,8 +119,9 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                 List<ServiceInstance> healthInstances = serviceEntries.stream()
                         .filter(instance ->
                                 instance.aggregatedStatus() == CheckStatus.PASSING
-                                        && instance.getService().getMeta().containsKey(KeyConstant.PROTOCOL))
-                        .map(this::toServiceInstance).toList();
+                                        && hasProtocolMetadata(instance))
+                        .map(this::toServiceInstance)
+                        .toList();
                 onServicesUpdated(serviceName, healthInstances);
             }
         });
@@ -144,6 +146,11 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                 .setPort(socketAddress.getPort())
                 .setTimeout(connectTimeout);
         return ConsulClient.create(vertx, options);
+    }
+
+    private static boolean hasProtocolMetadata(ServiceEntry entry) {
+        Map<String, String> metadata = entry.getService().getMeta();
+        return metadata != null && metadata.containsKey(KeyConstant.PROTOCOL);
     }
 
     private ServiceInstance toServiceInstance(ServiceEntry entry) {
