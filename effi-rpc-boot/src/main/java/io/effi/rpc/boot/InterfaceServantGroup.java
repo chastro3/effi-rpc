@@ -7,12 +7,17 @@ import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static io.effi.rpc.context.options.PeerOptions.PATH;
+import static io.effi.rpc.context.options.ServantOptions.DECLARED_PROTOCOL;
 
 /**
  * Builds a servant group from a plain Java interface and its implementation.
@@ -47,7 +52,10 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
         protected void validate() {
             super.validate();
             AssertUtil.valid(targetType.isInterface(), "targetType must be an interface");
-            AssertUtil.notBlank(protocolName, "protocol");
+            AssertUtil.valid(
+                    StringUtil.isNotBlank(protocolName) || CollectionUtil.isNotEmpty(options.option(DECLARED_PROTOCOL)),
+                    "protocol is required"
+            );
         }
 
         @Override
@@ -66,7 +74,7 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
 
         @Override
         protected void resolveComponents(InterfaceServantGroup<T> group) {
-            TransportProtocol protocol = resolveProtocol();
+            List<TransportProtocol> protocols = resolveProtocols();
             Set<String> paths = new HashSet<>();
             for (Method interfaceMethod : AnnotationSupport.filterMethods(targetType.getMethods())) {
                 String path = methodPath(interfaceMethod);
@@ -79,18 +87,24 @@ public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
                 Method targetMethod = targetMethod(service, interfaceMethod);
                 MethodBinding binding = MethodBinding.positional(interfaceMethod, PositionParameterBinder.INSTANCE);
                 ServantMethod<T> servantMethod = new ServantMethod<>(group, targetMethod, binding);
-                protocol.createServant(servantMethod, methodOptions, methodModule);
+                for (TransportProtocol protocol : protocols) {
+                    protocol.createServant(servantMethod, methodOptions, methodModule);
+                }
             }
         }
 
-        private TransportProtocol resolveProtocol() {
-            TransportProtocol protocol = module.platform().namedExtension(TransportProtocol.class, protocolName);
-            if (protocol == null) {
-                throw new IllegalArgumentException(
-                        "Transport protocol not found: " + protocolName
-                );
+        private List<TransportProtocol> resolveProtocols() {
+            String[] protocolNames = options.option(DECLARED_PROTOCOL);
+            if (CollectionUtil.isEmpty(protocolNames)) {
+                protocolNames = new String[]{protocolName};
             }
-            return protocol;
+            return Arrays.stream(protocolNames)
+                    .map(protocolName -> {
+                        TransportProtocol protocol = module.platform()
+                                .namedExtension(TransportProtocol.class, protocolName);
+                        return AssertUtil.notNull(protocol, "protocol");
+                    })
+                    .toList();
         }
     }
 }

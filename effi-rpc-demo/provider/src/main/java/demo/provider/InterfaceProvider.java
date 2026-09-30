@@ -3,7 +3,7 @@ package demo.provider;
 import demo.api.InterfaceHelloService;
 import demo.provider.interfaceapi.InterfaceHelloServiceImpl;
 import io.effi.rpc.boot.EffiRpcBootstrap;
-import io.effi.rpc.boot.InterfaceServantGroup;
+import io.effi.rpc.context.options.ServantOptions;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
 
@@ -21,12 +21,9 @@ public final class InterfaceProvider {
         int port = args.length == 0 ? 18092 : Integer.parseInt(args[0]);
         EffiRpcBootstrap bootstrap = EffiRpcBootstrap.newInstance("interface-provider")
                 .server(Http1ServerConfig.defaultConfig(), "127.0.0.1", port);
-        InterfaceServantGroup.<InterfaceHelloService>builder()
-                .targetType(InterfaceHelloService.class)
-                .service(new InterfaceHelloServiceImpl())
-                .module(bootstrap.defaultModule())
-                .protocol(Http1Protocol.NAME)
-                .build();
+        bootstrap.provide(InterfaceHelloService.class, new InterfaceHelloServiceImpl(), options ->
+                options.addOption(ServantOptions.DECLARED_PROTOCOL, new String[]{Http1Protocol.NAME})
+        );
         bootstrap.start().toCompletableFuture().join();
         System.out.println("Interface provider started on 127.0.0.1:" + port);
         try {

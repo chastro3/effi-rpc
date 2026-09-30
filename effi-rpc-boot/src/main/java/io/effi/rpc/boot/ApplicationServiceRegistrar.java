@@ -297,12 +297,10 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
             return Futures.completedVoid();
         }
 
-        List<Future<Void>> futures = new ArrayList<>();
+        List<Future<Void>> futures = new ArrayList<>(registryConfigs.size());
         for (RegistryConfig registryConfig : registryConfigs) {
             RegistryClient registryClient = RegistryClient.of(registryConfig, platform());
-            for (ServiceInstance serviceInstance : serviceInstances) {
-                futures.add(registryClient.register(serviceInstance));
-            }
+            futures.add(registryClient.register(serviceInstances));
         }
         return Futures.allOf(futures);
     }
@@ -311,12 +309,10 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         if (CollectionUtil.isEmpty(instances) || CollectionUtil.isEmpty(registryConfigs)) {
             return Futures.completedVoid();
         }
-        List<Future<Void>> futures = new ArrayList<>();
+        List<Future<Void>> futures = new ArrayList<>(registryConfigs.size());
         for (RegistryConfig registryConfig : registryConfigs) {
             RegistryClient registryClient = RegistryClient.of(registryConfig, platform());
-            for (ServiceInstance serviceInstance : instances) {
-                futures.add(registryClient.deregister(serviceInstance));
-            }
+            futures.add(registryClient.deregister(instances));
         }
         return Futures.allOf(futures);
     }

@@ -7,12 +7,14 @@ import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
 import static io.effi.rpc.context.options.PeerOptions.PATH;
+import static io.effi.rpc.context.options.CallerOptions.PROTOCOL;
 
 /**
  * Builds a caller group from a plain Java interface.
@@ -35,6 +37,9 @@ public final class InterfaceCallerGroup<T> extends AbstractCallerGroup<T> {
         @Override
         protected void validate() {
             super.validate();
+            if (StringUtil.isBlank(protocolName)) {
+                protocolName = options.option(PROTOCOL);
+            }
             AssertUtil.notBlank(protocolName, "protocol");
         }
 

@@ -52,6 +52,6 @@ public final class HttpInvocationResolver implements InvocationResolver {
     private Object[] decodePositionalArgs(HttpDuplexRequest request, Serializer serializer, Type[] types) throws IOException {
         return types.length == 0 || request.inputStream() == null
                 ? new Object[0]
-                : serializer.deserializeValues(request.inputStream(), types);
+                : serializer.deserialize(request.inputStream(), types);
     }
 }

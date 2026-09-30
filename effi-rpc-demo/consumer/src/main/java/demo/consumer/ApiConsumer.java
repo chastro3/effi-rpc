@@ -20,10 +20,11 @@ public class ApiConsumer {
                 .id("consul")
                 .authority("consul://127.0.0.1:8500")
                 .build();
+        ScopedModule module = ScopedModule.defaultInstance();
         Http2Caller<String> caller = Http2Caller.<String>builder(new TypeCapture<>() {})
                 .path("hello")
-                .locator(RegistryLocator.cached("default", consul))
-                .module(ScopedModule.defaultInstance())
+                .locator(RegistryLocator.cached(module.platform(), "default", consul))
+                .module(module)
                 .build();
         ExecutorService executorService = Executors.newFixedThreadPool(200);
         for (int i = 0; i < 200; i++) {

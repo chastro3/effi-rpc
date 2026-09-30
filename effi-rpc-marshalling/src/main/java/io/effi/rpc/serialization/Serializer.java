@@ -36,13 +36,6 @@ public interface Serializer {
     <T> T deserialize(InputStream in, Type type) throws IOException;
 
     /**
-     * Serializes ordered values as one payload.
-     */
-    default void serializeValues(Object[] values, Type[] types, OutputStream out) throws IOException {
-        serialize(values, out);
-    }
-
-    /**
      * Deserializes ordered values from one payload.
      *
      * <p>Self-describing serializers may use the default implementation.
@@ -53,7 +46,7 @@ public interface Serializer {
      * @param types the declared value types
      * @return the ordered values
      */
-    default Object[] deserializeValues(InputStream in, Type[] types) throws IOException {
+    default Object[] deserialize(InputStream in, Type[] types) throws IOException {
         return deserialize(in, Object[].class);
     }
 }

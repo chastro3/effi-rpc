@@ -52,7 +52,7 @@ public class JacksonSerializer extends AbstractSerializer {
     }
 
     @Override
-    public Object[] deserializeValues(InputStream in, Type[] types) throws IOException {
+    public Object[] deserialize(InputStream in, Type[] types) throws IOException {
         try (JsonParser parser = jsonMapper.getFactory().createParser(in)) {
             if (parser.nextToken() != JsonToken.START_ARRAY) {
                 throw new IOException("Expected JSON array");

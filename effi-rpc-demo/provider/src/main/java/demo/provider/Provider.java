@@ -46,8 +46,7 @@ public class Provider {
                 .server(http2ServerConfig, 8090)
                 .server(Http1ServerConfig.defaultConfig(), 8091)
                 .registry(DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.PROVIDER, Tags.FORCE_ACTIVE))
-                //.registry(DefaultRegistryConfig.builder().url("nacos://127.0.0.1:8848").tag(RegistryConfig.Tag.PROVIDER, RegistryConfig.Tag.FORCE_ACTIVE).build())
-                .service(new HelloService());
+                .provide(new HelloService());
         bootstrap.start();
         System.out.println(bootstrap);
     }

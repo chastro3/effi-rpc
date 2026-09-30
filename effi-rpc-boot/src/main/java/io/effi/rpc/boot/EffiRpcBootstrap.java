@@ -1,15 +1,17 @@
 package io.effi.rpc.boot;
 
+import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.util.CollectionUtil;
+import io.effi.rpc.config.RouterConfig;
+import io.effi.rpc.option.HierarchicalOptions;
 
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 
 /**
  * Bootstrap class for initializing and configuring EffiRpc framework.
@@ -61,31 +63,61 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
 
 
     /**
-     * Registers multiple services.
-     *
-     * @param services
-     */
-    public EffiRpcBootstrap services(Object... services) {
-        if (CollectionUtil.isNotEmpty(services)) {
-            for (Object service : services) {
-                service(service);
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Registers a service.
+     * Provides one annotation-based service.
      *
      * @param service the service instance
      * @return the updated EffiRpcBootstrap instance
      */
-    public EffiRpcBootstrap service(Object service) {
+    public EffiRpcBootstrap provide(Object service) {
         AnnotationServantGroup.builder()
                 .service(service)
                 .module(application.defaultModule())
                 .build();
         return this;
+    }
+
+    /**
+     * Provides one interface-based service.
+     */
+    public <T> EffiRpcBootstrap provide(Class<T> targetType, T service, Consumer<HierarchicalOptions> customizer) {
+        InterfaceServantGroup.<T>builder()
+                .targetType(targetType)
+                .service(service)
+                .options(options(customizer))
+                .module(application.defaultModule())
+                .build();
+        return this;
+    }
+
+    /**
+     * Creates one caller proxy. Annotation callers are detected by {@link CallGroup}.
+     */
+    public <T> T consume(Class<T> targetType) {
+        return AnnotationCallerGroup.<T>builder()
+                .targetType(targetType)
+                .module(application.defaultModule())
+                .build()
+                .proxy();
+    }
+
+    /**
+     * Creates one interface-based caller proxy.
+     */
+    public <T> T consume(Class<T> targetType, Consumer<HierarchicalOptions> customizer) {
+        return InterfaceCallerGroup.<T>builder()
+                .targetType(targetType)
+                .options(options(customizer))
+                .module(application.defaultModule())
+                .build()
+                .proxy();
+    }
+
+    private static HierarchicalOptions options(Consumer<HierarchicalOptions> customizer) {
+        HierarchicalOptions options = HierarchicalOptions.create();
+        if (customizer != null) {
+            customizer.accept(options);
+        }
+        return options;
     }
 
     /**

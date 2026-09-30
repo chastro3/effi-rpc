@@ -4,7 +4,6 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.support.Scheduler;
-import io.effi.rpc.component.support.ThreadPool;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
@@ -12,6 +11,7 @@ import io.effi.rpc.exception.PredefinedErrorCode;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -112,6 +112,28 @@ class AbstractRegistryClientTest {
 
         assertFalse(client.threadPool.active());
         scheduler.close();
+    }
+
+    @Test
+    void registerAllAndDeregisterApplyToEveryInstance() {
+        ScopedPlatform platform = new ScopedPlatform("registry-batch-platform");
+        platform.registry().register(Scheduler.class, new Scheduler());
+        RegistryConfig config = DefaultRegistryConfig.builder()
+                .type("test")
+                .address("127.0.0.1:1")
+                .retries(2)
+                .heartbeatInterval(1)
+                .build();
+        TestRegistryClient client = new TestRegistryClient(config, platform);
+        ServiceInstance first = instance("batch-first");
+        ServiceInstance second = instance("batch-second");
+
+        client.register(List.of(first, second)).toCompletableFuture().join();
+        Set<ServiceInstance> registered = client.registeredServiceInstances.get("test-service");
+        assertEquals(2, registered.size());
+
+        client.deregister(List.of(first, second)).toCompletableFuture().join();
+        assertTrue(registered.isEmpty());
     }
 
     private static ServiceInstance instance(String id) {

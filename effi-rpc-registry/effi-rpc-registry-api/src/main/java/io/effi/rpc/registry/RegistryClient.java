@@ -6,7 +6,9 @@ import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.trait.Cleanable;
 import io.effi.rpc.trait.Closeable;
 import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Futures;
 
+import java.util.Collection;
 import java.util.List;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
@@ -33,11 +35,31 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
     Future<Void> register(ServiceInstance instance);
 
     /**
+     * Registers multiple service instances.
+     *
+     * @param instances the service instances to register
+     * @return a future completed when every instance is registered
+     */
+    default Future<Void> register(Collection<ServiceInstance> instances) {
+        return Futures.allOf(instances.stream().map(this::register).toList());
+    }
+
+    /**
      * Deregisters a service from the registry.
      *
      * @param instance the service instance to deregister
      */
     Future<Void> deregister(ServiceInstance instance);
+
+    /**
+     * Deregisters multiple service instances.
+     *
+     * @param instances the service instances to deregister
+     * @return a future completed when every instance is deregistered
+     */
+    default Future<Void> deregister(Collection<ServiceInstance> instances) {
+        return Futures.allOf(instances.stream().map(this::deregister).toList());
+    }
 
     /**
      * Discovers services from the registry by service id.
