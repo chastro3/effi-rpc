@@ -1,7 +1,7 @@
 package io.effi.rpc.context.support;
 
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Interceptor;

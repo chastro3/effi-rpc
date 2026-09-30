@@ -3,7 +3,7 @@ package io.effi.rpc.transport;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.concurrent.ConcurrentErrorCodes;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;

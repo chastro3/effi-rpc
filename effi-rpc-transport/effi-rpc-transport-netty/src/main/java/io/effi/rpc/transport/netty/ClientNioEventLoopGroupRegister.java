@@ -3,7 +3,7 @@ package io.effi.rpc.transport.netty;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ExternalComponent;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.SystemKeys;
 import io.effi.rpc.util.StringUtil;

@@ -3,7 +3,7 @@ package io.effi.rpc.boot.call;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.config.SmartURL;

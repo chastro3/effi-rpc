@@ -1,4 +1,4 @@
-package io.effi.rpc.component.support;
+package io.effi.rpc.component.tools;
 
 import org.junit.jupiter.api.Test;
 

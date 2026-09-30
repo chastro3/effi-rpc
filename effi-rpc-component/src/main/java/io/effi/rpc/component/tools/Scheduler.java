@@ -1,4 +1,4 @@
-package io.effi.rpc.component.support;
+package io.effi.rpc.component.tools;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.executor.ConfigurableThreadFactory;

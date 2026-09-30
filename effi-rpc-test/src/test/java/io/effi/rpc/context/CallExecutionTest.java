@@ -3,7 +3,7 @@ package io.effi.rpc.context;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.support.CallExecution;
@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 

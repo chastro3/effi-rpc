@@ -3,7 +3,7 @@ package io.effi.rpc.boot.configurator;
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.ThreadPoolResolver;

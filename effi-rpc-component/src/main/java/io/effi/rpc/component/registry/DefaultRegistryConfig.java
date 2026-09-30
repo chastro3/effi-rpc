@@ -1,7 +1,7 @@
 package io.effi.rpc.component.registry;
 
 import io.effi.rpc.component.DynamicTagComponent;
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.config.IdentifiableConfig;
 import io.effi.rpc.option.Options;
 import io.effi.rpc.util.AssertUtil;

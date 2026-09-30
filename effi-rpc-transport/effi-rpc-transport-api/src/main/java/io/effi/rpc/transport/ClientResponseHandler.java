@@ -1,6 +1,6 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.ReplyContext;

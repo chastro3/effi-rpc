@@ -3,7 +3,7 @@ package io.effi.rpc.registry;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.component.support.Scheduler;
+import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;

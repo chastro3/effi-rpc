@@ -2,7 +2,7 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 

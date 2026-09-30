@@ -10,7 +10,7 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.component.support.ThreadPool;
+import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.constant.EffiRpcFramework;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.annotation.AnnotationStyle;
