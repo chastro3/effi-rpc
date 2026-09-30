@@ -1,8 +1,8 @@
 package io.effi.rpc.component.event.v2;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.util.ObjectUtil;
 import org.jctools.queues.MpscArrayQueue;
 

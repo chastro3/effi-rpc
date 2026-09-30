@@ -1,7 +1,7 @@
 package io.effi.rpc.executor;
 
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

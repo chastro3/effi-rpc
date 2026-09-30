@@ -1,4 +1,4 @@
-package io.effi.rpc.internal.logging;
+package io.effi.rpc.logging;
 
 import io.effi.rpc.util.StringUtil;
 

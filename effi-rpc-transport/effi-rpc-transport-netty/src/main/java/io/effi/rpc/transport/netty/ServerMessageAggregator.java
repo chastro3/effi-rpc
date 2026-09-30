@@ -2,8 +2,8 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.context.Request;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.ServerRequestHandler;

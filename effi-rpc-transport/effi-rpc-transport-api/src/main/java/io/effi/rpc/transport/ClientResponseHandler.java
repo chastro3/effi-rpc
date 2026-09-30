@@ -7,8 +7,8 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
 import io.effi.rpc.transport.message.InputMessage;
 

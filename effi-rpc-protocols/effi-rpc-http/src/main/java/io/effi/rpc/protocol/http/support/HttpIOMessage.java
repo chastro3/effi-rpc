@@ -1,8 +1,8 @@
 package io.effi.rpc.protocol.http.support;
 
 
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
 import io.effi.rpc.transport.message.OutputMessage;

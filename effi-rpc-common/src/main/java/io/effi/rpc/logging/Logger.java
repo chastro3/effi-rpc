@@ -1,10 +1,10 @@
-package io.effi.rpc.internal.logging;
+package io.effi.rpc.logging;
 
 /**
  * Logs messages at various levels with formatting support.
  * <p>
  * Provides a unified logging interface with level-based logging methods
- * and parameterized message formatting for internal use.
+ * and parameterized message formatting for framework logging.
  */
 public interface Logger {
 
@@ -15,16 +15,25 @@ public interface Logger {
 
     /**
      * Logs a TRACE level message with an exception.
+     *
+     * @param format message format
+     * @param e      throwable to log
+     * @param args   format arguments
      */
     void trace(String format, Throwable e, Object... args);
 
     /**
      * Logs a TRACE level message.
+     *
+     * @param format message format
+     * @param args   format arguments
      */
     void trace(String format, Object... args);
 
     /**
      * Logs a TRACE level exception.
+     *
+     * @param e throwable to log
      */
     void trace(Throwable e);
 
@@ -35,16 +44,25 @@ public interface Logger {
 
     /**
      * Logs a DEBUG level message with an exception.
+     *
+     * @param format message format
+     * @param e      throwable to log
+     * @param args   format arguments
      */
     void debug(String format, Throwable e, Object... args);
 
     /**
      * Logs a DEBUG level message.
+     *
+     * @param format message format
+     * @param args   format arguments
      */
     void debug(String format, Object... args);
 
     /**
      * Logs a DEBUG level exception.
+     *
+     * @param e throwable to log
      */
     void debug(Throwable e);
 
@@ -55,16 +73,25 @@ public interface Logger {
 
     /**
      * Logs an INFO level message with an exception.
+     *
+     * @param format message format
+     * @param e      throwable to log
+     * @param args   format arguments
      */
     void info(String format, Throwable e, Object... args);
 
     /**
      * Logs an INFO level message.
+     *
+     * @param format message format
+     * @param args   format arguments
      */
     void info(String format, Object... args);
 
     /**
      * Logs an INFO level exception.
+     *
+     * @param e throwable to log
      */
     void info(Throwable e);
 
@@ -75,16 +102,25 @@ public interface Logger {
 
     /**
      * Logs a WARN level message with an exception.
+     *
+     * @param format message format
+     * @param e      throwable to log
+     * @param args   format arguments
      */
     void warn(String format, Throwable e, Object... args);
 
     /**
      * Logs a WARN level message.
+     *
+     * @param format message format
+     * @param args   format arguments
      */
     void warn(String format, Object... args);
 
     /**
      * Logs a WARN level exception.
+     *
+     * @param e throwable to log
      */
     void warn(Throwable e);
 
@@ -95,18 +131,25 @@ public interface Logger {
 
     /**
      * Logs an ERROR level message with an exception.
+     *
+     * @param format message format
+     * @param e      throwable to log
+     * @param args   format arguments
      */
     void error(String format, Throwable e, Object... args);
 
     /**
      * Logs an ERROR level message.
+     *
+     * @param format message format
+     * @param args   format arguments
      */
     void error(String format, Object... args);
 
     /**
      * Logs an ERROR level exception.
+     *
+     * @param e throwable to log
      */
     void error(Throwable e);
 }
-
-

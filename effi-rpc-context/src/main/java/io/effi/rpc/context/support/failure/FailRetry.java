@@ -11,8 +11,8 @@ import io.effi.rpc.context.options.FaultToleranceOptions;
 import io.effi.rpc.context.support.Unary;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 
 import static io.effi.rpc.context.support.failure.FailRetry.NAME;
 

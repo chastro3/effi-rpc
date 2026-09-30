@@ -1,7 +1,7 @@
 package io.effi.rpc.compile;
 
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.nativetools.NativeUtil;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ObjectUtil;

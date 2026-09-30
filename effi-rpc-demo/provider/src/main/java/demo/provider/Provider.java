@@ -6,8 +6,8 @@ import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.support.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 

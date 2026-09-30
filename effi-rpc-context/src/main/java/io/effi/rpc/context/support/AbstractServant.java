@@ -9,8 +9,8 @@ import io.effi.rpc.context.metrics.CalleeMetrics;
 import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.internal.logging.Logger;
-import io.effi.rpc.internal.logging.LoggerFactory;
+import io.effi.rpc.logging.Logger;
+import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.TypeCapture;
 
