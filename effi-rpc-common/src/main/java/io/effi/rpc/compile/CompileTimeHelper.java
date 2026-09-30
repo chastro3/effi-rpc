@@ -58,31 +58,63 @@ public class CompileTimeHelper {
         this.types = processingEnv.getTypeUtils();
     }
 
+    /**
+     * Returns the annotation processing environment.
+     */
     public ProcessingEnvironment processingEnv() {
         return processingEnv;
     }
 
     /**
-     * Gets qualified package name of given TypeElement.
+     * Returns the qualified package name of the given type element.
+     *
+     * @param type target type element
+     * @return qualified package name, or an empty string for the unnamed package
      */
     public String packageOf(TypeElement type) {
         return elements.getPackageOf(type).getQualifiedName().toString();
     }
 
+    /**
+     * Finds a generated class output resource.
+     *
+     * @param filePath output resource path
+     * @return file object for the generated resource
+     * @throws IOException if the resource cannot be located
+     */
     public FileObject findOutputFile(String filePath) throws IOException {
         return processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, StringUtil.empty(), filePath);
     }
 
+    /**
+     * Creates a generated class output resource in the unnamed package.
+     *
+     * @param filePath output resource path
+     * @return file object for the created resource
+     * @throws IOException if the resource cannot be created
+     */
     public FileObject createOutputFile(String filePath) throws IOException {
         return createOutputFile(StringUtil.empty(), filePath);
     }
 
+    /**
+     * Creates a generated class output resource.
+     *
+     * @param packageName target package name
+     * @param filePath output resource path
+     * @param originatingElements elements that caused the resource generation
+     * @return file object for the created resource
+     * @throws IOException if the resource cannot be created
+     */
     public FileObject createOutputFile(String packageName, String filePath, Element... originatingElements) throws IOException {
         return processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, packageName, filePath, originatingElements);
     }
 
     /**
-     * Converts modifiers set to int bitmask compatible with {@link java.lang.reflect.Modifier}.
+     * Converts a modifier set to an int bitmask compatible with {@link java.lang.reflect.Modifier}.
+     *
+     * @param mods source modifiers
+     * @return reflection-compatible modifier bitmask
      */
     public int toReflectModifiers(Set<Modifier> mods) {
         int result = 0;
@@ -103,7 +135,10 @@ public class CompileTimeHelper {
     }
 
     /**
-     * Builds method signature string: methodName(paramType1,paramType2,...).
+     * Builds an erased method signature in {@code methodName(paramType1,paramType2,...)} form.
+     *
+     * @param method target executable element
+     * @return erased method signature
      */
     public String buildSignature(ExecutableElement method) {
         StringBuilder sb = new StringBuilder();
@@ -120,7 +155,10 @@ public class CompileTimeHelper {
     }
 
     /**
-     * Gets the fully qualified class name including inner class $ notation.
+     * Returns the fully qualified class name using binary-name notation for nested types.
+     *
+     * @param typeElement target type element
+     * @return qualified class name
      */
     public String qualifiedNameOf(TypeElement typeElement) {
         StringBuilder sb = new StringBuilder(64);
@@ -141,6 +179,11 @@ public class CompileTimeHelper {
 
     /**
      * Extracts the fully qualified class name of a Class-valued annotation attribute.
+     *
+     * @param element annotated element
+     * @param type annotation type
+     * @param attributeName target attribute name
+     * @return qualified class name, or {@code null} when the attribute is absent
      */
     public String extractClassName(Element element, Class<? extends Annotation> type, String attributeName) {
         AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
@@ -155,6 +198,11 @@ public class CompileTimeHelper {
 
     /**
      * Extracts a list of fully qualified class names from a Class[]-valued annotation attribute.
+     *
+     * @param element annotated element
+     * @param type annotation type
+     * @param attributeName target attribute name
+     * @return qualified class names, or an empty list when the attribute is absent
      */
     @SuppressWarnings("unchecked")
     public List<String> extractClassNames(Element element, Class<? extends Annotation> type, String attributeName) {
@@ -177,6 +225,10 @@ public class CompileTimeHelper {
 
     /**
      * Collects all implemented interface names recursively.
+     *
+     * @param typeElement target type element
+     * @param filter predicate selecting interfaces to collect
+     * @return qualified names of matching interfaces
      */
     public Set<String> findAllInterfaceNames(TypeElement typeElement, Predicate<TypeElement> filter) {
         Set<TypeElement> result = new LinkedHashSet<>();
@@ -188,13 +240,21 @@ public class CompileTimeHelper {
 
     /**
      * Returns the annotation mirror of the specified type on an element.
+     *
+     * @param element target element
+     * @param type annotation type
+     * @return matching annotation mirror, or {@code null} when the annotation is absent
      */
     public AnnotationMirror findAnnotationMirror(Element element, Class<? extends Annotation> type) {
         return findAnnotationMirror(element, type.getName());
     }
 
     /**
-     * Returns the type mirror with the specified qualified name.
+     * Returns the annotation mirror with the specified qualified name.
+     *
+     * @param element target element
+     * @param annotationName qualified annotation name
+     * @return matching annotation mirror, or {@code null} when the annotation is absent
      */
     public AnnotationMirror findAnnotationMirror(Element element, String annotationName) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
@@ -208,13 +268,19 @@ public class CompileTimeHelper {
 
     /**
      * Converts an annotation mirror to its type element.
+     *
+     * @param annotationMirror source annotation mirror
+     * @return annotation type element
      */
     public TypeElement asType(AnnotationMirror annotationMirror) {
         return (TypeElement) types.asElement(annotationMirror.getAnnotationType());
     }
 
     /**
-     * Converts an annotation mirror to its type element.
+     * Converts a type mirror to its type element.
+     *
+     * @param typeMirror source type mirror
+     * @return declared type element
      */
     public TypeElement asType(TypeMirror typeMirror) {
         return (TypeElement) types.asElement(typeMirror);
@@ -222,6 +288,9 @@ public class CompileTimeHelper {
 
     /**
      * Converts a type mirror to ASM's Type representation.
+     *
+     * @param mirror source type mirror
+     * @return ASM type representation
      */
     public Type asAsmType(TypeMirror mirror) {
         switch (mirror.getKind()) {
@@ -304,6 +373,9 @@ public class CompileTimeHelper {
 
     /**
      * Checks if the method is defined in java.lang.Object.
+     *
+     * @param element target executable element
+     * @return {@code true} when the method belongs to {@link Object}
      */
     public boolean isObjectMethod(ExecutableElement element) {
         String methodName = element.getSimpleName().toString();

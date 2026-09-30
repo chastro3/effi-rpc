@@ -3,6 +3,9 @@ package io.effi.rpc.concurrent;
 import io.effi.rpc.exception.ErrorCode;
 import io.effi.rpc.exception.ErrorCodeAllocator;
 
+/**
+ * Defines error codes raised by concurrent operations.
+ */
 public interface ConcurrentErrorCodes {
 
     ErrorCodeAllocator ALLOCATOR = new ErrorCodeAllocator("concurrent_");

@@ -4,28 +4,59 @@ import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AssertUtil;
 
 /**
- * Immutable terminal result of an asynchronous RPC operation.
+ * Defines an immutable terminal result of an asynchronous RPC operation.
+ * <p>
+ * Failure results require a non-null cause.
  */
 public interface Result<T> {
 
+    /**
+     * Creates a successful result.
+     *
+     * @param value success value
+     * @return successful result
+     */
     static <T> Result<T> success(T value) {
         return new Success<>(value);
     }
 
+    /**
+     * Creates a failed result.
+     *
+     * @param cause failure cause
+     * @return failed result
+     */
     static <T> Result<T> failure(EffiRpcException cause) {
         return new Failure<>(cause);
     }
 
+    /**
+     * Indicates whether this result is successful.
+     */
     boolean succeeded();
 
+    /**
+     * Indicates whether this result represents a failure.
+     */
     default boolean failed() {
         return !succeeded();
     }
 
+    /**
+     * Returns the success value, or {@code null} when failed.
+     */
     T value();
 
+    /**
+     * Returns the failure cause, or {@code null} when successful.
+     */
     EffiRpcException cause();
 
+    /**
+     * Returns the success value or throws the failure cause.
+     *
+     * @throws EffiRpcException if this result represents a failure
+     */
     default T requireValue() {
         if (failed()) {
             throw cause();
@@ -33,6 +64,9 @@ public interface Result<T> {
         return value();
     }
 
+    /**
+     * Stores a successful result.
+     */
     record Success<T>(T value) implements Result<T> {
 
         @Override
@@ -46,6 +80,9 @@ public interface Result<T> {
         }
     }
 
+    /**
+     * Stores a failed result.
+     */
     record Failure<T>(EffiRpcException cause) implements Result<T> {
 
         public Failure {

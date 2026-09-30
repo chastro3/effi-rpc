@@ -72,34 +72,6 @@ public class DynamicAccessorGenerator {
         return generate(info, info.name() + DynamicAccessor.SUFFIX);
     }
 
-    static GeneratedInfo from(Class<?> type, String accessorName) {
-        return generate(classInfo(type), accessorName);
-    }
-
-    private static ClassInfo classInfo(Class<?> type) {
-        if (type == null || type.isPrimitive() || type.isArray()) {
-            throw new IllegalArgumentException("Unsupported dynamic accessor type: " + type);
-        }
-        String pkg = type.getPackageName();
-        String name = binaryName(type.getName(), pkg);
-        String qualifiedName = type.getName();
-        Method[] methods = publicMethods(type);
-        List<MethodInfo> methodInfos = new ArrayList<>(methods.length);
-        for (Method method : methods) {
-            methodInfos.add(MethodInfo.from(method));
-        }
-        MethodInfo[] infos = methodInfos.toArray(new MethodInfo[0]);
-        return new ClassInfo(pkg, name, qualifiedName, infos, type.isInterface());
-    }
-
-    static Method[] publicMethods(Class<?> type) {
-        return Arrays.stream(type.getMethods())
-                .filter(method -> !method.isBridge())
-                .filter(method -> !method.isSynthetic())
-                .filter(method -> !ReflectionUtil.isObjectMethod(method))
-                .toArray(Method[]::new);
-    }
-
     /**
      * Generates accessor metadata from a compile-time type element.
      *
@@ -130,6 +102,34 @@ public class DynamicAccessorGenerator {
                 type.getKind() == ElementKind.INTERFACE
         );
         return generate(info, name + DynamicAccessor.SUFFIX);
+    }
+
+    static GeneratedInfo from(Class<?> type, String accessorName) {
+        return generate(classInfo(type), accessorName);
+    }
+
+    static Method[] publicMethods(Class<?> type) {
+        return Arrays.stream(type.getMethods())
+                .filter(method -> !method.isBridge())
+                .filter(method -> !method.isSynthetic())
+                .filter(method -> !ReflectionUtil.isObjectMethod(method))
+                .toArray(Method[]::new);
+    }
+
+    private static ClassInfo classInfo(Class<?> type) {
+        if (type == null || type.isPrimitive() || type.isArray()) {
+            throw new IllegalArgumentException("Unsupported dynamic accessor type: " + type);
+        }
+        String pkg = type.getPackageName();
+        String name = binaryName(type.getName(), pkg);
+        String qualifiedName = type.getName();
+        Method[] methods = publicMethods(type);
+        List<MethodInfo> methodInfos = new ArrayList<>(methods.length);
+        for (Method method : methods) {
+            methodInfos.add(MethodInfo.from(method));
+        }
+        MethodInfo[] infos = methodInfos.toArray(new MethodInfo[0]);
+        return new ClassInfo(pkg, name, qualifiedName, infos, type.isInterface());
     }
 
     private static GeneratedInfo generate(ClassInfo info, String accessorName) {

@@ -13,14 +13,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * Utilities for composing unary RPC futures.
+ * Provides utility operations for composing unary RPC futures.
  */
 public final class Futures {
 
+    private Futures() {
+    }
+
+    /**
+     * Returns an already completed void future.
+     */
     public static Future<Void> completedVoid() {
         return Promise.completed(null);
     }
 
+    /**
+     * Converts a future result to a void future.
+     *
+     * @param future source future
+     * @return future completed with the source completion, carrying {@code null} on success
+     */
     public static Future<Void> asVoid(Future<?> future) {
         AssertUtil.notNull(future, "future");
         Promise<Void> result = new Promise<>();
@@ -35,6 +47,13 @@ public final class Futures {
         return result;
     }
 
+    /**
+     * Applies a deadline to a source future.
+     *
+     * @param source source future
+     * @param deadline completion deadline
+     * @return source future when the deadline is disabled; otherwise a deadline-aware future
+     */
     public static <T> Future<T> withDeadline(Future<T> source, Deadline deadline) {
         AssertUtil.notNull(source, "source");
         AssertUtil.notNull(deadline, "deadline");
@@ -49,6 +68,14 @@ public final class Futures {
         return result;
     }
 
+    /**
+     * Returns a future completed when every input future succeeds.
+     * <p>
+     * The returned future completes with the first failure and propagates cancellation to all inputs.
+     *
+     * @param futures input futures
+     * @return aggregate future
+     */
     public static Future<Void> allOf(Collection<? extends Future<?>> futures) {
         AssertUtil.notNull(futures, "futures");
         if (futures.isEmpty()) return completedVoid();
@@ -67,6 +94,15 @@ public final class Futures {
         return result;
     }
 
+    /**
+     * Composes a source future with a mapper that returns another future.
+     * <p>
+     * Cancellation of the returned future propagates to the source or mapped future.
+     *
+     * @param source source future
+     * @param mapper mapper producing the next future
+     * @return future completed with the mapped future result
+     */
     public static <T, R> Future<R> compose(Future<T> source, Function<? super T, ? extends Future<R>> mapper) {
         AssertUtil.notNull(source, "source");
         AssertUtil.notNull(mapper, "mapper");
@@ -105,8 +141,5 @@ public final class Futures {
             mapped.onComplete(next::complete);
         });
         return next;
-    }
-
-    private Futures() {
     }
 }

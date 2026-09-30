@@ -15,7 +15,6 @@ import java.util.Map;
  */
 public final class URLUtil {
 
-
     /**
      * Converts a map of parameters into an encoded query string.
      */

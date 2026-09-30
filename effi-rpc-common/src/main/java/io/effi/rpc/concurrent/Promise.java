@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
- * Thread-safe, single-assignment {@link Future} implementation.
+ * Provides a thread-safe, single-assignment {@link Future} implementation.
  */
 public final class Promise<T> implements Future<T> {
 
@@ -43,18 +43,38 @@ public final class Promise<T> implements Future<T> {
 
     private boolean terminal;
 
+    /**
+     * Returns an already completed promise.
+     *
+     * @param value success value
+     * @return completed promise
+     */
     public static <T> Promise<T> completed(T value) {
         Promise<T> promise = new Promise<>();
         promise.complete(Result.success(value));
         return promise;
     }
 
+    /**
+     * Returns an already failed promise.
+     *
+     * @param cause failure cause
+     * @return failed promise
+     */
     public static <T> Promise<T> failed(EffiRpcException cause) {
         Promise<T> promise = new Promise<>();
         promise.complete(Result.failure(cause));
         return promise;
     }
 
+    /**
+     * Completes this promise with a terminal result.
+     * <p>
+     * The first completion attempt wins; later attempts return {@code false}.
+     *
+     * @param terminalResult terminal result
+     * @return {@code true} when this call completed the promise
+     */
     public boolean complete(Result<T> terminalResult) {
         AssertUtil.notNull(terminalResult, "terminalResult");
         if (!result.compareAndSet(null, terminalResult)) {
@@ -68,14 +88,34 @@ public final class Promise<T> implements Future<T> {
         return true;
     }
 
+    /**
+     * Completes this promise successfully.
+     *
+     * @param value success value
+     * @return {@code true} when this call completed the promise
+     */
     public boolean success(T value) {
         return complete(Result.success(value));
     }
 
+    /**
+     * Completes this promise with a failure.
+     *
+     * @param cause failure cause
+     * @return {@code true} when this call completed the promise
+     */
     public boolean failure(EffiRpcException cause) {
         return complete(Result.failure(cause));
     }
 
+    /**
+     * Registers a cancellation handler.
+     * <p>
+     * The handler runs immediately when cancellation has already been requested.
+     *
+     * @param handler cancellation handler
+     * @return this promise
+     */
     public Promise<T> onCancel(Consumer<EffiRpcException> handler) {
         AssertUtil.notNull(handler, "handler");
         EffiRpcException reasonToRun = null;
@@ -114,6 +154,7 @@ public final class Promise<T> implements Future<T> {
             return this;
         }
         callbacks.add(entry);
+        // Re-check after enqueue to close the race with terminal publication.
         current = result.get();
         if (current != null && callbacks.remove(entry)) {
             dispatch(entry, current);
@@ -135,6 +176,13 @@ public final class Promise<T> implements Future<T> {
         }
     }
 
+    /**
+     * Waits until the deadline, cancelling this promise when the deadline elapses.
+     *
+     * @param deadline wait deadline
+     * @return terminal result
+     * @throws InterruptedException if the current thread is interrupted while waiting
+     */
     @Override
     public Result<T> await(Deadline deadline) throws InterruptedException {
         AssertUtil.notNull(deadline, "deadline");
