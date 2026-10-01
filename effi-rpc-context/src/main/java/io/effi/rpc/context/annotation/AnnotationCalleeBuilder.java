@@ -1,5 +1,6 @@
 package io.effi.rpc.context.annotation;
 
+import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
@@ -49,7 +50,10 @@ public class AnnotationCalleeBuilder<S> {
      */
     public <T extends Servant> T build(BiFunction<ServantMethod<S>, HierarchicalOptions, Builder<T>> builder) {
         AssertUtil.notBlank(style, "style");
-        AnnotationStyleResolver styleResolver = AnnotationStyle.getInstance(style).resolver();
+        AnnotationStyleResolver styleResolver = AnnotationStyle.getInstance(
+                ScopedPlatform.defaultInstance(),
+                style
+        ).resolver();
         HierarchicalOptions options = HierarchicalOptions.create().withOwner(servantGroup);
         styleResolver.resolveType(servantGroup.targetType(), options);
         MethodBinding binding = styleResolver.resolveMethodBinding(method);

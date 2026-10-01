@@ -4,6 +4,7 @@ import io.effi.rpc.annotation.rpc.Call;
 import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.annotation.rpc.Serve;
 import io.effi.rpc.annotation.rpc.ServeGroup;
+import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.serialization.options.CompressionOptions;
 import io.effi.rpc.context.annotation.AnnotationStyle;
 import io.effi.rpc.context.annotation.AnnotationStyleResolver;
@@ -185,12 +186,29 @@ public final class AnnotationSupport {
      * @param options    target options
      * @return resolved annotation style
      */
-    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalOptions options) {
-        AnnotationStyle annotationStyle = AnnotationStyle.getInstance(options);
+    public static AnnotationStyle checkAnnotationStyle(
+            Class<?> targetType,
+            HierarchicalOptions options,
+            ScopedPlatform platform
+    ) {
+        AnnotationStyle annotationStyle = AnnotationStyle.getInstance(platform, options);
         AnnotationStyleResolver resolver = annotationStyle.resolver();
         if (resolver != null)
             resolver.resolveType(targetType, options);
         return annotationStyle;
+    }
+
+    /**
+     * Resolves the annotation style from the default platform.
+     *
+     * @param targetType annotated type
+     * @param options target options
+     * @return resolved annotation style
+     * @deprecated use {@link #checkAnnotationStyle(Class, HierarchicalOptions, ScopedPlatform)}
+     */
+    @Deprecated
+    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalOptions options) {
+        return checkAnnotationStyle(targetType, options, ScopedPlatform.defaultInstance());
     }
 
     /**
@@ -213,15 +231,33 @@ public final class AnnotationSupport {
      *
      * @param options         method options
      * @param annotationStyle fallback annotation style
+     * @param platform        owning platform
      * @return effective annotation style resolver
      */
     public static AnnotationStyleResolver annotationStyleParserForMethod(Options options,
-                                                                         AnnotationStyle annotationStyle) {
+                                                                         AnnotationStyle annotationStyle,
+                                                                         ScopedPlatform platform) {
         String style = options.option(PeerOptions.ANNOTATION_STYLE);
         if (StringUtil.isBlank(style)) return annotationStyle.resolver();
         return Objects.equals(style, annotationStyle.name())
                 ? annotationStyle.resolver()
-                : AnnotationStyle.getInstance(style).resolver();
+                : AnnotationStyle.getInstance(platform, style).resolver();
+    }
+
+    /**
+     * Resolves the annotation style from the default platform.
+     *
+     * @param options         method options
+     * @param annotationStyle fallback annotation style
+     * @return effective annotation style resolver
+     * @deprecated use {@link #annotationStyleParserForMethod(Options, AnnotationStyle, ScopedPlatform)}
+     */
+    @Deprecated
+    public static AnnotationStyleResolver annotationStyleParserForMethod(
+            Options options,
+            AnnotationStyle annotationStyle
+    ) {
+        return annotationStyleParserForMethod(options, annotationStyle, ScopedPlatform.defaultInstance());
     }
 
     // Preserve legacy blank defaults only when no explicit option exists in the current scope.

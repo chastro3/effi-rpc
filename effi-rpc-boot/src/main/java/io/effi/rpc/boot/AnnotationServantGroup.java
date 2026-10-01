@@ -67,7 +67,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
             serviceAnnotation = AssertUtil.requireAnnotation(targetType, ServeGroup.class);
             name = serviceAnnotation.value();
             AnnotationSupport.apply(serviceAnnotation, options);
-            annotationStyle = checkAnnotationStyle(targetType, options);
+            annotationStyle = checkAnnotationStyle(targetType, options, module.platform());
         }
 
         @Override
@@ -116,7 +116,11 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
         }
 
         private MethodBinding methodBinding(HierarchicalOptions options, Method method) {
-            AnnotationStyleResolver resolver = annotationStyleParserForMethod(options, annotationStyle);
+            AnnotationStyleResolver resolver = annotationStyleParserForMethod(
+                    options,
+                    annotationStyle,
+                    module.platform()
+            );
             if (resolver != null && resolver.supports(method)) {
                 MethodBinding binding = resolver.resolveMethodBinding(method);
                 resolver.resolveMethod(method, options);

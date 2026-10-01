@@ -17,6 +17,14 @@ public final class InvocationArguments {
         this.values = values;
     }
 
+    /**
+     * Returns the mutable backing array.
+     * <p>
+     * Interceptors may update this array through {@link #set(int, Object)} before
+     * the request is encoded. Callers must not retain or resize the returned array.
+     *
+     * @return mutable backing array
+     */
     public Object[] values() {
         return values;
     }
@@ -33,6 +41,12 @@ public final class InvocationArguments {
         return values[index];
     }
 
+    /**
+     * Replaces one positional argument.
+     *
+     * @param index argument index
+     * @param value argument value
+     */
     public void set(int index, Object value) {
         values[index] = value;
     }

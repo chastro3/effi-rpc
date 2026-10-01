@@ -146,8 +146,8 @@ public final class CallExecution<R> {
         int failures = failureCount.incrementAndGet();
         try {
             failureHandler.handle(context, failures, cause);
-        } catch (EffiRpcException e) {
-            completion.failure(e);
+        } catch (Throwable e) {
+            completion.failure(toRpcException(e));
             return;
         }
         retry();

@@ -2,23 +2,16 @@ package io.effi.rpc.context.annotation;
 
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.option.Options;
-import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.options.PeerOptions;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import io.effi.rpc.context.options.PeerOptions;
-
 /**
- * Caches and provides {@link AnnotationStyleResolver} instance.
+ * Resolves an {@link AnnotationStyleResolver} for the owning platform.
  */
 public class AnnotationStyle {
 
     public static final AnnotationStyle UNKNOWN = new AnnotationStyle(null, null);
-
-    private static final Object LOCK = new Object();
-
-    private static final Map<String, AnnotationStyle> CACHE = new ConcurrentHashMap<>(4);
 
     private final String name;
 
@@ -29,31 +22,58 @@ public class AnnotationStyle {
         this.resolver = resolver;
     }
 
-    public static AnnotationStyle getInstance(Options options) {
+    /**
+     * Resolves the annotation style configured by the supplied options.
+     *
+     * @param platform owning platform
+     * @param options options carrying the style name
+     * @return resolved annotation style
+     */
+    public static AnnotationStyle getInstance(ScopedPlatform platform, Options options) {
         if (options == null) return UNKNOWN;
-        return getInstance(options.option(PeerOptions.ANNOTATION_STYLE));
+        return getInstance(platform, options.option(PeerOptions.ANNOTATION_STYLE));
     }
 
-    public static AnnotationStyle getInstance(String name) {
+    /**
+     * Resolves the named annotation style from the owning platform.
+     *
+     * @param platform owning platform
+     * @param name style name
+     * @return resolved annotation style
+     */
+    public static AnnotationStyle getInstance(ScopedPlatform platform, String name) {
         if (StringUtil.isBlank(name)) {
-            return AnnotationStyle.UNKNOWN;
+            return UNKNOWN;
         }
-        AnnotationStyle style = CACHE.get(name);
-        if (style == null) {
-            synchronized (LOCK) {
-                style = CACHE.get(name);
-                if (style == null) {
-                    try {
-                        AnnotationStyleResolver parser = ScopedPlatform.defaultInstance()
-                                .namedExtension(AnnotationStyleResolver.class, name);
-                        style = new AnnotationStyle(name, parser);
-                        CACHE.put(name, style);
-                    } catch (Exception ignored) {
-                    }
-                }
-            }
-        }
-        return style == null ? UNKNOWN : style;
+        AssertUtil.notNull(platform, "platform");
+        return new AnnotationStyle(
+                name,
+                platform.namedExtension(AnnotationStyleResolver.class, name)
+        );
+    }
+
+    /**
+     * Resolves the annotation style from the default platform.
+     *
+     * @param options options carrying the style name
+     * @return resolved annotation style
+     * @deprecated use {@link #getInstance(ScopedPlatform, Options)}
+     */
+    @Deprecated
+    public static AnnotationStyle getInstance(Options options) {
+        return getInstance(ScopedPlatform.defaultInstance(), options);
+    }
+
+    /**
+     * Resolves the named annotation style from the default platform.
+     *
+     * @param name style name
+     * @return resolved annotation style
+     * @deprecated use {@link #getInstance(ScopedPlatform, String)}
+     */
+    @Deprecated
+    public static AnnotationStyle getInstance(String name) {
+        return getInstance(ScopedPlatform.defaultInstance(), name);
     }
 
     public String name() {

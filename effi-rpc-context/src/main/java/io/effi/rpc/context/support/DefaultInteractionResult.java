@@ -53,6 +53,6 @@ public class DefaultInteractionResult<T> implements Interaction.Result {
     @SuppressWarnings("unchecked")
     @Override
     public <R> R excepted() {
-        return (R) value();
+        return (R) result.requireValue();
     }
 }

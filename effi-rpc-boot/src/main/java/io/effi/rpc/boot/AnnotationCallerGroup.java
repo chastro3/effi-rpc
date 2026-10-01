@@ -63,7 +63,7 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
             }
             callGroup = AssertUtil.requireAnnotation(targetType, CallGroup.class);
             AnnotationSupport.apply(callGroup, options);
-            annotationStyle = checkAnnotationStyle(targetType, options);
+            annotationStyle = checkAnnotationStyle(targetType, options, module.platform());
             resolveProxy();
         }
 
@@ -110,7 +110,11 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
         }
 
         private MethodBinding methodBinding(HierarchicalOptions options, Method method) {
-            AnnotationStyleResolver resolver = annotationStyleParserForMethod(options, annotationStyle);
+            AnnotationStyleResolver resolver = annotationStyleParserForMethod(
+                    options,
+                    annotationStyle,
+                    module.platform()
+            );
             if (resolver != null && resolver.supports(method)) {
                 MethodBinding binding = resolver.resolveMethodBinding(method);
                 resolver.resolveMethod(method, options);

@@ -90,6 +90,12 @@ public interface Interaction {
         @Override
         EffiRpcException cause();
 
+        /**
+         * Returns the value or throws the failure cause.
+         *
+         * @return result value
+         * @throws EffiRpcException when this result failed
+         */
         <T> T excepted();
 
         static Result success(SmartURL url, Object result) {

@@ -112,6 +112,45 @@ class CallExecutionTest {
         assertSame(reason, fixture.lastAttempt().await().cause());
     }
 
+    @Test
+    void failedStageResultIsHandledByFailureHandler() throws Exception {
+        EffiRpcException failure = PredefinedErrorCode.COMMON.fail("stage failure");
+        Fixture fixture = new Fixture(-1L);
+        fixture.stageResult = Interaction.Result.failure(
+                SmartURL.valueOf("http://127.0.0.1:8080/test"),
+                failure
+        );
+        fixture.failureHandler = (context, failureCount, cause) -> {
+            throw cause;
+        };
+
+        Result<String> result = fixture.newExecution().execute().await();
+
+        assertTrue(result.failed());
+        assertSame(failure, result.cause());
+        assertEquals(0, fixture.attempts.get());
+    }
+
+    @Test
+    void uncheckedFailureHandlerExceptionCompletesExecution() throws Exception {
+        EffiRpcException failure = PredefinedErrorCode.COMMON.fail("stage failure");
+        RuntimeException handlerFailure = new IllegalStateException("handler failure");
+        Fixture fixture = new Fixture(-1L);
+        fixture.stageResult = Interaction.Result.failure(
+                SmartURL.valueOf("http://127.0.0.1:8080/test"),
+                failure
+        );
+        fixture.failureHandler = (context, failureCount, cause) -> {
+            throw handlerFailure;
+        };
+
+        Result<String> result = fixture.newExecution().execute().await();
+
+        assertTrue(result.failed());
+        assertSame(handlerFailure, result.cause().getCause());
+        assertEquals(0, fixture.attempts.get());
+    }
+
     private static void complete(
             ReplyFuture future,
             CallContext<Request, Caller<?>> context,
@@ -147,6 +186,8 @@ class CallExecutionTest {
 
         private AttemptFactory attemptFactory;
 
+        private Interaction.Result stageResult;
+
         private Fixture(long timeoutMillis) {
             Scheduler scheduler = new Scheduler();
             platform.registry().register(Scheduler.class, scheduler);
@@ -164,6 +205,9 @@ class CallExecutionTest {
             });
 
             Stage.Chain stageChain = proxy(Stage.Chain.class, (proxy, method, args) -> {
+                if (stageResult != null) {
+                    return stageResult;
+                }
                 CallContext<Request, Caller<?>> context = (CallContext<Request, Caller<?>>) args[0];
                 ReplyFuture future = attemptFactory.create(context, attempts.incrementAndGet());
                 lastAttempt.set(future);
