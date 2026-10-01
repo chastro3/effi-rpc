@@ -31,10 +31,16 @@ public class ExternalComponent<T> extends DynamicTagComponent implements Identif
         this.cleanable = cleanable;
     }
 
+    /**
+     * Returns the generic key identifying this component.
+     */
     public GenericKey<T> name() {
         return name;
     }
 
+    /**
+     * Returns the wrapped component value.
+     */
     public T value() {
         return value;
     }

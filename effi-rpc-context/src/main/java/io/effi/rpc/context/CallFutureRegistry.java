@@ -51,7 +51,7 @@ public final class CallFutureRegistry implements Closeable {
             listener.run();
             return;
         }
-        future.onComplete(result -> listener.run());
+        future.onComplete(_ -> listener.run());
     }
 
     public synchronized Future<?> remove(long callId) {

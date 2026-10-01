@@ -18,6 +18,12 @@ public class DynamicTagComponent implements TagComponent {
 
     protected volatile Set<String> tags;
 
+    /**
+     * Adds tags to this component.
+     *
+     * @param tags tags to add
+     * @return this component
+     */
     public DynamicTagComponent addTags(String... tags) {
         if (CollectionUtil.isNotEmpty(tags)) {
             delayedTags().addAll(Arrays.asList(tags));

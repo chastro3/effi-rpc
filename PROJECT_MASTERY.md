@@ -288,29 +288,165 @@ proxy / caller proxy
 
 ### 5.5 `effi-rpc-context`
 
-RPC 调用语义核心，位于 component 之上、boot 之下。
+RPC 调用语义核心，位于 component 之上、boot 和具体 protocol 之下。
+本模块定义协议无关的抽象和默认支撑实现，实际 HTTP/gRPC 行为仍以
+`effi-rpc-boot` 与 `effi-rpc-protocols` 的实现为准。
 
-核心职责：
+**静态模型**
 
-- Caller / Servant / Peer / PeerGroup / PeerDescriptor。
-- Invocation、MethodBinding、ParameterBinder、Argument。
-- CallContext / ReplyContext / Interaction。
-- Stage / Interceptor / Chain / ChainResolver。
-- Metrics 事件、指标接口和指标 collector。
-- CallExecution、ReplyFuture、CallFutureRegistry。
-- 协议接口、消息接口、调用/回复类型。
+- `Peer` 是 Caller 和 Servant 的共同父接口，统一提供 protocol、query path、
+  reply type、thread pool、call/reply stage chain、call/reply interceptor chain、
+  hierarchical options 和 module。
+- `PeerDescriptor` 是不可变的 peer 描述，字段为
+  `kind / protocol / path / replyType / options`。
+- `PeerGroup` 管理同类 peer；`CallerGroup` 额外暴露客户端代理，
+  `ServantGroup` 额外暴露服务实现、方法索引和调用入口。
+- `Caller` 和 `Servant` 都是 module-scoped；`Protocol` 是 platform-scoped 的
+  `PeerFactory + MessageFactory`。
+- `Message / Request / Response` 表达协议消息边界：
+  Request 决定是否需要回复，Response 暴露成功状态和失败原因。
+- `CallContext` 发生在请求发送前或服务端方法调用前；
+  `ReplyContext` 发生在收到响应后或服务端发送响应前。
 
-典型调用阶段：
+**构建与解析**
 
-1. `CallExecution.execute()`
-2. 创建 `CallContext`
-3. 执行 call interceptor / stage chain
-4. `Locator` 选择目标服务
-5. 选择协议并创建 request
-6. transport 发送
-7. reply future 完成
-8. reply interceptor / stage chain
-9. Promise 完成并取消 deadline
+`AbstractPeer.Builder.build()` 的固定顺序是：
+
+```text
+validate
+  -> resolve protocol and descriptor
+  -> prepare peer-specific dependencies
+  -> resolve thread pool / stage chain / interceptor chain
+  -> checkState
+  -> newInstance
+  -> register peer into module and peer group
+```
+
+- `Caller.Builder.prepare()` 解析 `Locator`、`ClientConfig` 和
+  `Unary.FailureHandler`。
+- `AbstractCaller.call()` 创建 `CallExecution`，统一处理超时、取消、重试和最终完成。
+- `AbstractServant.invoke()` 委托给 `ServantGroup.invoke()`；实际方法定位由
+  `ServantGroup.indexOf()` 和 `MethodBinder` 完成。
+- peer options 注册到 group 后以 group options 为 parent；
+  `AbstractPeer` 再把 descriptor options 的 owner 设为自身。
+
+**Invocation 与参数绑定**
+
+- `PositionalInvocation` 表示没有方法签名元数据的直接调用；
+  `MethodInvocation` 在它之上增加 `MethodSignature`。
+- `InvocationArguments` 是有序参数数组；
+  `InvocationAttributes` 存放协议无关或协议私有的附加属性。
+- `MethodBinding` 表示一个方法的全部参数绑定，
+  `positional=true` 时使用数组位置，否则通过 invocation attributes 绑定。
+- `PositionParameterBinder` 只处理位置参数；
+  `AnnotationParameterBinder` 通过注解的 `Writer / Reader` 做双向绑定。
+- `MethodBinder.bind()` 校验参数数量并生成 `MethodInvocation`；
+  `MethodBinder.resolve()` 按 `ParameterBinding` 逐项取值并调用
+  `ReflectionUtil.convertToParameterType()` 做参数类型转换。
+- `Body / Header / PathVar / ParamVar` 以及 `Argument.Source / Target`
+  是参数来源和目标注入的中间模型。
+
+**调用链**
+
+默认调用方链由 boot 的 `DefaultStageChainResolver` 组装：
+
+```text
+CallInterceptorStage
+  -> LocatorStage
+    -> ChosenInterceptorStage
+      -> CallAttemptStage
+        -> tail
+```
+
+实际执行时：
+
+1. `CallExecution.execute()` 启动一次逻辑调用；
+2. 创建 `CallContext`，由 `Protocol.createRequest()` 创建协议请求；
+3. `CallInterceptorStage` 执行 `callInterceptorChain`；
+4. 拦截器链尾部的 `StageInterceptor` 继续执行下一 stage；
+5. `LocatorStage` 调用 `Caller.locator().locate(context)` 并写入目标地址；
+6. `ChosenInterceptorStage` 执行目标选择后的 `chosenInterceptorChain`；
+7. `CallAttemptStage` 创建 `ReplyFuture`、`CallAttempt` 并交给 transport；
+8. transport 完成响应后进入 reply stage chain；
+9. `CallExecution` 读取 `ReplyFuture.rawResult()`，最终完成自身的 `Promise`。
+
+**服务端链**
+
+服务端由具体 protocol 的 invocation resolver 把协议消息转换为
+`PositionalInvocation`，然后执行：
+
+```text
+CallInterceptorStage
+  -> interceptor chain
+    -> InvokeServantStage
+      -> Servant.invoke()
+        -> ServantGroup.invoke()
+```
+
+`InvokeServantStage` 把返回值或异常包装为 `Interaction.Result`；
+protocol 再通过 `MessageFactory.createResponse()` 生成协议响应。
+
+**回复链**
+
+服务端和客户端的 reply phase 使用同一套 `ReplyContext` 语义：
+
+```text
+ReplyInterceptorStage
+  -> reply interceptor chain
+    -> ReplyResultStage
+      -> Interaction.Result
+```
+
+`CallAttemptStage` 注册的完成回调会执行调用方 reply stage chain；
+`ReplyResultStage` 是最终结果出口，负责把 `ReplyContext.result()` 继续向上返回。
+
+**失败、超时与取消**
+
+- `Unary.FailureHandler` 是 platform-scoped 扩展点。
+- `FailFast` 直接抛出失败；`FailRetry` 只对显式 retryable 标记或
+  `SERVICE_UNAVAILABLE / SERVER_OVERLOADED` 重试。
+- `CallExecution` 从 `CallerOptions.TIMEOUT` 创建 `Deadline`；
+  timeout < 0 表示无 deadline。
+- deadline 到期会取消整个 completion，并取消活动 attempt；
+  取消也会向当前 `ReplyFuture` 传播。
+- 重试延迟使用 `RETRY_BACKOFF + 指数增长 + RETRY_JITTER`，
+  最大不超过 `RETRY_MAX_BACKOFF`。
+
+**Future 与在途调用**
+
+- `ReplyFuture` 是协议层和调用语义层之间的 unary future，
+  构造时向 platform-scoped `CallFutureRegistry` 注册唯一 id。
+- 唯一 id 同时写入 `CallContext` 和 `SmartURL`，用于 transport
+  完成响应后找回对应 future。
+- `CallFutureRegistry` 在 future 完成时自动移除；
+  platform 关闭时取消全部在途 future。
+- `ReplyFuture.complete()` 先保存 `rawResult`，再完成 delegate Promise；
+  reply stage chain 的结果最终由 `CallExecution` 读取。
+
+**指标**
+
+- `CallerMetrics` 和 `CalleeMetrics` 挂在 peer attributes 上，
+  由 future/call 事件处理器更新。
+- caller 侧由 `CallExecution` 记录开始时间，
+  `CallerMetricsInterceptor` 记录结束时间并发布 `CallerMetricsEvent`。
+- callee 侧由 `CallExecuteRecordInterceptor` 记录开始和结束时间。
+- `MetricsSupport` 的计时 key 放在 `CallContext` attributes 中。
+
+**当前边界**
+
+- `MetricsEvent` 当前通过 `END_TIME - START_TIME` 计算执行时长，
+  代码中又除以 `1_000_000`；这与“duration 为 nanoseconds”的注释不一致，
+  维护时要先确认单位约定。
+- `MetricsEvent` 直接对计时 key 做 `Long` 拆箱；如果某个协议没有写入
+  可选计时点，会增加 NPE 风险。
+- `AnnotationStyle` 使用静态缓存和
+  `ScopedPlatform.defaultInstance()`；多 platform、同名 style 场景需要
+  特别确认缓存隔离是否符合预期。
+- `ImmutableStageChain` 和 `ImmutableInterceptorChain` 的 tail 返回
+  `null`，这是链结束标记而不是业务结果。自定义链必须保证最后有
+  `ReplyResultStage` 或等价的 result-producing tail。
+- `context` 只定义契约和默认执行语义；HTTP/gRPC 的 message、codec、
+  transport 绑定必须回到对应 protocol 模块核对。
 
 ### 5.6 `effi-rpc-boot`
 

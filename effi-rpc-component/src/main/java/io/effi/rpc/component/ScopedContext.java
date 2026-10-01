@@ -141,44 +141,80 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return extensionRepository.namedExtensions(type, filter);
     }
 
+    /**
+     * Returns whether this context supports the supplied scope.
+     *
+     * @param scope component scope
+     * @return {@code true} when the scope matches
+     */
     public boolean matchesScope(Scope scope) {
         return this.scope == scope || Scope.UNIVERSAL == scope;
     }
 
+    /**
+     * Renames this context and updates its parent registry.
+     *
+     * @param name new context name
+     * @return this context
+     */
     public ScopedContext name(String name) {
         String newName = AssertUtil.notBlank(name, "id");
         this.name = changeName(this.name, newName);
         return this;
     }
 
+    /**
+     * Returns the component registry for this context.
+     */
     public ComponentRegistry registry() {
         return componentRepository;
     }
 
+    /**
+     * Returns the context name.
+     */
     public String name() {
         return name;
     }
 
+    /**
+     * Returns the context scope.
+     */
     public Scope scope() {
         return scope;
     }
 
+    /**
+     * Returns the parent context.
+     */
     public ScopedContext parent() {
         return parent;
     }
 
+    /**
+     * Returns call-scoped options.
+     */
     public Options callOptions() {
         return callOptions;
     }
 
+    /**
+     * Returns serve-scoped options.
+     */
     public Options serveOptions() {
         return serveOptions;
     }
 
+    /**
+     * Returns context-level options.
+     */
     public HierarchicalOptions options() {
         return options;
     }
 
+    /**
+     * Starts this context and notifies start listeners.
+     */
     public void start() {
         if (closed.get()) {
             throw new IllegalStateException("Scoped context '" + name + "' is already closed");
@@ -227,21 +263,21 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         return newName;
     }
 
+    protected void doInit() {
+    }
+
+    protected void doStart() {
+
+    }
+
+    protected void doClose() {
+
+    }
+
     private ComponentRepository checkComponentRepository(ComponentRepository repository) {
         if (repository == null) return new DelegateComponentRepository(this);
         if (repository instanceof ScopedContextOwned owned) owned.withOwner(this);
         return repository;
-    }
-
-    protected void doInit() {
-    }
-
-    protected  void doStart(){
-
-    }
-
-    protected  void doClose(){
-
     }
 
     /**

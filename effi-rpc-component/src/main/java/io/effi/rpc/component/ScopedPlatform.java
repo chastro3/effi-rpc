@@ -41,10 +41,19 @@ public final class ScopedPlatform extends ScopedContext {
         super(PLATFORM, Listener.class, null, defaultPlatform);
     }
 
+    /**
+     * Returns the default platform.
+     */
     public static ScopedPlatform defaultInstance() {
         return DEFAULT_PLATFORM.ensure();
     }
 
+    /**
+     * Returns the platform registered with the supplied name.
+     *
+     * @param name platform name
+     * @return platform, or {@code null} when absent
+     */
     public static ScopedPlatform lookup(String name) {
         if (StringUtil.isBlank(name)) return null;
         return PLATFORMS.get(name);
@@ -55,28 +64,56 @@ public final class ScopedPlatform extends ScopedContext {
         return (ScopedPlatform) super.name(name);
     }
 
+    /**
+     * Returns the default application.
+     */
     public ScopedApplication defaultApplication() {
         return defaultApplication.ensure();
     }
 
+    /**
+     * Creates an unnamed application.
+     */
     public ScopedApplication newApplication() {
         return newApplication(null);
     }
 
+    /**
+     * Creates an application with the supplied name.
+     *
+     * @param name application name
+     * @return created application
+     */
     public ScopedApplication newApplication(String name) {
         return newApplication(name, null);
     }
 
+    /**
+     * Creates an application with the supplied name and component repository.
+     *
+     * @param name application name
+     * @param repository application component repository
+     * @return created application
+     */
     public ScopedApplication newApplication(String name, ComponentRepository repository) {
         if (StringUtil.isBlank(name)) name = "application-" + NUM.incrementAndGet();
         return new ScopedApplication(this, name, repository);
     }
 
+    /**
+     * Returns the named application.
+     *
+     * @param name application name
+     * @return application, or {@code null} when absent
+     */
     public ScopedApplication lookupApplication(String name) {
         if (StringUtil.isBlank(name)) return null;
         return namedComponent(ScopedApplication.class, name);
     }
 
+    /**
+     * Returns all applications registered in this platform.
+     */
     public Collection<ScopedApplication> applications() {
         return components(ScopedApplication.class);
     }

@@ -33,6 +33,9 @@ public final class ScopedApplication extends ScopedContext implements ScopedPlat
         super(APPLICATION, Listener.class, ScopedPlatform.defaultInstance(), defaultApplication);
     }
 
+    /**
+     * Returns the default application of the default platform.
+     */
     public static ScopedApplication defaultInstance() {
         return ScopedPlatform.defaultInstance().defaultApplication();
     }
@@ -57,27 +60,55 @@ public final class ScopedApplication extends ScopedContext implements ScopedPlat
         return (ScopedPlatform) parent;
     }
 
+    /**
+     * Creates an unnamed module.
+     */
     public ScopedModule newModule() {
         return newModule(null);
     }
 
+    /**
+     * Creates a module with the supplied name.
+     *
+     * @param name module name
+     * @return created module
+     */
     public ScopedModule newModule(String name) {
         return newModule(name, null);
     }
 
+    /**
+     * Creates a module with the supplied name and component repository.
+     *
+     * @param name module name
+     * @param repository module component repository
+     * @return created module
+     */
     public ScopedModule newModule(String name, ComponentRepository repository) {
         if (StringUtil.isBlank(name)) name = "module-" + NUM.incrementAndGet();
         return new ScopedModule(this, name, repository);
     }
 
+    /**
+     * Returns the named module.
+     *
+     * @param name module name
+     * @return module, or {@code null} when absent
+     */
     public ScopedModule lookupModule(String name) {
         return namedComponent(ScopedModule.class, name);
     }
 
+    /**
+     * Returns the default module.
+     */
     public ScopedModule defaultModule() {
         return defaultModule.ensure();
     }
 
+    /**
+     * Returns all modules registered in this application.
+     */
     public Collection<ScopedModule> modules() {
         return components(ScopedModule.class);
     }

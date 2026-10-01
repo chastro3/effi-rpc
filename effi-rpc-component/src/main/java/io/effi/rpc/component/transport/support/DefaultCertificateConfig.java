@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 /**
- * Provide the default implementation of {@link CertificateConfig}.
+ * Provides the default implementation of {@link CertificateConfig}.
  */
 public class DefaultCertificateConfig implements CertificateConfig {
 
@@ -88,46 +88,100 @@ public class DefaultCertificateConfig implements CertificateConfig {
 
         private boolean clientAuthEnabled;
 
+        /**
+         * Sets the certificate configuration id.
+         *
+         * @param id certificate configuration id
+         * @return this builder
+         */
         public Builder id(String id) {
             this.id = id;
             return self();
         }
 
+        /**
+         * Reads the certificate chain from a file path.
+         *
+         * @param certChainPath certificate chain path
+         * @return this builder
+         */
         public Builder certChainPath(String certChainPath) {
             this.certChain = readFileBytes(certChainPath);
             return self();
         }
 
+        /**
+         * Reads the certificate chain from an input stream.
+         *
+         * @param certChain certificate chain stream
+         * @return this builder
+         */
         public Builder certChain(InputStream certChain) {
             this.certChain = readStreamBytes(certChain, "certChain");
             return self();
         }
 
+        /**
+         * Reads the private key from a file path.
+         *
+         * @param privateKeyPath private key path
+         * @return this builder
+         */
         public Builder privateKeyPath(String privateKeyPath) {
             this.privateKey = readFileBytes(privateKeyPath);
             return self();
         }
 
+        /**
+         * Reads the private key from an input stream.
+         *
+         * @param privateKey private key stream
+         * @return this builder
+         */
         public Builder privateKey(InputStream privateKey) {
             this.privateKey = readStreamBytes(privateKey, "privateKey");
             return self();
         }
 
+        /**
+         * Sets the private key password.
+         *
+         * @param privateKeyPassword private key password
+         * @return this builder
+         */
         public Builder privateKeyPassword(String privateKeyPassword) {
             this.privateKeyPassword = privateKeyPassword;
             return self();
         }
 
+        /**
+         * Reads the trust certificate from a file path.
+         *
+         * @param trustCertPath trust certificate path
+         * @return this builder
+         */
         public Builder trustCertPath(String trustCertPath) {
             this.trustCert = readFileBytes(trustCertPath);
             return self();
         }
 
+        /**
+         * Reads the trust certificate from an input stream.
+         *
+         * @param trustCert trust certificate stream
+         * @return this builder
+         */
         public Builder trustCert(InputStream trustCert) {
             this.trustCert = readStreamBytes(trustCert, "trustCert");
             return self();
         }
 
+        /**
+         * Enables or disables client certificate authentication.
+         *
+         * @param clientAuthEnabled whether client authentication is enabled
+         * @return this builder
+         */
         public Builder clientAuthEnabled(boolean clientAuthEnabled) {
             this.clientAuthEnabled = clientAuthEnabled;
             return self();

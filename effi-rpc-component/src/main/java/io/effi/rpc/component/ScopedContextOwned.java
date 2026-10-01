@@ -13,9 +13,20 @@ public interface ScopedContextOwned {
      */
     ScopedContext owner();
 
+    /**
+     * Rebinds this owner-aware object to the supplied scoped context.
+     *
+     * @param owner new scoped context owner
+     */
     default void withOwner(ScopedContext owner) {
     }
 
+    /**
+     * Validates and returns the component descriptor for the supplied type.
+     *
+     * @param type component type
+     * @return component descriptor
+     */
     default ComponentDescriptor ensureComponentDescriptor(Class<?> type) {
         return ComponentDescriptor.ensure(type, owner());
     }

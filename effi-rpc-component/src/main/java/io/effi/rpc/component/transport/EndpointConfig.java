@@ -33,7 +33,10 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
     interface Configurator<SELF extends Configurator<SELF>> extends Options.Supplier, Fluent<SELF> {
 
         /**
-         * Set the send buffer size.
+         * Sets the send buffer size.
+         *
+         * @param sendBufferSize send buffer size in bytes
+         * @return this configurator
          */
         default SELF sendBufferSize(int sendBufferSize) {
             addOption(TransportOptions.SEND_BUFFER_SIZE, sendBufferSize);
@@ -41,7 +44,10 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
         }
 
         /**
-         * Set the receive buffer size.
+         * Sets the receive buffer size.
+         *
+         * @param receiveBufferSize receive buffer size in bytes
+         * @return this configurator
          */
         default SELF receiveBufferSize(int receiveBufferSize) {
             addOption(TransportOptions.RECEIVE_BUFFER_SIZE, receiveBufferSize);
@@ -50,6 +56,9 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
 
         /**
          * Sets the idle count threshold for closing connections.
+         *
+         * @param ideCountThreshold idle count threshold
+         * @return this configurator
          */
         default SELF idleCountThreshold(int ideCountThreshold) {
             addOption(TransportOptions.IDLE_COUNT_THRESHOLD, ideCountThreshold);
@@ -57,7 +66,10 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
         }
 
         /**
-         * Sets the interval for triggering idle connections.
+         * Sets the interval for triggering idle checks.
+         *
+         * @param idleTriggerInterval idle trigger interval in milliseconds
+         * @return this configurator
          */
         default SELF idleTriggerInterval(int idleTriggerInterval) {
             addOption(TransportOptions.IDLE_TRIGGER_INTERVAL, idleTriggerInterval);
@@ -66,6 +78,9 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
 
         /**
          * Sets the certificate configuration.
+         *
+         * @param certificateConfig certificate configuration
+         * @return this configurator
          */
         SELF certificate(CertificateConfig certificateConfig);
 

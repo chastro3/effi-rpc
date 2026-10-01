@@ -24,14 +24,14 @@ public class Scheduler implements Closeable {
 
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5L;
 
-    private ScheduledExecutorService disposableService;
-
-    private ScheduledExecutorService periodicService;
-
     private final LazySingleton<ScheduledExecutorService> defaultService =
             LazySingleton.from(Scheduler::createScheduler);
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
+
+    private ScheduledExecutorService disposableService;
+
+    private ScheduledExecutorService periodicService;
 
     /**
      * Schedules a disposable task.
@@ -59,21 +59,39 @@ public class Scheduler implements Closeable {
         return periodicService().scheduleAtFixedRate(runnable, delay, interval, unit);
     }
 
+    /**
+     * Sets the executor used for disposable tasks.
+     *
+     * @param disposableService disposable task executor
+     * @return this scheduler
+     */
     public Scheduler disposableService(ScheduledExecutorService disposableService) {
         this.disposableService = disposableService;
         return this;
     }
 
+    /**
+     * Sets the executor used for periodic tasks.
+     *
+     * @param periodicService periodic task executor
+     * @return this scheduler
+     */
     public Scheduler periodicService(ScheduledExecutorService periodicService) {
         this.periodicService = periodicService;
         return this;
     }
 
+    /**
+     * Returns the executor used for disposable tasks.
+     */
     public ScheduledExecutorService disposableService() {
         ensureOpen();
         return disposableService != null ? disposableService : defaultService.ensure();
     }
 
+    /**
+     * Returns the executor used for periodic tasks.
+     */
     public ScheduledExecutorService periodicService() {
         ensureOpen();
         return periodicService != null ? periodicService : defaultService.ensure();

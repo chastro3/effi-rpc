@@ -6,7 +6,7 @@ import io.effi.rpc.component.transport.options.ServerOptions;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
- * Defines configuration for server.
+ * Defines server endpoint configuration.
  */
 @ScopedComponent(scope = PLATFORM)
 public interface ServerConfig extends EndpointConfig {
@@ -14,10 +14,10 @@ public interface ServerConfig extends EndpointConfig {
     interface Configurator<SELF extends Configurator<SELF>> extends EndpointConfig.Configurator<SELF> {
 
         /**
-         * Set the accept backlog for the server.
-         * <p>
-         * Defines the maximum number of pending connections in the server's connection queue.
-         * If the queue is full, the server may reject new connections.
+         * Sets the maximum number of pending accepted connections.
+         *
+         * @param acceptBacklog accept backlog size
+         * @return this configurator
          */
         default SELF acceptBacklog(int acceptBacklog) {
             addOption(ServerOptions.ACCEPT_BACKLOG, acceptBacklog);
@@ -25,10 +25,10 @@ public interface ServerConfig extends EndpointConfig {
         }
 
         /**
-         * Set the number of threads for handling incoming connection requests.
-         * <p>
-         * The number of threads responsible for accepting new connections from clients.
-         * You can adjust this number based on the expected volume of incoming connection requests.
+         * Sets the number of acceptor threads.
+         *
+         * @param connectionHandlerThreads acceptor thread count
+         * @return this configurator
          */
         default SELF acceptorThreads(int connectionHandlerThreads) {
             addOption(ServerOptions.ACCEPTOR_THREADS, connectionHandlerThreads);
@@ -36,10 +36,10 @@ public interface ServerConfig extends EndpointConfig {
         }
 
         /**
-         * Set the number of threads for processing client requests.
-         * <p>
-         * The number of threads responsible for processing requests after the connection is accepted.
-         * This can be adjusted based on the load and the expected traffic.
+         * Sets the number of request-processing I/O threads.
+         *
+         * @param requestProcessorThreads request-processing thread count
+         * @return this configurator
          */
         default SELF ioThreads(int requestProcessorThreads) {
             addOption(ServerOptions.IO_THREADS, requestProcessorThreads);

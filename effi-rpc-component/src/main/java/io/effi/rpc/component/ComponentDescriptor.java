@@ -85,18 +85,33 @@ public final class ComponentDescriptor {
         return descriptor;
     }
 
+    /**
+     * Returns the descriptor registered for the supplied component type.
+     *
+     * @param type component type
+     * @return component descriptor, or {@code null} when absent
+     */
     public static ComponentDescriptor lookup(Class<?> type) {
         return COMPONENT_DESCRIPTORS.get(type);
     }
 
+    /**
+     * Returns the component scope.
+     */
     public Scope scope() {
         return scope;
     }
 
+    /**
+     * Returns the component registration kind.
+     */
     public Kind kind() {
         return kind;
     }
 
+    /**
+     * Returns the scoped context type required by the component.
+     */
     public Class<? extends ScopedContext> scopedContextType() {
         return switch (scope) {
             case PLATFORM -> ScopedPlatform.class;
@@ -106,6 +121,9 @@ public final class ComponentDescriptor {
         };
     }
 
+    /**
+     * Returns whether the component uses single-instance registration.
+     */
     public boolean single() {
         return kind == Kind.SINGLE;
     }

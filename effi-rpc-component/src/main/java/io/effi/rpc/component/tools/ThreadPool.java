@@ -30,6 +30,13 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
         this.executor = AssertUtil.notNull(executor, "executor");
     }
 
+    /**
+     * Executes a result-producing task.
+     *
+     * @param supplier task supplier
+     * @param <T> result type
+     * @return task future
+     */
     public <T> Future<T> execute(Supplier<T> supplier) {
         Promise<T> promise = new Promise<>();
         try {
@@ -47,6 +54,12 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
         return promise;
     }
 
+    /**
+     * Executes a side-effecting task.
+     *
+     * @param task task to execute
+     * @return task future
+     */
     public Future<Void> execute(Runnable task) {
         Promise<Void> promise = new Promise<>();
         try {
@@ -64,6 +77,9 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
         return promise;
     }
 
+    /**
+     * Returns the current thread pool metrics snapshot.
+     */
     public Metrics metrics() {
         if (executor instanceof ThreadPoolExecutor pool) {
             return new Metrics(pool.getActiveCount(), pool.getQueue().size(), pool.getCompletedTaskCount());
@@ -89,6 +105,16 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
         }
     }
 
-    public record Metrics(int activeCount, int queueSize, long completedTaskCount) {
+    /**
+     * Captures thread pool metrics.
+     */
+    public record Metrics(
+            /** Number of active tasks. */
+            int activeCount,
+            /** Number of queued tasks. */
+            int queueSize,
+            /** Number of completed tasks. */
+            long completedTaskCount
+    ) {
     }
 }

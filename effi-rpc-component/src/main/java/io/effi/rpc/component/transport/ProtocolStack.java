@@ -18,6 +18,9 @@ public enum ProtocolStack {
         this.protocol = protocol;
     }
 
+    /**
+     * Returns the protocol identifier.
+     */
     public String protocol() {
         return protocol;
     }

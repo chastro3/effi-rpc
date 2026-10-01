@@ -61,10 +61,19 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         return extension.order();
     }
 
+    /**
+     * Returns the registered extension names.
+     */
     public String[] names() {
         return names;
     }
 
+    /**
+     * Checks whether this entry declares the supplied extension name.
+     *
+     * @param name extension name
+     * @return {@code true} when the name is declared
+     */
     public boolean containName(String name) {
         for (String item : names) {
             if (Objects.equals(item, name)) return true;
@@ -72,10 +81,16 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         return false;
     }
 
+    /**
+     * Returns whether the extension is singleton-scoped.
+     */
     public boolean singleton() {
         return extension.scope() == Extension.Scope.SINGLETON;
     }
 
+    /**
+     * Returns the extension instance, creating it when necessary.
+     */
     public T extension() {
         if (singleton()) {
             T result = instance;

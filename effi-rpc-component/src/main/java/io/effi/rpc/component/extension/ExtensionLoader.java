@@ -67,22 +67,40 @@ public final class ExtensionLoader<T> implements Cleanable {
         this.primaryExtension = findPrimaryExtension(extensible, extensionClasses);
     }
 
+    /**
+     * Returns the extension interface type.
+     */
     public Class<T> type() {
         return type;
     }
 
+    /**
+     * Returns whether extensions are loaded lazily.
+     */
     public boolean lazyLoaded() {
         return lazyLoaded;
     }
 
+    /**
+     * Returns the scoped context that owns this loader.
+     */
     public ScopedContext scopedContext() {
         return scopedContext;
     }
 
+    /**
+     * Returns the component descriptor for the extension type.
+     */
     public ComponentDescriptor componentDescriptor() {
         return descriptor;
     }
 
+    /**
+     * Returns the named extension instance.
+     *
+     * @param extensionName extension name
+     * @return extension instance
+     */
     public T namedExtension(String extensionName) {
         AssertUtil.notBlank(extensionName, "extensionName");
         ExtensionEntry<T> entry = extensionEntries.get(extensionName);
@@ -92,6 +110,12 @@ public final class ExtensionLoader<T> implements Cleanable {
         return entry.extension();
     }
 
+    /**
+     * Returns the preferred extension, falling back to the primary extension.
+     *
+     * @param extensionName preferred extension name
+     * @return resolved extension instance
+     */
     public T preferredExtension(String extensionName) {
         extensionName = StringUtil.isBlank(extensionName) ? primaryExtension : extensionName;
         if (StringUtil.isBlank(extensionName)) {
@@ -108,14 +132,29 @@ public final class ExtensionLoader<T> implements Cleanable {
         throw new IllegalStateException(format("Extension '{}' not found, and primary extension also not found for '{}'.", extensionName, type.getTypeName()));
     }
 
+    /**
+     * Returns the primary extension instance.
+     */
     public T primaryExtension() {
         return namedExtension(primaryExtension);
     }
 
+    /**
+     * Returns extension instances matching the supplied filter.
+     *
+     * @param filter extension filter
+     * @return matching extension instances
+     */
     public Collection<T> extensions(BiPredicate<String, ExtensionEntry<T>> filter) {
         return namedExtensions(filter).values();
     }
 
+    /**
+     * Returns named extension instances matching the supplied filter.
+     *
+     * @param filter extension filter
+     * @return matching extension instances by name
+     */
     public Map<String, T> namedExtensions(BiPredicate<String, ExtensionEntry<T>> filter) {
         return CollectionUtil.unmodifiable(extensionEntries, filter, ExtensionEntry::extension);
     }

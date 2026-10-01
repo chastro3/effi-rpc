@@ -21,10 +21,12 @@ public abstract class TcpEndpointConfig extends AbstractEndpointConfig {
             extends EndpointConfig.Configurator<SELF> {
 
         /**
-         * Enable or disable TCP_NO_DELAY (Nagle's algorithm).
+         * Enables or disables {@code TCP_NODELAY}.
          * <p>
-         * When {@code true}, disables Nagle to reduce latency by sending small packets immediately.<br>
-         * When {@code false}, enables Nagle to reduce packet count, which may increase latency.
+         * When {@code true}, Nagle's algorithm is disabled to reduce latency.
+         *
+         * @param noDelay whether to disable Nagle's algorithm
+         * @return this configurator
          */
         default SELF noDelay(boolean noDelay) {
             addOption(TcpOptions.NO_DELAY, noDelay);
@@ -32,7 +34,10 @@ public abstract class TcpEndpointConfig extends AbstractEndpointConfig {
         }
 
         /**
-         * Enable or disable TCP keep-alive.
+         * Enables or disables TCP keep-alive.
+         *
+         * @param keepAlive whether TCP keep-alive is enabled
+         * @return this configurator
          */
         default SELF keepAlive(boolean keepAlive) {
             addOption(TcpOptions.KEEP_ALIVE, keepAlive);
@@ -40,7 +45,10 @@ public abstract class TcpEndpointConfig extends AbstractEndpointConfig {
         }
 
         /**
-         * Enables or disable SSL/TLS.
+         * Enables or disables SSL/TLS.
+         *
+         * @param ssl whether SSL/TLS is enabled
+         * @return this configurator
          */
         default SELF ssl(boolean ssl) {
             addOption(TcpOptions.SSL, ssl);

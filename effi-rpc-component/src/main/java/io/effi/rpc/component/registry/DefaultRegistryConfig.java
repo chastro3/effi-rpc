@@ -28,10 +28,19 @@ public class DefaultRegistryConfig extends IdentifiableConfig implements Registr
         this.threadPool = threadPool;
     }
 
+    /**
+     * Returns a new registry configuration builder.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Adds tags to this registry configuration.
+     *
+     * @param tags tags to add
+     * @return this configuration
+     */
     public DefaultRegistryConfig addTags(String... tags) {
         dynamicTagComponent.addTags(tags);
         return this;

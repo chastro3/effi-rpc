@@ -25,6 +25,9 @@ public final class ScopedModule extends ScopedContext implements ScopedApplicati
         super(MODULE, Listener.class, ScopedApplication.defaultInstance(), defaultModule);
     }
 
+    /**
+     * Returns the default module of the default application.
+     */
     public static ScopedModule defaultInstance() {
         return ScopedApplication.defaultInstance().defaultModule();
     }

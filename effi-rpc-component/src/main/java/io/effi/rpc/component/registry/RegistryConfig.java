@@ -21,7 +21,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 public interface RegistryConfig extends Options.Supplier, Identifiable, TagComponent {
 
     /**
-     * Return the registry type.
+     * Returns the registry type.
      */
     String type();
 
@@ -49,7 +49,10 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
         protected ThreadPool threadPool;
 
         /**
-         * Sets the registry type (eg: 'consul','nacos').
+         * Sets the registry type.
+         *
+         * @param type registry type, such as {@code consul} or {@code nacos}
+         * @return this builder
          */
         public SELF type(String type) {
             this.type = type;
@@ -58,7 +61,11 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
 
         /**
          * Sets the registry address or addresses.
-         * If multiple addresses are specified, they must be separated by ','.
+         * <p>
+         * Multiple addresses must be separated by commas.
+         *
+         * @param address registry address or comma-separated addresses
+         * @return this builder
          */
         public SELF address(String address) {
             this.address = address;
@@ -66,8 +73,10 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
         }
 
         /**
-         * Sets the registry authority from a URL string.
-         * (eg: 'consul://127.0.0.1:8500')
+         * Sets the registry type and address from a registry URL.
+         *
+         * @param authority registry URL, such as {@code consul://127.0.0.1:8500}
+         * @return this builder
          */
         public SELF authority(String authority) {
             SmartURL smartUrl = SmartURL.valueOf(authority);
@@ -78,6 +87,9 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
 
         /**
          * Sets the thread pool for registry operations.
+         *
+         * @param threadPool registry thread pool
+         * @return this builder
          */
         public SELF threadPool(ThreadPool threadPool) {
             this.threadPool = threadPool;
@@ -85,9 +97,10 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
         }
 
         /**
-         * Sets the thread pool for registry operations.
+         * Sets the registry connection timeout.
          *
-         * @param connectTimeout the connection timeout in milliseconds
+         * @param connectTimeout connection timeout in milliseconds
+         * @return this builder
          */
         public SELF connectTimeout(int connectTimeout) {
             addOption(RegistryOptions.CONNECT_TIMEOUT, connectTimeout);
@@ -96,6 +109,9 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
 
         /**
          * Sets the number of retry attempts.
+         *
+         * @param retries retry attempts
+         * @return this builder
          */
         public SELF retries(int retries) {
             addOption(RegistryOptions.RETRIES, retries);
@@ -103,7 +119,10 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
         }
 
         /**
-         * Sets the heartbeat interval configuration.
+         * Sets the heartbeat interval.
+         *
+         * @param heartbeatInterval heartbeat interval in milliseconds
+         * @return this builder
          */
         public SELF heartbeatInterval(int heartbeatInterval) {
             addOption(RegistryOptions.HEARTBEAT_INTERVAL, heartbeatInterval);

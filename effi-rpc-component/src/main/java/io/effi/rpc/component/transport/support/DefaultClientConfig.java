@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provide the default implementation of {@link ClientConfig}.
+ * Provides the default implementation of {@link ClientConfig}.
  */
 public class DefaultClientConfig extends AbstractEndpointConfig implements ClientConfig {
 
