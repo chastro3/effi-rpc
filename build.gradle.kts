@@ -1,6 +1,9 @@
+plugins {
+    base
+}
+
 allprojects {
-    apply(plugin = "base")
-    group = "io.github.chastro3"
+    group = "cc.uniplat"
     version = "0.0.2-alpha"
     repositories {
         defaultRepositories()
@@ -9,7 +12,9 @@ allprojects {
 }
 
 subprojects {
-    if (publishEnabled()) apply(plugin = "internal-maven-publish")
+    if (publishEnabled()) {
+        pluginManager.apply("internal-maven-publish")
+    }
     afterEvaluate {
         if (plugins.hasPlugin(JavaPlugin::class)) {
             dependencies {

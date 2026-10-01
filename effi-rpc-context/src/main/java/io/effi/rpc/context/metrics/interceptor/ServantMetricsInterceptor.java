@@ -1,4 +1,4 @@
-package io.effi.rpc.context.metrics.filter;
+package io.effi.rpc.context.metrics.interceptor;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.constant.Tags;
@@ -10,7 +10,7 @@ import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.UnitType;
 import io.effi.rpc.context.metrics.ServantMetrics;
 
-import static io.effi.rpc.context.metrics.filter.ServantMetricsInterceptor.NAME;
+import static io.effi.rpc.context.metrics.interceptor.ServantMetricsInterceptor.NAME;
 
 /**
  * Records servant-side request metrics.

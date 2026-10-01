@@ -1,5 +1,6 @@
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -43,9 +44,9 @@ fun Project.configureTasks() {
         (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
     }
 
-    tasks.named("clean").configure {
+    tasks.withType(Delete::class.java).configureEach {
         doLast {
-            delete(fileTree(projectDir).include("**/*.iml"))
+            project.delete(fileTree(projectDir).include("**/*.iml"))
         }
     }
 }

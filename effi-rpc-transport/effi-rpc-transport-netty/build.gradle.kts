@@ -1,3 +1,7 @@
+plugins {
+    id("java-library")
+}
+
 description = "Transport implementation using Netty."
 dependencies {
     api(project(":effi-rpc-transport:effi-rpc-transport-api"))

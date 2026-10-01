@@ -5,7 +5,6 @@ import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
-import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.context.metrics.ServantMetrics;
 import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
@@ -47,7 +46,7 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
         if (metrics != null) {
             metrics.register(peerMetrics);
         }
-        set(PeerMetrics.KEY, peerMetrics);
+        set(ServantMetrics.KEY, peerMetrics);
     }
 
     @Override

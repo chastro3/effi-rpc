@@ -14,7 +14,6 @@ import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
-import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.util.AssertUtil;
@@ -60,7 +59,7 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
         if (metrics != null) {
             metrics.register(peerMetrics);
         }
-        set(PeerMetrics.KEY, peerMetrics);
+        set(CallerMetrics.KEY, peerMetrics);
     }
 
     @Override

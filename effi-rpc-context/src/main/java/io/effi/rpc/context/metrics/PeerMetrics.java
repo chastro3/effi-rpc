@@ -1,19 +1,15 @@
 package io.effi.rpc.context.metrics;
 
-import io.effi.rpc.context.Peer;
 import io.effi.rpc.metrics.MetricKey;
 import io.effi.rpc.metrics.MetricTimer;
 import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.metrics.MetricsRegistrar;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.GenericKey;
 
 /**
  * Defines the metrics shared by caller and servant sides.
  */
 public abstract class PeerMetrics implements MetricsRegistrar {
-
-    public static final GenericKey<PeerMetrics> KEY = GenericKey.valueOf("peerMetrics");
 
     private final String protocol;
 
@@ -59,10 +55,6 @@ public abstract class PeerMetrics implements MetricsRegistrar {
 
     public final double averageDeserializationNanos() {
         return averageNanos(deserializationTimer);
-    }
-
-    public static PeerMetrics of(Peer peer) {
-        return peer == null ? null : peer.get(KEY);
     }
 
     private static double averageNanos(MetricTimer timer) {

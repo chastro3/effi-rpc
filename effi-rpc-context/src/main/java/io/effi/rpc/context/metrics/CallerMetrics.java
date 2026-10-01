@@ -1,7 +1,7 @@
 package io.effi.rpc.context.metrics;
 
 import io.effi.rpc.context.CallContext;
-import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Caller;
 import io.effi.rpc.metrics.MetricCounter;
 import io.effi.rpc.metrics.MetricKey;
 import io.effi.rpc.metrics.MetricTimer;
@@ -24,6 +24,8 @@ public final class CallerMetrics extends PeerMetrics {
     public static final MetricKey RETRY_COUNT = MetricKey.of("rpc.client.retry.count");
 
     public static final MetricKey TIMEOUT_COUNT = MetricKey.of("rpc.client.timeout.count");
+
+    public static final GenericKey<CallerMetrics> KEY = GenericKey.valueOf("callerMetrics");
 
     private static final GenericKey<Long> CALL_START = GenericKey.valueOf("callerMetrics.callStart");
 
@@ -104,10 +106,11 @@ public final class CallerMetrics extends PeerMetrics {
     /**
      * Returns the caller metrics of the supplied peer, or a shared no-op instance when absent.
      *
-     * @param peer call peer
+     * @param caller call caller
      * @return caller metrics
      */
-    public static CallerMetrics of(Peer peer) {
-        return PeerMetrics.of(peer) instanceof CallerMetrics callerMetrics ? callerMetrics : NOOP;
+    public static CallerMetrics of(Caller<?> caller) {
+        CallerMetrics metrics = caller == null ? null : caller.get(KEY);
+        return metrics == null ? NOOP : metrics;
     }
 }

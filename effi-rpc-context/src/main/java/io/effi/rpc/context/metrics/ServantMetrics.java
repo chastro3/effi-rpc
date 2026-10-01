@@ -1,7 +1,7 @@
 package io.effi.rpc.context.metrics;
 
 import io.effi.rpc.context.CallContext;
-import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.metrics.MetricCounter;
 import io.effi.rpc.metrics.MetricKey;
 import io.effi.rpc.metrics.MetricTimer;
@@ -20,6 +20,8 @@ public final class ServantMetrics extends PeerMetrics {
     public static final MetricKey SERIALIZE_DURATION = MetricKey.of("rpc.server.serialize.duration");
 
     public static final MetricKey DESERIALIZE_DURATION = MetricKey.of("rpc.server.deserialize.duration");
+
+    public static final GenericKey<ServantMetrics> KEY = GenericKey.valueOf("servantMetrics");
 
     private static final GenericKey<Long> REQUEST_START = GenericKey.valueOf("servantMetrics.requestStart");
 
@@ -80,10 +82,11 @@ public final class ServantMetrics extends PeerMetrics {
     /**
      * Returns the servant metrics of the supplied peer, or a shared no-op instance when absent.
      *
-     * @param peer call peer
+     * @param servant call servant
      * @return servant metrics
      */
-    public static ServantMetrics of(Peer peer) {
-        return PeerMetrics.of(peer) instanceof ServantMetrics servantMetrics ? servantMetrics : NOOP;
+    public static ServantMetrics of(Servant servant) {
+        ServantMetrics metrics = servant == null ? null : servant.get(KEY);
+        return metrics == null ? NOOP : metrics;
     }
 }

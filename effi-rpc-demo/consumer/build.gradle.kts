@@ -1,3 +1,9 @@
+plugins {
+    id("java-library")
+    id("org.graalvm.buildtools.native") version "1.1.14"
+    id("application")
+}
+
 dependencies {
     implementation(project(":effi-rpc-demo:api"))
     implementation(project(":effi-rpc-protocols:effi-rpc-http"))
@@ -12,10 +18,6 @@ dependencies {
     implementation("tools.jackson.core:jackson-databind")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic")
-}
-plugins {
-    id("org.graalvm.buildtools.native") version "1.1.14"
-    id("application")
 }
 
 application {

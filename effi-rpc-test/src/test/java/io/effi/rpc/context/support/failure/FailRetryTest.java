@@ -8,7 +8,6 @@ import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.metrics.CallerMetrics;
-import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.context.options.FaultToleranceOptions;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
@@ -70,7 +69,7 @@ class FailRetryTest {
                     return 2;
                 }
             }
-            if ("get".equals(method.getName()) && args[0] == PeerMetrics.KEY) {
+            if ("get".equals(method.getName()) && args[0] == CallerMetrics.KEY) {
                 return metrics;
             }
             return defaultValue(method.getReturnType());

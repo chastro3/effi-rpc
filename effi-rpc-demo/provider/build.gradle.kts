@@ -1,3 +1,9 @@
+plugins {
+    id("java-library")
+    id("org.graalvm.buildtools.native") version "1.1.14"
+    id("application")
+}
+
 dependencies {
     implementation(project(":effi-rpc-demo:api"))
     implementation(project(":effi-rpc-protocols:effi-rpc-http"))
@@ -10,11 +16,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic")
     implementation(project(":effi-rpc-integration:effi-rpc-spring-boot-starter"))
     implementation("org.springframework.boot:spring-boot-starter-web")
-}
-
-plugins {
-    id("org.graalvm.buildtools.native") version "1.1.14"
-    id("application")
 }
 
 application {
