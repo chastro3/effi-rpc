@@ -1,33 +1,27 @@
 package io.effi.rpc.component.event;
 
-import io.effi.rpc.util.Attributes;
-
 /**
- * Represents an event with a source and controls propagation.
- *
- * @param <S> the type of the source
+ * Defines an event handled by the RPC event bus.
  */
-public interface Event<S> extends Attributes {
+public interface Event {
 
     /**
-     * Returns the source of the event.
+     * Returns the delivery lane for this event.
      */
-    S source();
+    default EventLane lane() {
+        return EventLane.TELEMETRY;
+    }
 
     /**
-     * Sets the source of the event.
+     * Returns the backpressure policy applied when the target lane is full.
+     * <p>
+     * Control events block by default because dropping lifecycle events can
+     * leave resources in an inconsistent state. Telemetry events drop by
+     * default because stale observability data must not stall RPC traffic.
      */
-    void source(S source);
-
-    /**
-     * Stops the event propagation to prevent further notifications.
-     */
-    boolean stopPropagation();
-
-    /**
-     * Checks if event propagation is allowed.
-     */
-    boolean allowPropagation();
+    default BackpressurePolicy backpressurePolicy() {
+        return lane() == EventLane.CONTROL
+                ? BackpressurePolicy.BLOCK
+                : BackpressurePolicy.DROP;
+    }
 }
-
-

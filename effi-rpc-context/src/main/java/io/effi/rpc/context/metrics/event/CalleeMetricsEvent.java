@@ -6,7 +6,7 @@ import io.effi.rpc.context.metrics.CalleeMetrics;
 /**
  * Callee Metrics Event.
  */
-public class CalleeMetricsEvent extends MetricsEvent<CalleeMetrics> {
+public final class CalleeMetricsEvent extends MetricsEvent<CalleeMetrics> {
 
     public CalleeMetricsEvent(CalleeMetrics source, CallContext<?, ?> context, boolean succeeded) {
         super(source, context, succeeded);

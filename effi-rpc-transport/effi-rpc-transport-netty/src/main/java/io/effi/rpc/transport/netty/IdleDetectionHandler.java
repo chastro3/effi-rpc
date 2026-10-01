@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.component.event.EventDispatcher;
+import io.effi.rpc.component.event.EventBus;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.nativetools.NativeConfig;
@@ -49,7 +49,7 @@ public class IdleDetectionHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyChannel channel = NettyChannel.ensure(ctx.channel());
-        endpoint.platform().singleComponent(EventDispatcher.class).publish(new RefreshIdleCountEvent(channel));
+        endpoint.platform().singleComponent(EventBus.class).publish(new RefreshIdleCountEvent(channel));
         super.channelRead(ctx, msg);
     }
 
@@ -59,7 +59,7 @@ public class IdleDetectionHandler extends ChannelInboundHandlerAdapter {
         if (evt instanceof IdleStateEvent event && event.state() == IdleState.ALL_IDLE) {
             Optional.ofNullable(nettyChannel.get(KeyConstant.IDLE_COUNT))
                     .ifPresent(AtomicInteger::incrementAndGet);
-            endpoint.platform().singleComponent(EventDispatcher.class).publish(new IdleEvent(nettyChannel));
+            endpoint.platform().singleComponent(EventBus.class).publish(new IdleEvent(nettyChannel));
         }
         super.userEventTriggered(ctx, evt);
     }

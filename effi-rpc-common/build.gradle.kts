@@ -5,7 +5,6 @@ description = "Common components, utility classes, and constants."
 dependencies {
     api(platform(project(":effi-rpc-bom")))
     api("org.jspecify:jspecify")
-    api("com.lmax:disruptor")
     api("org.ow2.asm:asm")
     // https://mvnrepository.com/artifact/org.jctools/jctools-core
     api("org.jctools:jctools-core")

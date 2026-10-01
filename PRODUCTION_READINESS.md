@@ -379,7 +379,7 @@ Acceptance tests:
 - SNI selects the correct virtual-host certificate.
 - Mutual TLS works only when explicitly configured.
 
-### [ ] PR-08: Event dispatch has unsafe cross-thread propagation
+### [x] PR-08: Event dispatch has unsafe cross-thread propagation
 
 Location:
 
@@ -399,10 +399,14 @@ Impact:
 - Idle events may execute multiple actions.
 - Concurrent listener registration and dispatch can produce inconsistent behavior.
 
-Required fix:
+Resolution:
 
-- Use one handler for a shared listener map, or partition listeners explicitly.
-- Do not use event propagation flags as concurrency claims.
+- Replaced the Disruptor listener-map design with `EventBus` / `MpscEventBus`.
+- Control and telemetry events use independent lanes; control events preserve order and
+  block when their lane is full.
+- Telemetry events may be sharded across consumers and drop under load.
+- Handler chains are resolved per consumer lane; propagation flags are no longer used.
+- Removed the production Disruptor dependency.
 - If work distribution is required, use a worker pool with a defined partition key.
 
 Acceptance tests:
@@ -508,7 +512,7 @@ Acceptance tests:
 5. PR-04, PR-09, and PR-10 lifecycle ownership.
 6. PR-05 discovery snapshots and PR-11 routing.
 7. PR-07 TLS verification.
-8. PR-08 event dispatch correctness.
+8. PR-08 event dispatch correctness (resolved by `EventBus` / `MpscEventBus`).
 9. PR-12 tests and PR-13 observability.
 
 Production stability should not be claimed until PR-01 through PR-10 are complete and the

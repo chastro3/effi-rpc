@@ -1,14 +1,16 @@
 package io.effi.rpc.transport.idle;
 
-import io.effi.rpc.component.event.AbstractEvent;
+import io.effi.rpc.component.event.Event;
+import io.effi.rpc.component.event.EventLane;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
  * Represents an event triggered to refresh the idle count for a channel.
  */
-public class RefreshIdleCountEvent extends AbstractEvent<Channel> {
+public record RefreshIdleCountEvent(Channel channel) implements Event {
 
-    public RefreshIdleCountEvent(Channel channel) {
-        super(channel);
+    @Override
+    public EventLane lane() {
+        return EventLane.CONTROL;
     }
 }

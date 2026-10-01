@@ -1,7 +1,7 @@
 package io.effi.rpc.context.metrics.filter;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.component.event.EventDispatcher;
+import io.effi.rpc.component.event.EventBus;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
@@ -31,7 +31,7 @@ public class CallerMetricsInterceptor implements Interceptor.ReplyUnit<Response,
         Caller<?> callee = context.peer();
         CallerMetrics callerMetrics = callee.get(CallerMetrics.GENERIC_KEY);
         Interaction.Result result = chain.proceed(context);
-        context.platform().singleComponent(EventDispatcher.class)
+        context.platform().singleComponent(EventBus.class)
                 .publish(new CallerMetricsEvent(callerMetrics, callContext, result.succeeded()));
         return result;
     }

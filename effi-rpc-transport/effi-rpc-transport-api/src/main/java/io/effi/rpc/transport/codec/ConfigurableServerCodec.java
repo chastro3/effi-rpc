@@ -1,6 +1,6 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.component.event.EventDispatcher;
+import io.effi.rpc.component.event.EventBus;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.Request;
@@ -60,7 +60,7 @@ public class ConfigurableServerCodec<RESP extends Response, REQ extends Request>
             MetricsSupport.recordSerializeEndTime(callContext);
             Servant servant = context.peer();
             CalleeMetrics calleeMetrics = servant.get(CalleeMetrics.GENERIC_KEY);
-            context.platform().singleComponent(EventDispatcher.class)
+            context.platform().singleComponent(EventBus.class)
                     .publish(new CalleeMetricsEvent(calleeMetrics, callContext, context.result().succeeded()));
         }
     }

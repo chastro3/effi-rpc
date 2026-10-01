@@ -17,6 +17,7 @@ dependencies {
     implementation("org.glassfish.jersey.core:jersey-server")
     implementation("ch.qos.logback:logback-classic")
     implementation("com.google.auto:auto-common")
+    implementation("com.lmax:disruptor")
     // https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-core
     implementation("org.openjdk.jmh:jmh-core")
     annotationProcessor(platform(project(":effi-rpc-bom")))
@@ -29,4 +30,32 @@ dependencies {
 tasks.test {
     enabled = true
     useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("mpscEventBusBenchmark") {
+    group = "benchmark"
+    description = "Runs the MpscEventBus JMH benchmark."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.effi.rpc.benchmark.MpscEventBusBenchmark")
+}
+
+tasks.register<JavaExec>("disruptorEventDispatcherBenchmark") {
+    group = "benchmark"
+    description = "Runs the Disruptor EventDispatcher JMH benchmark."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.effi.rpc.benchmark.DisruptorEventDispatcherBenchmark")
+}
+
+tasks.register<JavaExec>("mpscEventBusNoMetricsBenchmark") {
+    group = "benchmark"
+    description = "Runs the MpscEventBus no-metrics JMH benchmark."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.effi.rpc.benchmark.MpscEventBusNoMetricsBenchmark")
+}
+
+tasks.register<JavaExec>("mpscEventBusShardedBenchmark") {
+    group = "benchmark"
+    description = "Runs the sharded telemetry MpscEventBus JMH benchmark."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.effi.rpc.benchmark.MpscEventBusShardedBenchmark")
 }
