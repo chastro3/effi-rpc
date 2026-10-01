@@ -1,5 +1,4 @@
-package io.effi.rpc.protocol.http.filter;
-
+package io.effi.rpc.protocol.http.interceptor;
 
 import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.constant.KeyConstant;
@@ -9,12 +8,12 @@ import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Interceptor;
 import io.effi.rpc.context.UnitType;
+import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.util.StringUtil;
 
-import static io.effi.rpc.protocol.http.filter.HttpRequestInterceptor.NAME;
-import io.effi.rpc.context.options.CallerOptions;
+import static io.effi.rpc.protocol.http.interceptor.HttpRequestInterceptor.NAME;
 
 @Extension(value = NAME, tags = Tags.FORCE_ACTIVE)
 public class HttpRequestInterceptor implements Interceptor.CallUnit<HttpRequest, Caller<?>> {

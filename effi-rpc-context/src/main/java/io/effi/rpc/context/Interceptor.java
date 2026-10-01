@@ -16,7 +16,7 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
  * Receive Response → {@link ReplyUnit}.
  * <p>
  * Server flow:<br>
- * {@link CallUnit} → Invoke Callee -> {@link ReplyUnit} → Send Response
+ * {@link CallUnit} → Invoke Servant -> {@link ReplyUnit} → Send Response
  *
  * @see CallUnit
  * @see ChosenUnit

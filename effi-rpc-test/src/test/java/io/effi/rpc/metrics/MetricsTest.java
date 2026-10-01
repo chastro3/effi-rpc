@@ -44,6 +44,7 @@ class MetricsTest {
         TimerSample snapshot = timer.snapshot();
         assertEquals(2L, snapshot.count());
         assertEquals(400L, snapshot.totalNanos());
+        assertEquals(200D, snapshot.averageNanos());
         assertEquals(300L, snapshot.maxNanos());
         assertEquals(100L, snapshot.minNanos());
         assertEquals(MetricUnit.NANOSECONDS, snapshot.unit());

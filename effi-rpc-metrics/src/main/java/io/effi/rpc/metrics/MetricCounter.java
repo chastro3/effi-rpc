@@ -10,10 +10,21 @@ public interface MetricCounter {
      */
     MetricCounter NOOP = Noop.INSTANCE;
 
+    /**
+     * Increments the counter by one.
+     */
     void increment();
 
+    /**
+     * Adds the supplied amount to the counter.
+     *
+     * @param amount amount to add
+     */
     void add(long amount);
 
+    /**
+     * Returns the current total count.
+     */
     long count();
 
     enum Noop implements MetricCounter {

@@ -33,7 +33,7 @@ public class DefaultLifecycleConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(DefaultLifecycleConfiguration.class);
 
     /**
-     * Initializes the application.Registers default event listeners for various events.
+     * Initializes the application.Registers default event handlers for various events.
      */
     @Extension(NAME)
     public static class PlatformLifecycleListener implements ScopedPlatform.Listener {

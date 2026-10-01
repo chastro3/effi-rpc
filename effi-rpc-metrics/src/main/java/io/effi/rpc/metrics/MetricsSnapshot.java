@@ -14,6 +14,9 @@ public record MetricsSnapshot(long timestampNanos, List<MetricSample> samples) {
         samples = samples == null ? List.of() : List.copyOf(samples);
     }
 
+    /**
+     * Returns an empty snapshot taken at the current time.
+     */
     public static MetricsSnapshot empty() {
         return new MetricsSnapshot(System.nanoTime(), List.of());
     }

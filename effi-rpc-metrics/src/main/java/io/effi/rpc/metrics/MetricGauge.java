@@ -10,6 +10,9 @@ public interface MetricGauge {
      */
     MetricGauge NOOP = Noop.INSTANCE;
 
+    /**
+     * Returns the current value.
+     */
     double value();
 
     enum Noop implements MetricGauge {

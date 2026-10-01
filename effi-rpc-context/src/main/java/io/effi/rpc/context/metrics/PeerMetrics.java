@@ -50,17 +50,10 @@ public abstract class PeerMetrics implements MetricsRegistrar {
     }
 
     public final double averageSerializationNanos() {
-        return averageNanos(serializationTimer);
+        return serializationTimer.snapshot().averageNanos();
     }
 
     public final double averageDeserializationNanos() {
-        return averageNanos(deserializationTimer);
-    }
-
-    private static double averageNanos(MetricTimer timer) {
-        var snapshot = timer.snapshot();
-        return snapshot.count() == 0L
-                ? 0D
-                : (double) snapshot.totalNanos() / snapshot.count();
+        return deserializationTimer.snapshot().averageNanos();
     }
 }

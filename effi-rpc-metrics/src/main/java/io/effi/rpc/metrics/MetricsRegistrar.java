@@ -1,7 +1,7 @@
 package io.effi.rpc.metrics;
 
 /**
- * Registers component-owned instruments into the platform metrics center.
+ * Defines how a component hands its owned instruments to the platform metrics center.
  */
 public interface MetricsRegistrar {
 

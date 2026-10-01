@@ -1,7 +1,7 @@
 package io.effi.rpc.metrics;
 
 /**
- * Exports one metrics snapshot to an external system.
+ * Exports metrics snapshots to an external system.
  */
 public interface MetricsReporter {
 

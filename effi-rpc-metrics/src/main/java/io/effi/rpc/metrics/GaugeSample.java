@@ -5,10 +5,17 @@ import io.effi.rpc.util.AssertUtil;
 /**
  * Represents a gauge value at one point in time.
  */
-public record GaugeSample(MetricKey key, double value, long timestampNanos) implements MetricSample {
+public record GaugeSample(
+        /** Metric identity. */
+        MetricKey key,
+        /** Gauge value at the sample timestamp. */
+        double value,
+        /** Sample timestamp in nanoseconds. */
+        long timestampNanos
+) implements MetricSample {
 
     public GaugeSample {
-        key = AssertUtil.notNull(key, "key");
+        AssertUtil.notNull(key, "key");
     }
 
     @Override

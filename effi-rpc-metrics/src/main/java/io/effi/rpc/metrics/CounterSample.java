@@ -5,7 +5,14 @@ import io.effi.rpc.util.AssertUtil;
 /**
  * Represents a counter value at one point in time.
  */
-public record CounterSample(MetricKey key, long value, long timestampNanos) implements MetricSample {
+public record CounterSample(
+        /** Metric identity. */
+        MetricKey key,
+        /** Counter value at the sample timestamp. */
+        long value,
+        /** Sample timestamp in nanoseconds. */
+        long timestampNanos
+) implements MetricSample {
 
     public CounterSample {
         key = AssertUtil.notNull(key, "key");

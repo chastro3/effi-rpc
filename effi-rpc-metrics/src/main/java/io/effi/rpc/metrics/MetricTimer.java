@@ -10,8 +10,16 @@ public interface MetricTimer {
      */
     MetricTimer NOOP = Noop.INSTANCE;
 
+    /**
+     * Records one operation duration.
+     *
+     * @param durationNanos duration in nanoseconds
+     */
     void recordNanos(long durationNanos);
 
+    /**
+     * Returns the current aggregated snapshot.
+     */
     TimerSample snapshot();
 
     enum Noop implements MetricTimer {

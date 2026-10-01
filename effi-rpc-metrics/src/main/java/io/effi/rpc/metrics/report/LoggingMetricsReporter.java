@@ -14,7 +14,6 @@ public final class LoggingMetricsReporter implements MetricsReporter {
 
     @Override
     public void report(MetricsSnapshot snapshot) {
-        logger.debug("Metrics snapshot: samples={}, timestampNanos={}",
-                snapshot.samples().size(), snapshot.timestampNanos());
+        logger.debug("Metrics snapshot: samples={}, timestampNanos={}", snapshot.samples().size(), snapshot.timestampNanos());
     }
 }
