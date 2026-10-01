@@ -556,7 +556,7 @@ Locator.locate(context)
 - `MetricSample`、`CounterSample`、`GaugeSample`、`TimerSample`。
 - `MetricCounter`、`MetricTimer`、`MetricGauge`、`Metrics`、`MetricsRegistrar`、`MetricsSnapshot`。
 - `MetricCounter` / `MetricTimer` / `MetricGauge` 各自导出 `NOOP` 默认实现，指标关闭或尚未注册时自动降级，业务侧无需判空。
-- `MetricsReporter`、`LoggingMetricsReporter`。
+- `MetricsReporter`、`LoggingMetricsReporter`；reporter 默认不注册，`metrics.report()` 在没有 reporter 时直接返回，因此默认不打印任何内容；需要日志或外部上报时自行 `registerReporter`（boot 只按 `metrics.reportIntervalMillis` 调度周期上报）。
 - 默认实现 `DefaultMetrics` 位于 `effi-rpc-component` 的 `io.effi.rpc.component.metrics`，构造时接收 `ScopedPlatform`。
 
 依赖边界：

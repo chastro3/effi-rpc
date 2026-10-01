@@ -14,7 +14,6 @@ import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.metrics.MetricsOptions;
-import io.effi.rpc.metrics.report.LoggingMetricsReporter;
 import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.idle.IdleEvent;
 import io.effi.rpc.transport.idle.IdleEventHandler;
@@ -24,7 +23,7 @@ import io.effi.rpc.transport.idle.RefreshIdleCountEventHandler;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Initializes configurations for the application and module,setting up event listeners and filters.
+ * Initializes configurations for the application and module, setting up event handlers and interceptors.
  */
 public class DefaultLifecycleConfiguration {
 
@@ -33,7 +32,7 @@ public class DefaultLifecycleConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(DefaultLifecycleConfiguration.class);
 
     /**
-     * Initializes the application.Registers default event handlers for various events.
+     * Initializes the platform singletons and the default event handlers.
      */
     @Extension(NAME)
     public static class PlatformLifecycleListener implements ScopedPlatform.Listener {
@@ -45,31 +44,25 @@ public class DefaultLifecycleConfiguration {
             Metrics metrics = new DefaultMetrics(platform);
             CallFutureRegistry callFutureRegistry = new CallFutureRegistry();
             ChannelCallBindings channelCallBindings = new ChannelCallBindings(callFutureRegistry);
-            metrics.register(eventBus.metrics());
-            registerMetricsReporter(platform, metrics, scheduler);
             platform.registry()
                     .register(Scheduler.class, scheduler)
                     .register(EventBus.class, eventBus)
                     .register(Metrics.class, metrics)
                     .register(CallFutureRegistry.class, callFutureRegistry)
                     .register(ChannelCallBindings.class, channelCallBindings);
+            connectMetrics(platform, eventBus, metrics, scheduler);
             registerDefaultEvents(eventBus);
             eventBus.start();
         }
 
-        private void registerMetricsReporter(ScopedPlatform platform, Metrics metrics, Scheduler scheduler) {
+        private void connectMetrics(ScopedPlatform platform, MpscEventBus eventBus, Metrics metrics, Scheduler scheduler) {
+            metrics.register(eventBus.metrics());
             if (!platform.options().option(MetricsOptions.ENABLED)) {
                 return;
             }
-            metrics.registerReporter(new LoggingMetricsReporter());
             long reportIntervalMillis = platform.options().option(MetricsOptions.REPORT_INTERVAL_MILLIS);
             if (reportIntervalMillis > 0L) {
-                scheduler.addPeriodic(
-                        metrics::report,
-                        reportIntervalMillis,
-                        reportIntervalMillis,
-                        TimeUnit.MILLISECONDS
-                );
+                scheduler.addPeriodic(metrics::report, reportIntervalMillis, reportIntervalMillis, TimeUnit.MILLISECONDS);
             }
         }
 
