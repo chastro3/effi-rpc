@@ -15,7 +15,6 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
-import io.effi.rpc.context.metrics.MetricsSupport;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 
@@ -94,7 +93,7 @@ public final class CallExecution<R> {
         }
 
         CallContext<Request, Caller<?>> context = newContext();
-        MetricsSupport.recordStartTime(context);
+        CallerMetrics.of(caller).beginCall(context);
 
         ReplyFuture attempt;
         try {
@@ -217,10 +216,7 @@ public final class CallExecution<R> {
     }
 
     private void failDeadline() {
-        CallerMetrics metrics = caller.get(CallerMetrics.GENERIC_KEY);
-        if (metrics != null) {
-            metrics.timeoutCount().increment();
-        }
+        CallerMetrics.of(caller).recordTimeout();
         completion.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(0L));
     }
 

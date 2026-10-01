@@ -1,10 +1,11 @@
 package io.effi.rpc.benchmark;
 
 import io.effi.rpc.component.event.Event;
-import io.effi.rpc.component.event.EventOptions;
 import io.effi.rpc.component.event.MpscEventBus;
 import io.effi.rpc.component.event.PublishResult;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.metrics.DefaultMetrics;
+import io.effi.rpc.metrics.MetricsOptions;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -38,11 +39,15 @@ public class MpscEventBusNoMetricsBenchmark {
 
     private MpscEventBus bus;
 
+    private DefaultMetrics metrics;
+
     @Setup(Level.Trial)
     public void setup() {
         platform = new ScopedPlatform("mpsc-event-bus-no-metrics-benchmark-" + System.nanoTime());
-        platform.options().addOption(EventOptions.METRICS_ENABLED, false);
+        platform.options().addOption(MetricsOptions.ENABLED, false);
+        metrics = new DefaultMetrics(platform);
         bus = new MpscEventBus(platform);
+        metrics.register(bus.metrics());
         bus.register(PayloadEvent.class, event -> {
         });
         bus.start();
@@ -51,6 +56,7 @@ public class MpscEventBusNoMetricsBenchmark {
     @TearDown(Level.Trial)
     public void tearDown() {
         bus.close();
+        metrics.close();
         platform.close();
     }
 

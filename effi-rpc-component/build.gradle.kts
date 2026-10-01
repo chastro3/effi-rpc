@@ -4,4 +4,5 @@ plugins {
 description = "Core specifications and configurations."
 dependencies {
     api(project(":effi-rpc-annotation"))
+    api(project(":effi-rpc-metrics"))
 }

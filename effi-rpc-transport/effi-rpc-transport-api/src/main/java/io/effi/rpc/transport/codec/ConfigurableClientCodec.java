@@ -8,7 +8,7 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
-import io.effi.rpc.context.metrics.MetricsSupport;
+import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
@@ -45,13 +45,14 @@ public class ConfigurableClientCodec<REQ extends Request, RESP extends Response>
     @Override
     public OutputMessage encode(CallContext<Request, Caller<?>> context, Channel channel) {
         REQ request = (REQ) context.message();
-        MetricsSupport.recordSerializeStartTime(context);
+        CallerMetrics metrics = CallerMetrics.of(context.peer());
+        long start = System.nanoTime();
         try {
             return encoder.encode(request, channel);
         } catch (Exception e) {
             throw TransportErrorCodes.ENCODE.fail(e, OutputMessage.class, request.getClass());
         } finally {
-            MetricsSupport.recordSerializeEndTime(context);
+            metrics.recordSerialization(System.nanoTime() - start);
         }
     }
 
@@ -66,14 +67,15 @@ public class ConfigurableClientCodec<REQ extends Request, RESP extends Response>
             );
         }
         CallContext<Request, Caller<?>> context = future.context();
+        CallerMetrics metrics = CallerMetrics.of(context.peer());
+        long start = System.nanoTime();
         try {
-            MetricsSupport.recordDeserializeStartTime(context);
             RESP response = decoder.decode(inputMessage, caller);
             return new ReplyContext<>(context, response, resultExtractor.extract(response));
         } catch (Exception e) {
             throw TransportErrorCodes.DECODE.fail(e, inputMessage.getClass(), Response.class);
         } finally {
-            if (context != null) MetricsSupport.recordDeserializeEndTime(context);
+            metrics.recordDeserialization(System.nanoTime() - start);
         }
     }
 

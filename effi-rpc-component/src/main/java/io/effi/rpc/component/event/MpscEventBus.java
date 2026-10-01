@@ -27,7 +27,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
 
     private final HandlerRegistry registry = new HandlerRegistry();
 
-    private final EventBusCounters counters;
+    private final EventBusMetrics metrics = new EventBusMetrics(this);
 
     private final PublisherGate publisherGate = new PublisherGate();
 
@@ -53,7 +53,6 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
                 platform.options().option(EventOptions.PUBLISH_TIMEOUT_NANOS),
                 EventOptions.PUBLISH_TIMEOUT_NANOS.name()
         );
-        this.counters = new EventBusCounters(platform.options().option(EventOptions.METRICS_ENABLED));
         boolean daemon = platform.options().option(EventOptions.DAEMON);
         int capacity = requirePositive(
                 platform.options().option(EventOptions.CAPACITY),
@@ -65,7 +64,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         );
         this.controlLane = new EventConsumerLane(
                 EventLane.CONTROL, 0, capacity, daemon,
-                registry, counters, batchSize, idleParkNanos,
+                registry, metrics::handled, metrics::failed, batchSize, idleParkNanos,
                 running::get, this::fail
         );
         int telemetryLaneCount = powerOfTwo(telemetryConsumers);
@@ -74,7 +73,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         for (int i = 0; i < telemetryLaneCount; i++) {
             telemetryLanes[i] = new EventConsumerLane(
                     EventLane.TELEMETRY, i, capacity, daemon,
-                    registry, counters, batchSize, idleParkNanos,
+                    registry, metrics::handled, metrics::failed, batchSize, idleParkNanos,
                     running::get, this::fail
             );
         }
@@ -111,7 +110,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         AssertUtil.notNull(policy, "policy");
         if (policy == BackpressurePolicy.BLOCK) {
             if (!publisherGate.begin()) {
-                counters.rejected();
+                metrics.rejected();
                 return PublishResult.REJECTED;
             }
             try {
@@ -121,7 +120,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
             }
         }
         if (!publisherGate.canPublish()) {
-            counters.rejected();
+            metrics.rejected();
             return PublishResult.REJECTED;
         }
         return doPublish(event, policy);
@@ -132,9 +131,13 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         return running.get() && !publisherGate.closed() && !publisherGate.failed();
     }
 
-    @Override
+    /**
+     * Returns the metrics registrar owned by this event bus.
+     *
+     * @return event bus metrics registrar
+     */
     public EventBusMetrics metrics() {
-        return counters.snapshot(pendingCount());
+        return metrics;
     }
 
     @Override
@@ -154,15 +157,15 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
     }
 
     private PublishResult doPublish(Event event, BackpressurePolicy policy) {
-        counters.published();
+        metrics.published();
         EventConsumerLane lane = lane(event);
         if (lane.offer(event)) {
-            counters.accepted();
+            metrics.accepted();
             return PublishResult.ACCEPTED;
         }
         return switch (policy) {
             case DROP -> {
-                counters.dropped();
+                metrics.dropped();
                 yield PublishResult.DROPPED;
             }
             case BLOCK -> blockUntilAccepted(lane, event);
@@ -174,7 +177,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         boolean interrupted = false;
         while (publisherGate.canPublish()) {
             if (lane.offer(event)) {
-                counters.accepted();
+                metrics.accepted();
                 return PublishResult.ACCEPTED;
             }
             if (Thread.interrupted()) {
@@ -190,7 +193,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         if (interrupted) {
             Thread.currentThread().interrupt();
         }
-        counters.rejected();
+        metrics.rejected();
         return PublishResult.REJECTED;
     }
 
@@ -208,7 +211,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         return telemetryLanes[index];
     }
 
-    private long pendingCount() {
+    public long pendingCount() {
         long pending = controlLane.size();
         for (EventConsumerLane lane : telemetryLanes) {
             pending += lane.size();
@@ -221,7 +224,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
             return;
         }
         running.set(false);
-        counters.failed();
+        metrics.failed();
         logger.error("Event consumer '{}' failed", failure, lane.name());
         controlLane.unpark();
         for (EventConsumerLane telemetryLane : telemetryLanes) {
@@ -257,4 +260,5 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         }
         return value;
     }
+
 }

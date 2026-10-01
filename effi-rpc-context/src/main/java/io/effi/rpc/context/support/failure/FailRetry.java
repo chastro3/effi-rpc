@@ -36,8 +36,7 @@ public class FailRetry implements Unary.FailureHandler {
         int retries = caller.option(FaultToleranceOptions.RETRIES);
         if (failureCount <= retries) {
             logger.error("Fail to call service: '{}', retrying: {}", cause, context.message().url().baseUrl(), failureCount);
-            CallerMetrics callerMetrics = caller.get(CallerMetrics.GENERIC_KEY);
-            callerMetrics.retryCount().increment();
+            CallerMetrics.of(caller).recordRetry();
             return;
         }
         throw cause;

@@ -1,6 +1,9 @@
 package io.effi.rpc.component.event;
 
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.metrics.DefaultMetrics;
+import io.effi.rpc.metrics.CounterSample;
+import io.effi.rpc.metrics.MetricsOptions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,10 +29,15 @@ class MpscEventBusTest {
 
     private MpscEventBus bus;
 
+    private DefaultMetrics metrics;
+
     @AfterEach
     void closeBus() {
         if (bus != null) {
             bus.close();
+        }
+        if (metrics != null) {
+            metrics.close();
         }
         if (platform != null) {
             platform.close();
@@ -71,9 +79,8 @@ class MpscEventBusTest {
 
         assertEquals(PublishResult.ACCEPTED, bus.publish(new PayloadEvent("hello")));
         assertTrue(received.await(1, TimeUnit.SECONDS));
-        EventBusMetrics metrics = bus.metrics();
-        assertEquals(1L, metrics.handled());
-        assertEquals(1L, metrics.failed());
+        assertEquals(1L, metrics.counter(EventBusMetrics.HANDLED).count());
+        assertEquals(1L, metrics.counter(EventBusMetrics.FAILED).count());
     }
 
     @Test
@@ -95,7 +102,7 @@ class MpscEventBusTest {
         assertTrue(entered.await(1, TimeUnit.SECONDS));
         assertEquals(PublishResult.ACCEPTED, bus.publish(new PayloadEvent("queued")));
         assertEquals(PublishResult.DROPPED, bus.publish(new PayloadEvent("dropped")));
-        assertEquals(1L, bus.metrics().dropped());
+        assertEquals(1L, metrics.counter(EventBusMetrics.DROPPED).count());
 
         release.countDown();
     }
@@ -167,7 +174,7 @@ class MpscEventBusTest {
         bus.close();
 
         assertEquals(PublishResult.REJECTED, bus.publish(new PayloadEvent("closed")));
-        assertEquals(1L, bus.metrics().rejected());
+        assertEquals(1L, metrics.counter(EventBusMetrics.REJECTED).count());
     }
 
     @Test
@@ -226,7 +233,9 @@ class MpscEventBusTest {
     @Test
     void doesNotStartConsumersUntilStarted() {
         platform = new ScopedPlatform("event-bus-start-test-" + System.nanoTime());
+        metrics = new DefaultMetrics(platform);
         bus = new MpscEventBus(platform);
+        metrics.register(bus.metrics());
 
         assertFalse(bus.active());
         bus.start();
@@ -315,7 +324,7 @@ class MpscEventBusTest {
 
         assertFalse(bus.active());
         assertEquals(PublishResult.REJECTED, bus.publish(new PayloadEvent("after-failure")));
-        assertEquals(1L, bus.metrics().failed());
+        assertEquals(1L, metrics.counter(EventBusMetrics.FAILED).count());
     }
 
     @Test
@@ -329,9 +338,25 @@ class MpscEventBusTest {
         bus = newBus(16, 4, 10_000L, true, false, 1);
         bus.publish(new PayloadEvent("ignored"));
 
-        EventBusMetrics metrics = bus.metrics();
-        assertFalse(metrics.enabled());
-        assertEquals(0L, metrics.published());
+        assertTrue(metrics.snapshot().samples().isEmpty());
+        assertEquals(0L, metrics.counter(EventBusMetrics.PUBLISHED).count());
+    }
+
+    @Test
+    void exposesUnifiedMetricSamples() throws Exception {
+        bus = newBus();
+        CountDownLatch received = new CountDownLatch(1);
+        bus.register(PayloadEvent.class, event -> received.countDown());
+
+        bus.publish(new PayloadEvent("metrics"));
+        assertTrue(received.await(1, TimeUnit.SECONDS));
+
+        CounterSample accepted = metrics.snapshot().samples().stream()
+                .filter(sample -> sample.key().equals(EventBusMetrics.ACCEPTED))
+                .map(CounterSample.class::cast)
+                .findFirst()
+                .orElseThrow();
+        assertEquals(1L, accepted.value());
     }
 
     private MpscEventBus newBus() {
@@ -370,9 +395,11 @@ class MpscEventBusTest {
                 .addOption(EventOptions.IDLE_PARK_NANOS, idleParkNanos)
                 .addOption(EventOptions.PUBLISH_TIMEOUT_NANOS, publishTimeoutNanos)
                 .addOption(EventOptions.DAEMON, daemon)
-                .addOption(EventOptions.METRICS_ENABLED, metricsEnabled)
+                .addOption(MetricsOptions.ENABLED, metricsEnabled)
                 .addOption(EventOptions.TELEMETRY_CONSUMERS, telemetryConsumers);
+        metrics = new DefaultMetrics(platform);
         MpscEventBus eventBus = new MpscEventBus(platform);
+        metrics.register(eventBus.metrics());
         eventBus.start();
         return eventBus;
     }

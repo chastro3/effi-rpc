@@ -1,16 +1,19 @@
 package io.effi.rpc.context.support.failure;
 
-import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.metrics.DefaultMetrics;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.metrics.CallerMetrics;
+import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.context.options.FaultToleranceOptions;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.metrics.MetricKey;
 import io.effi.rpc.option.OptionName;
-import io.effi.rpc.util.GenericKey;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -28,7 +31,7 @@ class FailRetryTest {
 
         EffiRpcException thrown = assertThrows(
                 EffiRpcException.class,
-                () -> new FailRetry().handle(context(new CallerMetrics()), 1, failure)
+                () -> new FailRetry().handle(context(metrics()), 1, failure)
         );
 
         assertSame(failure, thrown);
@@ -36,14 +39,27 @@ class FailRetryTest {
 
     @Test
     void retriesMarkedTransientFailure() throws EffiRpcException {
-        CallerMetrics metrics = new CallerMetrics();
+        DefaultMetrics registry = metrics();
+        CallerMetrics state = new CallerMetrics("test");
+        registry.register(state);
         EffiRpcException failure = PredefinedErrorCode.SERVICE_UNAVAILABLE
                 .fail("overloaded")
                 .withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
 
-        new FailRetry().handle(context(metrics), 1, failure);
+        new FailRetry().handle(context(state), 1, failure);
 
-        assertEquals(1L, metrics.retryCount().sum());
+        MetricKey retryMetric = CallerMetrics.RETRY_COUNT.withTag("protocol", "test");
+        assertEquals(1L, registry.counter(retryMetric).count());
+    }
+
+    private static DefaultMetrics metrics() {
+        return new DefaultMetrics(ScopedPlatform.defaultInstance());
+    }
+
+    private static CallContext<Request, Caller<?>> context(DefaultMetrics registry) {
+        CallerMetrics peerMetrics = new CallerMetrics("test");
+        registry.register(peerMetrics);
+        return context(peerMetrics);
     }
 
     private static CallContext<Request, Caller<?>> context(CallerMetrics metrics) {
@@ -54,7 +70,7 @@ class FailRetryTest {
                     return 2;
                 }
             }
-            if ("get".equals(method.getName()) && args[0] == CallerMetrics.GENERIC_KEY) {
+            if ("get".equals(method.getName()) && args[0] == PeerMetrics.KEY) {
                 return metrics;
             }
             return defaultValue(method.getReturnType());

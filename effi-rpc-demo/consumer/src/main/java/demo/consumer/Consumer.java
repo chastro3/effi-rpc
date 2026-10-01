@@ -59,8 +59,6 @@ public class Consumer {
 //                List<ParentObject> consumerList = caller.blockingCall(paramVar, Body.wrap(ParentObject.getObjList("consumer list")));
 //                long end = System.currentTimeMillis();
 //                System.out.println("effi-rpc 耗时:" + (end - start) + consumerList);
-//                CallerMetrics callerMetrics = caller.get(CallerMetrics.GENERIC_KEY);
-//                System.out.println("平均耗时:" + callerMetrics.averageCallTime());
 //                start = System.currentTimeMillis();
 //                //List<ParentObject> clientList = consumer.http2Test(ParentObject.getObjList("client list"));
 //                end = System.currentTimeMillis();

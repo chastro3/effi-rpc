@@ -4,6 +4,7 @@ import io.effi.rpc.component.event.Event;
 import io.effi.rpc.component.event.MpscEventBus;
 import io.effi.rpc.component.event.PublishResult;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.metrics.DefaultMetrics;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -37,10 +38,14 @@ public class MpscEventBusBenchmark {
 
     private MpscEventBus bus;
 
+    private DefaultMetrics metrics;
+
     @Setup(Level.Trial)
     public void setup() {
         platform = new ScopedPlatform("mpsc-event-bus-benchmark-" + System.nanoTime());
+        metrics = new DefaultMetrics(platform);
         bus = new MpscEventBus(platform);
+        metrics.register(bus.metrics());
         bus.register(PayloadEvent.class, event -> {
         });
         bus.start();
@@ -49,6 +54,7 @@ public class MpscEventBusBenchmark {
     @TearDown(Level.Trial)
     public void tearDown() {
         bus.close();
+        metrics.close();
         platform.close();
     }
 

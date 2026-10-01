@@ -262,15 +262,17 @@ proxy / caller proxy
 - component registry：`ComponentRepository` / `ComponentRegistry` / `DelegateComponentRepository`。
 - extension registry：`ExtensionRepository` / `ExtensionLoader` / `ExtensionEntry`。
 - event：`EventBus`、`MpscEventBus`、`EventLane`、`EventHandler`。
+- metrics impl：`DefaultMetrics` 与 `DefaultMetricCounter` / `DefaultMetricTimer` / `DefaultMetricGauge`，使用 `LongAdder` / `AtomicLong` 做无锁聚合，构造时直接接收 `ScopedPlatform`。
 - config：client/server/registry/endpoint/TLS/compression/transport options。
 - tools：`Scheduler`、`ThreadPool`。
 
 事件总线约定：
 
 - `CONTROL` lane 用于生命周期和连接控制事件，单 consumer、保序，默认队列满时阻塞。
-- `TELEMETRY` lane 用于指标等可观测事件，可配置多个 consumer 分片，默认队列满时丢弃。
+- `TELEMETRY` lane 用于异步可观测事件，可配置多个 consumer 分片，默认队列满时丢弃；RPC 指标聚合不依赖该 lane。
 - 发布方只判断 `EventLane` 和 `BackpressurePolicy`；handler 解析、异常隔离、批处理和关闭 drain 都在 `MpscEventBus` 内完成。
-- `EventOptions` 定义平台级 option：`event.capacity`、`event.batchSize`、`event.idleParkNanos`、`event.publishTimeoutNanos`、`event.daemon`、`event.metricsEnabled`、`event.telemetryConsumers`。
+- `EventOptions` 定义平台级 option：`event.capacity`、`event.batchSize`、`event.idleParkNanos`、`event.publishTimeoutNanos`、`event.daemon`、`event.telemetryConsumers`。
+- `EventBusMetrics implements MetricsRegistrar`，指标 `MetricKey` 由它自己持有；`EventBus` 接口不承担指标注册职责，boot 通过 `metrics.register(eventBus.metrics())` 接入，`MpscEventBus` 只调用语义方法记录指标。
 
 2026-10-01 本机 JMH 参考值，4 producer、no-op handler：
 
@@ -425,26 +427,27 @@ ReplyInterceptorStage
 
 **指标**
 
-- `CallerMetrics` 和 `CalleeMetrics` 挂在 peer attributes 上，
-  由 future/call 事件处理器更新。
-- caller 侧由 `CallExecution` 记录开始时间，
-  `CallerMetricsInterceptor` 记录结束时间并发布 `CallerMetricsEvent`。
-- callee 侧由 `CallExecuteRecordInterceptor` 记录开始和结束时间。
-- `MetricsSupport` 的计时 key 放在 `CallContext` attributes 中。
+- 通用指标内核位于 `effi-rpc-metrics`，只依赖 `common + annotation`：`MetricKey / MetricSample / MetricCounter / MetricTimer / MetricGauge / Metrics / MetricsRegistrar / MetricsReporter`。
+- `Metrics` 标注 `@ScopedComponent(scope = PLATFORM, kind = SINGLE)`，boot 以 `register(Metrics.class, metrics)` 注册为平台单例组件，使用方通过 `platform.singleComponent(Metrics.class)` 获取。
+- `PeerMetrics` 是 Caller/Servant 共用的抽象指标集合并实现 `MetricsRegistrar`；`CallerMetrics` 和 `ServantMetrics` 分别负责两侧指标。
+- `CallerMetricsInterceptor` / `ServantMetricsInterceptor` 和 codec 只调用 `CallerMetrics` / `ServantMetrics` / `PeerMetrics` 的语义方法（`beginCall / recordCall`、`beginRequest / recordRequest`、`recordSerialization / recordDeserialization`），不直接拼 `MetricKey`。
+- 计时 key 由指标类自己持有（`CallerMetrics.CALL_START`、`ServantMetrics.REQUEST_START`），`MetricsSupport` 与 `constant/MetricsKey` 已删除。
+- `EventBusMetrics` 统一记录 eventbus publish/accepted/dropped/rejected/handled/failed/pending。
 
 **当前边界**
 
-- `MetricsEvent` 当前通过 `END_TIME - START_TIME` 计算执行时长，
-  代码中又除以 `1_000_000`；这与“duration 为 nanoseconds”的注释不一致，
-  维护时要先确认单位约定。
-- `MetricsEvent` 直接对计时 key 做 `Long` 拆箱；如果某个协议没有写入
-  可选计时点，会增加 NPE 风险。
-- `AnnotationStyle` 使用静态缓存和
-  `ScopedPlatform.defaultInstance()`；多 platform、同名 style 场景需要
-  特别确认缓存隔离是否符合预期。
+- 指标统一使用 `MetricKey + MetricSample`，不再保留 `CallerMetricsEvent / CalleeMetricsEvent` 等事件式旧模型。
+- `MetricsReporter` 接收 `MetricsSnapshot`，不再接收无界增长的 `List<MetricEvent>`。
+- `AnnotationStyle` 的正常解析路径显式绑定 `ScopedPlatform`；
+  旧的无 platform 重载只为兼容保留，并委托到 default platform。
+- `ImmutableInteractionUnitChain` 提供内部的 `name / lookupChain / next`
+  结构，`Stage.Chain` 本身仍保持精简接口；这些链节点能力是内部实现，
+  不应被当作外部 SPI 契约。
 - `ImmutableStageChain` 和 `ImmutableInterceptorChain` 的 tail 返回
-  `null`，这是链结束标记而不是业务结果。自定义链必须保证最后有
-  `ReplyResultStage` 或等价的 result-producing tail。
+  `null`，它是链结束标记而不是业务结果。默认链必须保证最后有
+  `ReplyResultStage` 或等价的 result-producing 阶段。
+- `InvocationArguments.values()` 和 `CallContext.args()` 的共享可变数组
+  语义已在 Javadoc 中明确；拦截器可以修改数组内容，但不能替换数组引用。
 - `context` 只定义契约和默认执行语义；HTTP/gRPC 的 message、codec、
   transport 绑定必须回到对应 protocol 模块核对。
 
@@ -545,12 +548,23 @@ Locator.locate(context)
 
 ### 5.10 `effi-rpc-metrics`
 
-当前模块只有 Gradle 配置，依赖 `effi-rpc-context`，没有实际 Java 源码。
+通用可观测性内核模块，只依赖 `effi-rpc-common` 与 `effi-rpc-annotation`，只提供指标契约。
 
-结论：
+核心内容：
 
-- 指标能力目前主要表现为 context 中的 metrics 抽象和事件，不是独立 metrics 实现模块。
-- 后续恢复记忆时不要把该模块误认为已有独立采集/上报实现。
+- `MetricKey`、`MetricKind`、`MetricUnit`。
+- `MetricSample`、`CounterSample`、`GaugeSample`、`TimerSample`。
+- `MetricCounter`、`MetricTimer`、`MetricGauge`、`Metrics`、`MetricsRegistrar`、`MetricsSnapshot`。
+- `MetricCounter` / `MetricTimer` / `MetricGauge` 各自导出 `NOOP` 默认实现，指标关闭或尚未注册时自动降级，业务侧无需判空。
+- `MetricsReporter`、`LoggingMetricsReporter`。
+- 默认实现 `DefaultMetrics` 位于 `effi-rpc-component` 的 `io.effi.rpc.component.metrics`，构造时接收 `ScopedPlatform`。
+
+依赖边界：
+
+- metrics 不 import `context`、`component`、`transport`、`protocol` 类型，只依赖 `common` 与 `annotation`。
+- component 依赖 metrics 以实现 `EventBusMetrics implements MetricsRegistrar`。
+- context 依赖 metrics 以实现 `PeerMetrics / CallerMetrics / ServantMetrics` 指标集合。
+- boot 负责创建 `DefaultMetrics`，并按 `@ScopedComponent(scope = PLATFORM, kind = SINGLE)` 注册为平台单例组件。
 
 ### 5.11 `effi-rpc-transport:effi-rpc-transport-api`
 
@@ -752,7 +766,7 @@ initialize
 
 - Spring Boot starter 是集成边界，本文不展开。
 - `effi-rpc-grpc` streaming 能力尚未达到完整生产实现。
-- `effi-rpc-metrics` 当前没有独立源码实现。
+- `effi-rpc-metrics` 已提供统一指标内核；新模块应提供 `XxxMetrics implements MetricsRegistrar`，其他代码只调用该门面的语义方法。
 - HTTP/3、Triple 支持尚未完成。
 - `PRODUCTION_READINESS.md` 记录的是更严格的生产加固清单，不能把“代码可启动”误认为“生产已完备”。
 - 选择扩展、注册中心、协议、线程池时必须同时检查 compileOnly 可选依赖是否存在于运行时。

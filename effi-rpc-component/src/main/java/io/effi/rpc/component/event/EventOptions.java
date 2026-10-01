@@ -21,7 +21,5 @@ public interface EventOptions {
 
     OptionName<Boolean> DAEMON = BOOLEAN.onlyCurrent("event.daemon", true);
 
-    OptionName<Boolean> METRICS_ENABLED = BOOLEAN.onlyCurrent("event.metricsEnabled", true);
-
     OptionName<Integer> TELEMETRY_CONSUMERS = INTEGER.onlyCurrent("event.telemetryConsumers", 1);
 }

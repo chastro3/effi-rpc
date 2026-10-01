@@ -25,7 +25,9 @@ final class EventConsumerLane {
 
     private final HandlerRegistry.Cache handlerCache = new HandlerRegistry.Cache();
 
-    private final EventBusCounters counters;
+    private final Runnable handled;
+
+    private final Runnable failed;
 
     private final int batchSize;
 
@@ -41,7 +43,8 @@ final class EventConsumerLane {
             int capacity,
             boolean daemon,
             HandlerRegistry registry,
-            EventBusCounters counters,
+            Runnable handled,
+            Runnable failed,
             int batchSize,
             long idleParkNanos,
             BooleanSupplier running,
@@ -49,7 +52,8 @@ final class EventConsumerLane {
     ) {
         this.queue = new MpscArrayQueue<>(capacity);
         this.registry = registry;
-        this.counters = counters;
+        this.handled = handled;
+        this.failed = failed;
         this.batchSize = batchSize;
         this.idleParkNanos = idleParkNanos;
         this.running = running;
@@ -131,7 +135,7 @@ final class EventConsumerLane {
         if (handlers.length == 0) {
             return;
         }
-        counters.handled();
+        handled.run();
         for (EventHandler<?> handler : handlers) {
             try {
                 invoke(handler, event);
@@ -139,7 +143,7 @@ final class EventConsumerLane {
                 if (failure instanceof Error) {
                     throw failure;
                 }
-                counters.failed();
+                failed.run();
                 logger.error("Failed to handle '{}' event in '{}'",
                         failure,
                         ObjectUtil.simpleClassName(event),

@@ -1,205 +1,113 @@
 package io.effi.rpc.context.metrics;
 
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.metrics.MetricCounter;
+import io.effi.rpc.metrics.MetricKey;
+import io.effi.rpc.metrics.MetricTimer;
+import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.util.GenericKey;
 
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.LongAdder;
-
 /**
- * Caller Metrics.
+ * Provides the metrics owned by one caller.
  */
-public class CallerMetrics {
+public final class CallerMetrics extends PeerMetrics {
 
-    public static final GenericKey<CallerMetrics> GENERIC_KEY = GenericKey.valueOf("callerMetrics");
+    public static final MetricKey CALL_COUNT = MetricKey.of("rpc.client.call.count");
 
-    private LongAdder callCount = new LongAdder();
+    public static final MetricKey CALL_DURATION = MetricKey.of("rpc.client.call.duration");
 
-    private LongAdder successCallCount = new LongAdder();
+    public static final MetricKey SERIALIZE_DURATION = MetricKey.of("rpc.client.serialize.duration");
 
-    private LongAdder failureCallCount = new LongAdder();
+    public static final MetricKey DESERIALIZE_DURATION = MetricKey.of("rpc.client.deserialize.duration");
 
-    private AtomicReference<Double> averageCallTime = new AtomicReference<>(0.0);
+    public static final MetricKey RETRY_COUNT = MetricKey.of("rpc.client.retry.count");
 
-    private AtomicReference<Double> averageSerializationTime = new AtomicReference<>(0.0);
+    public static final MetricKey TIMEOUT_COUNT = MetricKey.of("rpc.client.timeout.count");
 
-    private AtomicReference<Double> averageDeserializationTime = new AtomicReference<>(0.0);
+    private static final GenericKey<Long> CALL_START = GenericKey.valueOf("callerMetrics.callStart");
 
-    private AtomicLong maxCallTime = new AtomicLong();
+    private static final CallerMetrics NOOP = new CallerMetrics("none");
 
-    private AtomicLong minCallTime = new AtomicLong();
+    private MetricCounter callCount = MetricCounter.NOOP;
 
-    private LongAdder retryCount = new LongAdder();
+    private MetricCounter successCount = MetricCounter.NOOP;
 
-    private LongAdder timeoutCount = new LongAdder();
+    private MetricCounter failureCount = MetricCounter.NOOP;
 
-    /**
-     * Returns the callCount.
-     *
-     * @return the callCount
-     */
-    public LongAdder callCount() {
-        return callCount;
+    private MetricCounter retryCount = MetricCounter.NOOP;
+
+    private MetricCounter timeoutCount = MetricCounter.NOOP;
+
+    private MetricTimer callTimer = MetricTimer.NOOP;
+
+    public CallerMetrics(String protocol) {
+        super(protocol, SERIALIZE_DURATION, DESERIALIZE_DURATION);
+    }
+
+    @Override
+    protected void registerSpecific(Metrics metrics) {
+        this.callCount = metrics.counter(key(CALL_COUNT));
+        this.successCount = metrics.counter(key(CALL_COUNT).withTag("status", "success"));
+        this.failureCount = metrics.counter(key(CALL_COUNT).withTag("status", "failure"));
+        this.retryCount = metrics.counter(key(RETRY_COUNT));
+        this.timeoutCount = metrics.counter(key(TIMEOUT_COUNT));
+        this.callTimer = metrics.timer(key(CALL_DURATION));
     }
 
     /**
-     * Sets the callCount.
+     * Starts timing the current call attempt.
      *
-     * @param callCount callCount
+     * @param context call context of the attempt
      */
-    public CallerMetrics callCount(LongAdder callCount) {
-        this.callCount = callCount;
-        return this;
+    public void beginCall(CallContext<?, ?> context) {
+        context.set(CALL_START, System.nanoTime());
     }
 
     /**
-     * Returns the successCallCount.
+     * Records one finished call attempt using the elapsed time of its context.
      *
-     * @return the successCallCount
+     * @param context call context of the attempt
+     * @param success whether the attempt succeeded
      */
-    public LongAdder successCallCount() {
-        return successCallCount;
+    public void recordCall(CallContext<?, ?> context, boolean success) {
+        Long start = context.get(CALL_START);
+        recordCall(start == null ? 0L : System.nanoTime() - start, success);
     }
 
     /**
-     * Sets the successCallCount.
+     * Records one finished call attempt.
      *
-     * @param successCallCount successCallCount
+     * @param durationNanos elapsed nanoseconds
+     * @param success whether the attempt succeeded
      */
-    public CallerMetrics successCallCount(LongAdder successCallCount) {
-        this.successCallCount = successCallCount;
-        return this;
+    public void recordCall(long durationNanos, boolean success) {
+        callCount.increment();
+        (success ? successCount : failureCount).increment();
+        callTimer.recordNanos(Math.max(0L, durationNanos));
     }
 
     /**
-     * Returns the failureCallCount.
-     *
-     * @return the failureCallCount
+     * Records one scheduled retry.
      */
-    public LongAdder failureCallCount() {
-        return failureCallCount;
+    public void recordRetry() {
+        retryCount.increment();
     }
 
     /**
-     * Sets the failureCallCount.
-     *
-     * @param failureCallCount failureCallCount
+     * Records one expired deadline.
      */
-    public CallerMetrics failureCallCount(LongAdder failureCallCount) {
-        this.failureCallCount = failureCallCount;
-        return this;
+    public void recordTimeout() {
+        timeoutCount.increment();
     }
 
     /**
-     * Returns the averageCallTime.
+     * Returns the caller metrics of the supplied peer, or a shared no-op instance when absent.
      *
-     * @return the averageCallTime
+     * @param peer call peer
+     * @return caller metrics
      */
-    public AtomicReference<Double> averageCallTime() {
-        return averageCallTime;
-    }
-
-    /**
-     * Sets the averageCallTime.
-     *
-     * @param averageCallTime averageCallTime
-     */
-    public CallerMetrics averageCallTime(AtomicReference<Double> averageCallTime) {
-        this.averageCallTime = averageCallTime;
-        return this;
-    }
-
-    /**
-     * Returns the averageSerializationTime.
-     *
-     * @return the averageSerializationTime
-     */
-    public AtomicReference<Double> averageSerializationTime() {
-        return averageSerializationTime;
-    }
-
-    /**
-     * Returns the averageDeserializationTime.
-     *
-     * @return the averageDeserializationTime
-     */
-    public AtomicReference<Double> averageDeserializationTime() {
-        return averageDeserializationTime;
-    }
-
-    /**
-     * Returns the maxCallTime.
-     *
-     * @return the maxCallTime
-     */
-    public AtomicLong maxCallTime() {
-        return maxCallTime;
-    }
-
-    /**
-     * Sets the maxCallTime.
-     *
-     * @param maxCallTime maxCallTime
-     */
-    public CallerMetrics maxCallTime(AtomicLong maxCallTime) {
-        this.maxCallTime = maxCallTime;
-        return this;
-    }
-
-    /**
-     * Returns the minCallTime.
-     *
-     * @return the minCallTime
-     */
-    public AtomicLong minCallTime() {
-        return minCallTime;
-    }
-
-    /**
-     * Sets the minCallTime.
-     *
-     * @param minCallTime minCallTime
-     */
-    public CallerMetrics minCallTime(AtomicLong minCallTime) {
-        this.minCallTime = minCallTime;
-        return this;
-    }
-
-    /**
-     * Returns the retryCount.
-     *
-     * @return the retryCount
-     */
-    public LongAdder retryCount() {
-        return retryCount;
-    }
-
-    /**
-     * Sets the retryCount.
-     *
-     * @param retryCount retryCount
-     */
-    public CallerMetrics retryCount(LongAdder retryCount) {
-        this.retryCount = retryCount;
-        return this;
-    }
-
-    /**
-     * Returns the timeoutCount.
-     *
-     * @return the timeoutCount
-     */
-    public LongAdder timeoutCount() {
-        return timeoutCount;
-    }
-
-    /**
-     * Sets the timeoutCount.
-     *
-     * @param timeoutCount timeoutCount
-     */
-    public CallerMetrics timeoutCount(LongAdder timeoutCount) {
-        this.timeoutCount = timeoutCount;
-        return this;
+    public static CallerMetrics of(Peer peer) {
+        return PeerMetrics.of(peer) instanceof CallerMetrics callerMetrics ? callerMetrics : NOOP;
     }
 }

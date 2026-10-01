@@ -41,8 +41,4 @@ public interface EventBus extends Closeable {
         return publish(event, event.backpressurePolicy());
     }
 
-    /**
-     * Returns the current metrics snapshot.
-     */
-    EventBusMetrics metrics();
 }

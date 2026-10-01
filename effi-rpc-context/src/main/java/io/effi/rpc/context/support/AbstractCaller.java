@@ -14,7 +14,9 @@ import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
+import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
@@ -53,7 +55,12 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
         this.clientConfig = builder.clientConfig;
         this.chosenInterceptorChain = builder.chosenInterceptorChain;
         set(KeyConstant.LAST_CALL_INDEX, new AtomicInteger(-1));
-        set(CallerMetrics.GENERIC_KEY, new CallerMetrics());
+        CallerMetrics peerMetrics = new CallerMetrics(descriptor.protocol().name());
+        Metrics metrics = module.platform().singleComponent(Metrics.class);
+        if (metrics != null) {
+            metrics.register(peerMetrics);
+        }
+        set(PeerMetrics.KEY, peerMetrics);
     }
 
     @Override

@@ -1,24 +1,87 @@
 package io.effi.rpc.component.event;
 
+import io.effi.rpc.metrics.MetricCounter;
+import io.effi.rpc.metrics.MetricKey;
+import io.effi.rpc.metrics.Metrics;
+import io.effi.rpc.metrics.MetricsRegistrar;
+
 /**
- * Captures a point-in-time event bus metrics snapshot.
+ * Registers and records EventBus metrics.
  */
-public record EventBusMetrics(
-        /** Whether counters are enabled. */
-        boolean enabled,
-        /** Total publish attempts. */
-        long published,
-        /** Events accepted into lane queues. */
-        long accepted,
-        /** Events dropped by backpressure policy. */
-        long dropped,
-        /** Events rejected because the bus is closed. */
-        long rejected,
-        /** Events dispatched to at least one handler. */
-        long handled,
-        /** Handler failures. */
-        long failed,
-        /** Events currently waiting in lane queues. */
-        long pending
-) {
+public final class EventBusMetrics implements MetricsRegistrar {
+
+    public static final MetricKey PUBLISHED = publish("published");
+
+    public static final MetricKey ACCEPTED = publish("accepted");
+
+    public static final MetricKey DROPPED = publish("dropped");
+
+    public static final MetricKey REJECTED = publish("rejected");
+
+    public static final MetricKey HANDLED = event("handled");
+
+    public static final MetricKey FAILED = event("failed");
+
+    public static final MetricKey PENDING = MetricKey.of("eventbus.queue.pending");
+
+    private final MpscEventBus bus;
+
+    private MetricCounter published = MetricCounter.NOOP;
+
+    private MetricCounter accepted = MetricCounter.NOOP;
+
+    private MetricCounter dropped = MetricCounter.NOOP;
+
+    private MetricCounter rejected = MetricCounter.NOOP;
+
+    private MetricCounter handled = MetricCounter.NOOP;
+
+    private MetricCounter failed = MetricCounter.NOOP;
+
+    public EventBusMetrics(MpscEventBus bus) {
+        this.bus = bus;
+    }
+
+    @Override
+    public void register(Metrics metrics) {
+        this.published = metrics.counter(PUBLISHED);
+        this.accepted = metrics.counter(ACCEPTED);
+        this.dropped = metrics.counter(DROPPED);
+        this.rejected = metrics.counter(REJECTED);
+        this.handled = metrics.counter(HANDLED);
+        this.failed = metrics.counter(FAILED);
+        metrics.gauge(PENDING, bus::pendingCount);
+    }
+
+    public void published() {
+        published.increment();
+    }
+
+    public void accepted() {
+        accepted.increment();
+    }
+
+    public void dropped() {
+        dropped.increment();
+    }
+
+    public void rejected() {
+        rejected.increment();
+    }
+
+    public void handled() {
+        handled.increment();
+    }
+
+    public void failed() {
+        failed.increment();
+    }
+
+    private static MetricKey publish(String result) {
+        return MetricKey.of("eventbus.publish.count").withTag("result", result);
+    }
+
+    private static MetricKey event(String result) {
+        return MetricKey.of("eventbus.event.count").withTag("result", result);
+    }
 }

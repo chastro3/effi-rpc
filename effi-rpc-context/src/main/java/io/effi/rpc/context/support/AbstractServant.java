@@ -5,12 +5,14 @@ import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
-import io.effi.rpc.context.metrics.CalleeMetrics;
+import io.effi.rpc.context.metrics.PeerMetrics;
+import io.effi.rpc.context.metrics.ServantMetrics;
 import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
+import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.TypeCapture;
 
@@ -40,7 +42,12 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
         this.methodBinder = new MethodBinder(servantMethod.binding());
         this.label = builder.label();
         this.methodIndex = group().indexOf(this);
-        set(CalleeMetrics.GENERIC_KEY, new CalleeMetrics());
+        ServantMetrics peerMetrics = new ServantMetrics(descriptor.protocol().name());
+        Metrics metrics = module.platform().singleComponent(Metrics.class);
+        if (metrics != null) {
+            metrics.register(peerMetrics);
+        }
+        set(PeerMetrics.KEY, peerMetrics);
     }
 
     @Override

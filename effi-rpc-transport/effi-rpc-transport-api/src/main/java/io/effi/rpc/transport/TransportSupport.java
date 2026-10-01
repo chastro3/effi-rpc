@@ -2,8 +2,7 @@ package io.effi.rpc.transport;
 
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.metrics.CalleeMetrics;
-import io.effi.rpc.context.metrics.CallerMetrics;
+import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.context.options.SerializationOptions;
 
 /**
@@ -23,7 +22,8 @@ public final class TransportSupport {
         if (threshold == null || threshold <= 0) {
             return true;
         }
-        return averageSerializationTime(peer) < threshold;
+        PeerMetrics metrics = PeerMetrics.of(peer);
+        return metrics == null || metrics.averageSerializationNanos() < threshold;
     }
 
     public static boolean inIODeserialization(Peer peer) {
@@ -31,21 +31,8 @@ public final class TransportSupport {
         if (threshold == null || threshold <= 0) {
             return true;
         }
-        return averageDeserializationTime(peer) < threshold;
-    }
-
-    private static double averageSerializationTime(Peer peer) {
-        if (peer instanceof Caller<?> caller) {
-            return caller.get(CallerMetrics.GENERIC_KEY).averageSerializationTime().get();
-        }
-        return peer.get(CalleeMetrics.GENERIC_KEY).averageSerializationTime().get();
-    }
-
-    private static double averageDeserializationTime(Peer peer) {
-        if (peer instanceof Caller<?> caller) {
-            return caller.get(CallerMetrics.GENERIC_KEY).averageDeserializationTime().get();
-        }
-        return peer.get(CalleeMetrics.GENERIC_KEY).averageDeserializationTime().get();
+        PeerMetrics metrics = PeerMetrics.of(peer);
+        return metrics == null || metrics.averageDeserializationNanos() < threshold;
     }
 
     private TransportSupport() {
