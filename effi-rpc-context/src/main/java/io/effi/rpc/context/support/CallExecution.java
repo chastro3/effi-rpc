@@ -55,6 +55,8 @@ public final class CallExecution<R> {
 
     private volatile ScheduledFuture<?> deadlineTask;
 
+    private volatile CallContext<Request, Caller<?>> attemptContext;
+
     public CallExecution(Caller<R> caller, Invocation invocation, Unary.FailureHandler failureHandler) {
         this.caller = caller;
         this.invocation = invocation;
@@ -93,12 +95,14 @@ public final class CallExecution<R> {
         }
 
         CallContext<Request, Caller<?>> context = newContext();
+        attemptContext = context;
         CallerMetrics.of(caller).beginCall(context);
 
         ReplyFuture attempt;
         try {
             attempt = invoke(context);
         } catch (Throwable cause) {
+            CallerMetrics.of(caller).recordCall(context, false);
             onFailed(context, toRpcException(cause));
             return;
         }
@@ -122,17 +126,22 @@ public final class CallExecution<R> {
         if (!attemptFuture.compareAndSet(attempt, null)) {
             return;
         }
+        CallerMetrics metrics = CallerMetrics.of(caller);
         if (outcome.failed()) {
+            metrics.recordCall(context, false);
             onFailed(context, outcome.cause());
             return;
         }
 
         Interaction.Result result = attempt.rawResult();
         if (result == null) {
+            metrics.recordCall(context, false);
             completion.failure(InteractionErrorCodes.REPLY_RESULT_MISSING.fail(attempt.id()));
         } else if (result.failed()) {
+            metrics.recordCall(context, false);
             completion.failure(result.cause());
         } else {
+            metrics.recordCall(context, true);
             completion.success((R) result.value());
         }
     }
@@ -216,7 +225,15 @@ public final class CallExecution<R> {
     }
 
     private void failDeadline() {
-        CallerMetrics.of(caller).recordTimeout();
+        if (completion.completed()) {
+            return;
+        }
+        CallerMetrics metrics = CallerMetrics.of(caller);
+        metrics.recordTimeout();
+        CallContext<Request, Caller<?>> context = attemptContext;
+        if (context != null) {
+            metrics.recordCall(context, false);
+        }
         completion.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(0L));
     }
 

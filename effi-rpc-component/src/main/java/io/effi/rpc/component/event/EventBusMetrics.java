@@ -24,6 +24,8 @@ public final class EventBusMetrics implements MetricsRegistrar {
 
     public static final MetricKey PENDING = MetricKey.of("eventbus.queue.pending");
 
+    public static final MetricKey CONSUMER_FAILED = MetricKey.of("eventbus.consumer.failure.count");
+
     private final MpscEventBus bus;
 
     private MetricCounter published = MetricCounter.NOOP;
@@ -38,6 +40,8 @@ public final class EventBusMetrics implements MetricsRegistrar {
 
     private MetricCounter failed = MetricCounter.NOOP;
 
+    private MetricCounter consumerFailed = MetricCounter.NOOP;
+
     public EventBusMetrics(MpscEventBus bus) {
         this.bus = bus;
     }
@@ -50,6 +54,7 @@ public final class EventBusMetrics implements MetricsRegistrar {
         this.rejected = metrics.counter(REJECTED);
         this.handled = metrics.counter(HANDLED);
         this.failed = metrics.counter(FAILED);
+        this.consumerFailed = metrics.counter(CONSUMER_FAILED);
         metrics.gauge(PENDING, bus::pendingCount);
     }
 
@@ -75,6 +80,10 @@ public final class EventBusMetrics implements MetricsRegistrar {
 
     public void failed() {
         failed.increment();
+    }
+
+    public void consumerFailed() {
+        consumerFailed.increment();
     }
 
     private static MetricKey publish(String result) {

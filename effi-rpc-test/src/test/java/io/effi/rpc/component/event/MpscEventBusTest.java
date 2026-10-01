@@ -325,6 +325,7 @@ class MpscEventBusTest {
         assertFalse(bus.active());
         assertEquals(PublishResult.REJECTED, bus.publish(new PayloadEvent("after-failure")));
         assertEquals(1L, metrics.counter(EventBusMetrics.FAILED).count());
+        assertEquals(1L, metrics.counter(EventBusMetrics.CONSUMER_FAILED).count());
     }
 
     @Test

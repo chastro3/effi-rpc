@@ -430,9 +430,9 @@ ReplyInterceptorStage
 - 通用指标内核位于 `effi-rpc-metrics`，只依赖 `common + annotation`：`MetricKey / MetricSample / MetricCounter / MetricTimer / MetricGauge / Metrics / MetricsRegistrar / MetricsReporter`。
 - `Metrics` 标注 `@ScopedComponent(scope = PLATFORM, kind = SINGLE)`，boot 以 `register(Metrics.class, metrics)` 注册为平台单例组件，使用方通过 `platform.singleComponent(Metrics.class)` 获取。
 - `PeerMetrics` 是 Caller/Servant 共用的抽象指标集合并实现 `MetricsRegistrar`；`CallerMetrics` 和 `ServantMetrics` 分别负责两侧指标。
-- `CallerMetricsInterceptor` / `ServantMetricsInterceptor` 和 codec 只调用 `CallerMetrics` / `ServantMetrics` / `PeerMetrics` 的语义方法（`beginCall / recordCall`、`beginRequest / recordRequest`、`recordSerialization / recordDeserialization`），不直接拼 `MetricKey`。
+- caller 侧由 `CallExecution` 在 attempt 结束时记录（`beginCall / recordCall`，失败与超时同样计入），servant 侧由 `ServantMetricsInterceptor` 记录（`beginRequest / recordRequest`），codec 只记录 `recordSerialization / recordDeserialization`；这些调用点都不直接拼 `MetricKey`。
 - 计时 key 由指标类自己持有（`CallerMetrics.CALL_START`、`ServantMetrics.REQUEST_START`），`MetricsSupport` 与 `constant/MetricsKey` 已删除。
-- `EventBusMetrics` 统一记录 eventbus publish/accepted/dropped/rejected/handled/failed/pending。
+- `EventBusMetrics` 记录 `eventbus.publish.count{result=published|accepted|dropped|rejected}`、`eventbus.event.count{result=handled|failed}`（按事件计数，一个事件里多个 handler 失败也只记一次）、`eventbus.queue.pending`（所有 lane 排队总数）和 `eventbus.consumer.failure.count`（consumer 线程退出）。
 
 **当前边界**
 

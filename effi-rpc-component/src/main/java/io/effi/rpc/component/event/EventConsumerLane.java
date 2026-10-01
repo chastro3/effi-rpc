@@ -136,14 +136,18 @@ final class EventConsumerLane {
             return;
         }
         handled.run();
+        boolean eventFailed = false;
         for (EventHandler<?> handler : handlers) {
             try {
                 invoke(handler, event);
             } catch (Throwable failure) {
+                if (!eventFailed) {
+                    eventFailed = true;
+                    failed.run();
+                }
                 if (failure instanceof Error) {
                     throw failure;
                 }
-                failed.run();
                 logger.error("Failed to handle '{}' event in '{}'",
                         failure,
                         ObjectUtil.simpleClassName(event),

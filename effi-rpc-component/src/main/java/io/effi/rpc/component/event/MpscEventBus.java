@@ -224,7 +224,7 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
             return;
         }
         running.set(false);
-        metrics.failed();
+        metrics.consumerFailed();
         logger.error("Event consumer '{}' failed", failure, lane.name());
         controlLane.unpark();
         for (EventConsumerLane telemetryLane : telemetryLanes) {

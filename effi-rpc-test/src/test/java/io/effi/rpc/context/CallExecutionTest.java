@@ -3,14 +3,17 @@ package io.effi.rpc.context;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.metrics.DefaultMetrics;
 import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.context.support.CallExecution;
 import io.effi.rpc.context.support.Unary;
 import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.metrics.MetricKey;
 import io.effi.rpc.option.OptionName;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +54,10 @@ class CallExecutionTest {
         assertTrue(result.succeeded());
         assertEquals("ok", result.value());
         assertEquals(2, fixture.attempts.get());
+        assertEquals(2L, fixture.counter(CallerMetrics.CALL_COUNT));
+        assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "success")));
+        assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "failure")));
+        assertEquals(2L, fixture.timerCount(CallerMetrics.CALL_DURATION));
     }
 
     @Test
@@ -74,6 +81,9 @@ class CallExecutionTest {
         assertTrue(result.failed());
         assertSame(failure, result.cause());
         assertEquals(2, fixture.attempts.get());
+        assertEquals(2L, fixture.counter(CallerMetrics.CALL_COUNT));
+        assertEquals(0L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "success")));
+        assertEquals(2L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "failure")));
     }
 
     @Test
@@ -90,6 +100,9 @@ class CallExecutionTest {
         assertTrue(result.failed());
         assertEquals(PredefinedErrorCode.DEADLINE_EXCEEDED, result.cause().errorCode());
         assertTrue(fixture.lastAttempt().completed());
+        assertEquals(1L, fixture.counter(CallerMetrics.TIMEOUT_COUNT));
+        assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT));
+        assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "failure")));
     }
 
     @Test
@@ -110,6 +123,7 @@ class CallExecutionTest {
         assertTrue(result.failed());
         assertSame(reason, result.cause());
         assertSame(reason, fixture.lastAttempt().await().cause());
+        assertEquals(0L, fixture.counter(CallerMetrics.CALL_COUNT));
     }
 
     @Test
@@ -129,6 +143,7 @@ class CallExecutionTest {
         assertTrue(result.failed());
         assertSame(failure, result.cause());
         assertEquals(0, fixture.attempts.get());
+        assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "failure")));
     }
 
     @Test
@@ -182,6 +197,10 @@ class CallExecutionTest {
 
         private final AtomicReference<ReplyFuture> lastAttempt = new AtomicReference<>();
 
+        private final CallerMetrics metrics = new CallerMetrics("test");
+
+        private final DefaultMetrics registry;
+
         private Unary.FailureHandler failureHandler;
 
         private AttemptFactory attemptFactory;
@@ -192,6 +211,8 @@ class CallExecutionTest {
             Scheduler scheduler = new Scheduler();
             platform.registry().register(Scheduler.class, scheduler);
             platform.registry().register(CallFutureRegistry.class, new CallFutureRegistry());
+            this.registry = new DefaultMetrics(platform);
+            this.registry.register(metrics);
 
             ScopedApplication application = platform.newApplication("application");
             this.module = application.newModule("module");
@@ -226,6 +247,7 @@ class CallExecutionTest {
                 case "platform" -> platform;
                 case "protocol" -> protocol;
                 case "callStageChain" -> stageChain;
+                case "get" -> args[0] == CallerMetrics.KEY ? metrics : null;
                 case "option" -> option(method.getReturnType(), (OptionName<?>) args[0], timeoutMillis);
                 default -> defaultValue(method.getReturnType());
             });
@@ -243,6 +265,14 @@ class CallExecutionTest {
             ReplyFuture future = lastAttempt.get();
             future.await();
             return future;
+        }
+
+        private long counter(MetricKey key) {
+            return registry.counter(key.withTag("protocol", "test")).count();
+        }
+
+        private long timerCount(MetricKey key) {
+            return registry.timer(key.withTag("protocol", "test")).snapshot().count();
         }
     }
 

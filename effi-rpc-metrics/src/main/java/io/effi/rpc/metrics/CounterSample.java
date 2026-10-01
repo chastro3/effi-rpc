@@ -15,7 +15,7 @@ public record CounterSample(
 ) implements MetricSample {
 
     public CounterSample {
-        key = AssertUtil.notNull(key, "key");
+        AssertUtil.notNull(key, "key");
     }
 
     @Override
