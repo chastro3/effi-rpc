@@ -199,8 +199,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         boolean scheduled = scheduleIfOpen(
                 () -> attemptRegistration(instance, serviceName, task, attempt + 1, result),
                 retryInterval,
-                0,
-                TimeUnit.MILLISECONDS
+                0
         );
         if (!scheduled) {
             removeRegisteredInstance(serviceName, instance);
@@ -210,7 +209,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
     private void scheduleHeartbeat(RegisterTask task) {
         long interval = Math.max(1, config.option(RegistryOptions.HEARTBEAT_INTERVAL));
-        scheduleIfOpen(task, interval, interval, TimeUnit.MILLISECONDS);
+        scheduleIfOpen(task, interval, interval);
     }
 
     private void removeRegisteredInstance(String serviceName, ServiceInstance instance) {
@@ -277,7 +276,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         return Futures.allOf(futures);
     }
 
-    private boolean scheduleIfOpen(Runnable task, long delay, long interval, TimeUnit unit) {
+    private boolean scheduleIfOpen(Runnable task, long delay, long interval) {
         if (closed.get()) {
             return false;
         }
@@ -285,8 +284,8 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         ScheduledFuture<?> future;
         try {
             future = interval > 0
-                    ? scheduler.addPeriodic(task, delay, interval, unit)
-                    : scheduler.addDisposable(task, delay, unit);
+                    ? scheduler.addPeriodic(task, delay, interval, TimeUnit.MILLISECONDS)
+                    : scheduler.addDisposable(task, delay, TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException e) {
             return false;
         }

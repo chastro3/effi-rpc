@@ -10,7 +10,7 @@ import io.effi.rpc.concurrent.Future;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 
 /**
- * Represents an RPC caller that initiate remote service invocations.
+ * Represents an RPC caller that initiates remote service invocations.
  * <p>
  * Provides the interface for making asynchronous and synchronous RPC calls,
  * managing client configurations, interceptors, and reply handling mechanisms.
@@ -42,15 +42,38 @@ public interface Caller<R> extends Peer {
      */
     Future<R> call(Invocation invocation) throws EffiRpcException;
 
+    /**
+     * Initiates an asynchronous RPC call with positional arguments.
+     *
+     * @param args positional call arguments
+     * @return future completing with the reply
+     * @throws EffiRpcException when the call cannot be dispatched
+     */
     default Future<R> call(Object... args) throws EffiRpcException {
         return call(new PositionalInvocation(args));
     }
 
+    /**
+     * Performs the call and waits for its result.
+     *
+     * @param invocation method invocation to send
+     * @param <T> expected result type
+     * @return reply value
+     * @throws EffiRpcException when the call fails
+     */
     @SuppressWarnings("unchecked")
     default <T> T blockingCall(Invocation invocation) throws EffiRpcException {
         return (T) call(invocation).toCompletableFuture().join();
     }
 
+    /**
+     * Performs the call with positional arguments and waits for its result.
+     *
+     * @param args positional call arguments
+     * @param <T> expected result type
+     * @return reply value
+     * @throws EffiRpcException when the call fails
+     */
     default <T> T blockingCall(Object... args) throws EffiRpcException {
         return blockingCall(new PositionalInvocation(args));
     }

@@ -8,7 +8,6 @@ import io.effi.rpc.util.Attributes;
 import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.util.TypeCapture;
 
-
 /**
  * Defines a peer that shares behaviors of caller and servant.
  * <p>
@@ -20,6 +19,13 @@ import io.effi.rpc.util.TypeCapture;
  */
 public interface Peer extends Attributes, Identifiable, Protocol.Supplier, HierarchicalOptions.Supplier, ScopedModule.Supplier {
 
+    /**
+     * Builds the peer identity from its protocol and query path.
+     *
+     * @param protocol protocol name
+     * @param path query path
+     * @return peer identity
+     */
     static String buildId(String protocol, String path) {
         return "(" + protocol + ")" + path;
     }

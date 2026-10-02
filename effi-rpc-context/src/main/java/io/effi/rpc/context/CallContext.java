@@ -23,11 +23,9 @@ public class CallContext<R extends Request, P extends Peer> extends Interaction.
     /**
      * Returns the positional arguments shared by this call execution.
      * <p>
-     * The array is intentionally mutable so call interceptors can adjust
-     * positional arguments before the protocol creates the request. Callers
-     * must not replace the array reference.
-     *
-     * @return positional call arguments
+     * The array is intentionally mutable so call interceptors can adjust positional
+     * arguments before the protocol creates the request; callers must not replace the
+     * array reference.
      */
     public Object[] args() {
         return args;

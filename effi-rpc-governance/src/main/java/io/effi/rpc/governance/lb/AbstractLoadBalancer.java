@@ -20,7 +20,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
             throw InteractionErrorCodes.SERVICE_INSTANCE_NOT_FOUND.fail(context.message().url());
         }
         if (instances.size() == 1) {
-            return instances.get(0);
+            return instances.getFirst();
         }
         return doSelect(context, instances);
     }

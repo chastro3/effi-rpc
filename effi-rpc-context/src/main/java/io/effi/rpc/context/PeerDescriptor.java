@@ -6,13 +6,18 @@ import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.TypeCapture;
 
 /**
- * Immutable description of a peer.
+ * Describes an immutable peer definition.
  */
 public record PeerDescriptor(
+        /** Peer kind. */
         Kind kind,
+        /** Owning protocol. */
         Protocol protocol,
+        /** Query path. */
         QueryPath path,
+        /** Reply type. */
         TypeCapture<?> replyType,
+        /** Resolved peer options. */
         HierarchicalOptions options
 ) {
 

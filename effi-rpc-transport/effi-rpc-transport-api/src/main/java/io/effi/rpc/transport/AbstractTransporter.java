@@ -55,6 +55,6 @@ public abstract class AbstractTransporter implements Transporter {
 
     protected abstract Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform);
 
-    private record EndpointKey(String address, String configId) {
+    protected record EndpointKey(String address, String configId) {
     }
 }

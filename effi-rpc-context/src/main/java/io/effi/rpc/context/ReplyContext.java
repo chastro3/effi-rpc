@@ -24,10 +24,16 @@ public class ReplyContext<T extends Response, I extends Peer> extends Interactio
         this.callContext = callContext;
     }
 
+    /**
+     * Returns the call context of the request that produced this reply.
+     */
     public CallContext<?, I> callContext() {
         return callContext;
     }
 
+    /**
+     * Returns the interaction result carried by this reply.
+     */
     public Interaction.Result result() {
         return result;
     }

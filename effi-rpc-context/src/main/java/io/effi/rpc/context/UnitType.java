@@ -9,11 +9,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Declares the supported message and call side types for execution units.
+ * Declares the supported message and peer types of an execution unit.
  * <p>
- * Provides type information for execution units including message and call side
- * type parameters with caching support for efficient type extraction.
- * </p>
+ * Extracted types are cached per message/peer pair so reflection only runs once.
  */
 public final class UnitType<M extends Message, P extends Peer> {
 
@@ -39,7 +37,9 @@ public final class UnitType<M extends Message, P extends Peer> {
     @SuppressWarnings({"rawtypes"})
     public static UnitType<?, ?> extract(Interaction.Unit unit) {
         AssertUtil.notNull(unit, "execution unit");
-        if (unit.unitType() != null) return unit.unitType();
+        if (unit.unitType() != null) {
+            return unit.unitType();
+        }
         Class<?> clazz = unit.getClass();
         while (clazz != null) {
             for (Type interfaceType : clazz.getGenericInterfaces()) {
@@ -56,16 +56,31 @@ public final class UnitType<M extends Message, P extends Peer> {
         throw new IllegalStateException("Cannot determine UnitType for: " + unit.getClass());
     }
 
+    /**
+     * Returns the cached type pair for the supplied message and peer types.
+     *
+     * @param messageType message type
+     * @param peerType    peer type
+     * @param <M>         message type parameter
+     * @param <P>         peer type parameter
+     * @return cached unit type
+     */
     @SuppressWarnings("unchecked")
     public static <M extends Message, P extends Peer> UnitType<M, P> cached(Class<?> messageType, Class<?> peerType) {
         Pair<Class<?>, Class<?>> key = Pair.of(messageType, peerType);
         return (UnitType<M, P>) CACHE.computeIfAbsent(key, k -> new UnitType<>((Class<M>) messageType, (Class<P>) peerType));
     }
 
+    /**
+     * Returns the message type of this unit.
+     */
     public Class<M> messageType() {
         return messageType;
     }
 
+    /**
+     * Returns the peer type of this unit.
+     */
     public Class<P> peerType() {
         return peerType;
     }
