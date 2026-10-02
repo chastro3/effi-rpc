@@ -424,6 +424,8 @@ ReplyInterceptorStage
   platform 关闭时取消全部在途 future。
 - `ReplyFuture.complete()` 先保存 `rawResult`，再完成 delegate Promise；
   reply stage chain 的结果最终由 `CallExecution` 读取。
+- client 侧 reply 拦截链只覆盖"解码成功"的回复：失败 attempt 没有 `ReplyContext`，
+  直接交给 `Unary.FailureHandler`，不会进入 reply 拦截器；servant 侧 reply 链对成功与失败结果都会执行。
 
 **指标**
 

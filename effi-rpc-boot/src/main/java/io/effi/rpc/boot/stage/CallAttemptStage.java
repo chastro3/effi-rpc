@@ -35,6 +35,7 @@ public class CallAttemptStage implements Stage.CallUnit<Request, Caller<?>> {
         ReplyFuture replyFuture = context.mode().newFuture(context);
         CallAttempt attempt = new CallAttempt(replyFuture, client, protocol);
         replyFuture.onComplete(res -> {
+            // Failed attempts carry no decoded reply; Unary.FailureHandler owns their outcome.
             if (res.failed()) {
                 return;
             }
