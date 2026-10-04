@@ -1,6 +1,6 @@
 # Effi RPC Production Readiness Blockers
 
-## Status Update (2026-09-28)
+## Status Update (2026-10-04)
 
 The sections below are the original audit baseline and are kept for history.
 Their status is superseded by this summary.
@@ -13,7 +13,7 @@ Completed:
 - Netty write-buffer watermarks and overload responses.
 - Registry heartbeat cancellation and immutable discovery snapshots.
 - Retrying only explicitly transient failures, with exponential backoff and jitter.
-- Group and router-rule routing.
+- Router rules that combine a request-URL pattern with service-instance metadata conditions.
 - Concurrent listener registration and removal.
 - Enabled the standard test task; only two manual `ApiTest` cases remain disabled.
 - Basic timeout, thread-pool, connection-pool, readiness, and liveness metrics.
@@ -482,11 +482,12 @@ Acceptance tests:
 
 ## Required Before Production Launch
 
-### [ ] PR-11: Router configuration is incomplete
+### [x] PR-11: Router configuration
 
-- `DefaultRouter` compares `caller.group` with `caller.group`, so the group filter is always true.
-- `routerConfigs` is hardcoded to an empty list, so router rules are never applied.
-- Load and filter against instance metadata, compile patterns once, and test empty results.
+- `RouterConfig` is an immutable, ordered rule list; URL patterns are compiled once at build time.
+- Each rule combines a request-URL pattern with all-matching `ServiceInstance` metadata conditions.
+- `DefaultRouter` applies the first URL-matching rule and passes candidates through when no rule matches.
+- Routing no longer depends on the removed caller `group` option; tests cover first-match and pass-through behavior.
 
 ### [ ] PR-12: Automated tests are globally disabled
 

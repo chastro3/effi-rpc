@@ -3,14 +3,10 @@ package io.effi.rpc.governance.router;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.config.RouterConfig;
 import io.effi.rpc.config.SmartURL;
-import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
-import io.effi.rpc.context.options.GovernanceOptions;
-import io.effi.rpc.option.OptionName;
 import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.ServiceInstance;
 import org.junit.jupiter.api.Test;
@@ -24,43 +20,65 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DefaultRouterTest {
 
     @Test
-    void filtersByGroupAndRouterRule() {
-        ServiceInstance blue = instance("blue");
-        ServiceInstance green = instance("green");
-        RouterConfig config = new RouterConfig(".*").match(".*blue.*");
-        CallContext<Request, Caller<?>> context = context("blue", config);
+    void appliesFirstUrlMatchingRule() {
+        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
+        ServiceInstance green = instance("green-instance", Map.of("zone", "green"));
+        RouterConfig config = RouterConfig.builder()
+                .rule(".*green", Map.of("zone", "blue"))
+                .rule(".*green", Map.of("zone", "green"))
+                .build();
+        CallContext<Request, Caller<?>> context = context(config);
 
         List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue, green));
 
         assertEquals(List.of(blue), result);
     }
 
-    private static ServiceInstance instance(String group) {
+    @Test
+    void passesThroughWhenNoUrlRuleMatches() {
+        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
+        ServiceInstance green = instance("green-instance", Map.of("zone", "green"));
+        RouterConfig config = RouterConfig.builder()
+                .rule(".*canary", Map.of("zone", "blue"))
+                .build();
+        CallContext<Request, Caller<?>> context = context(config);
+
+        List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue, green));
+
+        assertEquals(List.of(blue, green), result);
+    }
+
+    @Test
+    void returnsEmptyWhenMetadataMatchesNoInstance() {
+        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
+        RouterConfig config = RouterConfig.builder()
+                .rule(".*green", Map.of("zone", "red"))
+                .build();
+        CallContext<Request, Caller<?>> context = context(config);
+
+        List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue));
+
+        assertEquals(List.of(), result);
+    }
+
+    private static ServiceInstance instance(String id, Map<String, String> metadata) {
         return DefaultServiceInstance.builder()
-                .id(group + "-instance")
+                .id(id)
                 .serviceName("test-service")
                 .protocol("http/1.1")
                 .host("127.0.0.1")
                 .port(8080)
-                .addMetadata(Map.of(KeyConstant.GROUP, group))
+                .addMetadata(metadata)
                 .build();
     }
 
     @SuppressWarnings("unchecked")
-    private static CallContext<Request, Caller<?>> context(String group, RouterConfig routerConfig) {
+    private static CallContext<Request, Caller<?>> context(RouterConfig routerConfig) {
         ScopedPlatform platform = new ScopedPlatform("router-test-platform");
         ScopedApplication application = platform.newApplication("router-test-application");
         ScopedModule module = application.newModule("router-test-module");
         module.registry().register(RouterConfig.class, routerConfig);
-        Caller<?> caller = proxy(Caller.class, (proxy, method, args) -> {
-            if ("option".equals(method.getName())) {
-                OptionName<?> option = (OptionName<?>) args[0];
-                if (option == GovernanceOptions.GROUP) {
-                    return group;
-                }
-            }
-            return defaultValue(method.getReturnType());
-        });
+        Caller<?> caller = proxy(Caller.class, (proxy, method, args) -> defaultValue(method.getReturnType()));
         Request request = proxy(Request.class, (proxy, method, args) -> {
             if ("url".equals(method.getName())) {
                 return SmartURL.valueOf("http://127.0.0.1:8080/green");

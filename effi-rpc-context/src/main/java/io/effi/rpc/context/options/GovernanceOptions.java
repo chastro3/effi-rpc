@@ -11,8 +11,6 @@ import static io.effi.rpc.option.OptionTypes.STRING_ARRAY;
  */
 public interface GovernanceOptions {
 
-    OptionName<String> GROUP = STRING.currentFirst("governance.group");
-
     OptionName<String> LOCATOR = STRING.currentFirst("governance.locator");
 
     OptionName<String> LOAD_BALANCER = STRING.currentFirst("governance.loadBalancer");
@@ -22,6 +20,8 @@ public interface GovernanceOptions {
     OptionName<String> ROUTER = STRING.currentFirst("governance.router");
 
     OptionName<String> SERVICE_DISCOVERY = STRING.currentFirst("governance.serviceDiscovery");
+
+    OptionName<Integer> HASH_KEY_INDEX = INTEGER.currentFirst("governance.hashKeyIndex", -1);
 
     OptionName<Integer> SERVICE_DISCOVERY_TIMEOUT = INTEGER.currentFirst("governance.serviceDiscoveryTimeout", 1000);
 }

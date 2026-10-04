@@ -498,8 +498,10 @@ EffiRpcBootstrap.stop()
 核心职责：
 
 - `ServiceDiscovery`：服务发现抽象。
-- `Router` / `DefaultRouter`：根据路由配置选目标。
-- `LoadBalancer` / `RandomLoadBalancer` / `RoundRobinLoadBalancer`。
+- `Router` / `DefaultRouter`：按有序规则过滤候选实例；URL 命中后按实例 metadata 过滤。
+- `RouterConfig`：module 级不可变规则表，规则包含 URL 正则与 metadata 全等条件，正则构建时编译。
+- `LoadBalancer` / `RandomLoadBalancer` / `RoundRobinLoadBalancer` / `WeightedRandomLoadBalancer` / `WeightedRoundRobinLoadBalancer` / `ConsistentHashLoadBalancer`。
+- `HashKeyInterceptor`：call 阶段按 `GovernanceOptions.HASH_KEY_INDEX` 从位置参数提取 `KeyConstant.HASH_KEY`，供 `ConsistentHashLoadBalancer` 使用。
 - `RegistryLocator`：组合 discovery、router、load balancer 完成实际定位。
 - `ServiceRegistrar`：注册/注销协调。
 - `RegistryLocatorLifecycle`：平台生命周期注册。
@@ -510,8 +512,8 @@ EffiRpcBootstrap.stop()
 Locator.locate(context)
   -> RegistryLocator
     -> ServiceDiscovery.lookup()
-      -> Router.filter()
-        -> LoadBalancer.select()
+      -> Router.route() [first URL-matching rule + metadata filter]
+      -> LoadBalancer.select()
 ```
 
 ### 5.8 `effi-rpc-proxy`

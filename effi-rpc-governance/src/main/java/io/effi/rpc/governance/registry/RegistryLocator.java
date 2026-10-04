@@ -7,6 +7,7 @@ import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
+import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Locator;
 import io.effi.rpc.context.LocatorResolver;
 import io.effi.rpc.context.PeerDescriptor;
@@ -18,20 +19,21 @@ import io.effi.rpc.governance.router.Router;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.ArrayIdentifier;
 import io.effi.rpc.util.CollectionUtil;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.effi.rpc.governance.registry.RegistryLocator.Resolver.NAME;
 
 /**
- * Resolves service URLs using ServiceDiscovery, Router, and LoadBalancer.
+ * Locates a service address by composing discovery, routing, and load balancing.
  */
 public final class RegistryLocator implements Locator {
 
@@ -51,17 +53,36 @@ public final class RegistryLocator implements Locator {
         this.registryConfigs = registryConfigs;
     }
 
+    /**
+     * Returns the shared locator for the supplied registry configurations.
+     *
+     * @param platform    the owning platform
+     * @param serviceName the service name to discover
+     * @param configs     the registry configurations
+     * @return the cached locator
+     */
     public static RegistryLocator cached(ScopedPlatform platform, String serviceName, RegistryConfig... configs) {
         return cached(platform, serviceName, List.of(configs));
     }
 
+    /**
+     * Returns the shared locator for the supplied registry configurations.
+     *
+     * @param platform    the owning platform
+     * @param serviceName the service name to discover
+     * @param configs     the registry configurations
+     * @return the cached locator
+     */
     public static RegistryLocator cached(ScopedPlatform platform, String serviceName, Collection<RegistryConfig> configs) {
         AssertUtil.notNull(platform, "platform");
         if (CollectionUtil.isEmpty(configs)) throw new IllegalArgumentException("registry config(s) cannot be empty");
-        RegistryConfig[] array = configs.stream().distinct().toArray(RegistryConfig[]::new);
-        CacheKey key = new CacheKey(platform, serviceName, ArrayIdentifier.of(array));
+        Map<String, RegistryConfig> configsById = new TreeMap<>();
+        for (RegistryConfig config : configs) {
+            configsById.putIfAbsent(config.id(), config);
+        }
+        CacheKey key = new CacheKey(platform, serviceName, configsById.keySet());
         return CACHE.computeIfAbsent(key, k ->
-                new RegistryLocator(platform, serviceName, List.of(array))
+                new RegistryLocator(platform, serviceName, configsById.values())
         );
     }
 
@@ -84,14 +105,13 @@ public final class RegistryLocator implements Locator {
     public InetSocketAddress locate(CallContext<Request, Caller<?>> context) {
         Caller<?> caller = context.peer();
         ScopedApplication application = context.module().application();
-        // ServiceDiscovery
-        // todo 优化
         ServiceDiscovery serviceDiscovery = application.preferredExtension(ServiceDiscovery.class, caller.option(GovernanceOptions.SERVICE_DISCOVERY));
         List<ServiceInstance> availableServiceInstances = serviceDiscovery.discover(serviceName, context, registryConfigs);
-        // Router
         Router router = application.preferredExtension(Router.class, caller.option(GovernanceOptions.ROUTER));
         List<ServiceInstance> finalServiceInstances = router.route(context, availableServiceInstances);
-        // LoadBalance
+        if (CollectionUtil.isEmpty(finalServiceInstances)) {
+            throw InteractionErrorCodes.ROUTE_NOT_MATCHED.fail(context.message().url());
+        }
         LoadBalancer loadBalancer = application.preferredExtension(LoadBalancer.class, caller.option(GovernanceOptions.LOAD_BALANCER));
         ServiceInstance chosenServiceInstance = loadBalancer.select(context, finalServiceInstances);
         return InetSocketAddress.createUnresolved(chosenServiceInstance.host(), chosenServiceInstance.port());
@@ -118,7 +138,7 @@ public final class RegistryLocator implements Locator {
         }
     }
 
-    private record CacheKey(ScopedPlatform platform, String serviceName, ArrayIdentifier<RegistryConfig> configs) {
+    private record CacheKey(ScopedPlatform platform, String serviceName, Set<String> configIds) {
     }
 
 }

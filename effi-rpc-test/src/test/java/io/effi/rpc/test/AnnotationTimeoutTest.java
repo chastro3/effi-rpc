@@ -61,7 +61,7 @@ class AnnotationTimeoutTest {
         assertEquals("roundRobin", options.option(GovernanceOptions.LOAD_BALANCER));
         assertEquals("canary", options.option(GovernanceOptions.ROUTER));
         assertEquals("registry-discovery", options.option(GovernanceOptions.SERVICE_DISCOVERY));
-        assertEquals("blue", options.option(GovernanceOptions.GROUP));
+        assertEquals(0, options.option(GovernanceOptions.HASH_KEY_INDEX));
         assertArrayEquals(new String[]{"auth"}, options.option(InterceptorOptions.EXCLUDE));
     }
 
@@ -80,7 +80,7 @@ class AnnotationTimeoutTest {
                 loadBalancer = "roundRobin",
                 router = "canary",
                 serviceDiscovery = "registry-discovery",
-                group = "blue",
+                hashKeyIndex = 0,
                 excludeInterceptors = {"auth"}
         )
         void configured() {

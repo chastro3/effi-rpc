@@ -14,6 +14,9 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION
 
 /**
  * Discovers available services from registry center(s).
+ * <p>
+ * Implementations may aggregate multiple registries. A non-empty result indicates discovered
+ * candidates; implementations raise an exception when no usable instance is available.
  */
 @Extensible(scope = APPLICATION)
 public interface ServiceDiscovery {
@@ -21,9 +24,10 @@ public interface ServiceDiscovery {
     /**
      * Discovers services based on the given invocation context and registry configurations.
      *
+     * @param serviceName     the service name to discover
      * @param context         the context for service discovery
      * @param registryConfigs the registry configurations
-     * @return a list of URLs representing discovered services
+     * @return discovered service instances
      */
     List<ServiceInstance> discover(String serviceName, CallContext<Request, Caller<?>> context, Collection<RegistryConfig> registryConfigs);
 }

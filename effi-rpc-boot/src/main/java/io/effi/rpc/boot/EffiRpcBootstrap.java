@@ -7,7 +7,7 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.config.RouterConfig;
+import io.effi.rpc.governance.router.RouterConfig;
 import io.effi.rpc.option.HierarchicalOptions;
 
 import java.net.InetSocketAddress;

@@ -20,7 +20,7 @@ public interface LoadBalancer {
      * Selects a service instance from the given list based on the invocation context.
      *
      * @param context the invocation context
-     * @param urls    the list of available service instance(s)
+     * @param instances the candidate service instances
      * @return the selected service instance
      */
     ServiceInstance select(CallContext<Request, Caller<?>> context, List<ServiceInstance> instances);

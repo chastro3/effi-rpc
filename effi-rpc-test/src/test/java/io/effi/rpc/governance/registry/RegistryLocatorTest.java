@@ -50,6 +50,22 @@ class RegistryLocatorTest {
     }
 
     @Test
+    void reusesLocatorForSameConfigIdsRegardlessOfOrderOrInstance() {
+        ScopedPlatform platform = new ScopedPlatform("registry-locator-ids-platform");
+        RegistryConfig first = consulConfig("first");
+        RegistryConfig second = consulConfig("second");
+
+        assertSame(
+                RegistryLocator.cached(platform, "hello", first, second),
+                RegistryLocator.cached(platform, "hello", second, first)
+        );
+        assertSame(
+                RegistryLocator.cached(platform, "hello", consulConfig("first")),
+                RegistryLocator.cached(platform, "hello", consulConfig("first"))
+        );
+    }
+
+    @Test
     void preloadsDiscoveryOnceForSharedLocator() {
         ScopedPlatform platform = new ScopedPlatform("registry-locator-preload-platform");
         CountingRegistryClient client = new CountingRegistryClient(platform);
@@ -72,7 +88,12 @@ class RegistryLocatorTest {
     }
 
     private static RegistryConfig consulConfig() {
+        return consulConfig(null);
+    }
+
+    private static RegistryConfig consulConfig(String id) {
         return DefaultRegistryConfig.builder()
+                .id(id)
                 .type("consul")
                 .address("consul://127.0.0.1:8500")
                 .build();

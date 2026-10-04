@@ -27,8 +27,6 @@ public interface KeyConstant {
 
     String ONEWAY = "oneway";
 
-    String GROUP = "group";
-
     String VERSION = "version";
 
     String WEIGHT = "weight";
@@ -60,6 +58,8 @@ public interface KeyConstant {
     GenericKey<AtomicInteger> IDLE_COUNT = GenericKey.valueOf("idleCount");
 
     GenericKey<AtomicInteger> LAST_CALL_INDEX = GenericKey.valueOf("lastCallIndex");
+
+    GenericKey<String> HASH_KEY = GenericKey.valueOf("hashKey");
 
     GenericKey<String> SOURCE_PROTOCOL = GenericKey.valueOf("sourceProtocol");
 

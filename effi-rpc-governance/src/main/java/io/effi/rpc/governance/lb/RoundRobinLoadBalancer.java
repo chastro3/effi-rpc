@@ -28,7 +28,8 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     @Override
     protected ServiceInstance doSelect(CallContext<Request, Caller<?>> context, List<ServiceInstance> instances) {
         AtomicInteger lastIndex = context.peer().get(KeyConstant.LAST_CALL_INDEX);
-        int current = AtomicUtil.updateAtomicInteger(lastIndex, old -> (old + 1) % instances.size());
+        int current = AtomicUtil.updateAtomicInteger(lastIndex,
+                old -> old >= instances.size() - 1 ? 0 : old + 1);
         return instances.get(current);
     }
 }

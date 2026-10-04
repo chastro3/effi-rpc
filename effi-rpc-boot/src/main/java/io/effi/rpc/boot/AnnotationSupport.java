@@ -119,7 +119,7 @@ public final class AnnotationSupport {
             addIfNotBlank(options, GovernanceOptions.LOAD_BALANCER, group.loadBalancer());
             addIfNotBlank(options, GovernanceOptions.ROUTER, group.router());
             addIfNotBlank(options, GovernanceOptions.SERVICE_DISCOVERY, group.serviceDiscovery());
-            addIfNotBlank(options, GovernanceOptions.GROUP, group.group());
+            addIfNonNegative(options, GovernanceOptions.HASH_KEY_INDEX, group.hashKeyIndex());
             addIfNotBlank(options, FaultToleranceOptions.FAILURE_HANDLER, group.failureHandler());
             addIfNotBlank(options, ThreadPoolOptions.THREAD_POOL, group.threadPool());
             addIfNonNegative(options, CallerOptions.TIMEOUT, group.timeoutMillis());
@@ -163,7 +163,7 @@ public final class AnnotationSupport {
             addIfNotBlank(options, GovernanceOptions.LOAD_BALANCER, call.loadBalancer());
             addIfNotBlank(options, GovernanceOptions.ROUTER, call.router());
             addIfNotBlank(options, GovernanceOptions.SERVICE_DISCOVERY, call.serviceDiscovery());
-            addIfNotBlank(options, GovernanceOptions.GROUP, call.group());
+            addIfNonNegative(options, GovernanceOptions.HASH_KEY_INDEX, call.hashKeyIndex());
             addIfNotBlank(options, FaultToleranceOptions.FAILURE_HANDLER, call.failureHandler());
             addIfNotBlank(options, ThreadPoolOptions.THREAD_POOL, call.threadPool());
             addIfNonNegative(options, CallerOptions.TIMEOUT, call.timeoutMillis());

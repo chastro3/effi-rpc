@@ -30,6 +30,7 @@ import static io.effi.rpc.context.options.FaultToleranceOptions.FAILURE_HANDLER;
 import static io.effi.rpc.context.options.GovernanceOptions.LOAD_BALANCER;
 import static io.effi.rpc.context.options.GovernanceOptions.LOCATOR;
 import static io.effi.rpc.context.options.GovernanceOptions.REGISTRY;
+import static io.effi.rpc.context.options.GovernanceOptions.HASH_KEY_INDEX;
 import static io.effi.rpc.context.options.GovernanceOptions.SERVICE_DISCOVERY_TIMEOUT;
 import static io.effi.rpc.context.options.ResolverOptions.INTERCEPTOR_CHAIN_RESOLVER;
 
@@ -203,6 +204,11 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
 
         public SELF loadBalancer(String loadBalancer) {
             addOption(LOAD_BALANCER, loadBalancer);
+            return self();
+        }
+
+        public SELF hashKeyIndex(int index) {
+            addOption(HASH_KEY_INDEX, index);
             return self();
         }
 

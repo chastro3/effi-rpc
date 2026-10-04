@@ -78,9 +78,9 @@ public @interface Call {
     String serviceDiscovery() default "";
 
     /**
-     * Specifies the governance group name.
+     * Specifies the positional argument index used as the consistent-hash key.
      */
-    String group() default "";
+    int hashKeyIndex() default -1;
 
     /**
      * Specifies the failure handler extension name.

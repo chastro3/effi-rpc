@@ -10,19 +10,19 @@ import java.util.List;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION;
 
 /**
- * Routes a list of URLs based on the given invocation context.
+ * Routes candidate service instances based on the given invocation context.
  */
 @Extensible(scope = APPLICATION)
 public interface Router {
 
     /**
-     * Routes the provided list of URLs according to the invocation context.
+     * Filters the provided service instances according to the invocation context.
      *
      * @param context the context for making routing decisions
-     * @param urls    the list of URLs to route
-     * @return a list of routed URLs
+     * @param instances the candidate service instances
+     * @return the filtered service instances
      */
-    List<ServiceInstance> route(CallContext<?, Caller<?>> context, List<ServiceInstance> urls);
+    List<ServiceInstance> route(CallContext<?, Caller<?>> context, List<ServiceInstance> instances);
 }
 
 
