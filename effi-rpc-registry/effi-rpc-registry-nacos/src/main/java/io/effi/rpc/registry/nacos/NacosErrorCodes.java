@@ -3,6 +3,9 @@ package io.effi.rpc.registry.nacos;
 import io.effi.rpc.exception.ErrorCode;
 import io.effi.rpc.exception.ErrorCodeAllocator;
 
+/**
+ * Defines Nacos registry error codes.
+ */
 public interface NacosErrorCodes {
 
     ErrorCodeAllocator NACOS_ERROR_CODE_ALLOCATOR = new ErrorCodeAllocator("nacos_");

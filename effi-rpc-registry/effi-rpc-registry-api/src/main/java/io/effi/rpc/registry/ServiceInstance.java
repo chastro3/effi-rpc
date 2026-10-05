@@ -5,10 +5,7 @@ import io.effi.rpc.trait.Identifiable;
 import java.util.Map;
 
 /**
- * Represents service instances for registration and discovery.
- * <p>
- * Provides a standardized interface for service instance information
- * including identification, network location, and metadata.
+ * Represents a service instance registered for discovery.
  */
 public interface ServiceInstance extends Identifiable {
 
@@ -44,12 +41,19 @@ public interface ServiceInstance extends Identifiable {
     Map<String, String> metadata();
 
     /**
-     * Adds metadata to the instance.
+     * Adds one metadata entry to the instance.
+     *
+     * @param key   metadata key
+     * @param value metadata value
+     * @return this instance
      */
     ServiceInstance addMetadata(String key, String value);
 
     /**
-     * Adds multiple metadata to the instance.
+     * Adds metadata entries to the instance.
+     *
+     * @param metadata metadata entries
+     * @return this instance
      */
     ServiceInstance addMetadata(Map<String, String> metadata);
 }

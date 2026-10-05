@@ -18,10 +18,16 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
  * <p>
  * Provides asynchronous operations for registering, deregistering,
  * and discovering services in a registry system.
- * </p>
  */
 public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
 
+    /**
+     * Resolves the registry client for the supplied configuration.
+     *
+     * @param config   the registry configuration
+     * @param platform the owning platform
+     * @return the registry client
+     */
     static RegistryClient of(RegistryConfig config, ScopedPlatform platform) {
         return platform.namedExtension(RegistryClient.Factory.class, config.type())
                 .fetch(config);
@@ -31,6 +37,7 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
      * Registers a service into the registry.
      *
      * @param instance the service instance to register
+     * @return a future completed when registration finishes
      */
     Future<Void> register(ServiceInstance instance);
 
@@ -48,6 +55,7 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
      * Deregisters a service from the registry.
      *
      * @param instance the service instance to deregister
+     * @return a future completed when deregistration finishes
      */
     Future<Void> deregister(ServiceInstance instance);
 
@@ -65,7 +73,7 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
      * Discovers services from the registry by service id.
      *
      * @param serviceName the service id to lookup
-     * @return a CompletableFuture containing the list of discovered service instances
+     * @return a future containing the list of discovered service instances
      */
     Future<List<ServiceInstance>> lookup(String serviceName);
 
@@ -84,10 +92,7 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
     }
 
     /**
-     * Creates and retrieves registry client instances.
-     * <p>
-     * Provides factory methods for creating registry clients based on
-     * registry configurations with application-scoped extensibility.
+     * Creates and caches registry clients for registry configurations.
      */
     @Extensible(scope = PLATFORM)
     interface Factory extends Cleanable {
@@ -101,7 +106,3 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
         RegistryClient fetch(RegistryConfig config);
     }
 }
-
-
-
-

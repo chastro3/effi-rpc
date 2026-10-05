@@ -20,6 +20,5 @@ public class ConsulRegistryClientFactory extends AbstractRegistryClientFactory {
     protected RegistryClient newClient(RegistryConfig config, ScopedPlatform platform) {
         return new ConsulRegistryClient(config, platform);
     }
-
 }
 

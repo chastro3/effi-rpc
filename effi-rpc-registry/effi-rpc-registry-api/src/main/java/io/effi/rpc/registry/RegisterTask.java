@@ -8,10 +8,7 @@ import io.effi.rpc.util.AssertUtil;
 import java.util.Collection;
 
 /**
- * Registers service instances with metadata using registered preparers.
- * <p>
- * Provides task execution functionality for registering service instances
- * with associated {@link RegistrationPreparer} and registration actions.
+ * Registers service instances through the configured preparers and registration action.
  */
 public class RegisterTask implements Runnable {
 
@@ -32,6 +29,9 @@ public class RegisterTask implements Runnable {
         this.preparers = client.platform().extensions(RegistrationPreparer.class);
     }
 
+    /**
+     * Runs the configured preparers and returns the registration future.
+     */
     public Future<Void> execute() {
         preparers.forEach(p -> p.prepare(instance));
         return registration.register(instance);

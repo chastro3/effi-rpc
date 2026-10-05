@@ -2,14 +2,15 @@ package io.effi.rpc.registry.consul;
 
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
+import io.effi.rpc.component.registry.options.RegistryOptions;
 import io.effi.rpc.constant.KeyConstant;
+import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.registry.AbstractRegistryClient;
 import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.concurrent.Promise;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.consul.CheckOptions;
@@ -23,28 +24,30 @@ import io.vertx.ext.consul.Watch;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import io.effi.rpc.component.registry.options.RegistryOptions;
 
 /**
  * Implements {@link RegistryClient} using Consul.
  * <p>
- * Handles service registration and discovery via the Consul registry.
- * See <a href="https://github.com/vert-x3/vertx-consul-client">vertx-consul-client</a> for details.
+ * Watches are created with the configured client options; see
+ * <a href="https://github.com/vert-x3/vertx-consul-client">vertx-consul-client</a> for details.
  */
 public class ConsulRegistryClient extends AbstractRegistryClient {
 
     private final Vertx vertx = Vertx.vertx();
+
+    private final ConsulClientOptions consulOptions;
 
     private final ConsulClient consulClient;
 
     private final Map<String, Watch<?>> watches = new ConcurrentHashMap<>();
 
     protected ConsulRegistryClient(RegistryConfig config, ScopedPlatform platform) {
-        // todo 提供vertx 的 consul config
         super(config, platform);
-        this.consulClient = createConsulClient(config);
+        this.consulOptions = createConsulOptions(config);
+        this.consulClient = ConsulClient.create(vertx, consulOptions);
     }
 
     @Override
@@ -76,12 +79,12 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
         return (serviceInst) -> {
             opts.setMeta(serviceInst.metadata());
             Promise<Void> result = new Promise<>();
-            toVoidFuture(consulClient.registerService(opts)).onComplete(registration -> {
+            toVoidFuture(consulClient.registerService(opts), "registerService").onComplete(registration -> {
                 if (registration.failed()) {
                     result.complete(registration);
                     return;
                 }
-                toVoidFuture(consulClient.passCheck(instanceId)).onComplete(result::complete);
+                toVoidFuture(consulClient.passCheck(instanceId), "passCheck").onComplete(result::complete);
             });
             return result;
         };
@@ -89,18 +92,25 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
 
     @Override
     public Promise<Void> doDeregister(ServiceInstance instance) {
-        return toVoidFuture(consulClient.deregisterService(instance.id()));
+        return toVoidFuture(consulClient.deregisterService(instance.id()), "deregisterService");
+    }
+
+    @Override
+    public void doClose() {
+        watches.values().forEach(Watch::stop);
+        watches.clear();
+        consulClient.close();
+        vertx.close().onFailure(cause -> logger.error("Failed to close Vert.x for registry '{}'", cause, config));
     }
 
     @Override
     protected Promise<List<ServiceInstance>> doLookup(String serviceName) {
-        // Get the urls of all nodes for health checks
         Promise<List<ServiceInstance>> promise = new Promise<>();
         consulClient.healthServiceNodes(serviceName, true)
                 .onSuccess(serviceEntries -> {
                     List<ServiceInstance> instances = serviceEntries.getList()
                             .stream()
-                            .filter(ConsulRegistryClient::hasProtocolMetadata)
+                            .filter(this::hasProtocolMetadata)
                             .map(this::toServiceInstance)
                             .toList();
                     promise.success(instances);
@@ -113,7 +123,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
 
     @Override
     protected void doSubscribe(String serviceName) throws Throwable {
-        Watch<?> watch = Watch.service(serviceName, vertx).setHandler(res -> {
+        Watch<?> watch = Watch.service(serviceName, vertx, consulOptions).setHandler(res -> {
             if (res.succeeded()) {
                 List<ServiceEntry> serviceEntries = res.nextResult().getList();
                 List<ServiceInstance> healthInstances = serviceEntries.stream()
@@ -129,26 +139,21 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
         watch.start();
     }
 
-    @Override
-    public void doClose() throws Throwable {
-        watches.values().forEach(Watch::stop);
-        watches.clear();
-        consulClient.close();
-        vertx.close().toCompletionStage().toCompletableFuture().join();
-    }
-
-    private ConsulClient createConsulClient(RegistryConfig config) {
+    private ConsulClientOptions createConsulOptions(RegistryConfig config) {
         int connectTimeout = config.option(RegistryOptions.CONNECT_TIMEOUT);
         String address = addresses[0];
-        InetSocketAddress socketAddress = NetUtil.toInetSocketAddress(address);
-        ConsulClientOptions options = new ConsulClientOptions()
+        if (addresses.length > 1) {
+            logger.warn("Consul registry '{}' declares {} addresses; only '{}' is used",
+                    config.id(), addresses.length, address);
+        }
+        InetSocketAddress socketAddress = NetUtil.toInetSocketAddress(address.trim());
+        return new ConsulClientOptions()
                 .setHost(socketAddress.getHostString())
                 .setPort(socketAddress.getPort())
                 .setTimeout(connectTimeout);
-        return ConsulClient.create(vertx, options);
     }
 
-    private static boolean hasProtocolMetadata(ServiceEntry entry) {
+    private boolean hasProtocolMetadata(ServiceEntry entry) {
         Map<String, String> metadata = entry.getService().getMeta();
         return metadata != null && metadata.containsKey(KeyConstant.PROTOCOL);
     }
@@ -156,7 +161,7 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
     private ServiceInstance toServiceInstance(ServiceEntry entry) {
         Service service = entry.getService();
         Map<String, String> meta = service.getMeta();
-        String protocol = meta.get(KeyConstant.PROTOCOL).toLowerCase();
+        String protocol = meta.get(KeyConstant.PROTOCOL).toLowerCase(Locale.ROOT);
         return DefaultServiceInstance.builder()
                 .id(service.getId())
                 .protocol(protocol)
@@ -167,11 +172,11 @@ public class ConsulRegistryClient extends AbstractRegistryClient {
                 .build();
     }
 
-    private Promise<Void> toVoidFuture(Future<?> future) {
+    private Promise<Void> toVoidFuture(Future<?> future, String operation) {
         Promise<Void> result = new Promise<>();
         future.onSuccess(v -> result.success(null))
                 .onFailure(cause -> result.failure(
-                        ConsulErrorCodes.OPERATION_FAILED.fail(cause, "toVoidFuture")
+                        ConsulErrorCodes.OPERATION_FAILED.fail(cause, operation)
                 ));
         return result;
     }

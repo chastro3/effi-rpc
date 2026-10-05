@@ -30,6 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Provides the abstract lifecycle and bookkeeping for a registry client.
+ * <p>
+ * Owns its thread pool only when the registry config does not provide one; {@link #close()}
+ * releases subscriptions, heartbeats, and owned resources.
  */
 public abstract class AbstractRegistryClient implements RegistryClient {
 
@@ -121,7 +124,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
             return;
         }
         cancelScheduledTasks();
-        long timeout = Math.max(1, config.option(RegistryOptions.CONNECT_TIMEOUT));
+        long timeout = Math.max(1, config.option(RegistryOptions.CLOSE_TIMEOUT));
         Futures.withDeadline(deregisterServices(), Deadline.after(timeout, TimeUnit.MILLISECONDS))
                 .onComplete(outcome -> release());
     }
@@ -192,7 +195,7 @@ public abstract class AbstractRegistryClient implements RegistryClient {
             EffiRpcException cause
     ) {
         int retries = Math.max(0, config.option(RegistryOptions.RETRIES));
-        long retryInterval = Math.max(1, config.option(RegistryOptions.HEARTBEAT_INTERVAL));
+        long retryInterval = Math.max(1, config.option(RegistryOptions.RETRY_INTERVAL));
         logger.warn("Failed to register instance '{}' of service '{}' at '{}', retrying {}/{}",
                 cause, instance.id(), serviceName, config, attempt + 1, retries);
 
@@ -334,6 +337,8 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
         private volatile List<ServiceInstance> snapshot = List.of();
 
+        private volatile Future<List<ServiceInstance>> current = firstLookup;
+
         private volatile boolean initialized;
 
         void complete(List<ServiceInstance> instances) {
@@ -348,10 +353,13 @@ public abstract class AbstractRegistryClient implements RegistryClient {
 
         void update(List<ServiceInstance> instances) {
             snapshot = List.copyOf(instances);
+            if (initialized) {
+                current = Promise.completed(snapshot);
+            }
         }
 
         Future<List<ServiceInstance>> current() {
-            return initialized ? Promise.completed(snapshot) : firstLookup;
+            return current;
         }
     }
 }

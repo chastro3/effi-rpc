@@ -11,9 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractRegistryClientFactory implements RegistryClient.Factory, ScopedPlatform.Acceptor {
 
-    private final Map<String, RegistryClient> registryServices = new ConcurrentHashMap<>();
-
     protected ScopedPlatform platform;
+
+    private final Map<String, RegistryClient> registryServices = new ConcurrentHashMap<>();
 
     @Override
     public void accept(ScopedPlatform platform) {

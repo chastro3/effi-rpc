@@ -37,6 +37,9 @@ public final class DefaultServiceInstance implements ServiceInstance {
         this.id = safeGenerateId(builder.id);
     }
 
+    /**
+     * Returns a new service instance builder.
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -123,16 +126,34 @@ public final class DefaultServiceInstance implements ServiceInstance {
         private Builder() {
         }
 
+        /**
+         * Sets the explicit instance id.
+         *
+         * @param id instance id
+         * @return this builder
+         */
         public Builder id(String id) {
             this.id = id;
             return this;
         }
 
+        /**
+         * Sets the logical service name.
+         *
+         * @param serviceName service name
+         * @return this builder
+         */
         public Builder serviceName(String serviceName) {
             this.serviceName = serviceName;
             return this;
         }
 
+        /**
+         * Sets the protocol and mirrors it into instance metadata.
+         *
+         * @param protocol protocol name
+         * @return this builder
+         */
         public Builder protocol(String protocol) {
             this.protocol = protocol;
             if (StringUtil.isNotBlank(protocol)) {
@@ -141,16 +162,34 @@ public final class DefaultServiceInstance implements ServiceInstance {
             return this;
         }
 
+        /**
+         * Sets the host or IP address.
+         *
+         * @param host host or IP address
+         * @return this builder
+         */
         public Builder host(String host) {
             this.host = host;
             return this;
         }
 
+        /**
+         * Sets the listening port.
+         *
+         * @param port listening port
+         * @return this builder
+         */
         public Builder port(int port) {
             this.port = port;
             return this;
         }
 
+        /**
+         * Adds metadata entries to the instance.
+         *
+         * @param metadata metadata entries
+         * @return this builder
+         */
         public Builder addMetadata(Map<String, String> metadata) {
             if (CollectionUtil.isNotEmpty(metadata)) {
                 this.metadata.putAll(metadata);
@@ -158,6 +197,13 @@ public final class DefaultServiceInstance implements ServiceInstance {
             return this;
         }
 
+        /**
+         * Adds one metadata entry to the instance.
+         *
+         * @param key   metadata key
+         * @param value metadata value
+         * @return this builder
+         */
         public Builder addMetadata(String key, String value) {
             metadata.put(key, value);
             return this;

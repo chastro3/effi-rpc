@@ -3,6 +3,9 @@ package io.effi.rpc.registry.consul;
 import io.effi.rpc.exception.ErrorCode;
 import io.effi.rpc.exception.ErrorCodeAllocator;
 
+/**
+ * Defines Consul registry error codes.
+ */
 public interface ConsulErrorCodes {
 
     ErrorCodeAllocator ALLOCATOR = new ErrorCodeAllocator("consul_");

@@ -13,15 +13,15 @@ import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.util.StringUtil;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
  * Implements {@link RegistryClient} using Nacos.
  * <p>
- * See <a href="https://github.com/alibaba/nacos">Nacos</a> for details.
+ * See <a href="https://github.com/alibaba/nacos">Nacos</a> for protocol details.
  */
 public class NacosRegistryClient extends AbstractRegistryClient {
 
@@ -57,6 +57,11 @@ public class NacosRegistryClient extends AbstractRegistryClient {
     }
 
     @Override
+    public void doClose() throws Throwable {
+        namingService.shutDown();
+    }
+
+    @Override
     protected Future<Void> doDeregister(ServiceInstance instance) {
         return threadPool.execute(() -> {
             try {
@@ -73,7 +78,7 @@ public class NacosRegistryClient extends AbstractRegistryClient {
             try {
                 List<Instance> instances = namingService.selectInstances(serviceName, true);
                 return instances.stream()
-                        .filter(NacosRegistryClient::hasProtocolMetadata)
+                        .filter(this::hasProtocolMetadata)
                         .map(this::toServiceInstance)
                         .toList();
             } catch (NacosException e) {
@@ -98,16 +103,7 @@ public class NacosRegistryClient extends AbstractRegistryClient {
         });
     }
 
-    @Override
-    public void doClose() throws Throwable {
-        namingService.shutDown();
-    }
-
     private NamingService createNamingService(RegistryConfig config) {
-        String projectName = config.option(NacosOptions.PROJECT_NAME);
-        if (StringUtil.isNotBlank(projectName))
-            // nacos <project.id>
-            System.setProperty("project.id", projectName);
         try {
             return NamingFactory.createNamingService(config.address());
         } catch (NacosException e) {
@@ -115,14 +111,14 @@ public class NacosRegistryClient extends AbstractRegistryClient {
         }
     }
 
-    private static boolean hasProtocolMetadata(Instance instance) {
+    private boolean hasProtocolMetadata(Instance instance) {
         Map<String, String> metadata = instance.getMetadata();
         return metadata != null && metadata.containsKey(KeyConstant.PROTOCOL);
     }
 
     private ServiceInstance toServiceInstance(Instance instance) {
         Map<String, String> metadata = instance.getMetadata();
-        String protocol = metadata.get(KeyConstant.PROTOCOL).toLowerCase();
+        String protocol = metadata.get(KeyConstant.PROTOCOL).toLowerCase(Locale.ROOT);
         return DefaultServiceInstance.builder()
                 .id(instance.getInstanceId())
                 .protocol(protocol)

@@ -13,5 +13,9 @@ public interface RegistryOptions {
 
     OptionName<Integer> RETRIES = INTEGER.onlyCurrent("registry.retries", 3);
 
+    OptionName<Integer> RETRY_INTERVAL = INTEGER.onlyCurrent("registry.retryInterval", 1000);
+
     OptionName<Integer> HEARTBEAT_INTERVAL = INTEGER.onlyCurrent("registry.heartbeatInterval", 5000);
+
+    OptionName<Integer> CLOSE_TIMEOUT = INTEGER.onlyCurrent("registry.closeTimeout", 3000);
 }

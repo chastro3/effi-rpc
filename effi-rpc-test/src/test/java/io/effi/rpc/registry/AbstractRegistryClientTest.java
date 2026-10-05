@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AbstractRegistryClientTest {
@@ -134,6 +135,27 @@ class AbstractRegistryClientTest {
 
         client.deregister(List.of(first, second)).toCompletableFuture().join();
         assertTrue(registered.isEmpty());
+    }
+
+    @Test
+    void lookupReusesCompletedSnapshotFuture() throws Exception {
+        Scheduler scheduler = new Scheduler();
+        ScopedPlatform platform = new ScopedPlatform("registry-cached-lookup-platform");
+        platform.registry().register(Scheduler.class, scheduler);
+        RegistryConfig config = DefaultRegistryConfig.builder()
+                .type("test")
+                .address("127.0.0.1:1")
+                .build();
+        TestRegistryClient client = new TestRegistryClient(config, platform);
+        client.discovered = List.of(instance("cached"));
+
+        client.lookup("test-service").await();
+        Future<List<ServiceInstance>> first = client.lookup("test-service");
+        Future<List<ServiceInstance>> second = client.lookup("test-service");
+
+        assertSame(first, second);
+        client.close();
+        scheduler.close();
     }
 
     private static ServiceInstance instance(String id) {

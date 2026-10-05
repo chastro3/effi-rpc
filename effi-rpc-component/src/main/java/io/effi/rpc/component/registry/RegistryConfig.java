@@ -28,6 +28,7 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
     /**
      * Returns the registry address or a list of addresses.
      * If multiple addresses are specified, they must be separated by ','.
+     * Multi-address support depends on the registry implementation.
      */
     String address();
 
@@ -119,6 +120,17 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
         }
 
         /**
+         * Sets the registration retry interval.
+         *
+         * @param retryInterval retry interval in milliseconds
+         * @return this builder
+         */
+        public SELF retryInterval(int retryInterval) {
+            addOption(RegistryOptions.RETRY_INTERVAL, retryInterval);
+            return self();
+        }
+
+        /**
          * Sets the heartbeat interval.
          *
          * @param heartbeatInterval heartbeat interval in milliseconds
@@ -126,6 +138,17 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
          */
         public SELF heartbeatInterval(int heartbeatInterval) {
             addOption(RegistryOptions.HEARTBEAT_INTERVAL, heartbeatInterval);
+            return self();
+        }
+
+        /**
+         * Sets the timeout used while releasing registry resources.
+         *
+         * @param closeTimeout close timeout in milliseconds
+         * @return this builder
+         */
+        public SELF closeTimeout(int closeTimeout) {
+            addOption(RegistryOptions.CLOSE_TIMEOUT, closeTimeout);
             return self();
         }
     }
