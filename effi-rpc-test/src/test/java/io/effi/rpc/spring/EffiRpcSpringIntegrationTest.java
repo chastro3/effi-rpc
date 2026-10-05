@@ -9,13 +9,21 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
+import io.effi.rpc.spring.autoconfigure.EffiRpcAutoConfiguration;
+import io.effi.rpc.spring.bean.EffiRpcConsumerRegistrar;
+import io.effi.rpc.spring.bean.EffiRpcProviderExporter;
+import io.effi.rpc.spring.bean.EffiRpcScopedComponentRegistrar;
+import io.effi.rpc.spring.properties.EffiRpcProperties;
+import io.effi.rpc.spring.support.EffiRpcInfrastructure;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,18 +51,20 @@ class EffiRpcSpringIntegrationTest {
     private static final AtomicBoolean LAZY_BEAN_INITIALIZED = new AtomicBoolean();
 
     @Test
-    void autoConfigurationCreatesContextScopedPlatforms() {
-        AnnotationConfigApplicationContext first = new AnnotationConfigApplicationContext();
-        first.register(AutoConfigurationTestConfiguration.class);
-        first.refresh();
-        ScopedPlatform firstPlatform = first.getBean(ScopedPlatform.class);
-        first.close();
+    void autoConfigurationBacksOffWhenContextProvidesScopedBeans() {
+        ScopedPlatform platform = new ScopedPlatform("context-platform-" + PLATFORM_IDS.incrementAndGet());
+        ScopedApplication application = platform.newApplication("context-application");
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(ScopedPlatform.class, () -> platform);
+            context.registerBean(ScopedApplication.class, () -> application);
+            context.register(AutoConfigurationTestConfiguration.class);
+            context.refresh();
 
-        try (AnnotationConfigApplicationContext second = new AnnotationConfigApplicationContext()) {
-            second.register(AutoConfigurationTestConfiguration.class);
-            second.refresh();
-            ScopedPlatform secondPlatform = second.getBean(ScopedPlatform.class);
-            assertNotEquals(firstPlatform, secondPlatform);
+            assertSame(platform, context.getBean(ScopedPlatform.class));
+            assertSame(application, context.getBean(ScopedApplication.class));
+        } finally {
+            application.close();
+            platform.close();
         }
     }
 
@@ -72,6 +83,20 @@ class EffiRpcSpringIntegrationTest {
             TestConsumer consumer = context.getBean(TestConsumer.class);
             assertNotNull(consumer);
             assertNotEquals(TestConsumer.class, consumer.getClass());
+        }
+    }
+
+    @Test
+    void userConsumerBeanWinsOverAutoRegisteredProxy() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
+                    "effi.rpc.consumer.targets.test-consumer.interfaces[0]", TestConsumer.class.getName()
+            )));
+            context.register(UserConsumerConfiguration.class);
+            context.refresh();
+
+            TestConsumer consumer = context.getBean(TestConsumer.class);
+            assertEquals("user", consumer.hello("effi"));
         }
     }
 
@@ -168,6 +193,17 @@ class EffiRpcSpringIntegrationTest {
 
     }
 
+    @Configuration
+    @EnableConfigurationProperties(EffiRpcProperties.class)
+    @Import(EffiRpcConsumerRegistrar.class)
+    static class UserConsumerConfiguration {
+
+        @Bean
+        TestConsumer testConsumer() {
+            return name -> "user";
+        }
+    }
+
     @Configuration(proxyBeanMethods = false)
     @Import(EffiRpcAutoConfiguration.class)
     static class AutoConfigurationTestConfiguration {
@@ -177,8 +213,8 @@ class EffiRpcSpringIntegrationTest {
     static class ScopedComponentConfiguration {
 
         @Bean
-        static EffiRpcScopedComponentRegistrar effiRpcScopedComponentRegistrar() {
-            return new EffiRpcScopedComponentRegistrar();
+        static EffiRpcScopedComponentRegistrar effiRpcScopedComponentRegistrar(ApplicationContext context) {
+            return new EffiRpcScopedComponentRegistrar(context);
         }
 
         @Bean
@@ -217,8 +253,11 @@ class EffiRpcSpringIntegrationTest {
         }
 
         @Bean
-        EffiRpcProviderExporter effiRpcProviderExporter() {
-            return new EffiRpcProviderExporter();
+        EffiRpcProviderExporter effiRpcProviderExporter(
+                ObjectProvider<EffiRpcProperties> properties,
+                ObjectProvider<ScopedApplication> application
+        ) {
+            return new EffiRpcProviderExporter(properties, application);
         }
 
         @Bean

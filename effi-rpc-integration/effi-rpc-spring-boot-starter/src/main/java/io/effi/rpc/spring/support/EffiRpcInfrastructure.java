@@ -1,4 +1,4 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.support;
 
 import io.effi.rpc.boot.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
@@ -14,6 +14,7 @@ import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
 import io.effi.rpc.protocol.http.h2.Http2Protocol;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
+import io.effi.rpc.spring.properties.EffiRpcProperties;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
@@ -28,12 +29,12 @@ import java.util.Set;
 /**
  * Applies Spring Boot infrastructure properties to the RPC platform and application.
  */
-final class EffiRpcInfrastructure {
+public final class EffiRpcInfrastructure {
 
     private EffiRpcInfrastructure() {
     }
 
-    static void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
+    public static void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
         List<String> providerRegistries = properties.provider().common().registries();
         Set<String> registryNames = new LinkedHashSet<>(properties.registries().keySet());
         for (String providerRegistry : providerRegistries) {
@@ -69,7 +70,7 @@ final class EffiRpcInfrastructure {
         }
     }
 
-    static void attachServers(ScopedApplication application, EffiRpcProperties properties) {
+    public static void attachServers(ScopedApplication application, EffiRpcProperties properties) {
         for (Map.Entry<String, EffiRpcProperties.Server> entry : properties.servers().entrySet()) {
             String name = entry.getKey();
             EffiRpcProperties.Server server = entry.getValue();

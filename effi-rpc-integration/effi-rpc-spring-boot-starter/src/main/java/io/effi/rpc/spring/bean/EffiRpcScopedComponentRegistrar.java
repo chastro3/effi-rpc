@@ -1,4 +1,4 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.bean;
 
 import io.effi.rpc.annotation.component.ScopedComponent.Scope;
 import io.effi.rpc.component.ComponentDescriptor;
@@ -8,7 +8,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.List;
 import java.util.Map;
@@ -18,13 +17,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Registers Spring-managed scoped components after all singleton contexts are available.
  */
 public final class EffiRpcScopedComponentRegistrar
-        implements BeanPostProcessor, SmartInitializingSingleton, ApplicationContextAware {
+        implements BeanPostProcessor, SmartInitializingSingleton {
 
     private final List<ScopedComponentCandidate> candidates = new CopyOnWriteArrayList<>();
 
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
     private volatile boolean ready;
+
+    public EffiRpcScopedComponentRegistrar(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -50,11 +53,6 @@ public final class EffiRpcScopedComponentRegistrar
         candidates.forEach(this::register);
         candidates.clear();
         ready = true;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     @SuppressWarnings("unchecked")

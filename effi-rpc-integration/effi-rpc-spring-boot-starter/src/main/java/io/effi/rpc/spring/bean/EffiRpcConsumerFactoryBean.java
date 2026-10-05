@@ -1,9 +1,10 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.bean;
 
 import io.effi.rpc.boot.AnnotationCallerGroup;
 import io.effi.rpc.boot.InterfaceCallerGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.option.HierarchicalOptions;
+import io.effi.rpc.spring.properties.EffiRpcProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;

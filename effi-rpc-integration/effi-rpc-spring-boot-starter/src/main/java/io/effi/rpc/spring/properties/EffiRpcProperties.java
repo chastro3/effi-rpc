@@ -1,8 +1,14 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.properties;
 
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 import java.util.List;
@@ -12,13 +18,14 @@ import java.util.Map;
  * Immutable Spring Boot configuration for Effi RPC.
  */
 @ConfigurationProperties(prefix = "effi.rpc", ignoreUnknownFields = false)
+@Validated
 public record EffiRpcProperties(
-        Boolean enabled,
+        @DefaultValue("true") Boolean enabled,
         Application application,
-        Map<String, Server> servers,
-        Map<String, Registry> registries,
-        Consumer consumer,
-        Provider provider
+        @Valid Map<String, Server> servers,
+        @Valid Map<String, Registry> registries,
+        @Valid Consumer consumer,
+        @Valid Provider provider
 ) {
 
     public EffiRpcProperties {
@@ -38,9 +45,9 @@ public record EffiRpcProperties(
     }
 
     public record Server(
-            String protocol,
+            @NotBlank String protocol,
             String host,
-            Integer port,
+            @Min(0) @Max(65535) Integer port,
             Integer acceptorThreads,
             Integer ioThreads
     ) {
@@ -53,8 +60,8 @@ public record EffiRpcProperties(
     }
 
     public record Registry(
-            String type,
-            String address,
+            @NotBlank String type,
+            @NotBlank String address,
             List<String> tags,
             Duration connectTimeout,
             Integer retries,

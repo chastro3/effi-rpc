@@ -1,4 +1,4 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.bean;
 
 import io.effi.rpc.annotation.rpc.ServeGroup;
 import io.effi.rpc.boot.AnnotationSupport;
@@ -10,12 +10,12 @@ import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.options.ServantOptions;
 import io.effi.rpc.context.options.ThreadPoolOptions;
 import io.effi.rpc.option.HierarchicalOptions;
+import io.effi.rpc.spring.properties.EffiRpcProperties;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -32,16 +32,26 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Candidate beans are collected before registration so export order does not depend on
  * bean post-processor execution order.
  */
-public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartInitializingSingleton, BeanFactoryAware {
+public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartInitializingSingleton {
 
     private final Map<Class<?>, String> exportedInterfaces = new ConcurrentHashMap<>();
 
     // Collect candidates until all singleton beans are available to make registration order-independent.
     private final List<ProviderCandidate> candidates = new CopyOnWriteArrayList<>();
 
-    private BeanFactory beanFactory;
+    private final ObjectProvider<EffiRpcProperties> propertiesProvider;
+
+    private final ObjectProvider<ScopedApplication> applicationProvider;
 
     private volatile boolean ready;
+
+    public EffiRpcProviderExporter(
+            ObjectProvider<EffiRpcProperties> propertiesProvider,
+            ObjectProvider<ScopedApplication> applicationProvider
+    ) {
+        this.propertiesProvider = propertiesProvider;
+        this.applicationProvider = applicationProvider;
+    }
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -70,18 +80,12 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
         ready = true;
     }
 
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
-
     private void register(ProviderCandidate candidate) {
         String beanName = candidate.beanName();
         Object bean = candidate.bean();
         ServeGroup annotation = candidate.annotation();
         Class<?> targetClass = AopUtils.getTargetClass(bean);
-        EffiRpcProperties properties = beanFactory.getBeanProvider(EffiRpcProperties.class)
-                .getIfAvailable(EffiRpcProperties::defaults);
+        EffiRpcProperties properties = propertiesProvider.getIfAvailable(EffiRpcProperties::defaults);
         EffiRpcProperties.ProviderCommon common = properties.provider().common();
         List<Class<?>> interfaces = resolveInterfaces(targetClass, annotation);
         List<String> protocols = resolveProtocols(annotation, common);
@@ -137,7 +141,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
         String moduleName = StringUtil.isNotBlank(annotation.module())
                 ? annotation.module()
                 : common == null ? null : common.module();
-        ScopedApplication application = beanFactory.getBean(ScopedApplication.class);
+        ScopedApplication application = applicationProvider.getObject();
         if (StringUtil.isNotBlank(moduleName)) {
             ScopedModule module = application.lookupModule(moduleName);
             if (module != null) {

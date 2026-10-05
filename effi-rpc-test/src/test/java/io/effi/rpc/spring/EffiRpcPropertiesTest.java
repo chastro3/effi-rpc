@@ -1,6 +1,7 @@
 package io.effi.rpc.spring;
 
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
+import io.effi.rpc.spring.properties.EffiRpcProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;

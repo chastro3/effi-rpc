@@ -1,4 +1,6 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.bean;
+
+import io.effi.rpc.spring.properties.EffiRpcProperties;
 
 import java.util.List;
 import java.util.Locale;

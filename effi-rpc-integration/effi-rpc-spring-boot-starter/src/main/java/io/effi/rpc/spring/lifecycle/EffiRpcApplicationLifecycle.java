@@ -1,4 +1,4 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.lifecycle;
 
 import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.concurrent.Deadline;

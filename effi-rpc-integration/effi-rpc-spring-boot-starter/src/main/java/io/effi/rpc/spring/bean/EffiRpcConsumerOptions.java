@@ -1,4 +1,4 @@
-package io.effi.rpc.spring;
+package io.effi.rpc.spring.bean;
 
 import io.effi.rpc.component.serialization.options.CompressionOptions;
 import io.effi.rpc.component.serialization.options.SerializationOptions;
@@ -7,6 +7,7 @@ import io.effi.rpc.context.options.FaultToleranceOptions;
 import io.effi.rpc.context.options.GovernanceOptions;
 import io.effi.rpc.context.options.ThreadPoolOptions;
 import io.effi.rpc.option.HierarchicalOptions;
+import io.effi.rpc.spring.properties.EffiRpcProperties;
 import io.effi.rpc.util.StringUtil;
 
 import java.time.Duration;
