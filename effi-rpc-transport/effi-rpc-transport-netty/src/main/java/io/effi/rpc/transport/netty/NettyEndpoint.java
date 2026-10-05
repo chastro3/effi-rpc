@@ -1,9 +1,9 @@
 package io.effi.rpc.transport.netty;
 
-import io.effi.rpc.option.OptionName;
-import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.option.OptionName;
 import io.effi.rpc.transport.endpoint.AbstractEndpoint;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.LazySingleton;

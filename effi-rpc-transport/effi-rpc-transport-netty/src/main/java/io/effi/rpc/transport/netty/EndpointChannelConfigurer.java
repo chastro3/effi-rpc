@@ -1,8 +1,8 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.transport.EndpointConfig;
-import io.effi.rpc.transport.endpoint.Endpoint;
 import io.effi.rpc.transport.endpoint.Client;
+import io.effi.rpc.transport.endpoint.Endpoint;
 import io.effi.rpc.util.AssertUtil;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;

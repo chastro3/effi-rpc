@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.event.EventBus;
-import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.component.transport.options.TransportOptions;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.nativetools.NativeConfig;
 import io.effi.rpc.transport.endpoint.Endpoint;
@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.netty.channel.ChannelHandler.Sharable;
-import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Detects idle states in Netty channels and publishes related events.

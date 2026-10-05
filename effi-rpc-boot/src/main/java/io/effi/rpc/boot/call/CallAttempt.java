@@ -16,8 +16,8 @@ import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.util.AssertUtil;
 
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Owns the transport resources of one client call attempt.
@@ -125,13 +125,12 @@ public final class CallAttempt {
         }
     }
 
-    private void onSendFailed(Channel channel, Throwable cause) {
-        if (!(transition(Done.INSTANCE) instanceof Active active)) {
-            return;
+    private void discardQuietly(Channel channel) {
+        try {
+            client.discard(channel);
+        } catch (Throwable e) {
+            logger.warn("Failed to discard transport channel '{}'", e, channel);
         }
-        channelBindings.unbind(replyFuture.id(), active.channel());
-        discardQuietly(active.channel());
-        replyFuture.failure(writeFailure(cause));
     }
 
     private void cancel() {
@@ -141,11 +140,13 @@ public final class CallAttempt {
         }
     }
 
-    private void release() {
-        State previous = transition(Done.INSTANCE);
-        if (previous instanceof Active(Channel channel)) {
-            channelBindings.unbind(replyFuture.id(), channel);
+    private void onSendFailed(Channel channel, Throwable cause) {
+        if (!(transition(Done.INSTANCE) instanceof Active active)) {
+            return;
         }
+        channelBindings.unbind(replyFuture.id(), active.channel());
+        discardQuietly(active.channel());
+        replyFuture.failure(writeFailure(cause));
     }
 
     private void failAcquisition(State expected, Throwable cause) {
@@ -179,11 +180,10 @@ public final class CallAttempt {
         return cause.withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
     }
 
-    private void discardQuietly(Channel channel) {
-        try {
-            client.discard(channel);
-        } catch (Throwable e) {
-            logger.warn("Failed to discard transport channel '{}'", e, channel);
+    private void release() {
+        State previous = transition(Done.INSTANCE);
+        if (previous instanceof Active(Channel channel)) {
+            channelBindings.unbind(replyFuture.id(), channel);
         }
     }
 

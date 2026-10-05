@@ -1,11 +1,10 @@
 package io.effi.rpc.transport;
 
-import io.effi.rpc.context.Caller;
+import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.context.metrics.ServantMetrics;
-import io.effi.rpc.component.serialization.options.SerializationOptions;
 
 /**
  * Provides stateless transport lookup and policy helpers.
@@ -43,6 +42,15 @@ public final class TransportSupport {
         return metrics == null || metrics.averageSerializationNanos() < threshold;
     }
 
+    // Looks up metrics carried by the peer on either side of the call.
+    private static PeerMetrics metrics(Peer peer) {
+        if (peer == null) {
+            return null;
+        }
+        PeerMetrics callerMetrics = peer.get(CallerMetrics.KEY);
+        return callerMetrics == null ? peer.get(ServantMetrics.KEY) : callerMetrics;
+    }
+
     /**
      * Indicates whether deserialization may run on the IO thread.
      *
@@ -56,15 +64,6 @@ public final class TransportSupport {
         }
         PeerMetrics metrics = metrics(peer);
         return metrics == null || metrics.averageDeserializationNanos() < threshold;
-    }
-
-    // Looks up metrics carried by the peer on either side of the call.
-    private static PeerMetrics metrics(Peer peer) {
-        if (peer == null) {
-            return null;
-        }
-        PeerMetrics callerMetrics = peer.get(CallerMetrics.KEY);
-        return callerMetrics == null ? peer.get(ServantMetrics.KEY) : callerMetrics;
     }
 
 }

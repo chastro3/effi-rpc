@@ -3,9 +3,9 @@ package io.effi.rpc.transport;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.ServerConfig;
+import io.effi.rpc.trait.Cleanable;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.transport.endpoint.Server;
-import io.effi.rpc.trait.Cleanable;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;

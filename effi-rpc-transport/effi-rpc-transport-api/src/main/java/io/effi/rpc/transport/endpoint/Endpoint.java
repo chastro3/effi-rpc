@@ -2,8 +2,8 @@ package io.effi.rpc.transport.endpoint;
 
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.EndpointConfig;
-import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.trait.Closeable;
+import io.effi.rpc.transport.TransportProtocol;
 
 /**
  * Represents an endpoint with configuration and protocol access.

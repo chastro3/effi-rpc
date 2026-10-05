@@ -2,22 +2,20 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
-import io.effi.rpc.component.transport.EndpointConfig;
-import io.effi.rpc.component.transport.support.TcpEndpointConfig;
+import io.effi.rpc.component.transport.options.ClientOptions;
+import io.effi.rpc.component.transport.options.TcpOptions;
+import io.effi.rpc.component.transport.options.TransportOptions;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.transport.endpoint.Client;
 import io.effi.rpc.util.GenericKey;
 import io.effi.rpc.util.LazySingleton;
-import io.effi.rpc.concurrent.Promise;
-import io.effi.rpc.concurrent.Future;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
-import io.effi.rpc.component.transport.options.ClientOptions;
-import io.effi.rpc.component.transport.options.TcpOptions;
-import io.effi.rpc.component.transport.options.TransportOptions;
 
 /**
  * Implements {@link Client} using Netty.

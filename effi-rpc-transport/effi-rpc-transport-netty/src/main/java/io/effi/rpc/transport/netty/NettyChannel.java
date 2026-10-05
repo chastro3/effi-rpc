@@ -1,16 +1,16 @@
 package io.effi.rpc.transport.netty;
 
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
-import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
+import io.effi.rpc.transport.ChannelCallBindings;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.endpoint.AbstractChannel;
 import io.effi.rpc.transport.endpoint.ChannelTracker;
 import io.effi.rpc.transport.endpoint.Endpoint;
-import io.effi.rpc.transport.ChannelCallBindings;
-import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ExceptionUtil;
 import io.effi.rpc.util.ObjectUtil;
@@ -46,17 +46,13 @@ public final class NettyChannel extends AbstractChannel {
     }
 
     /**
-     * Returns the shared wrapper for the supplied Netty channel.
+     * Wraps a Netty future into a channel promise.
      *
-     * @param channel  the Netty channel
-     * @param endpoint the owning endpoint
-     * @param config   the endpoint configuration
-     * @param virtual  whether the channel is a virtual stream channel
-     * @return the channel wrapper
+     * @param future the Netty future
+     * @return the channel promise
      */
-    public static NettyChannel init(Channel channel, Endpoint endpoint, EndpointConfig config, boolean virtual) {
-        AssertUtil.notNull(channel, "channel");
-        return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpoint, config, virtual));
+    public static Promise<NettyChannel> wrap(io.netty.util.concurrent.Future<? extends Channel> future) {
+        return wrap(future, future::getNow, NettyChannel::ensure);
     }
 
     /**
@@ -75,26 +71,6 @@ public final class NettyChannel extends AbstractChannel {
     }
 
     /**
-     * Wraps a channel future into a channel promise.
-     *
-     * @param future the channel future
-     * @return the channel promise
-     */
-    public static Promise<NettyChannel> wrap(ChannelFuture future) {
-        return wrap(future, future::channel, NettyChannel::ensure);
-    }
-
-    /**
-     * Wraps a Netty future into a channel promise.
-     *
-     * @param future the Netty future
-     * @return the channel promise
-     */
-    public static Promise<NettyChannel> wrap(io.netty.util.concurrent.Future<? extends Channel> future) {
-        return wrap(future, future::getNow, NettyChannel::ensure);
-    }
-
-    /**
      * Wraps a channel future and initializes the wrapper once the channel is active.
      *
      * @param future   the channel future
@@ -103,6 +79,27 @@ public final class NettyChannel extends AbstractChannel {
      */
     public static Promise<NettyChannel> wrapWhenActive(ChannelFuture future, Endpoint endpoint) {
         return wrap(future, future::channel, ch -> init(ch, endpoint, endpoint.config(), false));
+    }
+
+    /**
+     * Returns the shared wrapper for the supplied Netty channel.
+     *
+     * @param channel  the Netty channel
+     * @param endpoint the owning endpoint
+     * @param config   the endpoint configuration
+     * @param virtual  whether the channel is a virtual stream channel
+     * @return the channel wrapper
+     */
+    public static NettyChannel init(Channel channel, Endpoint endpoint, EndpointConfig config, boolean virtual) {
+        AssertUtil.notNull(channel, "channel");
+        return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpoint, config, virtual));
+    }
+
+    /**
+     * Returns the underlying Netty channel.
+     */
+    public Channel channel() {
+        return channel;
     }
 
     @Override
@@ -138,14 +135,6 @@ public final class NettyChannel extends AbstractChannel {
         );
     }
 
-
-    /**
-     * Returns the underlying Netty channel.
-     */
-    public Channel channel() {
-        return channel;
-    }
-
     /**
      * Indicates whether this channel is a virtual stream channel.
      */
@@ -177,6 +166,16 @@ public final class NettyChannel extends AbstractChannel {
             return promise;
         }
         return Futures.asVoid(wrap(channel.writeAndFlush(message)));
+    }
+
+    /**
+     * Wraps a channel future into a channel promise.
+     *
+     * @param future the channel future
+     * @return the channel promise
+     */
+    public static Promise<NettyChannel> wrap(ChannelFuture future) {
+        return wrap(future, future::channel, NettyChannel::ensure);
     }
 
     private static <T extends io.netty.util.concurrent.Future<?>> Promise<NettyChannel>

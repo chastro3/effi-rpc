@@ -4,7 +4,7 @@ import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.component.transport.ServerConfig;
-import io.effi.rpc.component.transport.support.TcpEndpointConfig;
+import io.effi.rpc.component.transport.options.TcpOptions;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.util.ArrayIdentifier;
@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import io.effi.rpc.component.transport.options.TcpOptions;
 
 /**
  * Manages SSL contexts for both server and client sides.

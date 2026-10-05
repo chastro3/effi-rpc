@@ -2,8 +2,9 @@ package io.effi.rpc.transport.netty;
 
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
-import io.effi.rpc.transport.endpoint.Client;
+import io.effi.rpc.component.transport.options.ClientOptions;
 import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.transport.endpoint.Client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
@@ -11,7 +12,6 @@ import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.FixedChannelPool;
 
 import java.net.InetSocketAddress;
-import io.effi.rpc.component.transport.options.ClientOptions;
 
 /**
  * Implements {@link Client} using a fixed Netty channel pool for connection reuse.
@@ -40,19 +40,19 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public void discard(io.effi.rpc.transport.endpoint.Channel channel) {
+    public void release(io.effi.rpc.transport.endpoint.Channel channel) {
         if (channel instanceof NettyChannel nettyChannel && nettyChannel.physical()) {
-            Channel raw = nettyChannel.channel();
-            raw.close().addListener(ignored -> channelPool.release(raw));
+            channelPool.release(nettyChannel.channel());
             return;
         }
         channel.close();
     }
 
     @Override
-    public void release(io.effi.rpc.transport.endpoint.Channel channel) {
+    public void discard(io.effi.rpc.transport.endpoint.Channel channel) {
         if (channel instanceof NettyChannel nettyChannel && nettyChannel.physical()) {
-            channelPool.release(nettyChannel.channel());
+            Channel raw = nettyChannel.channel();
+            raw.close().addListener(ignored -> channelPool.release(raw));
             return;
         }
         channel.close();
