@@ -45,9 +45,7 @@ fun Project.configureTasks() {
     }
 
     tasks.withType(Delete::class.java).configureEach {
-        doLast {
-            project.delete(fileTree(projectDir).include("**/*.iml"))
-        }
+        delete(fileTree(projectDir).include("**/*.iml"))
     }
 }
 

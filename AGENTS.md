@@ -21,9 +21,9 @@ Keep the index current with `codegraph sync .` after substantial source changes.
 - JDK: `C:\dev\Java\jdk-25.0.3`
 - `JAVA_HOME`: `C:\dev\Java\jdk-25.0.3`
 - `GRADLE_USER_HOME`: `D:\tools\gradle`
-- Gradle wrapper: `9.5.1`
+- Gradle wrapper: `9.8.0`
 - Wrapper distribution:
-  `D:\tools\gradle\wrapper\dists\gradle-9.5.1-bin\bvvv0hnjcinfezlom7fy9dbyi\gradle-9.5.1`
+  `gradle-9.8.0-bin`
 
 Always use the project wrapper (`gradlew.bat`). Do not replace it with a system
 Gradle installation.
@@ -72,19 +72,19 @@ Check the wrapper:
 Build and test all modules:
 
 ```powershell
-.\gradlew.bat build --no-daemon --no-configuration-cache
+.\gradlew.bat build --no-daemon
 ```
 
 Compile one module:
 
 ```powershell
-.\gradlew.bat :effi-rpc-protocols:effi-rpc-http:compileJava --no-daemon --no-configuration-cache
+.\gradlew.bat :effi-rpc-protocols:effi-rpc-http:compileJava --no-daemon
 ```
 
-The repository sets `org.gradle.configuration-cache=true`, but Gradle 9.5.1
-currently fails on `:effi-rpc-common:processResources` because the build logic
-reads `Task.project` during execution. Always include
-`--no-configuration-cache` until that build logic is made compatible.
+`gradle.properties` enables `org.gradle.caching=true`. Configuration cache is
+kept opt-in from the CLI because IntelliJ compile/reload currently hits Gradle
+issue #29087 with the included `build-logic` build:
+`.\gradlew.bat build --configuration-cache --no-daemon`.
 
 ## Test Constraints
 
@@ -93,5 +93,6 @@ The `effi-rpc-test` test task is enabled. Two manual-only cases remain disabled:
 - `ApiTest.serverExport()` requires an external Consul registry.
 - `ApiTest.annotationStyle()` is a manual annotation-style stress test.
 
-Last verified: `2026-09-28`; `.\gradlew.bat build` completed successfully
-with 59 Gradle tasks, including the enabled test task.
+Last verified: `2026-10-05`; `.\gradlew.bat build --no-daemon` completed
+successfully with 63 actionable tasks, including the enabled test task. A
+second run reused the configuration cache.

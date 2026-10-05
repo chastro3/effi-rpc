@@ -22,7 +22,7 @@ Effi-RPC 是一个面向接口和注解的 RPC 框架，核心特点：
 - 仓库根目录：`C:\Users\zhouwenbo\Desktop\rpc\code\effi-rpc`
 - JDK：`C:\dev\Java\jdk-25.0.3`
 - Gradle wrapper：`gradlew.bat`
-- Gradle 版本：`9.5.1`
+- Gradle 版本：`9.8.0`
 - Gradle 用户目录：`D:\tools\gradle`
 
 典型验证命令：
@@ -33,11 +33,11 @@ $env:TMP = $env:TEMP
 $env:GRADLE_USER_HOME = 'D:\tools\gradle'
 $env:JAVA_HOME = 'C:\dev\Java\jdk-25.0.3'
 
-.\gradlew.bat :effi-rpc-common:compileJava --no-daemon --no-configuration-cache
-.\gradlew.bat :effi-rpc-test:test --no-daemon --no-configuration-cache
+.\gradlew.bat :effi-rpc-common:compileJava --no-daemon
+.\gradlew.bat :effi-rpc-test:test --no-daemon
 ```
 
-注意：当前配置开启 `org.gradle.configuration-cache=true`，但 Gradle 9.5.1 与现有 `processResources` 逻辑存在兼容问题，实际执行时继续使用 `--no-configuration-cache`。
+`gradle.properties` 已开启 `org.gradle.caching=true`。配置缓存改成命令行显式开启，因为 IDEA 的 compile/reload 与 included build `build-logic` 会触发 Gradle issue #29087。
 
 ## 3. 模块拓扑
 

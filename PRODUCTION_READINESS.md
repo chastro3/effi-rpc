@@ -27,8 +27,8 @@ Remaining architectural item:
 
 Verification:
 
-- `.\gradlew.bat build --no-daemon --no-configuration-cache`
-- Completed successfully with 59 Gradle tasks, including the enabled test task.
+- `.\gradlew.bat build --no-daemon`
+- Completed successfully with 63 actionable tasks, including the enabled test task. Build cache is enabled; configuration cache remains CLI opt-in due to Gradle issue #29087.
 
 Baseline commit: `207b91c` (`feat: harden dynamic accessor generation`)
 
@@ -36,7 +36,7 @@ Audit date: `2026-09-23`
 
 Current status: **not production stable**
 
-Baseline verification: `.\gradlew.bat build -x test --no-daemon --no-configuration-cache`
+Baseline verification: `.\gradlew.bat build -x test --no-daemon`
 passed with 57 tasks. The integration test task is currently disabled, so this build does not
 exercise timeout, retry, reconnect, registry failure, or shutdown behavior.
 

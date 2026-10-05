@@ -14,9 +14,9 @@ dependencies {
 }
 
 
-tasks.withType<ProcessResources> {
-    filesMatching("META-INF/effi-rpc/version") {
-        expand("version" to project.version)
-    }
+val projectVersion = version.toString()
+
+tasks.withType<ProcessResources>().configureEach {
+    expand("version" to projectVersion)
 }
 
