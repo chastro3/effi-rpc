@@ -10,11 +10,11 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.context.options.GovernanceOptions;
 import io.effi.rpc.exception.PredefinedErrorCode;
+import io.effi.rpc.governance.GovernanceErrorCodes;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.registry.RegistryClient;
@@ -38,7 +38,7 @@ import static io.effi.rpc.governance.registry.DefaultServiceDiscovery.NAME;
  * Discovered instances are filtered by the request protocol and deduplicated by instance id.
  * Partial success is sufficient: registry failures are only reported when no instance can be
  * returned. When every registry succeeds but yields no match,
- * {@link InteractionErrorCodes#SERVICE_INSTANCE_NOT_FOUND} is reported; otherwise the last
+ * {@link GovernanceErrorCodes#SERVICE_INSTANCE_NOT_FOUND} is reported; otherwise the last
  * observed registry failure is reported.
  */
 @Extension(value = NAME, primary = true)
@@ -94,7 +94,7 @@ public class DefaultServiceDiscovery implements ServiceDiscovery {
             if (lastFailure != null) {
                 throw PredefinedErrorCode.REGISTRY_DISCOVER.fail(lastFailure, serviceName, lastFailureRegistry);
             }
-            throw InteractionErrorCodes.SERVICE_INSTANCE_NOT_FOUND.fail(serviceName);
+            throw GovernanceErrorCodes.SERVICE_INSTANCE_NOT_FOUND.fail(serviceName);
         }
         return availableInstances;
     }

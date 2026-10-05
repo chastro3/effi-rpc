@@ -10,6 +10,7 @@ import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.context.CallFutureRegistry;
+import io.effi.rpc.governance.metrics.GovernanceMetrics;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.metrics.Metrics;
@@ -42,14 +43,17 @@ public class DefaultLifecycleConfiguration {
             Scheduler scheduler = new Scheduler();
             MpscEventBus eventBus = new MpscEventBus(platform);
             Metrics metrics = new DefaultMetrics(platform);
+            GovernanceMetrics governanceMetrics = new GovernanceMetrics();
             CallFutureRegistry callFutureRegistry = new CallFutureRegistry();
             ChannelCallBindings channelCallBindings = new ChannelCallBindings(callFutureRegistry);
             platform.registry()
                     .register(Scheduler.class, scheduler)
                     .register(EventBus.class, eventBus)
                     .register(Metrics.class, metrics)
+                    .register(GovernanceMetrics.class, governanceMetrics)
                     .register(CallFutureRegistry.class, callFutureRegistry)
                     .register(ChannelCallBindings.class, channelCallBindings);
+            metrics.register(governanceMetrics);
             connectMetrics(platform, eventBus, metrics, scheduler);
             registerDefaultEvents(eventBus);
             eventBus.start();

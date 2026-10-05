@@ -4,9 +4,9 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.governance.GovernanceErrorCodes;
 import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.ServiceInstance;
 import org.junit.jupiter.api.Test;
@@ -24,21 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class WeightedLoadBalancerTest {
 
     @Test
-    void weightedRoundRobinSmoothsWeightedSequence() {
+    void weightedRoundRobinHonorsWeightRatios() {
         CallContext<Request, Caller<?>> context = context();
         ServiceInstance low = instance("low", "1");
         ServiceInstance high = instance("high", "3");
         List<ServiceInstance> instances = List.of(low, high);
         WeightedRoundRobinLoadBalancer loadBalancer = new WeightedRoundRobinLoadBalancer();
 
-        assertSame(high, loadBalancer.select(context, instances));
         assertSame(low, loadBalancer.select(context, instances));
         assertSame(high, loadBalancer.select(context, instances));
         assertSame(high, loadBalancer.select(context, instances));
         assertSame(high, loadBalancer.select(context, instances));
         assertSame(low, loadBalancer.select(context, instances));
-        assertSame(high, loadBalancer.select(context, instances));
-        assertSame(high, loadBalancer.select(context, instances));
     }
 
     @Test
@@ -95,7 +92,7 @@ class WeightedLoadBalancerTest {
         EffiRpcException failure = assertThrows(EffiRpcException.class,
                 () -> new ConsistentHashLoadBalancer().select(context, instances));
 
-        assertEquals(InteractionErrorCodes.HASH_KEY_REQUIRED, failure.errorCode());
+        assertEquals(GovernanceErrorCodes.HASH_KEY_REQUIRED, failure.errorCode());
     }
 
     @SuppressWarnings("unchecked")

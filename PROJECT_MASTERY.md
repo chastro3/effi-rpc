@@ -502,6 +502,8 @@ EffiRpcBootstrap.stop()
 - `RouterConfig`：module 级不可变规则表，规则包含 URL 正则与 metadata 全等条件，正则构建时编译。
 - `LoadBalancer` / `RandomLoadBalancer` / `RoundRobinLoadBalancer` / `WeightedRandomLoadBalancer` / `WeightedRoundRobinLoadBalancer` / `ConsistentHashLoadBalancer`。
 - `HashKeyInterceptor`：call 阶段按 `GovernanceOptions.HASH_KEY_INDEX` 从位置参数提取 `KeyConstant.HASH_KEY`，供 `ConsistentHashLoadBalancer` 使用。
+- `ApplicationServiceRegistrar.server(..., weight)` / `ServerLauncher.weight()`：将实例权重写入注册 metadata，供加权 LB 使用。
+- `GovernanceMetrics`：由 `DefaultLifecycleConfiguration` 创建并注册到平台 `Metrics`，记录发现、路由、LB 选择的次数与耗时。
 - `RegistryLocator`：组合 discovery、router、load balancer 完成实际定位。
 - `ServiceRegistrar`：注册/注销协调。
 - `RegistryLocatorLifecycle`：平台生命周期注册。

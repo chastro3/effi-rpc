@@ -1,51 +1,44 @@
 package io.effi.rpc.governance.lb;
 
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.registry.ServiceInstance;
+import io.effi.rpc.util.AtomicUtil;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.effi.rpc.governance.lb.WeightedRoundRobinLoadBalancer.NAME;
 
 /**
- * Implements a smooth weighted round-robin load balancing strategy.
+ * Implements a weighted round-robin load balancing strategy.
  * <p>
- * Selection spreads weighted traffic across candidates instead of emitting each weight as a
- * consecutive burst.
+ * Selection follows the cumulative weight ranges of the candidate list.
  */
 @Extension(NAME)
 public class WeightedRoundRobinLoadBalancer extends AbstractLoadBalancer {
 
     public static final String NAME = "weightedRoundRobin";
 
-    private final Map<String, InstanceWeight> instanceWeights = new HashMap<>();
-
     @Override
-    protected synchronized ServiceInstance doSelect(CallContext<Request, Caller<?>> context, List<ServiceInstance> instances) {
+    protected ServiceInstance doSelect(CallContext<Request, Caller<?>> context, List<ServiceInstance> instances) {
         int total = 0;
-        InstanceWeight selected = null;
-        ServiceInstance selectedInstance = null;
+        for (ServiceInstance instance : instances) {
+            total += weight(instance);
+        }
+        int range = total;
+        AtomicInteger lastIndex = context.peer().get(KeyConstant.LAST_CALL_INDEX);
+        int current = AtomicUtil.updateAtomicInteger(lastIndex, old -> old >= range - 1 ? 0 : old + 1);
         for (ServiceInstance instance : instances) {
             int weight = weight(instance);
-            total += weight;
-            InstanceWeight current = instanceWeights.computeIfAbsent(instance.id(), id -> new InstanceWeight());
-            current.value += weight;
-            if (selected == null || current.value > selected.value) {
-                selected = current;
-                selectedInstance = instance;
+            if (current < weight) {
+                return instance;
             }
+            current -= weight;
         }
-        selected.value -= total;
-        return selectedInstance;
-    }
-
-    private static final class InstanceWeight {
-
-        private int value;
+        return instances.getLast();
     }
 }

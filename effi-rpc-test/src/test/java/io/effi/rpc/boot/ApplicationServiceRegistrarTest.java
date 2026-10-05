@@ -7,6 +7,7 @@ import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
 import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -102,6 +104,33 @@ class ApplicationServiceRegistrarTest {
         }
     }
 
+    @Test
+    void writesWeightToRegisteredInstances() throws Exception {
+        ScopedPlatform platform = new ScopedPlatform("weight-registration-platform");
+        ScopedApplication application = platform.newApplication("weight-registration-application");
+        BatchRegistryClient client = new BatchRegistryClient(platform);
+        platform.registry().register(RegistryClient.Factory.class, "consul", client.factory());
+        ApplicationServiceRegistrar registrar = new ApplicationServiceRegistrar(application);
+        registrar.server(
+                Http1ServerConfig.defaultConfig(),
+                InetAddress.getLoopbackAddress().getHostAddress(),
+                freePort(),
+                7
+        );
+        registrar.registry(DefaultRegistryConfig.builder()
+                .type("consul")
+                .address("consul://127.0.0.1:8500")
+                .build());
+
+        try {
+            assertFalse(registrar.register().await().failed());
+            assertEquals("7", client.registeredInstances.get(0).metadata().get(KeyConstant.WEIGHT));
+        } finally {
+            registrar.deregister().await();
+            platform.close();
+        }
+    }
+
     private static int freePort() throws Exception {
         try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
             return socket.getLocalPort();
@@ -115,6 +144,8 @@ class ApplicationServiceRegistrarTest {
         private final AtomicInteger batches = new AtomicInteger();
 
         private final AtomicInteger batchSize = new AtomicInteger();
+
+        private final List<ServiceInstance> registeredInstances = new ArrayList<>();
 
         private BatchRegistryClient(ScopedPlatform platform) {
             this.platform = platform;
@@ -142,6 +173,7 @@ class ApplicationServiceRegistrarTest {
         public Future<Void> register(Collection<ServiceInstance> instances) {
             batches.incrementAndGet();
             batchSize.addAndGet(instances.size());
+            registeredInstances.addAll(instances);
             return Futures.completedVoid();
         }
 

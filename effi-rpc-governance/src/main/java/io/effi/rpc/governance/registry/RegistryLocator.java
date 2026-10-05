@@ -7,14 +7,16 @@ import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Locator;
 import io.effi.rpc.context.LocatorResolver;
 import io.effi.rpc.context.PeerDescriptor;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.context.options.GovernanceOptions;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.governance.GovernanceErrorCodes;
 import io.effi.rpc.governance.lb.LoadBalancer;
+import io.effi.rpc.governance.metrics.GovernanceMetrics;
 import io.effi.rpc.governance.router.Router;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
@@ -47,10 +49,13 @@ public final class RegistryLocator implements Locator {
 
     private final Collection<RegistryConfig> registryConfigs;
 
+    private final GovernanceMetrics metrics;
+
     private RegistryLocator(ScopedPlatform platform, String serviceName, Collection<RegistryConfig> registryConfigs) {
         this.platform = platform;
         this.serviceName = serviceName;
         this.registryConfigs = registryConfigs;
+        this.metrics = platform.singleComponent(GovernanceMetrics.class);
     }
 
     /**
@@ -106,14 +111,40 @@ public final class RegistryLocator implements Locator {
         Caller<?> caller = context.peer();
         ScopedApplication application = context.module().application();
         ServiceDiscovery serviceDiscovery = application.preferredExtension(ServiceDiscovery.class, caller.option(GovernanceOptions.SERVICE_DISCOVERY));
-        List<ServiceInstance> availableServiceInstances = serviceDiscovery.discover(serviceName, context, registryConfigs);
+        long discoveryStart = System.nanoTime();
+        List<ServiceInstance> availableServiceInstances;
+        try {
+            availableServiceInstances = serviceDiscovery.discover(serviceName, context, registryConfigs);
+        } catch (EffiRpcException e) {
+            long duration = System.nanoTime() - discoveryStart;
+            if (GovernanceErrorCodes.SERVICE_INSTANCE_NOT_FOUND.equals(e.errorCode())) {
+                metrics.recordDiscoveryEmpty(duration);
+            } else {
+                metrics.recordDiscoveryFailure(duration);
+            }
+            throw e;
+        } catch (RuntimeException e) {
+            metrics.recordDiscoveryFailure(System.nanoTime() - discoveryStart);
+            throw e;
+        }
+        metrics.recordDiscoverySuccess(System.nanoTime() - discoveryStart, availableServiceInstances.size());
         Router router = application.preferredExtension(Router.class, caller.option(GovernanceOptions.ROUTER));
-        List<ServiceInstance> finalServiceInstances = router.route(context, availableServiceInstances);
+        long routeStart = System.nanoTime();
+        List<ServiceInstance> finalServiceInstances;
+        try {
+            finalServiceInstances = router.route(context, availableServiceInstances);
+        } catch (RuntimeException e) {
+            metrics.recordRouteFailure(System.nanoTime() - routeStart);
+            throw e;
+        }
+        metrics.recordRoute(System.nanoTime() - routeStart, availableServiceInstances.size(), finalServiceInstances.size());
         if (CollectionUtil.isEmpty(finalServiceInstances)) {
-            throw InteractionErrorCodes.ROUTE_NOT_MATCHED.fail(context.message().url());
+            throw GovernanceErrorCodes.ROUTE_NOT_MATCHED.fail(context.message().url());
         }
         LoadBalancer loadBalancer = application.preferredExtension(LoadBalancer.class, caller.option(GovernanceOptions.LOAD_BALANCER));
+        long selectionStart = System.nanoTime();
         ServiceInstance chosenServiceInstance = loadBalancer.select(context, finalServiceInstances);
+        metrics.recordLoadBalancer(loadBalancer.getClass().getSimpleName(), System.nanoTime() - selectionStart);
         return InetSocketAddress.createUnresolved(chosenServiceInstance.host(), chosenServiceInstance.port());
     }
 

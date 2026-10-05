@@ -32,13 +32,21 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
     private final String id;
     private final ServerConfig serverConfig;
     private final InetSocketAddress boundAddress;
+    private final int weight;
     private final LazySingleton<Server> server = LazySingleton.from(this::startServer);
 
-    private ServerLauncher(String id, ScopedApplication application, ServerConfig serverConfig, InetSocketAddress boundAddress) {
+    private ServerLauncher(
+            String id,
+            ScopedApplication application,
+            ServerConfig serverConfig,
+            InetSocketAddress boundAddress,
+            int weight
+    ) {
         super(application);
         this.id = id;
         this.serverConfig = serverConfig;
         this.boundAddress = boundAddress;
+        this.weight = weight;
         application.registry().register(ServerLauncher.class, this);
     }
 
@@ -51,12 +59,16 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
     }
 
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress) {
+        return attach(application, config, boundAddress, 1);
+    }
+
+    public static ServerLauncher attach(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress, int weight) {
         AssertUtil.notNull(application, "application");
         AssertUtil.notNull(config, "server config");
         AssertUtil.notNull(boundAddress, "bound address");
         String id = RegistryUtil.generateId(config.protocolName(), boundAddress);
         return SERVER_LAUNCHERS.compute(id, (k, existing) -> {
-            if (existing == null) return new ServerLauncher(id, application, config, boundAddress);
+            if (existing == null) return new ServerLauncher(id, application, config, boundAddress, weight);
             if (existing.application() == application) return existing;
             throw new IllegalStateException(StringUtil.format(
                     "Server [{}] with id '{}' already allocated to application '{}'",
@@ -114,6 +126,10 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
 
     public InetSocketAddress boundAddress() {
         return boundAddress;
+    }
+
+    public int weight() {
+        return weight;
     }
 }
 

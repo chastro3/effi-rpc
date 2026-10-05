@@ -4,8 +4,13 @@ import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.transport.ServerConfig;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Futures;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.constant.Tags;
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.governance.registry.ServiceRegistrar;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
@@ -14,12 +19,7 @@ import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.concurrent.Futures;
-import io.effi.rpc.concurrent.Promise;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -32,6 +32,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static io.effi.rpc.annotation.component.ScopedComponent.Kind.SINGLE;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION;
 
+/**
+ * Coordinates application server registration and deregistration.
+ */
 @ScopedComponent(scope = APPLICATION, kind = SINGLE)
 public class ApplicationServiceRegistrar extends ScopedApplication.Holder implements ServiceRegistrar {
 
@@ -131,17 +134,29 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
     }
 
     public ApplicationServiceRegistrar server(ServerConfig config, int port) {
-        return server(config, NetUtil.localHost(), port);
+        return server(config, NetUtil.localHost(), port, 1);
+    }
+
+    public ApplicationServiceRegistrar server(ServerConfig config, int port, int weight) {
+        return server(config, NetUtil.localHost(), port, weight);
     }
 
     public ApplicationServiceRegistrar server(ServerConfig config, String host, int port) {
-        return server(config, InetSocketAddress.createUnresolved(host, port));
+        return server(config, host, port, 1);
+    }
+
+    public ApplicationServiceRegistrar server(ServerConfig config, String host, int port, int weight) {
+        return server(config, InetSocketAddress.createUnresolved(host, port), weight);
     }
 
     public ApplicationServiceRegistrar server(ServerConfig config, InetSocketAddress boundAddress) {
+        return server(config, boundAddress, 1);
+    }
+
+    public ApplicationServiceRegistrar server(ServerConfig config, InetSocketAddress boundAddress, int weight) {
         synchronized (lifecycleLock) {
             requireConfigurable();
-            ServerLauncher serverLauncher = ServerLauncher.attach(application, config, boundAddress);
+            ServerLauncher serverLauncher = ServerLauncher.attach(application, config, boundAddress, weight);
             serverLaunchers.add(serverLauncher);
         }
         return this;
@@ -279,15 +294,15 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         metadata.put(KeyConstant.PLATFORM, platform().name());
         metadata.put(KeyConstant.APPLICATION, application.name());
         return serverLaunchers.stream()
-                .map(serverLauncher -> (ServiceInstance)
-                        DefaultServiceInstance.builder()
-                                .id(serverLauncher.id())
-                                .serviceName(application().name())
-                                .protocol(serverLauncher.serverConfig().protocolName())
-                                .host(serverLauncher.boundAddress().getHostString())
-                                .port(serverLauncher.boundAddress().getPort())
-                                .addMetadata(metadata)
-                                .build())
+                .map(serverLauncher -> (ServiceInstance) DefaultServiceInstance.builder()
+                        .id(serverLauncher.id())
+                        .serviceName(application().name())
+                        .protocol(serverLauncher.serverConfig().protocolName())
+                        .host(serverLauncher.boundAddress().getHostString())
+                        .port(serverLauncher.boundAddress().getPort())
+                        .addMetadata(metadata)
+                        .addMetadata(KeyConstant.WEIGHT, String.valueOf(serverLauncher.weight()))
+                        .build())
                 .toList();
     }
 

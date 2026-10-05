@@ -9,12 +9,6 @@ public interface InteractionErrorCodes {
 
     ErrorCode SERVICE_CALL_TIMEOUT = allocate("Failed to call remote service: Timeout after '{}' milliseconds,future id is'{}'");
 
-    ErrorCode SERVICE_INSTANCE_NOT_FOUND = allocate("No service instance found for '{}'");
-
-    ErrorCode ROUTE_NOT_MATCHED = allocate("No service instance matched router for '{}'");
-
-    ErrorCode HASH_KEY_REQUIRED = allocate("Consistent-hash load balancing requires the 'hashKey' context attribute");
-
     ErrorCode SERVANT_NOT_FOUND = allocate("Servant not found for '{}' on '{}'");
 
     ErrorCode SERVANT_INVOCATION_FAILED = allocate("Failed to invoke Servant: '{}'");

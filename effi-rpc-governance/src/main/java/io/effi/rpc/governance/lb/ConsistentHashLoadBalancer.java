@@ -4,8 +4,8 @@ import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Request;
+import io.effi.rpc.governance.GovernanceErrorCodes;
 import io.effi.rpc.registry.ServiceInstance;
 import io.effi.rpc.util.StringUtil;
 
@@ -28,7 +28,7 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     protected ServiceInstance doSelect(CallContext<Request, Caller<?>> context, List<ServiceInstance> instances) {
         String key = context.get(KeyConstant.HASH_KEY);
         if (StringUtil.isBlank(key)) {
-            throw InteractionErrorCodes.HASH_KEY_REQUIRED.fail();
+            throw GovernanceErrorCodes.HASH_KEY_REQUIRED.fail();
         }
         ServiceInstance selected = instances.getFirst();
         long selectedScore = Long.MIN_VALUE;

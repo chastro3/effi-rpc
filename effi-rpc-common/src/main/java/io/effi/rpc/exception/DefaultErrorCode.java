@@ -2,6 +2,8 @@ package io.effi.rpc.exception;
 
 import io.effi.rpc.util.AssertUtil;
 
+import java.util.Objects;
+
 /**
  * Provides the default implementation of {@link ErrorCode}.
  */
@@ -35,5 +37,21 @@ public class DefaultErrorCode implements ErrorCode {
     @Override
     public String message() {
         return message;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof DefaultErrorCode other)) {
+            return false;
+        }
+        return code.equals(other.code) && message.equals(other.message);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(code, message);
     }
 }
