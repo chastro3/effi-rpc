@@ -34,8 +34,7 @@ public class Http1ServerChannelConfigurer extends EndpointChannelConfigurer<Http
     }
 
     private HttpServerCodec newCodec() {
-        // todo config?
-        return new HttpServerCodec();
+        return new HttpServerCodec(H1Support.newDecoderConfig(endpoint.config()));
     }
 
     private HttpObjectAggregator newMessageAggregator() {

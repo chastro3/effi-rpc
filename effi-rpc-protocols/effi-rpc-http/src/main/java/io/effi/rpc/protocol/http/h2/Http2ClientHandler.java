@@ -32,13 +32,29 @@ import io.netty.util.concurrent.PromiseCombiner;
 import static io.netty.channel.ChannelHandler.Sharable;
 
 /**
- * Handles HTTP/2 stream frame responses. This is a useful approach if you specifically want to check
- * the main HTTP/2 response DATA/HEADERs, but in this example it's used purely to see whether
- * our request (for a specific stream id) has had a final response (for that same stream id).
+ * Handles HTTP/2 client-side request and response frame conversion.
  */
 @NativeConfig.Reflect(typeReached = Http2Protocol.class, queryAllPublicMethods = true)
 @Sharable
 public final class Http2ClientHandler extends FutureBinder {
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        try {
+            super.channelInactive(ctx);
+        } finally {
+            H2Support.releaseResponseStream(ctx);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        try {
+            super.exceptionCaught(ctx, cause);
+        } finally {
+            H2Support.releaseResponseStream(ctx);
+        }
+    }
 
     @Override
     protected SmartURL supports(Object msg) {
@@ -77,23 +93,5 @@ public final class Http2ClientHandler extends FutureBinder {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        try {
-            super.channelInactive(ctx);
-        } finally {
-            H2Support.releaseResponseStream(ctx);
-        }
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        try {
-            super.exceptionCaught(ctx, cause);
-        } finally {
-            H2Support.releaseResponseStream(ctx);
-        }
     }
 }

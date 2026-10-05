@@ -11,6 +11,7 @@ import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.transport.netty.NettyChannel;
 import io.effi.rpc.transport.netty.NettySupport;
+import io.effi.rpc.util.StringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,9 +30,9 @@ import io.netty.util.AttributeKey;
 import java.util.function.Supplier;
 
 /**
- * Utility class for http2 operations.
+ * Provides HTTP/2 stream, frame, and settings utilities.
  */
-public class H2Support {
+public final class H2Support {
 
     public static final AttributeKey<Http2StreamChannelBootstrap> H2_STREAM_BOOTSTRAP_KEY = AttributeKey.valueOf("h2-stream-bootstrap");
 
@@ -42,6 +43,9 @@ public class H2Support {
 
     private static final AttributeKey<Http2ResponseStream> RESPONSE_STREAM_KEY =
             AttributeKey.valueOf("effi-rpc.h2.response-stream");
+
+    private H2Support() {
+    }
 
     public static void bindStreamBootstrap(Channel channel, Http2StreamChannelBootstrap streamBootstrap) {
         channel.attr(H2_STREAM_BOOTSTRAP_KEY).set(streamBootstrap);
@@ -126,6 +130,10 @@ public class H2Support {
         http2Headers.scheme(request.version().schema());
         http2Headers.method(request.method().name());
         http2Headers.path(smartUrl.queryPath());
+        String authority = smartUrl.address();
+        if (StringUtil.isNotBlank(authority)) {
+            http2Headers.authority(authority);
+        }
         // wrapper http2 body
         return toHttp2StreamFrames(http2Headers, NettySupport.toByteBuf(request.outputStream()));
     }
@@ -174,7 +182,7 @@ public class H2Support {
     /**
      * Builds http2 settings.
      */
-    public static Http2Settings createHttp2Settings(EndpointConfig config, boolean isClient) {
+    public static Http2Settings createHttp2Settings(EndpointConfig config) {
         int initialWindows = config.option(Http2Options.INITIAL_WINDOW_SIZE);
         long maxConcurrentStreams = config.option(Http2Options.MAX_CONCURRENT_STREAMS);
         int maxFrameSize = config.option(Http2Options.MAX_FRAME_SIZE);
@@ -186,10 +194,6 @@ public class H2Support {
         settings.maxFrameSize(maxFrameSize);
         settings.maxHeaderListSize(maxHeaderListSize);
         settings.headerTableSize(headerTableSize);
-        if (isClient) {
-            boolean pushEnabled = config.option(Http2Options.PUSH_ENABLED);
-            settings.pushEnabled(pushEnabled);
-        }
         return settings;
     }
 

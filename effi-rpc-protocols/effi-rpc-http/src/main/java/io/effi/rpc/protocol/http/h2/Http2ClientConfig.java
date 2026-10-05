@@ -30,11 +30,6 @@ public class Http2ClientConfig extends Http2EndpointConfig implements ClientConf
     public static class Builder extends EndpointConfig.Builder<Http2ClientConfig, Builder>
             implements Http2EndpointConfig.Configurator<Http2ClientConfig.Builder> {
 
-        public Builder enablePush(boolean enablePush) {
-            addOption(Http2Options.PUSH_ENABLED, enablePush);
-            return this;
-        }
-
         @Override
         public Http2ClientConfig build() {
             return new Http2ClientConfig(id, options, certificateConfig);

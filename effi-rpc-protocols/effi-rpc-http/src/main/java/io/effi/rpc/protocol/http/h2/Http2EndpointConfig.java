@@ -4,6 +4,9 @@ import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.option.Options;
 import io.effi.rpc.protocol.http.HttpEndpointConfig;
 
+/**
+ * Defines endpoint configuration shared by HTTP/2 clients and servers.
+ */
 public abstract class Http2EndpointConfig extends HttpEndpointConfig {
 
     protected Http2EndpointConfig(String id, Options options, CertificateConfig certificateConfig) {

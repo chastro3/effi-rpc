@@ -1,13 +1,14 @@
 package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.netty.NettyChannel;
 import io.effi.rpc.transport.netty.NettySupport;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http2.Http2FrameStream;
 
 /**
- * Generate full http2 request stream.
+ * Represents an aggregated HTTP/2 request stream.
  */
 public class Http2RequestStream extends Http2MessageStream {
 
@@ -27,7 +28,14 @@ public class Http2RequestStream extends Http2MessageStream {
      */
     public HttpMethod method() {
         CharSequence method = headers.method();
-        return HttpMethod.valueOf(method.toString());
+        if (method == null) {
+            throw TransportErrorCodes.DECODE.fail(HttpMethod.class, "missing ':method' pseudo-header");
+        }
+        try {
+            return HttpMethod.valueOf(method.toString());
+        } catch (IllegalArgumentException e) {
+            throw TransportErrorCodes.DECODE.fail(e, HttpMethod.class, method);
+        }
     }
 
     /**
@@ -43,6 +51,9 @@ public class Http2RequestStream extends Http2MessageStream {
     protected void end() {
         super.end();
         CharSequence path = headers.path();
+        if (path == null) {
+            throw TransportErrorCodes.DECODE.fail(SmartURL.class, "missing ':path' pseudo-header");
+        }
         requestSmartUrl = NettySupport.createRequestUrl(channel, path.toString());
     }
 

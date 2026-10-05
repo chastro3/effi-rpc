@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Provides stream-backed transport I/O state for HTTP request and response messages.
+ */
 public class HttpIOMessage<SELF extends HttpIOMessage<SELF>> extends StandardHttpMessage
         implements InputMessage, OutputMessage {
 

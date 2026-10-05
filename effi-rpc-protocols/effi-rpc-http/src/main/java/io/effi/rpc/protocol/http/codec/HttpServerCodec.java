@@ -6,6 +6,7 @@ import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.codec.Decoder;
 import io.effi.rpc.transport.codec.Encoder;
 import io.effi.rpc.transport.endpoint.Channel;
@@ -33,7 +34,7 @@ public class HttpServerCodec implements Encoder<HttpResponse>, Decoder<HttpReque
                 return httpResponse.channel(channel)
                         .output(out, out.buffer().writerIndex());
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw TransportErrorCodes.ENCODE.fail(e, HttpResponse.class, response.getClass());
             }
         }
         throw new IllegalStateException(Messages.onlySupport(HttpDuplexResponse.class));

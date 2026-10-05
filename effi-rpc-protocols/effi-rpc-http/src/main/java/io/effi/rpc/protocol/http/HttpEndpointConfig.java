@@ -6,6 +6,9 @@ import io.effi.rpc.option.Options;
 
 import static io.effi.rpc.util.AssertUtil.notNull;
 
+/**
+ * Defines common endpoint configuration shared by HTTP protocol versions.
+ */
 public abstract class HttpEndpointConfig extends TcpEndpointConfig {
 
     protected HttpVersion version;
@@ -19,6 +22,9 @@ public abstract class HttpEndpointConfig extends TcpEndpointConfig {
         super(notNull(version, "version").name(), id, options, certificateConfig);
     }
 
+    /**
+     * Returns the configured HTTP protocol version.
+     */
     public HttpVersion protocolVersion() {
         return version;
     }
@@ -33,16 +39,6 @@ public abstract class HttpEndpointConfig extends TcpEndpointConfig {
          */
         default SELF maxMessageSize(int maxMessageSize) {
             addOption(HttpOptions.MAX_MESSAGE_SIZE, maxMessageSize);
-            return self();
-        }
-
-        /**
-         * Set the tracing policy for the server.
-         * <p>
-         * Controls how tracing information is collected and propagated.
-         */
-        default SELF tracingPolicy(String tracingPolicy) {
-            addOption(HttpOptions.TRACING_POLICY, tracingPolicy);
             return self();
         }
 

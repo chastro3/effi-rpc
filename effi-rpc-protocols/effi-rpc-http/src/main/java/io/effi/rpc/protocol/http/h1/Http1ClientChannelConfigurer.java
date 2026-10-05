@@ -23,6 +23,19 @@ public class Http1ClientChannelConfigurer extends EndpointChannelConfigurer<Http
         this.clientHandler = new Http1ClientHandler(client);
     }
 
+    public HttpClientCodec newCodec() {
+        return new HttpClientCodec(
+                H1Support.newDecoderConfig(endpoint.config()),
+                HttpClientCodec.DEFAULT_PARSE_HTTP_AFTER_CONNECT_REQUEST,
+                HttpClientCodec.DEFAULT_FAIL_ON_MISSING_RESPONSE
+        );
+    }
+
+    public HttpObjectAggregator newMessageAggregator() {
+        int maxMessageSize = endpoint.config().option(HttpOptions.MAX_MESSAGE_SIZE);
+        return new HttpObjectAggregator(maxMessageSize);
+    }
+
     @Override
     protected void doConfigure(Channel channel, EndpointConfig config) {
         super.doConfigure(channel, config);
@@ -32,15 +45,5 @@ public class Http1ClientChannelConfigurer extends EndpointChannelConfigurer<Http
         pipeline.addLast("httpClientAggregator", newMessageAggregator());
         pipeline.addLast("httpClientHandler", clientHandler);
         pipeline.addLast(messageAggregator.name(), messageAggregator.handler());
-    }
-
-    public HttpClientCodec newCodec() {
-        // todo config?
-        return new HttpClientCodec();
-    }
-
-    public HttpObjectAggregator newMessageAggregator() {
-        int maxMessageSize = endpoint.config().option(HttpOptions.MAX_MESSAGE_SIZE);
-        return new HttpObjectAggregator(maxMessageSize);
     }
 }

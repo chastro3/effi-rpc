@@ -3,18 +3,14 @@ package io.effi.rpc.protocol.http.h1;
 import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.option.Options;
 import io.effi.rpc.protocol.http.HttpEndpointConfig;
-import io.effi.rpc.protocol.http.HttpVersion;
 
+/**
+ * Defines endpoint configuration shared by HTTP/1.1 clients and servers.
+ */
 public abstract class Http1EndpointConfig extends HttpEndpointConfig {
-
-    protected HttpVersion version;
 
     protected Http1EndpointConfig(String id, Options options, CertificateConfig certificateConfig) {
         super(Http1Protocol.VERSION, id, options, certificateConfig);
-    }
-
-    public HttpVersion protocolVersion() {
-        return version;
     }
 
     public interface Configurator<SELF extends Configurator<SELF>> extends HttpEndpointConfig.Configurator<SELF> {

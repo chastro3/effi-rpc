@@ -48,7 +48,7 @@ public class Http2ClientChannelConfigurer extends EndpointChannelConfigurer<Http
 
     private Http2FrameCodec newCodec() {
         return Http2FrameCodecBuilder.forClient()
-                .initialSettings(H2Support.createHttp2Settings(endpoint.config(), true))
+                .initialSettings(H2Support.createHttp2Settings(endpoint.config()))
                 .build();
     }
 }

@@ -15,6 +15,9 @@ import io.effi.rpc.util.StringUtil;
 
 import static io.effi.rpc.protocol.http.interceptor.HttpRequestInterceptor.NAME;
 
+/**
+ * Adds caller target application and module routing headers to outbound HTTP requests.
+ */
 @Extension(value = NAME, tags = Tags.FORCE_ACTIVE)
 public class HttpRequestInterceptor implements Interceptor.CallUnit<HttpRequest, Caller<?>> {
 

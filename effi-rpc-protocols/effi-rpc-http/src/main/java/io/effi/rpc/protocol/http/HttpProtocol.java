@@ -48,8 +48,6 @@ import java.util.Map;
  */
 public abstract class HttpProtocol extends AbstractProtocol {
 
-    private static final Map<CharSequence, CharSequence> REGULAR_REQUEST_HEADERS = HttpUtil.regularRequestHeaders();
-
     private static final Map<CharSequence, CharSequence> RESPONSE_REQUEST_HEADERS = HttpUtil.regularResponseHeaders();
 
     private final HttpVersion version;
@@ -66,7 +64,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
             Map<String, String> queryParameters = invocation.get(HttpInvocationKeys.QUERY_PARAMETERS);
             Map<String, String> argumentHeaders = invocation.get(HttpInvocationKeys.HEADERS);
             HttpHeaders headers = version().newHeaders();
-            headers.add(REGULAR_REQUEST_HEADERS.entrySet());
+            HttpUtil.addRegularRequestHeaders(headers, caller.platform());
             if (CollectionUtil.isNotEmpty(argumentHeaders)) {
                 headers.add(argumentHeaders.entrySet());
             }

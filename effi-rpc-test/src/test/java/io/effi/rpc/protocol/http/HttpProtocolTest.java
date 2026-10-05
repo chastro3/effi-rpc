@@ -12,9 +12,11 @@ import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.protocol.http.support.HttpResponse;
+import io.effi.rpc.protocol.http.support.HttpUtil;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.util.TypeCapture;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HttpProtocolTest {
@@ -72,6 +75,22 @@ class HttpProtocolTest {
 
         assertEquals(PredefinedErrorCode.SERVICE_UNAVAILABLE, failure.errorCode());
         assertTrue(failure.getMessage().contains("overloaded"));
+    }
+
+    @Test
+    void advertisesOnlySupportedMediaTypes() {
+        ScopedPlatform platform = new ScopedPlatform("http-accept-platform");
+        try {
+            HttpHeaders headers = Http1Protocol.VERSION.newHeaders();
+            HttpUtil.addRegularRequestHeaders(headers, platform);
+
+            String accept = headers.get(HttpHeaderNames.ACCEPT).toString();
+            assertTrue(accept.contains("application/json"));
+            assertFalse(accept.contains("application/msgpack"));
+            assertFalse(accept.contains("application/text"));
+        } finally {
+            platform.close();
+        }
     }
 
     private static Channel channel(ScopedPlatform platform) {

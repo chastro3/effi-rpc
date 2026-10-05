@@ -3,7 +3,9 @@ package io.effi.rpc.protocol.http.h1;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Request;
+import io.effi.rpc.component.transport.EndpointConfig;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.protocol.http.HttpOptions;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpResponse;
@@ -13,17 +15,32 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpDecoderConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 
 import static io.netty.handler.codec.http.DefaultHttpHeadersFactory.trailersFactory;
 
 /**
- * Utility class for http1 operations.
+ * Provides HTTP/1.1 message and codec conversion utilities.
  */
-public class H1Support {
+public final class H1Support {
 
     public static final String[] SUPPORTED_PROTOCOL = new String[]{ApplicationProtocolNames.HTTP_1_1};
+
+    private H1Support() {
+    }
+
+    /**
+     * Builds the Netty HTTP decoder configuration from endpoint options.
+     */
+    public static HttpDecoderConfig newDecoderConfig(EndpointConfig config) {
+        return new HttpDecoderConfig()
+                .setMaxInitialLineLength(config.option(Http1Options.MAX_INITIAL_LINE_LENGTH))
+                .setMaxHeaderSize(config.option(Http1Options.MAX_HEADER_SIZE))
+                .setMaxChunkSize(config.option(Http1Options.MAX_CHUNK_SIZE))
+                .setInitialBufferSize(config.option(HttpOptions.DECODER_INITIAL_BUFFER_SIZE));
+    }
 
     /**
      * Converts from netty's full http request.

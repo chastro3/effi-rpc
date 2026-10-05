@@ -10,7 +10,7 @@ import io.netty.handler.codec.TooLongFrameException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Handle http2 frames,Then generate full http2 stream 
+ * Handles HTTP/2 frame aggregation into a complete message stream.
  */
 public abstract class Http2MessageStream {
 

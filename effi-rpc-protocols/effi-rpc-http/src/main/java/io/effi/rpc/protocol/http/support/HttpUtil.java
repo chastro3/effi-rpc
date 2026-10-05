@@ -21,11 +21,12 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 /**
- * Utility class for handling HTTP-related operations and transformations.
+ * Provides HTTP header, body, and negotiation utilities.
  */
 public final class HttpUtil {
 
@@ -33,19 +34,22 @@ public final class HttpUtil {
 
     private static final String IDENTIFY = "effi-rpc/" + EffiRpcFramework.version();
 
-    private static final String ACCEPT_TYPE = String.join(",", Arrays.stream(MediaType.values()).map(MediaType::contentType).toList());
+    private HttpUtil() {
+    }
 
     /**
-     * Creates common headers for client requests.
+     * Adds common negotiation headers for client requests.
      */
-    public static Map<CharSequence, CharSequence> regularRequestHeaders() {
-        // todo 优化
-        String acceptEncoding = String.join(",", "GZIP, DEFLATE, LZ4, SNAPPY");
-        return Map.of(
-                HttpHeaderNames.ACCEPT_ENCODING, acceptEncoding,
-                HttpHeaderNames.ACCEPT, ACCEPT_TYPE,
-                HttpHeaderNames.USER_AGENT, IDENTIFY
-        );
+    public static void addRegularRequestHeaders(HttpHeaders headers, ScopedPlatform platform) {
+        String acceptEncoding = acceptEncodings(platform);
+        if (StringUtil.isNotBlank(acceptEncoding)) {
+            headers.add(HttpHeaderNames.ACCEPT_ENCODING, acceptEncoding);
+        }
+        String acceptType = acceptTypes(platform);
+        if (StringUtil.isNotBlank(acceptType)) {
+            headers.add(HttpHeaderNames.ACCEPT, acceptType);
+        }
+        headers.add(HttpHeaderNames.USER_AGENT, IDENTIFY);
     }
 
     /**
@@ -205,6 +209,19 @@ public final class HttpUtil {
             }
         }
         return false;
+    }
+
+    private static String acceptTypes(ScopedPlatform platform) {
+        var serializerNames = platform.namedExtensions(Serializer.class).keySet();
+        List<String> contentTypes = Arrays.stream(MediaType.values())
+                .filter(mediaType -> serializerNames.contains(mediaType.serialization()))
+                .map(mediaType -> mediaType.contentType().toString())
+                .toList();
+        return String.join(",", contentTypes);
+    }
+
+    private static String acceptEncodings(ScopedPlatform platform) {
+        return String.join(",", platform.namedExtensions(Compressor.class).keySet());
     }
 
 }

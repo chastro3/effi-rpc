@@ -2,7 +2,6 @@ package io.effi.rpc.protocol.http.h2;
 
 import io.effi.rpc.option.OptionName;
 
-import static io.effi.rpc.option.OptionTypes.BOOLEAN;
 import static io.effi.rpc.option.OptionTypes.INTEGER;
 import static io.effi.rpc.option.OptionTypes.LONG;
 
@@ -20,7 +19,5 @@ public interface Http2Options {
     OptionName<Integer> MAX_FRAME_SIZE = INTEGER.onlyCurrent("http.h2.maxFrameSize", 16384);
 
     OptionName<Integer> MAX_HEADER_LIST_SIZE = INTEGER.onlyCurrent("http.h2.maxHeaderListSize", 8192);
-
-    OptionName<Boolean> PUSH_ENABLED = BOOLEAN.onlyCurrent("http.h2.client.pushEnabled", false);
 
 }

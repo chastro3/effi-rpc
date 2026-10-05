@@ -9,11 +9,12 @@ import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.Http2StreamFrame;
+import io.netty.util.concurrent.PromiseCombiner;
 
 import static io.netty.channel.ChannelHandler.Sharable;
 
 /**
- * Http2 Server Handler.
+ * Handles HTTP/2 server-side request and response frame conversion.
  */
 @NativeConfig.Reflect(typeReached = Http2Protocol.class, queryAllPublicMethods = true)
 @Sharable
@@ -23,10 +24,12 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (msg instanceof HttpDuplexResponse response) {
             Http2StreamFrame[] frames = H2Support.toHttp2StreamFrames(response);
+            PromiseCombiner combiner = new PromiseCombiner(ctx.executor());
             for (Http2StreamFrame frame : frames) {
-                ctx.write(frame, ctx.newPromise());
+                combiner.add(ctx.write(frame));
             }
             ctx.flush();
+            combiner.finish(promise);
         } else {
             super.write(ctx, msg, promise);
         }
