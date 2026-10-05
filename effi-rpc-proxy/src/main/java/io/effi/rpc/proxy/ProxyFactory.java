@@ -25,6 +25,8 @@ public interface ProxyFactory {
 
     /**
      * Creates a proxy for the specified object.
+     * <p>
+     * Subclass-based dialects require the target class to declare a visible no-arg constructor.
      *
      * @param target  the target object
      * @param handler the invocation handler

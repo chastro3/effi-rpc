@@ -9,7 +9,7 @@ import io.effi.rpc.serialization.json.JacksonSerializer;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 import io.netty.handler.codec.http.HttpMethod;
-import io.effi.rpc.context.options.SerializationOptions;
+import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.protocol.http.HttpOptions;
 
 /**

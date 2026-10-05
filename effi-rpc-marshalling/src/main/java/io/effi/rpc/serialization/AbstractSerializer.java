@@ -1,5 +1,8 @@
 package io.effi.rpc.serialization;
 
+import io.effi.rpc.exception.EffiRpcException;
+import io.effi.rpc.marshalling.MarshallingErrorCodes;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,7 +16,13 @@ public abstract class AbstractSerializer implements Serializer {
     @Override
     public void serialize(Object obj, OutputStream out) throws IOException {
         if (obj != null) {
-            doSerialize(obj, out);
+            try {
+                doSerialize(obj, out);
+            } catch (EffiRpcException e) {
+                throw e;
+            } catch (IOException e) {
+                throw MarshallingErrorCodes.SERIALIZE.fail(e, obj.getClass());
+            }
         }
     }
 
@@ -21,7 +30,13 @@ public abstract class AbstractSerializer implements Serializer {
     @Override
     public <T> T deserialize(InputStream in, Type type) throws IOException {
         if (in == null) return null;
-        return (T) doDeserialize(in, type);
+        try {
+            return (T) doDeserialize(in, type);
+        } catch (EffiRpcException e) {
+            throw e;
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.DESERIALIZE.fail(e, type);
+        }
     }
 
     protected abstract void doSerialize(Object obj, OutputStream out) throws IOException;

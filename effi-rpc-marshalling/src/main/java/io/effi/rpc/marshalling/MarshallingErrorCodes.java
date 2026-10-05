@@ -1,8 +1,11 @@
-package io.effi.rpc;
+package io.effi.rpc.marshalling;
 
 import io.effi.rpc.exception.ErrorCode;
 import io.effi.rpc.exception.ErrorCodeAllocator;
 
+/**
+ * Defines serialization and compression error codes.
+ */
 public interface MarshallingErrorCodes {
 
     ErrorCodeAllocator MARSHALLING_ERROR_CODE_ALLOCATOR = new ErrorCodeAllocator("marshalling_");
@@ -15,7 +18,7 @@ public interface MarshallingErrorCodes {
 
     ErrorCode DECODE = allocate("Failed to decode object '{}' from '{}'");
 
-    ErrorCode COMPRESS = allocate("Failed to compression bytes");
+    ErrorCode COMPRESS = allocate("Failed to compress bytes");
 
     ErrorCode DECOMPRESS = allocate("Failed to decompress bytes");
 

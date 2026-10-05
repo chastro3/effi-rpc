@@ -1,47 +1,35 @@
 package io.effi.rpc.proxy.bytebuddy;
 
-import io.effi.rpc.proxy.InvocationHandler;
-import net.bytebuddy.implementation.bind.annotation.*;
+import io.effi.rpc.proxy.ProxyMethodInvoker;
+import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.This;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.Callable;
 
 /**
- * Intercepts and handles method invocations on interfaces and instance.
+ * Intercepts ByteBuddy proxy invocations and forwards them to the framework proxy dispatcher.
  */
-public class MethodInterceptor implements InvocationHandler {
+public class MethodInterceptor {
 
-    private final InvocationHandler invocationHandler;
+    private final ProxyMethodInvoker invoker;
 
-    public MethodInterceptor(InvocationHandler invocationHandler) {
-        this.invocationHandler = invocationHandler;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) throws Throwable {
-        return invocationHandler.invoke(proxy, method, args, superInvoker);
+    public MethodInterceptor(ProxyMethodInvoker invoker) {
+        this.invoker = invoker;
     }
 
     /**
-     * Intercepts interface method invocations.
+     * Intercepts one proxy method call.
+     *
+     * @param proxy  the proxy instance
+     * @param method the invoked method
+     * @param args   the method arguments
+     * @return the invocation result
+     * @throws Throwable if the invocation fails
      */
-    public class InterfaceInterceptor {
-
-        @RuntimeType
-        public Object intercept(@This Object proxy, @Origin Method method, @AllArguments Object[] args) throws Throwable {
-            return invoke(proxy, method, args, () -> null);
-        }
+    @RuntimeType
+    public Object intercept(@This Object proxy, @Origin Method method, @AllArguments Object[] args) throws Throwable {
+        return invoker.invoke(proxy, method, args);
     }
-
-    /**
-     * Intercepts instance method invocations.
-     */
-    public class InstanceInterceptor {
-        @RuntimeType
-        public Object intercept(@This Object proxy, @Origin Method method, @AllArguments Object[] args,
-                                @SuperCall Callable<?> callable) throws Throwable {
-            return invoke(proxy, method, args, callable);
-        }
-    }
-
 }

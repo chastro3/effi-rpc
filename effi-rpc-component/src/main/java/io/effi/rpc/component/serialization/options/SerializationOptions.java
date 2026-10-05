@@ -1,4 +1,4 @@
-package io.effi.rpc.context.options;
+package io.effi.rpc.component.serialization.options;
 
 import io.effi.rpc.option.OptionName;
 

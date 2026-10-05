@@ -20,13 +20,14 @@ public interface MessageFactory {
     Request createRequest(Caller<?> caller, Invocation invocation);
 
     /**
-     * Creates a response from the specified servant and result.
+     * Creates a response from the specified servant, request, and result.
      *
      * @param servant the servant handling the request
-     * @param result the result of the invocation
+     * @param request the request being answered
+     * @param result  the result of the invocation
      * @return the created response
      */
-    Response createResponse(Servant servant, Interaction.Result result);
+    Response createResponse(Servant servant, Request request, Interaction.Result result);
 
     /**
      * Returns the request type.

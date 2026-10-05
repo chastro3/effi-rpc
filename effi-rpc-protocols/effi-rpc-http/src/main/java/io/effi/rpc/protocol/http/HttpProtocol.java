@@ -22,6 +22,7 @@ import io.effi.rpc.protocol.http.codec.HttpServerCodec;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpDuplexResponse;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
+import io.effi.rpc.protocol.http.support.HttpMessage;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
@@ -70,6 +71,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
                 headers.add(argumentHeaders.entrySet());
             }
             HttpUtil.addContentType(headers, caller.options());
+            HttpUtil.addContentEncoding(headers, caller.options());
             return HttpDuplexRequest.builder()
                     .version(version)
                     .method(httpCaller.httpMethod())
@@ -82,7 +84,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
-    public Response createResponse(Servant servant, Interaction.Result result) {
+    public Response createResponse(Servant servant, Request request, Interaction.Result result) {
         if (servant instanceof HttpServant httpCallee) {
             int statusCode = 200;
             Object value = result.value();
@@ -94,6 +96,8 @@ public abstract class HttpProtocol extends AbstractProtocol {
             HttpHeaders headers = version().newHeaders();
             headers.add(RESPONSE_REQUEST_HEADERS.entrySet());
             HttpUtil.addContentType(headers, servant.options());
+            HttpMessage httpRequest = request instanceof HttpMessage message ? message : null;
+            HttpUtil.addContentEncoding(headers, servant.options(), httpRequest);
             return HttpDuplexResponse.builder()
                     .version(version)
                     .method(httpCallee.httpMethod())

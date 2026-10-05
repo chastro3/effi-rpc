@@ -1,9 +1,9 @@
-package io.effi.rpc;
+package io.effi.rpc.serialization;
 
-import io.effi.rpc.compression.Compressor;
-import io.effi.rpc.option.Options;
-import io.effi.rpc.serialization.Serializer;
 import io.effi.rpc.component.serialization.options.CompressionOptions;
+import io.effi.rpc.compression.Compressor;
+import io.effi.rpc.marshalling.MarshallingErrorCodes;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.util.AssertUtil;
 
 import java.io.ByteArrayInputStream;
@@ -12,12 +12,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
-import static io.effi.rpc.option.OptionTypes.INTEGER;
 
+/**
+ * Decorates a serializer with optional compression and bounded decompression.
+ */
 public class CompressibleSerializer implements Serializer {
 
     private final Serializer serializer;
+
     private final Compressor compressor;
+
     private final int maxDecompressedBytes;
 
     public CompressibleSerializer(Serializer serializer, Compressor compressor) {
@@ -36,12 +40,16 @@ public class CompressibleSerializer implements Serializer {
 
     @Override
     public void serialize(Object obj, OutputStream out) throws IOException {
-        if (compressor == null) {
+        if (compressor == null || obj == null) {
             serializer.serialize(obj, out);
-        } else {
-            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-            serializer.serialize(obj, byteOut);
+            return;
+        }
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        serializer.serialize(obj, byteOut);
+        try {
             compressor.compress(out, byteOut.toByteArray());
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.COMPRESS.fail(e);
         }
     }
 
@@ -50,7 +58,12 @@ public class CompressibleSerializer implements Serializer {
         if (compressor == null) {
             return serializer.deserialize(in, type);
         }
-        byte[] data = readBounded(compressor.decompress(in));
+        byte[] data;
+        try {
+            data = readBounded(compressor.decompress(in));
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.DECOMPRESS.fail(e);
+        }
         return serializer.deserialize(new ByteArrayInputStream(data), type);
     }
 
@@ -62,8 +75,7 @@ public class CompressibleSerializer implements Serializer {
             while ((read = in.read(buffer)) != -1) {
                 total += read;
                 if (maxDecompressedBytes > 0 && total > maxDecompressedBytes) {
-                    throw new IOException("Decompressed payload exceeds the configured limit of "
-                            + maxDecompressedBytes + " bytes");
+                    throw new IOException("Decompressed payload exceeds the configured limit of " + maxDecompressedBytes + " bytes");
                 }
                 out.write(buffer, 0, read);
             }

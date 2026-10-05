@@ -6,7 +6,7 @@ import io.effi.rpc.boot.InterfaceServantGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.serialization.options.CompressionOptions;
-import io.effi.rpc.context.options.SerializationOptions;
+import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.options.ServantOptions;
 import io.effi.rpc.context.options.ThreadPoolOptions;
 import io.effi.rpc.option.HierarchicalOptions;

@@ -1,10 +1,15 @@
 package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.option.Options;
+import io.effi.rpc.component.serialization.options.CompressionOptions;
+import io.effi.rpc.component.serialization.options.SerializationOptions;
+import io.effi.rpc.compression.Compressor;
 import io.effi.rpc.constant.EffiRpcFramework;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
+import io.effi.rpc.marshalling.MarshallingErrorCodes;
+import io.effi.rpc.option.Options;
+import io.effi.rpc.serialization.CompressibleSerializer;
 import io.effi.rpc.serialization.Serializer;
 import io.effi.rpc.util.FileUtil;
 import io.effi.rpc.util.StringUtil;
@@ -16,8 +21,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
-import io.effi.rpc.context.options.SerializationOptions;
 
 /**
  * Utility class for handling HTTP-related operations and transformations.
@@ -75,6 +80,31 @@ public final class HttpUtil {
     }
 
     /**
+     * Adds the content encoding header when the options declare a compressor.
+     *
+     * @param headers target headers
+     * @param options peer options
+     */
+    public static void addContentEncoding(HttpHeaders headers, Options options) {
+        addContentEncoding(headers, options, null);
+    }
+
+    /**
+     * Adds the content encoding header when the options declare a compressor accepted by the
+     * request.
+     *
+     * @param headers target headers
+     * @param options peer options
+     * @param request request carrying the accept-encoding header
+     */
+    public static void addContentEncoding(HttpHeaders headers, Options options, HttpMessage request) {
+        String compressor = options.option(CompressionOptions.COMPRESSOR);
+        if (StringUtil.isNotBlank(compressor) && acceptsEncoding(request, compressor)) {
+            headers.set(HttpHeaderNames.CONTENT_ENCODING, compressor);
+        }
+    }
+
+    /**
      * Encodes the body of the HTTP envelope into a byte array based on its content type.
      *
      * @param message the HTTP envelope containing the body to encode.
@@ -88,7 +118,11 @@ public final class HttpUtil {
             return;
         }
         CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        ensureSerializer(platform, contentType).serialize(message.body(), out);
+        try {
+            ensureSerializer(platform, contentType, contentEncoding(message)).serialize(message.body(), out);
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.ENCODE.fail(e, message.body() == null ? "null" : message.body().getClass(), contentType);
+        }
     }
 
     public static Object decodeBody(ScopedPlatform platform, HttpMessage message, InputStream in, Type bodyType) throws IOException {
@@ -97,12 +131,16 @@ public final class HttpUtil {
             return new String(FileUtil.toBytes(in), StandardCharsets.UTF_8);
         }
         CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        return ensureSerializer(platform, contentType).deserialize(in, bodyType);
+        try {
+            return ensureSerializer(platform, contentType, contentEncoding(message)).deserialize(in, bodyType);
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.DECODE.fail(e, bodyType, contentType);
+        }
     }
 
     public static Serializer serializer(ScopedPlatform platform, HttpMessage message) throws IOException {
         CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        return ensureSerializer(platform, contentType);
+        return ensureSerializer(platform, contentType, contentEncoding(message));
     }
 
     /**
@@ -112,12 +150,61 @@ public final class HttpUtil {
      * @return the serializer corresponding to the content type.
      * @throws UnsupportedOperationException if the content type is not supported.
      */
-    private static Serializer ensureSerializer(ScopedPlatform platform, CharSequence contentType) throws IOException {
+    private static Serializer ensureSerializer(ScopedPlatform platform, CharSequence contentType, CharSequence contentEncoding) throws IOException {
         MediaType mediaType = MediaType.fromName(contentType);
         if (mediaType == null) {
             throw new IOException("Unsupported content type: " + contentType + "'s serialization");
         }
-        return platform.namedExtension(Serializer.class, mediaType.serialization());
+        Serializer serializer = platform.namedExtension(Serializer.class, mediaType.serialization());
+        if (StringUtil.isBlank(contentEncoding)) {
+            return serializer;
+        }
+        return new CompressibleSerializer(serializer, resolveCompressor(platform, contentEncoding), platform.options());
+    }
+
+    private static Compressor resolveCompressor(ScopedPlatform platform, CharSequence contentEncoding) throws IOException {
+        String name = contentEncoding.toString().trim().toLowerCase(Locale.ROOT);
+        try {
+            return platform.namedExtension(Compressor.class, name);
+        } catch (RuntimeException e) {
+            throw new IOException("Unsupported content encoding: " + contentEncoding, e);
+        }
+    }
+
+    private static CharSequence contentEncoding(HttpMessage message) {
+        return message.headers().get(HttpHeaderNames.CONTENT_ENCODING);
+    }
+
+    private static boolean acceptsEncoding(HttpMessage request, String encoding) {
+        if (request == null) {
+            return true;
+        }
+        CharSequence acceptEncoding = request.headers().get(HttpHeaderNames.ACCEPT_ENCODING);
+        if (StringUtil.isBlank(acceptEncoding)) {
+            return true;
+        }
+        for (String token : acceptEncoding.toString().split(",")) {
+            String[] parts = token.trim().split(";");
+            String name = parts[0].trim();
+            if (!"*".equals(name) && !name.equalsIgnoreCase(encoding)) {
+                continue;
+            }
+            double quality = 1D;
+            for (int i = 1; i < parts.length; i++) {
+                String parameter = parts[i].trim();
+                if (parameter.startsWith("q=")) {
+                    try {
+                        quality = Double.parseDouble(parameter.substring(2));
+                    } catch (NumberFormatException ignored) {
+                        // Treat malformed quality values as the default.
+                    }
+                }
+            }
+            if (quality > 0D) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

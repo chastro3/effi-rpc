@@ -26,7 +26,7 @@ import static io.effi.rpc.context.options.PeerOptions.PATH;
 import static io.effi.rpc.context.options.ResolverOptions.INTERCEPTOR_CHAIN_RESOLVER;
 import static io.effi.rpc.context.options.ResolverOptions.STAGE_CHAIN_RESOLVER;
 import static io.effi.rpc.context.options.ResolverOptions.THREAD_POOL_RESOLVER;
-import static io.effi.rpc.context.options.SerializationOptions.SERIALIZER;
+import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provides an immutable implementation of {@link Peer}.

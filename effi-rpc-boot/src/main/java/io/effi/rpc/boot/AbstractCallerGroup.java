@@ -18,14 +18,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 import static io.effi.rpc.context.options.CallerOptions.PROXY;
 import static io.effi.rpc.context.options.CallerOptions.ENDPOINT;
 import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
 import static io.effi.rpc.context.options.GovernanceOptions.LOCATOR;
-import static io.effi.rpc.context.options.SerializationOptions.SERIALIZER;
+import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provides the common proxy and caller registry behavior for caller groups.
@@ -51,7 +50,7 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
     }
 
     @Override
-    public final Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) {
+    public final Object invoke(Object proxy, Method method, Object[] args, InvocationHandler.SuperInvoker superInvoker) {
         MethodCaller methodCaller = methodCallers.get(method);
         if (methodCaller == null) {
             throw new IllegalStateException("No RPC mapping configured for method: " + method.toGenericString());

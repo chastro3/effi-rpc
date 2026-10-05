@@ -1,28 +1,42 @@
 package io.effi.rpc.proxy;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.Callable;
 
 /**
  * Handles method invocations on proxy instances.
  * <p>
- * Provides invocation handler functionality for intercepting and processing
- * method calls on proxy instances with support for invoking the original method.
+ * Implementations receive the generated proxy, the invoked method, its arguments, and a
+ * {@link SuperInvoker} that invokes the original implementation when the proxy wraps a target.
  */
 @FunctionalInterface
 public interface InvocationHandler {
 
     /**
-     * Intercepts a method call on the proxy and returns the result.
+     * Intercepts a method call on the proxy and returns the invocation result.
      *
      * @param proxy        the proxy instance
      * @param method       the invoked method
      * @param args         the method arguments
-     * @param superInvoker invokes the original method
+     * @param superInvoker invokes the original implementation when available
      * @return the method result
-     * @throws Throwable if an error occurs
+     * @throws Throwable if the invocation fails
      */
-    Object invoke(Object proxy, Method method, Object[] args, Callable<?> superInvoker) throws Throwable;
+    Object invoke(Object proxy, Method method, Object[] args, SuperInvoker superInvoker) throws Throwable;
+
+    /**
+     * Invokes the original implementation behind a proxy.
+     */
+    @FunctionalInterface
+    interface SuperInvoker {
+
+        /**
+         * Invokes the original implementation and returns its result.
+         *
+         * @return the original method result
+         * @throws Throwable if the original invocation fails
+         */
+        Object invoke() throws Throwable;
+    }
 }
 
 

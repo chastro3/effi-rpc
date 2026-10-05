@@ -1,36 +1,23 @@
 package io.effi.rpc.proxy.jdk;
 
-import io.effi.rpc.proxy.InvocationHandler;
+import io.effi.rpc.proxy.ProxyMethodInvoker;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.Callable;
 
 /**
- * Adapts JDK's {@link java.lang.reflect.InvocationHandler} to handle method invocations on proxies.
- * <p>
- * Delegates calls to a user-defined {@link InvocationHandler}.
+ * Adapts JDK proxy invocations to the framework proxy dispatcher.
  */
 public class JDKInvocationHandler implements java.lang.reflect.InvocationHandler {
 
-    private final Object target;
+    private final ProxyMethodInvoker invoker;
 
-    private final InvocationHandler handler;
-
-    public JDKInvocationHandler(Object target, InvocationHandler handler) {
-        this.target = target;
-        this.handler = handler;
+    public JDKInvocationHandler(ProxyMethodInvoker invoker) {
+        this.invoker = invoker;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        return handler.invoke(proxy, method, args, superInvoker(method, args));
-    }
-
-    private Callable<?> superInvoker(Method method, Object[] args) {
-        if (target instanceof Class<?>) {
-            return () -> null;
-        }
-        return () -> method.invoke(target, args);
+        return invoker.invoke(proxy, method, args);
     }
 }
 

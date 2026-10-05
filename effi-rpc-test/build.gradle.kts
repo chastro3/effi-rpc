@@ -25,6 +25,10 @@ dependencies {
     testAnnotationProcessor(project(":effi-rpc-processor"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.platform:junit-platform-launcher")
+    runtimeOnly("org.springframework:spring-core")
+    runtimeOnly("net.bytebuddy:byte-buddy")
+    testImplementation("at.yawk.lz4:lz4-java")
+    testImplementation("org.xerial.snappy:snappy-java")
 }
 
 tasks.test {
@@ -58,4 +62,11 @@ tasks.register<JavaExec>("mpscEventBusShardedBenchmark") {
     description = "Runs the sharded telemetry MpscEventBus JMH benchmark."
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("io.effi.rpc.benchmark.MpscEventBusShardedBenchmark")
+}
+
+tasks.register<JavaExec>("proxyInvocationBenchmark") {
+    group = "benchmark"
+    description = "Runs the proxy invocation JMH benchmark."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.effi.rpc.benchmark.ProxyInvocationBenchmark")
 }

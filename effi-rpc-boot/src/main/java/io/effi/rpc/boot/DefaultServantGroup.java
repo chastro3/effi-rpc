@@ -11,7 +11,7 @@ import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 
-import static io.effi.rpc.context.options.SerializationOptions.SERIALIZER;
+import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provide the default implementation of {@link ServantGroup}.

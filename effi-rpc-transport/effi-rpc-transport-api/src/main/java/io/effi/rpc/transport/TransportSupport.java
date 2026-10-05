@@ -5,7 +5,7 @@ import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.context.metrics.PeerMetrics;
 import io.effi.rpc.context.metrics.ServantMetrics;
-import io.effi.rpc.context.options.SerializationOptions;
+import io.effi.rpc.component.serialization.options.SerializationOptions;
 
 /**
  * Provides stateless transport lookup and policy helpers.

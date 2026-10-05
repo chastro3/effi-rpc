@@ -61,7 +61,7 @@ public final class ServerRequestHandler {
             ServerExchangeContextCodec serverCodec = protocol.serverCodec();
             CallContext<Request, Servant> callContext = serverCodec.decode(inputMessage, servant);
             Interaction.Result result = servant.callStageChain().proceed(callContext);
-            Response response = protocol.createResponse(servant, result);
+            Response response = protocol.createResponse(servant, callContext.message(), result);
             ReplyContext<Response, Servant> replyContext = new ReplyContext<>(callContext, response, result);
             servant.replyStageChain().proceed(replyContext);
             if (callContext.message().needReply()) {
