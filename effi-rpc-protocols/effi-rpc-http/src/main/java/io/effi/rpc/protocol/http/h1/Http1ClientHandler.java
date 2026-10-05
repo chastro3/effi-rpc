@@ -49,7 +49,7 @@ public final class Http1ClientHandler extends FutureBinder {
         if (msg instanceof FullHttpResponse fullHttpResponse) {
             msg = H1Support.fromFullHttpResponse(fullHttpResponse, context, NettyChannel.ensure(ctx.channel()));
             ctx.fireChannelRead(msg);
-            client.release(ctx.channel());
+            client.release(NettyChannel.ensure(ctx.channel()));
         }
         return true;
     }

@@ -11,10 +11,7 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 
 /**
- * Manages transport endpoints including clients and servers.
- * <p>
- * Provides transporter functionality for creating and managing
- * network endpoints with server and client support.
+ * Manages transport endpoints, clients, and servers.
  */
 public interface Transporter extends Cleanable {
 

@@ -14,10 +14,7 @@ import javax.net.ssl.SSLParameters;
 import java.net.InetSocketAddress;
 
 /**
- * Provides a base implementation of {@link EndpointChannelConfigurer} for an endpoint.
- * <p>
- * Invokes {@link  #initChannel(Channel, EndpointConfig, boolean)} at the appropriate time
- * to initialize the {@link NettyChannel}.
+ * Configures Netty pipelines for an endpoint and initializes its {@link NettyChannel}.
  */
 public abstract class EndpointChannelConfigurer<E extends Endpoint> implements ChannelConfigurer {
 

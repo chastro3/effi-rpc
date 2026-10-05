@@ -20,9 +20,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 
 /**
- * Converts messages for client-side communication.
- * - Decodes inbound messages into response.
- * - Encodes outbound request into messages.
+ * Converts messages for server-side communication: decodes inbound requests and
+ * encodes outbound responses.
  */
 @NativeConfig.Reflect(typeReached = NettyChannel.class, queryAllPublicMethods = true)
 @Sharable
@@ -34,6 +33,16 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
             LazySingleton.from(() -> new NamedChannelHandler("serverMessageAggregator", new ServerMessageAggregator()));
 
     private final ServerRequestHandler requestHandler = new ServerRequestHandler();
+
+    private ServerMessageAggregator() {
+    }
+
+    /**
+     * Returns the shared server-side channel handler.
+     */
+    public static NamedChannelHandler getInstance() {
+        return LAZY_INITIALIZER.ensure();
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -82,12 +91,5 @@ public final class ServerMessageAggregator extends ChannelDuplexHandler {
         }
     }
 
-    public static NamedChannelHandler getInstance() {
-        return LAZY_INITIALIZER.ensure();
-    }
-
-    private ServerMessageAggregator() {
-
-    }
 }
 

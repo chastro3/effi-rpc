@@ -18,8 +18,6 @@ import io.effi.rpc.metrics.MetricsOptions;
 import io.effi.rpc.transport.ChannelCallBindings;
 import io.effi.rpc.transport.idle.IdleEvent;
 import io.effi.rpc.transport.idle.IdleEventHandler;
-import io.effi.rpc.transport.idle.RefreshIdleCountEvent;
-import io.effi.rpc.transport.idle.RefreshIdleCountEventHandler;
 
 import java.util.concurrent.TimeUnit;
 
@@ -71,8 +69,7 @@ public class DefaultLifecycleConfiguration {
         }
 
         private void registerDefaultEvents(EventBus eventBus) {
-            eventBus.register(RefreshIdleCountEvent.class, new RefreshIdleCountEventHandler())
-                    .register(IdleEvent.class, new IdleEventHandler());
+            eventBus.register(IdleEvent.class, new IdleEventHandler());
         }
     }
 

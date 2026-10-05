@@ -19,6 +19,11 @@ public final class ClientResponseHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientResponseHandler.class);
 
+    /**
+     * Handles one client-side response message.
+     *
+     * @param inputMessage response message
+     */
     public void handle(InputMessage inputMessage) {
         ReplyFuture future = ReplyFuture.lookup(inputMessage.channel().platform(), inputMessage.url());
         if (future == null) {

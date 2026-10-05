@@ -8,9 +8,6 @@ import java.util.Collection;
 
 /**
  * Accepts incoming connections and manages active channels.
- * <p>
- * Provides server functionality for binding to addresses, managing
- * client connections, and handling active communication channels.
  */
 public interface Server extends Endpoint {
 

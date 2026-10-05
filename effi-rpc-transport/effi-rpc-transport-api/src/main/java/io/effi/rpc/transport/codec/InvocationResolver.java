@@ -10,5 +10,12 @@ import io.effi.rpc.context.invocation.Invocation;
 @FunctionalInterface
 public interface InvocationResolver {
 
+    /**
+     * Resolves the invocation described by the request.
+     *
+     * @param request protocol request
+     * @param servant target servant
+     * @return resolved invocation
+     */
     Invocation resolve(Request request, Servant servant);
 }

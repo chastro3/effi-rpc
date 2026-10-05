@@ -3,10 +3,7 @@ package io.effi.rpc.transport.message;
 import java.io.OutputStream;
 
 /**
- * Represents transport-layer messages with output streams.
- * <p>
- * Provides output message functionality for writing message content
- * to output streams in transport layer communication.
+ * Represents a transport-layer message carrying an output stream.
  */
 public interface OutputMessage extends IOMessage {
 

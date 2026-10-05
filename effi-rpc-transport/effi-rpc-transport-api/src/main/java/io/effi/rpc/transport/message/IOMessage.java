@@ -5,10 +5,7 @@ import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.endpoint.Channel;
 
 /**
- * Represents transport-layer messages for I/O operations.
- * <p>
- * Provides message functionality for transport layer communication with
- * channel association and protocol support.
+ * Represents a transport-layer I/O message bound to a channel.
  *
  * @see InputMessage
  * @see OutputMessage

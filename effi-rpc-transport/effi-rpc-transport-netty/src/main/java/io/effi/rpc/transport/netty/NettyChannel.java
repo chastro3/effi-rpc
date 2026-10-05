@@ -24,10 +24,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 /**
- * Implements {@link io.effi.rpc.transport.endpoint.Channel} using Netty.
+ * Implements {@link io.effi.rpc.transport.endpoint.Channel} by wrapping a Netty channel.
  * <p>
- * Provides Netty-based channel implementation with connection management,
- * message sending, and channel tracking functionality.
+ * Tracks the wrapper lifecycle and cancels in-flight calls when the channel closes.
  */
 public final class NettyChannel extends AbstractChannel {
 
@@ -46,11 +45,27 @@ public final class NettyChannel extends AbstractChannel {
         track();
     }
 
+    /**
+     * Returns the shared wrapper for the supplied Netty channel.
+     *
+     * @param channel  the Netty channel
+     * @param endpoint the owning endpoint
+     * @param config   the endpoint configuration
+     * @param virtual  whether the channel is a virtual stream channel
+     * @return the channel wrapper
+     */
     public static NettyChannel init(Channel channel, Endpoint endpoint, EndpointConfig config, boolean virtual) {
         AssertUtil.notNull(channel, "channel");
         return CHANNELS.computeIfAbsent(channel, k -> new NettyChannel(channel, endpoint, config, virtual));
     }
 
+    /**
+     * Returns the wrapper for an already initialized Netty channel.
+     *
+     * @param channel the Netty channel
+     * @return the channel wrapper
+     * @throws IllegalStateException when the channel was not initialized by an endpoint
+     */
     public static NettyChannel ensure(Channel channel) {
         AssertUtil.notNull(channel, "channel");
         NettyChannel nettyChannel = CHANNELS.get(channel);
@@ -59,14 +74,33 @@ public final class NettyChannel extends AbstractChannel {
                 + "Please ensure that the current endpoint has properly initialized its Netty channel.");
     }
 
+    /**
+     * Wraps a channel future into a channel promise.
+     *
+     * @param future the channel future
+     * @return the channel promise
+     */
     public static Promise<NettyChannel> wrap(ChannelFuture future) {
         return wrap(future, future::channel, NettyChannel::ensure);
     }
 
+    /**
+     * Wraps a Netty future into a channel promise.
+     *
+     * @param future the Netty future
+     * @return the channel promise
+     */
     public static Promise<NettyChannel> wrap(io.netty.util.concurrent.Future<? extends Channel> future) {
         return wrap(future, future::getNow, NettyChannel::ensure);
     }
 
+    /**
+     * Wraps a channel future and initializes the wrapper once the channel is active.
+     *
+     * @param future   the channel future
+     * @param endpoint the owning endpoint
+     * @return the channel promise
+     */
     public static Promise<NettyChannel> wrapWhenActive(ChannelFuture future, Endpoint endpoint) {
         return wrap(future, future::channel, ch -> init(ch, endpoint, endpoint.config(), false));
     }
@@ -105,6 +139,36 @@ public final class NettyChannel extends AbstractChannel {
     }
 
 
+    /**
+     * Returns the underlying Netty channel.
+     */
+    public Channel channel() {
+        return channel;
+    }
+
+    /**
+     * Indicates whether this channel is a virtual stream channel.
+     */
+    public boolean virtual() {
+        return virtual;
+    }
+
+    /**
+     * Indicates whether this channel is a physical channel.
+     */
+    public boolean physical() {
+        return !virtual;
+    }
+
+    /**
+     * Returns the parent channel when this is a virtual channel.
+     */
+    public NettyChannel parent() {
+        Channel parent = channel.parent();
+        if (parent == null) return null;
+        return ensure(parent);
+    }
+
     @Override
     protected Future<Void> doSend(Object message) {
         if (!channel.isWritable()) {
@@ -113,24 +177,6 @@ public final class NettyChannel extends AbstractChannel {
             return promise;
         }
         return Futures.asVoid(wrap(channel.writeAndFlush(message)));
-    }
-
-    public Channel channel() {
-        return channel;
-    }
-
-    public boolean virtual() {
-        return virtual;
-    }
-
-    public boolean physical() {
-        return !virtual;
-    }
-
-    public NettyChannel parent() {
-        Channel parent = channel.parent();
-        if (parent == null) return null;
-        return ensure(parent);
     }
 
     private static <T extends io.netty.util.concurrent.Future<?>> Promise<NettyChannel>

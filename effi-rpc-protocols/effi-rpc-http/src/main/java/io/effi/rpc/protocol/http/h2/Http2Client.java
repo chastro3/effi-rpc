@@ -33,7 +33,7 @@ public class Http2Client extends NettyPoolClient {
             Channel physicalChannel = channel.channel();
             Http2StreamChannelBootstrap bootstrap = H2Support.getBoundStreamBootstrap(physicalChannel);
             Promise<NettyChannel> h2ChannelFuture = NettyChannel.wrap(bootstrap.open());
-            release(physicalChannel);
+            release(channel);
             return h2ChannelFuture;
         });
     }

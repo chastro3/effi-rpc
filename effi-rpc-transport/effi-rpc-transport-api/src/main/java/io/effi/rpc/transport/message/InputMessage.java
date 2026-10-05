@@ -3,10 +3,7 @@ package io.effi.rpc.transport.message;
 import java.io.InputStream;
 
 /**
- * Represents transport-layer messages with input streams.
- * <p>
- * Provides input message functionality for reading message content
- * from input streams in transport layer communication.
+ * Represents a transport-layer message carrying an input stream.
  */
 public interface InputMessage extends IOMessage {
 

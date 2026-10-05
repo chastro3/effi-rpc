@@ -12,18 +12,16 @@ import io.effi.rpc.transport.message.InputMessage;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
- * Define protocols for client-server communication and request handling.
- * <p>
- * Provides transport protocol functionality for module lookup, error handling,
- * and codec management with platform-scoped extensibility.
+ * Defines the transport protocol contract for endpoints, codecs, and request handling.
  */
 @Extensible(scope = PLATFORM)
 public interface TransportProtocol extends Transporter, Protocol {
 
     /**
-     * Looks up a module from the input message.
+     * Looks up the module targeted by the input message.
      *
      * @param inputMessage the input message
+     * @return the target module, or {@code null} when absent
      */
     ScopedModule lookupModule(InputMessage inputMessage);
 
@@ -49,7 +47,7 @@ public interface TransportProtocol extends Transporter, Protocol {
     /**
      * Supplies access to the {@link TransportProtocol}.
      */
-    interface Supplier extends Protocol.Supplier{
+    interface Supplier extends Protocol.Supplier {
 
         /**
          * Returns the associated {@link TransportProtocol}.

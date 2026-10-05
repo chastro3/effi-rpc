@@ -12,10 +12,7 @@ import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 /**
- * Provides an abstract implementation of netty endpoints.
- * <p>
- * Provides base functionality for netty-based endpoints with bootstrap
- * configuration, channel handling, and initialization support.
+ * Provides the base Netty endpoint with bootstrap configuration and channel initialization.
  */
 public abstract class NettyEndpoint<B> extends AbstractEndpoint {
 
@@ -60,18 +57,19 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
             return false;
         }
         try {
-            return promise.await().succeeded();
+            var result = promise.await();
+            return result.succeeded() && result.value() != null && result.value().active();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
         }
     }
 
-    private ChannelConfigurer ensureChannelConfigurer(ChannelConfigurer channelConfigurer) {
-        return AssertUtil.notNull(channelConfigurer, "channel configurer");
-    }
-
     protected abstract void configureOptions(B bootstrap);
 
     protected abstract void configureChannelHandler(B bootstrap);
+
+    private ChannelConfigurer ensureChannelConfigurer(ChannelConfigurer channelConfigurer) {
+        return AssertUtil.notNull(channelConfigurer, "channel configurer");
+    }
 }

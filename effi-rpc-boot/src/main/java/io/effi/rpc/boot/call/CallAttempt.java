@@ -91,7 +91,7 @@ public final class CallAttempt {
         }
 
         if (!state.compareAndSet(acquiring, new Active(channel))) {
-            closeQuietly(channel);
+            discardQuietly(channel);
             return;
         }
         if (replyFuture.completed()) {
@@ -99,7 +99,7 @@ public final class CallAttempt {
             return;
         }
         if (!channelBindings.bind(replyFuture.id(), channel)) {
-            closeQuietly(channel);
+            discardQuietly(channel);
             if (!replyFuture.completed()) {
                 replyFuture.failure(retryable(TransportErrorCodes.CHANNEL_INACTIVE.fail(channel)));
             }
@@ -130,21 +130,21 @@ public final class CallAttempt {
             return;
         }
         channelBindings.unbind(replyFuture.id(), active.channel());
-        closeQuietly(active.channel());
+        discardQuietly(active.channel());
         replyFuture.failure(writeFailure(cause));
     }
 
     private void cancel() {
         State previous = transition(Cancelled.INSTANCE);
-        if (previous instanceof Active active) {
-            closeQuietly(active.channel());
+        if (previous instanceof Active(Channel channel)) {
+            discardQuietly(channel);
         }
     }
 
     private void release() {
         State previous = transition(Done.INSTANCE);
-        if (previous instanceof Active active) {
-            channelBindings.unbind(replyFuture.id(), active.channel());
+        if (previous instanceof Active(Channel channel)) {
+            channelBindings.unbind(replyFuture.id(), channel);
         }
     }
 
@@ -179,11 +179,11 @@ public final class CallAttempt {
         return cause.withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
     }
 
-    private void closeQuietly(Channel channel) {
+    private void discardQuietly(Channel channel) {
         try {
-            channel.close();
+            client.discard(channel);
         } catch (Throwable e) {
-            logger.warn("Failed to close transport channel '{}'", e, channel);
+            logger.warn("Failed to discard transport channel '{}'", e, channel);
         }
     }
 

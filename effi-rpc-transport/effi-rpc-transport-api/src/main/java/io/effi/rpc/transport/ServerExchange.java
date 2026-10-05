@@ -33,14 +33,32 @@ public final class ServerExchange {
         this.protocol = channel.protocol();
     }
 
+    /**
+     * Creates an exchange for the supplied request message.
+     *
+     * @param inputMessage request message
+     * @return server exchange
+     */
     public static ServerExchange of(InputMessage inputMessage) {
         return new ServerExchange(inputMessage);
     }
 
+    /**
+     * Sends a successful reply for the request.
+     *
+     * @param context reply context
+     * @return a future completed when the reply is written
+     */
     public Future<Void> reply(ReplyContext<Response, Servant> context) {
         return send(EncodableOutputMessage.create(context, channel, protocol.serverCodec()));
     }
 
+    /**
+     * Sends a failure response when the request expects one.
+     *
+     * @param cause failure cause
+     * @return a future completed when the failure response is written
+     */
     public Future<Void> fail(EffiRpcException cause) {
         if (!(inputMessage instanceof Request request) || !request.needReply()) {
             return Futures.completedVoid();

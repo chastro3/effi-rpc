@@ -25,17 +25,36 @@ public class ConfigurableClientCodec<REQ extends Request, RESP extends Response>
 
     private ResultExtractor<RESP> resultExtractor;
 
+    /**
+     * Sets the request encoder.
+     *
+     * @param encoder request encoder
+     * @return this codec
+     */
     public ConfigurableClientCodec<REQ, RESP> encoder(Encoder<REQ> encoder) {
         this.encoder = encoder;
         return this;
     }
 
+    /**
+     * Sets the response decoder.
+     *
+     * @param decoder response decoder
+     * @param <C>     caller type
+     * @return this codec
+     */
     @SuppressWarnings("unchecked")
     public <C extends Caller<?>> ConfigurableClientCodec<REQ, RESP> decoder(Decoder<RESP, C> decoder) {
         this.decoder = (Decoder<RESP, Caller<?>>) decoder;
         return this;
     }
 
+    /**
+     * Sets the interaction result extractor.
+     *
+     * @param resultExtractor result extractor
+     * @return this codec
+     */
     public ConfigurableClientCodec<REQ, RESP> resultExtractor(ResultExtractor<RESP> resultExtractor) {
         this.resultExtractor = resultExtractor;
         return this;

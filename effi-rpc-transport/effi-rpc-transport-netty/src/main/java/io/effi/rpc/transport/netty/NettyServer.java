@@ -19,7 +19,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
@@ -45,9 +46,9 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
 
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5L;
 
-    protected NioEventLoopGroup bossGroup;
+    protected MultiThreadIoEventLoopGroup bossGroup;
 
-    protected NioEventLoopGroup workerGroup;
+    protected MultiThreadIoEventLoopGroup workerGroup;
 
     protected final LazySingleton<Promise<NettyChannel>> serverChannelFuture = LazySingleton.from(
             () -> NettyChannel.wrapWhenActive(bootstrap.bind(), this)
@@ -104,28 +105,6 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
 
     }
 
-    private Future<?> shutdownGracefully(EventLoopGroup group) {
-        if (group == null) {
-            return null;
-        }
-        return group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private void awaitShutdown(Future<?> shutdown, String name) {
-        if (shutdown == null) {
-            return;
-        }
-        try {
-            if (!shutdown.await(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                logger.warn("Timed out waiting for {} event loop to stop", name);
-                shutdown.cancel(false);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            shutdown.cancel(false);
-        }
-    }
-
     @Override
     public Channel lookupChannel(InetSocketAddress remoteAddress) {
         for (Channel channel : activeChannels.values()) {
@@ -175,8 +154,16 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     protected void configureOptions(ServerBootstrap bootstrap) {
         int bossThreads = config.option(ServerOptions.ACCEPTOR_THREADS);
         int workThreads = config.option(ServerOptions.IO_THREADS);
-        bossGroup = new NioEventLoopGroup(bossThreads, newThreadFactory("server-boss"));
-        workerGroup = new NioEventLoopGroup(workThreads, newThreadFactory("server-worker"));
+        bossGroup = new MultiThreadIoEventLoopGroup(
+                bossThreads,
+                newThreadFactory("server-boss"),
+                NioIoHandler.newFactory()
+        );
+        workerGroup = new MultiThreadIoEventLoopGroup(
+                workThreads,
+                newThreadFactory("server-worker"),
+                NioIoHandler.newFactory()
+        );
         bootstrap.group(bossGroup, workerGroup)
                 .localAddress(localAddress())
                 .channel(NioServerSocketChannel.class)
@@ -201,6 +188,28 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     @Override
     protected void configureChannelHandler(ServerBootstrap bootstrap) {
         bootstrap.childHandler(NettySupport.newChannelInitializer(this::configureChannel));
+    }
+
+    private Future<?> shutdownGracefully(EventLoopGroup group) {
+        if (group == null) {
+            return null;
+        }
+        return group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private void awaitShutdown(Future<?> shutdown, String name) {
+        if (shutdown == null) {
+            return;
+        }
+        try {
+            if (!shutdown.await(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                logger.warn("Timed out waiting for {} event loop to stop", name);
+                shutdown.cancel(false);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            shutdown.cancel(false);
+        }
     }
 
     private ThreadFactory newThreadFactory(String name) {

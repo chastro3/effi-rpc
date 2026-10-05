@@ -8,10 +8,7 @@ import io.effi.rpc.util.AssertUtil;
 import java.io.OutputStream;
 
 /**
- * Wraps output messages with encoders and contexts for deferred encoding.
- * <p>
- * Provides encodable output message functionality that allows encoding
- * to be performed at appropriate times with encoder and context support.
+ * Wraps an output message with its context and defers encoding until the write phase.
  */
 public final class EncodableOutputMessage<C extends Interaction.Context<?, ?>>
         extends AbstractIOMessage implements OutputMessage {

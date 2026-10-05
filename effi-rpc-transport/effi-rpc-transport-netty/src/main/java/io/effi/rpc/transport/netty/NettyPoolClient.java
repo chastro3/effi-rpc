@@ -14,10 +14,7 @@ import java.net.InetSocketAddress;
 import io.effi.rpc.component.transport.options.ClientOptions;
 
 /**
- * Implements of {@link Client} using Netty with fixed channel pools for connection reuse.
- * <p>
- * Provides Netty-based client implementation with connection pooling
- * for efficient resource management and connection reuse.
+ * Implements {@link Client} using a fixed Netty channel pool for connection reuse.
  */
 public class NettyPoolClient extends NettyClient {
 
@@ -25,20 +22,6 @@ public class NettyPoolClient extends NettyClient {
 
     public NettyPoolClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
         super(config, remoteAddress, platform);
-    }
-
-    @Override
-    protected void configureChannelHandler(Bootstrap bootstrap) {
-        int maxConnections = config().option(ClientOptions.MAX_CONNECTIONS);
-        int maxPendingAcquires = config().option(ClientOptions.MAX_PENDING_ACQUIRES);
-        int acquireTimeout = config().option(ClientOptions.ACQUIRE_TIMEOUT);
-        this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
-            @Override
-            public void channelCreated(Channel ch) throws Exception {
-                configureChannel(ch);
-            }
-        }, ChannelHealthChecker.ACTIVE, FixedChannelPool.AcquireTimeoutAction.FAIL,
-                acquireTimeout, maxConnections, maxPendingAcquires);
     }
 
     @Override
@@ -56,15 +39,47 @@ public class NettyPoolClient extends NettyClient {
         channelPool.close();
     }
 
-    public void release(Channel channel) {
-        channelPool.release(channel);
+    @Override
+    public void discard(io.effi.rpc.transport.endpoint.Channel channel) {
+        if (channel instanceof NettyChannel nettyChannel && nettyChannel.physical()) {
+            Channel raw = nettyChannel.channel();
+            raw.close().addListener(ignored -> channelPool.release(raw));
+            return;
+        }
+        channel.close();
     }
 
+    @Override
+    public void release(io.effi.rpc.transport.endpoint.Channel channel) {
+        if (channel instanceof NettyChannel nettyChannel && nettyChannel.physical()) {
+            channelPool.release(nettyChannel.channel());
+            return;
+        }
+        channel.close();
+    }
+
+    /**
+     * Returns the current pool usage snapshot.
+     */
     public PoolMetrics poolMetrics() {
         return new PoolMetrics(
                 channelPool.acquiredChannelCount(),
                 config().option(ClientOptions.MAX_CONNECTIONS)
         );
+    }
+
+    @Override
+    protected void configureChannelHandler(Bootstrap bootstrap) {
+        int maxConnections = config().option(ClientOptions.MAX_CONNECTIONS);
+        int maxPendingAcquires = config().option(ClientOptions.MAX_PENDING_ACQUIRES);
+        int acquireTimeout = config().option(ClientOptions.ACQUIRE_TIMEOUT);
+        this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
+            @Override
+            public void channelCreated(Channel ch) throws Exception {
+                configureChannel(ch);
+            }
+        }, ChannelHealthChecker.ACTIVE, FixedChannelPool.AcquireTimeoutAction.FAIL,
+                acquireTimeout, maxConnections, maxPendingAcquires);
     }
 
     public record PoolMetrics(int acquired, int maxConnections) {

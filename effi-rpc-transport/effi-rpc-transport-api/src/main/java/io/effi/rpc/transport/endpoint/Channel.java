@@ -10,9 +10,6 @@ import java.net.InetSocketAddress;
 
 /**
  * Handles message transmission over communication channels.
- * <p>
- * Provides channel functionality for sending messages between endpoints
- * with address management and protocol support.
  */
 public interface Channel extends Attributes, ScopedPlatform.Supplier, TransportProtocol.Supplier, Closeable {
 
@@ -20,6 +17,7 @@ public interface Channel extends Attributes, ScopedPlatform.Supplier, TransportP
      * Sends a message through this channel.
      *
      * @param message the message to send
+     * @return a future completed when the message is written
      */
     Future<Void> send(Object message);
 

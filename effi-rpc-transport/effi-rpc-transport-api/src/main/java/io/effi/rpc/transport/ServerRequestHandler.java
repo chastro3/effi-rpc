@@ -28,6 +28,11 @@ public final class ServerRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerRequestHandler.class);
 
+    /**
+     * Handles one server-side request message.
+     *
+     * @param inputMessage request message
+     */
     public void handle(InputMessage inputMessage) {
         SmartURL smartUrl = inputMessage.url();
         Channel channel = inputMessage.channel();

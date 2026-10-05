@@ -3,10 +3,7 @@ package io.effi.rpc.transport.endpoint;
 import java.util.Collection;
 
 /**
- * Tracks and manages active channel instances.
- * <p>
- * Provides channel tracking functionality for monitoring and managing
- * active communication channels in the system.
+ * Tracks active channels for an endpoint.
  */
 public interface ChannelTracker {
 

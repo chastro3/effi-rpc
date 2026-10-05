@@ -18,15 +18,6 @@ public abstract class AbstractProtocol extends AbstractTransporter implements Tr
 
     protected ClientExchangeContextCodec clientCodec;
 
-    protected void initialize(String protocolName, ProtocolStack stack,
-                              ServerExchangeContextCodec serverCodec,
-                              ClientExchangeContextCodec clientCodec) {
-        this.protocolName = AssertUtil.notBlank(protocolName, "protocol id");
-        this.stack = AssertUtil.notNull(stack, "stack");
-        this.serverCodec = AssertUtil.notNull(serverCodec, "serverCodec");
-        this.clientCodec = AssertUtil.notNull(clientCodec, "clientCodec");
-    }
-
     @Override
     public String name() {
         return protocolName;
@@ -45,5 +36,14 @@ public abstract class AbstractProtocol extends AbstractTransporter implements Tr
     @Override
     public ClientExchangeContextCodec clientCodec() {
         return clientCodec;
+    }
+
+    protected void initialize(String protocolName, ProtocolStack stack,
+                              ServerExchangeContextCodec serverCodec,
+                              ClientExchangeContextCodec clientCodec) {
+        this.protocolName = AssertUtil.notBlank(protocolName, "protocol id");
+        this.stack = AssertUtil.notNull(stack, "stack");
+        this.serverCodec = AssertUtil.notNull(serverCodec, "serverCodec");
+        this.clientCodec = AssertUtil.notNull(clientCodec, "clientCodec");
     }
 }

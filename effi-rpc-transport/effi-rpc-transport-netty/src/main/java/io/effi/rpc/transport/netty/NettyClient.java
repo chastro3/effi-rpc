@@ -11,7 +11,7 @@ import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.concurrent.Future;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
@@ -27,7 +27,8 @@ import io.effi.rpc.component.transport.options.TransportOptions;
  */
 public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
 
-    public static final GenericKey<NioEventLoopGroup> EVENT_LOOP_GROUP_KEY = GenericKey.valueOf("nio-event-loop-group");
+    public static final GenericKey<MultiThreadIoEventLoopGroup> EVENT_LOOP_GROUP_KEY =
+            GenericKey.valueOf("client-event-loop-group");
 
     protected final LazySingleton<Promise<NettyChannel>> channelFuture = LazySingleton.from(
             () -> NettyChannel.wrapWhenActive(bootstrap.connect(), this)
@@ -74,7 +75,7 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
 
     protected void configureOptions(Bootstrap bootstrap) {
         int connectTimeout = config.option(ClientOptions.CONNECT_TIMEOUT);
-        NioEventLoopGroup platformEventLoopGroup = platform.externalComponent(EVENT_LOOP_GROUP_KEY);
+        MultiThreadIoEventLoopGroup platformEventLoopGroup = platform.externalComponent(EVENT_LOOP_GROUP_KEY);
         bootstrap.group(platformEventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .remoteAddress(remoteAddress())

@@ -126,6 +126,10 @@ class CallAttemptTest {
                 if ("fetchChannel".equals(method.getName())) {
                     return acquire;
                 }
+                if ("discard".equals(method.getName())) {
+                    ((Channel) args[0]).close();
+                    return null;
+                }
                 return defaultValue(method.getReturnType());
             });
             ClientExchangeContextCodec codec = proxy(ClientExchangeContextCodec.class, (proxy, method, args) ->

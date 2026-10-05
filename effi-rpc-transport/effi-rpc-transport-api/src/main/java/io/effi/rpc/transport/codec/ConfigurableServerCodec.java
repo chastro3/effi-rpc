@@ -25,22 +25,40 @@ public class ConfigurableServerCodec<RESP extends Response, REQ extends Request>
 
     private InvocationResolver invocationResolver;
 
+    /**
+     * Sets the response encoder.
+     *
+     * @param encoder response encoder
+     * @return this codec
+     */
     public ConfigurableServerCodec<RESP, REQ> encoder(Encoder<RESP> encoder) {
         this.encoder = encoder;
         return this;
     }
 
+    /**
+     * Sets the request decoder.
+     *
+     * @param decoder request decoder
+     * @param <C>     servant type
+     * @return this codec
+     */
     @SuppressWarnings("unchecked")
     public <C extends Servant> ConfigurableServerCodec<RESP, REQ> decoder(Decoder<REQ, C> decoder) {
         this.decoder = (Decoder<REQ, Servant>) decoder;
         return this;
     }
 
+    /**
+     * Sets the invocation resolver.
+     *
+     * @param invocationResolver invocation resolver
+     * @return this codec
+     */
     public ConfigurableServerCodec<RESP, REQ> invocationResolver(InvocationResolver invocationResolver) {
         this.invocationResolver = invocationResolver;
         return this;
     }
-
 
     @SuppressWarnings("unchecked")
     @Override

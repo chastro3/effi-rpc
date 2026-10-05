@@ -22,9 +22,7 @@ import io.netty.channel.ChannelPromise;
 import java.net.InetSocketAddress;
 
 /**
- * Converts messages for client-side communication.
- * - Decodes inbound messages into responses.
- * - Encodes outbound requests into messages.
+ * Handles client-side Netty channel reads and writes for transport messages.
  */
 @NativeConfig.Reflect(typeReached = NettyChannel.class, queryAllPublicMethods = true)
 @Sharable
@@ -37,6 +35,16 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
     );
 
     private final ClientResponseHandler responseHandler = new ClientResponseHandler();
+
+    private ClientMessageAggregator() {
+    }
+
+    /**
+     * Returns the shared client-side channel handler.
+     */
+    public static NamedChannelHandler getInstance() {
+        return LAZY_INITIALIZER.ensure();
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -93,12 +101,6 @@ public final class ClientMessageAggregator extends ChannelDuplexHandler {
         });
     }
 
-    public static NamedChannelHandler getInstance() {
-        return LAZY_INITIALIZER.ensure();
-    }
-
-    private ClientMessageAggregator() {
-    }
 }
 
 

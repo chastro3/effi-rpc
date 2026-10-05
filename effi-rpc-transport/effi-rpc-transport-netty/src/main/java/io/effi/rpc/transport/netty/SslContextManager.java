@@ -33,7 +33,7 @@ import io.effi.rpc.component.transport.options.TcpOptions;
  * Provides SSL context management functionality for creating and caching
  * SSL contexts based on certificate configurations and supported protocols.
  */
-public class SslContextManager {
+public final class SslContextManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SslContextManager.class);
 
@@ -43,17 +43,26 @@ public class SslContextManager {
 
     private static final Map<Pair<ArrayIdentifier<String>, String>, SslContext> CLIENT_SSL_CONTEXT = new ConcurrentHashMap<>(2);
 
+    private SslContextManager() {
+    }
+
     /**
-     * Returns a server-side SSL context, creating it if necessary,
-     * using specified protocols and configuration.
+     * Returns a server-side SSL context, creating it when necessary.
+     *
+     * @param supportedProtocols ALPN protocols
+     * @param config             server configuration
+     * @return server-side SSL context, or {@code null} when SSL is disabled
      */
     public static SslContext contextOf(String[] supportedProtocols, ServerConfig config) {
         return doContextOf(supportedProtocols, config);
     }
 
     /**
-     * Returns a client-side SSL context, creating it if necessary,
-     * using specified protocols and configuration.
+     * Returns a client-side SSL context, creating it when necessary.
+     *
+     * @param supportedProtocols ALPN protocols
+     * @param config             client configuration
+     * @return client-side SSL context, or {@code null} when SSL is disabled
      */
     public static SslContext contextOf(String[] supportedProtocols, ClientConfig config) {
         return doContextOf(supportedProtocols, config);

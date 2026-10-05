@@ -12,6 +12,15 @@ import io.effi.rpc.component.serialization.options.SerializationOptions;
  */
 public final class TransportSupport {
 
+    private TransportSupport() {
+    }
+
+    /**
+     * Resolves the transport protocol for the supplied peer.
+     *
+     * @param peer call peer
+     * @return transport protocol
+     */
     public static TransportProtocol findProtocol(Peer peer) {
         if (peer.protocol() instanceof TransportProtocol transportProtocol) {
             return transportProtocol;
@@ -19,6 +28,12 @@ public final class TransportSupport {
         return peer.platform().namedComponent(TransportProtocol.class, peer.protocol().name());
     }
 
+    /**
+     * Indicates whether serialization may run on the IO thread.
+     *
+     * @param peer call peer
+     * @return {@code true} when serialization runs on the IO thread
+     */
     public static boolean inIOSerialization(Peer peer) {
         Long threshold = peer.option(SerializationOptions.SERIALIZATION_THRESHOLD);
         if (threshold == null || threshold <= 0) {
@@ -28,6 +43,12 @@ public final class TransportSupport {
         return metrics == null || metrics.averageSerializationNanos() < threshold;
     }
 
+    /**
+     * Indicates whether deserialization may run on the IO thread.
+     *
+     * @param peer call peer
+     * @return {@code true} when deserialization runs on the IO thread
+     */
     public static boolean inIODeserialization(Peer peer) {
         Long threshold = peer.option(SerializationOptions.DESERIALIZATION_THRESHOLD);
         if (threshold == null || threshold <= 0) {
@@ -37,12 +58,7 @@ public final class TransportSupport {
         return metrics == null || metrics.averageDeserializationNanos() < threshold;
     }
 
-    /**
-     * Looks up the metrics carried by the supplied peer on either side of the call.
-     *
-     * @param peer call peer
-     * @return peer metrics, or {@code null} when the peer carries none
-     */
+    // Looks up metrics carried by the peer on either side of the call.
     private static PeerMetrics metrics(Peer peer) {
         if (peer == null) {
             return null;
@@ -51,6 +67,4 @@ public final class TransportSupport {
         return callerMetrics == null ? peer.get(ServantMetrics.KEY) : callerMetrics;
     }
 
-    private TransportSupport() {
-    }
 }
