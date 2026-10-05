@@ -31,16 +31,14 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
 
     public static final String NAME = "kryo";
 
-    // Set buffer size
     private static final int BUFFER_SIZE = 1024 * 4;
 
     private final List<Consumer<Kryo>> registrations = new CopyOnWriteArrayList<>();
 
+    // Published after platform acceptance so thread-local Kryo instances see the registrations.
     private volatile List<Class<?>> registeredClasses = List.of();
 
-    /**
-     * Kryo is not thread safe. Each thread should have its own Kryo, Input, and Output instance.
-     */
+    // Kryo is not thread-safe, so each thread owns its Kryo, Input, and Output instances.
     private final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(this::createKryo);
 
     @Override
@@ -58,6 +56,8 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
 
     /**
      * Registers a class before Kryo instances are used.
+     *
+     * @param type the class to register
      */
     public void register(Class<?> type) {
         registrations.add(kryo -> kryo.register(type));
@@ -65,9 +65,29 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
 
     /**
      * Registers a class and its serializer before Kryo instances are used.
+     *
+     * @param type       the class to register
+     * @param serializer the serializer used for the class
+     * @param <T>        the class type
      */
     public <T> void register(Class<T> type, Serializer<T> serializer) {
         registrations.add(kryo -> kryo.register(type, serializer));
+    }
+
+    @Override
+    protected void doSerialize(Object obj, OutputStream out) throws IOException {
+        try (Output output = new Output(out, BUFFER_SIZE)) {
+            Kryo kryo = kryoThreadLocal.get();
+            kryo.writeClassAndObject(output, obj);
+        }
+    }
+
+    @Override
+    protected Object doDeserialize(InputStream in, Type type) throws IOException {
+        try (Input input = new Input(in)) {
+            Kryo kryo = kryoThreadLocal.get();
+            return kryo.readClassAndObject(input);
+        }
     }
 
     private Kryo createKryo() {
@@ -90,21 +110,5 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
             }
         }
         return List.copyOf(classes);
-    }
-
-    @Override
-    protected void doSerialize(Object obj, OutputStream out) throws IOException {
-        try (Output output = new Output(out, BUFFER_SIZE)) {
-            Kryo kryo = kryoThreadLocal.get();
-            kryo.writeClassAndObject(output, obj);
-        }
-    }
-
-    @Override
-    protected Object doDeserialize(InputStream in, Type type) throws IOException {
-        try (Input input = new Input(in)) {
-            Kryo kryo = kryoThreadLocal.get();
-            return kryo.readClassAndObject(input);
-        }
     }
 }

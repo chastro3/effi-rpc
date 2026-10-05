@@ -15,9 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.effi.rpc.serialization.protobuf.ProtobufSerializer.NAME;
 
 /**
- * Implements {@link io.effi.rpc.serialization.Serializer} using Protobuf.
+ * Implements {@link io.effi.rpc.serialization.Serializer} for Protobuf {@link MessageLite} payloads.
  * <p>
- * Serializes only the first parameter as a {@link MessageLite}; deserialization behaves the same.
+ * Only message types are supported; every other value is rejected.
  */
 @Extension(value = NAME, onClass = "com.google.protobuf.MessageLite")
 public class ProtobufSerializer extends AbstractSerializer {
@@ -25,6 +25,17 @@ public class ProtobufSerializer extends AbstractSerializer {
     public static final String NAME = "protobuf";
 
     private final Map<Class<?>, MessageLite> messageMap = new ConcurrentHashMap<>();
+
+    /**
+     * Registers a default message that supplies the parser for its type.
+     *
+     * @param type           the message type
+     * @param defaultMessage the default message used to resolve the parser
+     * @param <T>            the message type
+     */
+    public <T extends MessageLite> void register(Class<T> type, T defaultMessage) {
+        messageMap.put(type, defaultMessage);
+    }
 
     @Override
     protected void doSerialize(Object obj, OutputStream out) throws IOException {
@@ -44,9 +55,9 @@ public class ProtobufSerializer extends AbstractSerializer {
                 result = messageLite.getParserForType().parseFrom(in);
             } else {
                 try {
-                    Method parseForm = classType.getDeclaredMethod("parseFrom", InputStream.class);
-                    parseForm.setAccessible(true);
-                    result = parseForm.invoke(null, in);
+                    Method parseFrom = classType.getDeclaredMethod("parseFrom", InputStream.class);
+                    parseFrom.setAccessible(true);
+                    result = parseFrom.invoke(null, in);
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
@@ -55,9 +66,5 @@ public class ProtobufSerializer extends AbstractSerializer {
         } else {
             throw new IOException("Only Support [com.google.protobuf.MessageLite] Type");
         }
-    }
-
-    public <T extends MessageLite> void register(Class<T> type, T defaultMessage) {
-        messageMap.put(type, defaultMessage);
     }
 }

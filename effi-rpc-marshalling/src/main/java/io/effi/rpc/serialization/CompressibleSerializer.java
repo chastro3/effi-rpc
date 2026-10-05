@@ -18,6 +18,8 @@ import java.lang.reflect.Type;
  */
 public class CompressibleSerializer implements Serializer {
 
+    private static final int BUFFER_SIZE = 2048;
+
     private final Serializer serializer;
 
     private final Compressor compressor;
@@ -69,11 +71,12 @@ public class CompressibleSerializer implements Serializer {
 
     private byte[] readBounded(InputStream in) throws IOException {
         try (in; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[2048];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int total = 0;
             int read;
             while ((read = in.read(buffer)) != -1) {
                 total += read;
+                // A non-positive limit disables the decompression bound.
                 if (maxDecompressedBytes > 0 && total > maxDecompressedBytes) {
                     throw new IOException("Decompressed payload exceeds the configured limit of " + maxDecompressedBytes + " bytes");
                 }

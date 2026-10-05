@@ -19,7 +19,9 @@ import java.util.List;
 import static io.effi.rpc.serialization.jdk.JdkSerializer.NAME;
 
 /**
- * Implements {@link io.effi.rpc.serialization.Serializer} using Jdk.
+ * Implements {@link io.effi.rpc.serialization.Serializer} for JDK object serialization.
+ * <p>
+ * Deserialization is restricted to the package allowlist configured through {@link JdkOptions}.
  */
 @Extension(NAME)
 public class JdkSerializer extends AbstractSerializer implements ScopedPlatform.Acceptor {
@@ -56,6 +58,7 @@ public class JdkSerializer extends AbstractSerializer implements ScopedPlatform.
         }
     }
 
+    // Unwrap arrays and reject any class outside the configured package allowlist.
     private static ObjectInputFilter createInputFilter(List<String> allowedPackages) {
         return info -> {
             Class<?> type = info.serialClass();

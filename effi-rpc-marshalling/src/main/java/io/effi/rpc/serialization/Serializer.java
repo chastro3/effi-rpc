@@ -10,10 +10,9 @@ import java.lang.reflect.Type;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
- * Serializes and deserializes objects using various serialization formats.
+ * Serializes and deserializes objects between Java types and byte streams.
  * <p>
- * Provides serialization functionality for converting objects to and from
- * byte streams with platform-scoped extensibility.
+ * Serializers are platform-scoped extensions selected by serializer name.
  */
 @Extensible(scope = PLATFORM)
 public interface Serializer {
@@ -23,28 +22,32 @@ public interface Serializer {
      *
      * @param obj the object to serialize
      * @param out the output stream to write to
+     * @throws IOException if serialization fails
      */
     void serialize(Object obj, OutputStream out) throws IOException;
 
     /**
      * Deserializes an object from the input stream with the given type.
      *
-     * @param in the input stream to read from
+     * @param in   the input stream to read from
      * @param type the target type to deserialize to
+     * @param <T>  the deserialized type
      * @return the deserialized object
+     * @throws IOException if deserialization fails
      */
     <T> T deserialize(InputStream in, Type type) throws IOException;
 
     /**
      * Deserializes ordered values from one payload.
-     *
-     * <p>Self-describing serializers may use the default implementation.
-     * Text or schema-constrained serializers should override this method to
-     * deserialize each value directly using its declared type.
+     * <p>
+     * Self-describing serializers may use the default implementation. Text or
+     * schema-constrained serializers should override this method to deserialize
+     * each value with its declared type.
      *
      * @param in    the input stream
      * @param types the declared value types
      * @return the ordered values
+     * @throws IOException if deserialization fails
      */
     default Object[] deserialize(InputStream in, Type[] types) throws IOException {
         return deserialize(in, Object[].class);

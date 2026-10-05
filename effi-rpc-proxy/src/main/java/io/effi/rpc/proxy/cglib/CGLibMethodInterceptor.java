@@ -18,8 +18,7 @@ public class CGLibMethodInterceptor implements MethodInterceptor {
     }
 
     @Override
-    public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-        return invoker.invoke(obj, method, args);
+    public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        return invoker.invoke(proxy, method, args);
     }
-
 }

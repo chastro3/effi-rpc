@@ -37,5 +37,4 @@ public class CGLibProxyFactory extends AbstractProxyFactory {
         enhancer.setCallback(new CGLibMethodInterceptor(invoker));
         return (T) enhancer.create();
     }
-
 }

@@ -39,19 +39,6 @@ public class JacksonSerializer extends AbstractSerializer {
     }
 
     @Override
-    protected void doSerialize(Object obj, OutputStream out) throws IOException {
-        jsonMapper.writeValue(out, obj);
-    }
-
-    @Override
-    protected Object doDeserialize(InputStream in, Type type) throws IOException {
-        if (type == String.class || type == Object.class) {
-            return jsonMapper.readValue(in, String.class);
-        }
-        return jsonMapper.readValue(in, jsonMapper.constructType(type));
-    }
-
-    @Override
     public Object[] deserialize(InputStream in, Type[] types) throws IOException {
         try (JsonParser parser = jsonMapper.tokenStreamFactory().createParser(in)) {
             if (parser.nextToken() != JsonToken.START_ARRAY) {
@@ -76,7 +63,23 @@ public class JacksonSerializer extends AbstractSerializer {
         }
     }
 
+    /**
+     * Returns the underlying Jackson mapper.
+     */
     public JsonMapper jsonMapper() {
         return jsonMapper;
+    }
+
+    @Override
+    protected void doSerialize(Object obj, OutputStream out) throws IOException {
+        jsonMapper.writeValue(out, obj);
+    }
+
+    @Override
+    protected Object doDeserialize(InputStream in, Type type) throws IOException {
+        if (type == String.class || type == Object.class) {
+            return jsonMapper.readValue(in, String.class);
+        }
+        return jsonMapper.readValue(in, jsonMapper.constructType(type));
     }
 }

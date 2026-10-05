@@ -5,10 +5,9 @@ import io.effi.rpc.annotation.component.Extensible;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
- * Creates proxy instances for specified interfaces or objects.
+ * Creates dynamic proxies backed by an {@link InvocationHandler}.
  * <p>
- * Provides proxy factory functionality for creating dynamic proxies
- * with invocation handlers for both interfaces and concrete objects.
+ * Implementations are platform-scoped extensions selected by proxy name.
  */
 @Extensible(scope = PLATFORM)
 public interface ProxyFactory {

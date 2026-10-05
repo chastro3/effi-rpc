@@ -10,7 +10,7 @@ import java.lang.reflect.Proxy;
 import static io.effi.rpc.proxy.jdk.JDKProxyFactory.NAME;
 
 /**
- * Implements {@link io.effi.rpc.proxy.ProxyFactory} using Jdk.
+ * Implements {@link io.effi.rpc.proxy.ProxyFactory} using JDK dynamic proxies.
  */
 @Extension(value = NAME, primary = true)
 public class JDKProxyFactory extends AbstractProxyFactory {
@@ -22,7 +22,7 @@ public class JDKProxyFactory extends AbstractProxyFactory {
     protected <T> T doCreateProxy(Class<T> interfaceClass, ProxyMethodInvoker invoker) {
         return (T) Proxy.newProxyInstance(
                 ClassUtil.findClassLoader(interfaceClass),
-                new Class[]{interfaceClass},
+                new Class<?>[]{interfaceClass},
                 new JDKInvocationHandler(invoker)
         );
     }
@@ -37,4 +37,3 @@ public class JDKProxyFactory extends AbstractProxyFactory {
         );
     }
 }
-

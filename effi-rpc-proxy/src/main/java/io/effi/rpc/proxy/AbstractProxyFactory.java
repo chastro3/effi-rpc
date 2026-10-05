@@ -53,6 +53,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
                 return invokeDefaultMethod(proxy, method, args);
             }
             if (Object.class.equals(method.getDeclaringClass())) {
+                // Interface proxies have no target, so Object methods follow proxy identity.
                 return invokeProxyObjectMethod(proxy, method, args);
             }
             return handler.invoke(proxy, method, args, NO_TARGET_INVOKER);

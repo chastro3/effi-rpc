@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 
 /**
- * Provides an abstract implementation of {@link Serializer}.
+ * Provides the serializer template that translates backend failures into marshalling error codes.
  */
 public abstract class AbstractSerializer implements Serializer {
 
@@ -29,7 +29,9 @@ public abstract class AbstractSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T deserialize(InputStream in, Type type) throws IOException {
-        if (in == null) return null;
+        if (in == null) {
+            return null;
+        }
         try {
             return (T) doDeserialize(in, type);
         } catch (EffiRpcException e) {
