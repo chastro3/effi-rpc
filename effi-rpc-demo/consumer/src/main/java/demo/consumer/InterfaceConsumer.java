@@ -23,11 +23,10 @@ public final class InterfaceConsumer {
             EffiRpcBootstrap bootstrap = EffiRpcBootstrap.newInstance(platform, "interface-consumer");
             InterfaceHelloService client = bootstrap.consume(
                     InterfaceHelloService.class,
-                    options -> {
-                        options.addOption(CallerOptions.PROTOCOL, Http1Protocol.NAME)
-                                .addOption(GovernanceOptions.LOCATOR, DirectLocator.Resolver.NAME)
-                                .addOption(CallerOptions.ENDPOINT, "127.0.0.1:" + port);
-                    }
+                    options ->
+                            options.addOption(CallerOptions.PROTOCOL, Http1Protocol.NAME)
+                                    .addOption(GovernanceOptions.LOCATOR, DirectLocator.Resolver.NAME)
+                                    .addOption(CallerOptions.ENDPOINT, "127.0.0.1:" + port)
             );
             System.out.println(client.hello("interface", 18));
         } finally {

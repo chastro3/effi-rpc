@@ -58,10 +58,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
         if (bean instanceof EffiRpcProviderExporter) {
             return bean;
         }
-        ServeGroup annotation = AnnotatedElementUtils.findMergedAnnotation(
-                AopUtils.getTargetClass(bean),
-                ServeGroup.class
-        );
+        ServeGroup annotation = AnnotatedElementUtils.findMergedAnnotation(AopUtils.getTargetClass(bean), ServeGroup.class);
         if (annotation != null) {
             ProviderCandidate candidate = new ProviderCandidate(beanName, bean, annotation);
             if (ready) {
@@ -86,18 +83,17 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
         ServeGroup annotation = candidate.annotation();
         Class<?> targetClass = AopUtils.getTargetClass(bean);
         EffiRpcProperties properties = propertiesProvider.getIfAvailable(EffiRpcProperties::defaults);
-        EffiRpcProperties.ProviderCommon common = properties.provider().common();
+        EffiRpcProperties.Provider provider = properties.provider();
         List<Class<?>> interfaces = resolveInterfaces(targetClass, annotation);
-        List<String> protocols = resolveProtocols(annotation, common);
-        ScopedModule module = resolveModule(annotation, common);
-
+        List<String> protocols = resolveProtocols(annotation, provider);
+        ScopedModule module = resolveModule(annotation, provider);
         for (Class<?> interfaceType : interfaces) {
             String previous = exportedInterfaces.putIfAbsent(interfaceType, beanName);
             if (previous != null) {
                 throw new IllegalStateException("RPC interface '" + interfaceType.getName()
                         + "' is exported by both '" + previous + "' and '" + beanName + "'");
             }
-            createServant(interfaceType, bean, module, protocols, annotation, common);
+            createServant(interfaceType, bean, module, protocols, annotation, provider);
         }
     }
 
@@ -126,21 +122,21 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
                 && !name.startsWith("io.effi.rpc.");
     }
 
-    private List<String> resolveProtocols(ServeGroup annotation, EffiRpcProperties.ProviderCommon common) {
+    private List<String> resolveProtocols(ServeGroup annotation, EffiRpcProperties.Provider provider) {
         String[] declared = annotation.protocol();
         if (declared.length > 0) {
             return List.of(declared);
         }
-        if (common != null && CollectionUtil.isNotEmpty(common.protocols())) {
-            return common.protocols();
+        if (provider != null && CollectionUtil.isNotEmpty(provider.protocols())) {
+            return provider.protocols();
         }
-        throw new IllegalStateException("@ServeGroup must configure serve.protocol or define effi.rpc.provider.common.protocols");
+        throw new IllegalStateException("@ServeGroup must configure serve.protocol or define effi.rpc.provider.protocols");
     }
 
-    private ScopedModule resolveModule(ServeGroup annotation, EffiRpcProperties.ProviderCommon common) {
+    private ScopedModule resolveModule(ServeGroup annotation, EffiRpcProperties.Provider provider) {
         String moduleName = StringUtil.isNotBlank(annotation.module())
                 ? annotation.module()
-                : common == null ? null : common.module();
+                : provider == null ? null : provider.module();
         ScopedApplication application = applicationProvider.getObject();
         if (StringUtil.isNotBlank(moduleName)) {
             ScopedModule module = application.lookupModule(moduleName);
@@ -160,18 +156,18 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
             ScopedModule module,
             List<String> protocols,
             ServeGroup annotation,
-            EffiRpcProperties.ProviderCommon common
+            EffiRpcProperties.Provider provider
     ) {
         HierarchicalOptions options = HierarchicalOptions.create();
         AnnotationSupport.apply(annotation, options);
         // Spring provider defaults fill values omitted by the annotation.
         options.addOption(ServantOptions.DECLARED_PROTOCOL, protocols.toArray(String[]::new));
         options.addOption(SerializationOptions.SERIALIZER,
-                value(annotation.serializer(), common == null ? null : common.serializer()));
+                value(annotation.serializer(), provider == null ? null : provider.serializer()));
         options.addOption(CompressionOptions.COMPRESSOR,
-                value(annotation.compressor(), common == null ? null : common.compression()));
+                value(annotation.compressor(), provider == null ? null : provider.compressor()));
         options.addOption(ThreadPoolOptions.THREAD_POOL,
-                value(annotation.threadPool(), common == null ? null : common.threadPool()));
+                value(annotation.threadPool(), provider == null ? null : provider.threadPool()));
         @SuppressWarnings("unchecked")
         Class<Object> targetType = (Class<Object>) interfaceType;
         InterfaceServantGroup.builder()

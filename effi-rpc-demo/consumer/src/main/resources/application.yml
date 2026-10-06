@@ -11,13 +11,6 @@ effi:
         type: consul
         address: 127.0.0.1:8500
     consumer:
-      common:
-        protocol: http/1.1
-        locator: registry
-        registries:
-          - consul
-      targets:
-        spring-provider:
-          endpoint: spring-provider
-          interfaces:
-            - demo.api.InterfaceHelloService
+      protocol: http/1.1
+      locator: registry
+      registries: consul

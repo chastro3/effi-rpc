@@ -16,8 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Registers Spring-managed scoped components after all singleton contexts are available.
  */
-public final class EffiRpcScopedComponentRegistrar
-        implements BeanPostProcessor, SmartInitializingSingleton {
+public final class EffiRpcScopedComponentRegistrar implements BeanPostProcessor, SmartInitializingSingleton {
 
     private final List<ScopedComponentCandidate> candidates = new CopyOnWriteArrayList<>();
 
@@ -38,8 +37,7 @@ public final class EffiRpcScopedComponentRegistrar
         if (componentTypes.isEmpty()) {
             return bean;
         }
-        ScopedComponentCandidate candidate =
-                new ScopedComponentCandidate(beanName, bean, List.copyOf(componentTypes));
+        ScopedComponentCandidate candidate = new ScopedComponentCandidate(beanName, bean, List.copyOf(componentTypes));
         if (ready) {
             register(candidate);
         } else {
@@ -59,8 +57,7 @@ public final class EffiRpcScopedComponentRegistrar
     private void register(ScopedComponentCandidate candidate) {
         for (Class<?> componentType : candidate.componentTypes()) {
             ComponentDescriptor descriptor = ComponentDescriptor.lookup(componentType);
-            Map<String, ? extends ScopedContext> contexts =
-                    applicationContext.getBeansOfType(descriptor.scopedContextType());
+            Map<String, ? extends ScopedContext> contexts = applicationContext.getBeansOfType(descriptor.scopedContextType());
             if (contexts.isEmpty()) {
                 throw new IllegalStateException("No scoped context found for component bean '"
                         + candidate.beanName() + "' and type '" + componentType.getName() + "'");

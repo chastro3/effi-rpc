@@ -6,6 +6,7 @@ import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.spring.bean.EffiRpcConsumerFactory;
 import io.effi.rpc.spring.bean.EffiRpcConsumerRegistrar;
 import io.effi.rpc.spring.bean.EffiRpcProviderExporter;
 import io.effi.rpc.spring.bean.EffiRpcScopedComponentRegistrar;
@@ -63,6 +64,12 @@ public class EffiRpcAutoConfiguration {
     @ConditionalOnMissingBean
     public ScopedModule defaultEffiRpcModule(ScopedApplication application) {
         return application.defaultModule();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EffiRpcConsumerFactory effiRpcConsumerFactory(ScopedModule module, EffiRpcProperties properties) {
+        return new EffiRpcConsumerFactory(module, properties);
     }
 
     @Bean

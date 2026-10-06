@@ -20,8 +20,5 @@ effi:
         address: 127.0.0.1:8500
 
     provider:
-      common:
-        protocols:
-          - http/1.1
-        registries:
-          - consul
+      protocols: http/1.1
+      registries: consul

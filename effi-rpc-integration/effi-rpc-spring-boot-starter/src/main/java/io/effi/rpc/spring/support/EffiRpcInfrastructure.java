@@ -35,7 +35,7 @@ public final class EffiRpcInfrastructure {
     }
 
     public static void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
-        List<String> providerRegistries = properties.provider().common().registries();
+        List<String> providerRegistries = properties.provider().registries();
         Set<String> registryNames = new LinkedHashSet<>(properties.registries().keySet());
         for (String providerRegistry : providerRegistries) {
             if (!registryNames.contains(providerRegistry)) {
