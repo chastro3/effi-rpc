@@ -6,13 +6,12 @@ import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.spring.bean.EffiRpcConsumerFactory;
-import io.effi.rpc.spring.bean.EffiRpcConsumerRegistrar;
-import io.effi.rpc.spring.bean.EffiRpcProviderExporter;
-import io.effi.rpc.spring.bean.EffiRpcScopedComponentRegistrar;
-import io.effi.rpc.spring.lifecycle.EffiRpcApplicationLifecycle;
-import io.effi.rpc.spring.properties.EffiRpcProperties;
-import io.effi.rpc.spring.support.EffiRpcInfrastructure;
+import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
+import io.effi.rpc.spring.consumer.ConsumerRegistrar;
+import io.effi.rpc.spring.provider.ProviderExporter;
+import io.effi.rpc.spring.support.EffiRpcApplicationLifecycle;
+import io.effi.rpc.spring.support.InfrastructureConfigurer;
+import io.effi.rpc.spring.support.ScopedComponentRegistrar;
 import io.effi.rpc.util.StringUtil;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -27,6 +26,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.ObjectProvider;
 
+/**
+ * Provides Spring Boot auto-configuration for Effi RPC.
+ */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "effi.rpc", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(EffiRpcProperties.class)
@@ -34,15 +36,15 @@ public class EffiRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public static EffiRpcScopedComponentRegistrar effiRpcScopedComponentRegistrar(ApplicationContext context) {
-        return new EffiRpcScopedComponentRegistrar(context);
+    public static ScopedComponentRegistrar effiRpcScopedComponentRegistrar(ApplicationContext context) {
+        return new ScopedComponentRegistrar(context);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public ScopedPlatform effiRpcPlatform(EffiRpcProperties properties) {
         ScopedPlatform platform = ScopedPlatform.defaultInstance();
-        EffiRpcInfrastructure.registerRegistries(platform, properties);
+        InfrastructureConfigurer.registerRegistries(platform, properties);
         return platform;
     }
 
@@ -56,7 +58,7 @@ public class EffiRpcAutoConfiguration {
         applicationName = StringUtil.isBlankOrDefault(applicationName, context.getApplicationName());
         applicationName = StringUtil.isBlankOrDefault(applicationName, "default");
         ScopedApplication application = platform.defaultApplication().name(applicationName);
-        EffiRpcInfrastructure.attachServers(application, properties);
+        InfrastructureConfigurer.attachServers(application, properties);
         return application;
     }
 
@@ -68,8 +70,8 @@ public class EffiRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public EffiRpcConsumerFactory effiRpcConsumerFactory(ScopedModule module, EffiRpcProperties properties) {
-        return new EffiRpcConsumerFactory(module, properties);
+    public InterfaceCallGroupFactory interfaceCallGroupFactory(ScopedModule module, EffiRpcProperties properties) {
+        return new InterfaceCallGroupFactory(module, properties);
     }
 
     @Bean
@@ -85,23 +87,29 @@ public class EffiRpcAutoConfiguration {
         return new EffiRpcApplicationLifecycle(bootstrap);
     }
 
+    /**
+     * Provides consumer-side auto-configuration.
+     */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(CallGroup.class)
-    @Import(EffiRpcConsumerRegistrar.class)
+    @Import(ConsumerRegistrar.class)
     public static class ConsumerAutoConfiguration {
     }
 
+    /**
+     * Provides provider-side auto-configuration.
+     */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(ServeGroup.class)
     public static class ProviderAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
-        public static EffiRpcProviderExporter effiRpcProviderExporter(
+        public static ProviderExporter effiRpcProviderExporter(
                 ObjectProvider<EffiRpcProperties> properties,
                 ObjectProvider<ScopedApplication> application
         ) {
-            return new EffiRpcProviderExporter(properties, application);
+            return new ProviderExporter(properties, application);
         }
     }
 }

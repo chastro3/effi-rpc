@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.lifecycle;
+package io.effi.rpc.spring.support;
 
 import io.effi.rpc.boot.EffiRpcBootstrap;
 import io.effi.rpc.concurrent.Deadline;
@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Starts and stops the RPC application as the outer Spring lifecycle.
+ * Manages the RPC application lifecycle as the outer Spring lifecycle.
  */
 public final class EffiRpcApplicationLifecycle implements SmartLifecycle {
 

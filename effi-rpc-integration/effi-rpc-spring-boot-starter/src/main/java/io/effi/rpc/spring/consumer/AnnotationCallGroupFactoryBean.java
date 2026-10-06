@@ -1,24 +1,24 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.consumer;
 
 import io.effi.rpc.boot.AnnotationCallerGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.spring.properties.EffiRpcProperties;
+import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 
 /**
- * Builds and caches one annotation-based consumer proxy for an interface.
+ * Provides annotation-based consumer proxy creation for {@code @CallGroup} interfaces.
  */
-public final class EffiRpcConsumerFactoryBean<T> implements FactoryBean<T>, BeanFactoryAware {
+public final class AnnotationCallGroupFactoryBean<T> implements FactoryBean<T>, BeanFactoryAware {
 
     private final Class<T> consumerType;
 
     private BeanFactory beanFactory;
 
-    public EffiRpcConsumerFactoryBean(Class<T> consumerType) {
+    public AnnotationCallGroupFactoryBean(Class<T> consumerType) {
         this.consumerType = consumerType;
     }
 
@@ -46,7 +46,7 @@ public final class EffiRpcConsumerFactoryBean<T> implements FactoryBean<T>, Bean
         EffiRpcProperties properties = beanFactory.getBeanProvider(EffiRpcProperties.class)
                 .getIfAvailable(EffiRpcProperties::defaults);
         HierarchicalOptions options = HierarchicalOptions.create();
-        EffiRpcConsumerOptions.apply(options, properties.consumer());
+        ConsumerOptionMapper.apply(options, properties.consumer());
         ScopedModule module = beanFactory.getBean(ScopedModule.class);
         return AnnotationCallerGroup.<T>builder()
                 .targetType(consumerType)

@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.properties;
+package io.effi.rpc.spring.autoconfigure;
 
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
@@ -54,6 +54,9 @@ public record EffiRpcProperties(
         provider = provider == null ? Provider.defaults() : provider;
     }
 
+    /**
+     * Returns the default configuration.
+     */
     public static EffiRpcProperties defaults() {
         return new EffiRpcProperties(true, null, null, null, null, null);
     }
@@ -203,6 +206,9 @@ public record EffiRpcProperties(
             registries = registries == null ? List.of() : List.copyOf(registries);
         }
 
+        /**
+         * Returns the default consumer configuration.
+         */
         public static Consumer defaults() {
             return new Consumer(null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null);
@@ -244,6 +250,9 @@ public record EffiRpcProperties(
             registries = registries == null ? List.of() : List.copyOf(registries);
         }
 
+        /**
+         * Returns the default provider configuration.
+         */
         public static Provider defaults() {
             return new Provider(null, null, null, null, null, null);
         }

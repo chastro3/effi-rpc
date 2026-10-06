@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.consumer;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -10,9 +10,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Registers consumer proxy bean definitions for interfaces annotated with {@code @CallGroup}.
+ * Handles registration of consumer proxy bean definitions for interfaces annotated with {@code @CallGroup}.
  */
-public final class EffiRpcConsumerRegistrar implements ImportBeanDefinitionRegistrar {
+public final class ConsumerRegistrar implements ImportBeanDefinitionRegistrar {
 
     private static final String CONSUMER_SUFFIX = "EffiRpcConsumer";
 
@@ -22,7 +22,7 @@ public final class EffiRpcConsumerRegistrar implements ImportBeanDefinitionRegis
             return;
         }
         Set<Class<?>> registered = new HashSet<>();
-        for (Class<?> consumerType : EffiRpcConsumerScanner.scan(beanFactory)) {
+        for (Class<?> consumerType : CallGroupScanner.scan(beanFactory)) {
             registerConsumer(registry, beanFactory, consumerType, registered);
         }
     }
@@ -34,8 +34,7 @@ public final class EffiRpcConsumerRegistrar implements ImportBeanDefinitionRegis
             Set<Class<?>> registered
     ) {
         if (!consumerType.isInterface()) {
-            throw new IllegalArgumentException(
-                    "@CallGroup must be declared on an interface: " + consumerType.getName());
+            throw new IllegalArgumentException("@CallGroup must be declared on an interface: " + consumerType.getName());
         }
         if (!registered.add(consumerType)) {
             return;
@@ -48,7 +47,7 @@ public final class EffiRpcConsumerRegistrar implements ImportBeanDefinitionRegis
             return;
         }
         registry.registerBeanDefinition(beanName, BeanDefinitionBuilder
-                .genericBeanDefinition(EffiRpcConsumerFactoryBean.class)
+                .genericBeanDefinition(AnnotationCallGroupFactoryBean.class)
                 .addConstructorArgValue(consumerType)
                 .setPrimary(true)
                 .getBeanDefinition());

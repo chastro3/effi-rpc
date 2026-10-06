@@ -1,34 +1,36 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.consumer;
 
 import io.effi.rpc.boot.InterfaceCallerGroup;
 import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.spring.properties.EffiRpcProperties;
+import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 
 import java.util.function.Consumer;
 
 /**
- * Creates interface-based consumer proxies backed by Spring configuration.
+ * Provides creation of interface-based consumer proxies backed by Spring configuration.
  */
-public final class EffiRpcConsumerFactory {
+public final class InterfaceCallGroupFactory {
 
     private final ScopedModule module;
 
     private final EffiRpcProperties properties;
 
-    public EffiRpcConsumerFactory(ScopedModule module, EffiRpcProperties properties) {
+    public InterfaceCallGroupFactory(ScopedModule module, EffiRpcProperties properties) {
         this.module = module;
         this.properties = properties;
     }
 
     /**
-     * Creates a consumer proxy using the configured caller defaults.
+     * Creates a consumer proxy targeting the named remote service.
      *
      * @param targetType the remote interface
+     * @param remoteServiceName the remote service name used as the call endpoint
      * @return the consumer proxy
      */
-    public <T> T create(Class<T> targetType) {
-        return create(targetType, null);
+    public <T> T create(Class<T> targetType, String remoteServiceName) {
+        return create(targetType, options -> options.addOption(CallerOptions.ENDPOINT, remoteServiceName));
     }
 
     /**
@@ -40,7 +42,7 @@ public final class EffiRpcConsumerFactory {
      */
     public <T> T create(Class<T> targetType, Consumer<HierarchicalOptions> customizer) {
         HierarchicalOptions options = HierarchicalOptions.create();
-        EffiRpcConsumerOptions.apply(options, properties.consumer());
+        ConsumerOptionMapper.apply(options, properties.consumer());
         if (customizer != null) {
             customizer.accept(options);
         }

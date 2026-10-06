@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.consumer;
 
 import io.effi.rpc.component.serialization.options.CompressionOptions;
 import io.effi.rpc.component.serialization.options.SerializationOptions;
@@ -7,20 +7,26 @@ import io.effi.rpc.context.options.FaultToleranceOptions;
 import io.effi.rpc.context.options.GovernanceOptions;
 import io.effi.rpc.context.options.ThreadPoolOptions;
 import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.spring.properties.EffiRpcProperties;
+import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 
 import java.time.Duration;
 import java.util.List;
 
 /**
- * Applies Spring consumer properties to RPC hierarchical options.
+ * Provides mapping of Spring consumer properties onto RPC hierarchical options.
  */
-final class EffiRpcConsumerOptions {
+public final class ConsumerOptionMapper {
 
-    private EffiRpcConsumerOptions() {
+    private ConsumerOptionMapper() {
     }
 
-    static void apply(HierarchicalOptions options, EffiRpcProperties.Consumer consumer) {
+    /**
+     * Applies consumer property values to the target options.
+     *
+     * @param options target options
+     * @param consumer consumer properties
+     */
+    public static void apply(HierarchicalOptions options, EffiRpcProperties.Consumer consumer) {
         if (consumer == null) {
             return;
         }

@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.provider;
 
 import io.effi.rpc.annotation.rpc.ServeGroup;
 import io.effi.rpc.boot.AnnotationSupport;
@@ -10,7 +10,7 @@ import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.options.ServantOptions;
 import io.effi.rpc.context.options.ThreadPoolOptions;
 import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.spring.properties.EffiRpcProperties;
+import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
 import org.springframework.aop.support.AopUtils;
@@ -27,25 +27,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Registers Spring beans annotated with {@link ServeGroup} as RPC servants.
+ * Handles registration of Spring beans annotated with {@link ServeGroup} as RPC servants.
  * <p>
  * Candidate beans are collected before registration so export order does not depend on
  * bean post-processor execution order.
  */
-public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartInitializingSingleton {
+public final class ProviderExporter implements BeanPostProcessor, SmartInitializingSingleton {
+
+    private final ObjectProvider<EffiRpcProperties> propertiesProvider;
+
+    private final ObjectProvider<ScopedApplication> applicationProvider;
 
     private final Map<Class<?>, String> exportedInterfaces = new ConcurrentHashMap<>();
 
     // Collect candidates until all singleton beans are available to make registration order-independent.
     private final List<ProviderCandidate> candidates = new CopyOnWriteArrayList<>();
 
-    private final ObjectProvider<EffiRpcProperties> propertiesProvider;
-
-    private final ObjectProvider<ScopedApplication> applicationProvider;
-
     private volatile boolean ready;
 
-    public EffiRpcProviderExporter(
+    public ProviderExporter(
             ObjectProvider<EffiRpcProperties> propertiesProvider,
             ObjectProvider<ScopedApplication> applicationProvider
     ) {
@@ -55,7 +55,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof EffiRpcProviderExporter) {
+        if (bean instanceof ProviderExporter) {
             return bean;
         }
         ServeGroup annotation = AnnotatedElementUtils.findMergedAnnotation(AopUtils.getTargetClass(bean), ServeGroup.class);
@@ -103,7 +103,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
             return List.of(configured);
         }
         List<Class<?>> candidates = Arrays.stream(targetClass.getInterfaces())
-                .filter(EffiRpcProviderExporter::isBusinessInterface)
+                .filter(this::isBusinessInterface)
                 .toList();
         if (candidates.size() == 1) {
             return candidates;
@@ -113,7 +113,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
     }
 
     // Framework interfaces are excluded because they are not RPC contracts.
-    private static boolean isBusinessInterface(Class<?> candidate) {
+    private boolean isBusinessInterface(Class<?> candidate) {
         String name = candidate.getName();
         return !name.startsWith("java.")
                 && !name.startsWith("javax.")
@@ -143,8 +143,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
             if (module != null) {
                 return module;
             }
-            throw new IllegalStateException("RPC module '" + moduleName
-                    + "' does not exist. Available modules: "
+            throw new IllegalStateException("RPC module '" + moduleName + "' does not exist. Available modules: "
                     + application.modules().stream().map(ScopedModule::name).toList());
         }
         return application.defaultModule();
@@ -178,7 +177,7 @@ public final class EffiRpcProviderExporter implements BeanPostProcessor, SmartIn
                 .build();
     }
 
-    private static String value(String primary, String fallback) {
+    private String value(String primary, String fallback) {
         return StringUtil.isNotBlank(primary) ? primary : fallback;
     }
 

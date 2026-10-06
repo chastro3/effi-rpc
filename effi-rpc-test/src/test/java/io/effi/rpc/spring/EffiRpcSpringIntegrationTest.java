@@ -11,12 +11,12 @@ import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.spring.autoconfigure.EffiRpcAutoConfiguration;
-import io.effi.rpc.spring.bean.EffiRpcConsumerFactory;
-import io.effi.rpc.spring.bean.EffiRpcConsumerRegistrar;
-import io.effi.rpc.spring.bean.EffiRpcProviderExporter;
-import io.effi.rpc.spring.bean.EffiRpcScopedComponentRegistrar;
-import io.effi.rpc.spring.properties.EffiRpcProperties;
-import io.effi.rpc.spring.support.EffiRpcInfrastructure;
+import io.effi.rpc.spring.consumer.ConsumerRegistrar;
+import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
+import io.effi.rpc.spring.provider.ProviderExporter;
+import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
+import io.effi.rpc.spring.support.InfrastructureConfigurer;
+import io.effi.rpc.spring.support.ScopedComponentRegistrar;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -80,7 +80,7 @@ class EffiRpcSpringIntegrationTest {
             context.register(ConsumerConfiguration.class);
             context.refresh();
 
-            EffiRpcConsumerFactory factory = context.getBean(EffiRpcConsumerFactory.class);
+            InterfaceCallGroupFactory factory = context.getBean(InterfaceCallGroupFactory.class);
             TestConsumer consumer = factory.create(TestConsumer.class,
                     options -> options.addOption(CallerOptions.ENDPOINT, "127.0.0.1:1"));
             assertNotNull(consumer);
@@ -142,7 +142,7 @@ class EffiRpcSpringIntegrationTest {
         ScopedPlatform platform = new ScopedPlatform("missing-registry-platform");
         try {
             IllegalStateException failure = assertThrows(IllegalStateException.class,
-                    () -> EffiRpcInfrastructure.registerRegistries(platform, properties));
+                    () -> InfrastructureConfigurer.registerRegistries(platform, properties));
             assertTrue(failure.getMessage().contains("missing-registry"));
         } finally {
             platform.close();
@@ -179,8 +179,8 @@ class EffiRpcSpringIntegrationTest {
     static class ConsumerConfiguration {
 
         @Bean
-        EffiRpcConsumerFactory effiRpcConsumerFactory(ScopedModule module, EffiRpcProperties properties) {
-            return new EffiRpcConsumerFactory(module, properties);
+        InterfaceCallGroupFactory effiRpcConsumerFactory(ScopedModule module, EffiRpcProperties properties) {
+            return new InterfaceCallGroupFactory(module, properties);
         }
 
         @Bean
@@ -201,7 +201,7 @@ class EffiRpcSpringIntegrationTest {
 
     @Configuration
     @EnableConfigurationProperties(EffiRpcProperties.class)
-    @Import(EffiRpcConsumerRegistrar.class)
+    @Import(ConsumerRegistrar.class)
     static class UserConsumerConfiguration {
 
         @Bean
@@ -234,8 +234,8 @@ class EffiRpcSpringIntegrationTest {
     static class ScopedComponentConfiguration {
 
         @Bean
-        static EffiRpcScopedComponentRegistrar effiRpcScopedComponentRegistrar(ApplicationContext context) {
-            return new EffiRpcScopedComponentRegistrar(context);
+        static ScopedComponentRegistrar effiRpcScopedComponentRegistrar(ApplicationContext context) {
+            return new ScopedComponentRegistrar(context);
         }
 
         @Bean
@@ -274,11 +274,11 @@ class EffiRpcSpringIntegrationTest {
         }
 
         @Bean
-        EffiRpcProviderExporter effiRpcProviderExporter(
+        ProviderExporter effiRpcProviderExporter(
                 ObjectProvider<EffiRpcProperties> properties,
                 ObjectProvider<ScopedApplication> application
         ) {
-            return new EffiRpcProviderExporter(properties, application);
+            return new ProviderExporter(properties, application);
         }
 
         @Bean
@@ -295,7 +295,7 @@ class EffiRpcSpringIntegrationTest {
     }
 
     @Configuration
-    @Import(EffiRpcConsumerRegistrar.class)
+    @Import(ConsumerRegistrar.class)
     static class AnnotatedConsumerConfiguration {
 
         @Bean

@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.support;
 
 import io.effi.rpc.annotation.component.ScopedComponent.Scope;
 import io.effi.rpc.component.ComponentDescriptor;
@@ -14,23 +14,23 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Registers Spring-managed scoped components after all singleton contexts are available.
+ * Handles registration of Spring-managed scoped components after all singleton contexts are available.
  */
-public final class EffiRpcScopedComponentRegistrar implements BeanPostProcessor, SmartInitializingSingleton {
-
-    private final List<ScopedComponentCandidate> candidates = new CopyOnWriteArrayList<>();
+public final class ScopedComponentRegistrar implements BeanPostProcessor, SmartInitializingSingleton {
 
     private final ApplicationContext applicationContext;
 
+    private final List<ScopedComponentCandidate> candidates = new CopyOnWriteArrayList<>();
+
     private volatile boolean ready;
 
-    public EffiRpcScopedComponentRegistrar(ApplicationContext applicationContext) {
+    public ScopedComponentRegistrar(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof ScopedContext || bean instanceof EffiRpcScopedComponentRegistrar) {
+        if (bean instanceof ScopedContext || bean instanceof ScopedComponentRegistrar) {
             return bean;
         }
         List<Class<?>> componentTypes = ComponentDescriptor.findSupportedComponentTypes(AopUtils.getTargetClass(bean));

@@ -1,8 +1,7 @@
 package demo.consumer.spring;
 
 import demo.api.InterfaceHelloService;
-import io.effi.rpc.context.options.CallerOptions;
-import io.effi.rpc.spring.bean.EffiRpcConsumerFactory;
+import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,9 +16,8 @@ public class Application {
     }
 
     @Bean
-    public InterfaceHelloService interfaceHelloService(EffiRpcConsumerFactory consumers) {
-        return consumers.create(InterfaceHelloService.class,
-                options -> options.addOption(CallerOptions.ENDPOINT, "spring-provider"));
+    public InterfaceHelloService interfaceHelloService(InterfaceCallGroupFactory factory) {
+        return factory.create(InterfaceHelloService.class, "spring-provider");
     }
 
     @Bean

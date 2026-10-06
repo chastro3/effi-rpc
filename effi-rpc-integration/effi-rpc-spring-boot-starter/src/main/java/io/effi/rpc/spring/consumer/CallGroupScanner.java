@@ -1,4 +1,4 @@
-package io.effi.rpc.spring.bean;
+package io.effi.rpc.spring.consumer;
 
 import io.effi.rpc.annotation.rpc.CallGroup;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Scans application packages for interfaces annotated with {@link CallGroup}.
+ * Provides scanning of application packages for interfaces annotated with {@link CallGroup}.
  */
-final class EffiRpcConsumerScanner {
+final class CallGroupScanner {
 
-    private EffiRpcConsumerScanner() {
+    private CallGroupScanner() {
     }
 
     static List<Class<?>> scan(ListableBeanFactory beanFactory) {
