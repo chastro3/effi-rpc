@@ -7,8 +7,8 @@ import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
-import io.effi.rpc.spring.consumer.ConsumerRegistrar;
-import io.effi.rpc.spring.provider.ProviderExporter;
+import io.effi.rpc.spring.consumer.CallGroupRegistrar;
+import io.effi.rpc.spring.provider.ServeGroupRegistrar;
 import io.effi.rpc.spring.support.EffiRpcApplicationLifecycle;
 import io.effi.rpc.spring.support.InfrastructureConfigurer;
 import io.effi.rpc.spring.support.ScopedComponentRegistrar;
@@ -92,7 +92,7 @@ public class EffiRpcAutoConfiguration {
      */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(CallGroup.class)
-    @Import(ConsumerRegistrar.class)
+    @Import(CallGroupRegistrar.class)
     public static class ConsumerAutoConfiguration {
     }
 
@@ -105,11 +105,11 @@ public class EffiRpcAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
-        public static ProviderExporter effiRpcProviderExporter(
+        public static ServeGroupRegistrar serveGroupRegistrar(
                 ObjectProvider<EffiRpcProperties> properties,
                 ObjectProvider<ScopedApplication> application
         ) {
-            return new ProviderExporter(properties, application);
+            return new ServeGroupRegistrar(properties, application);
         }
     }
 }

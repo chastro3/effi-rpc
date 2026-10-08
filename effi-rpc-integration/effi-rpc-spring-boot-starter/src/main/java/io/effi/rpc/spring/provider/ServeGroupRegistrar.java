@@ -32,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Candidate beans are collected before registration so export order does not depend on
  * bean post-processor execution order.
  */
-public final class ProviderExporter implements BeanPostProcessor, SmartInitializingSingleton {
+public final class ServeGroupRegistrar implements BeanPostProcessor, SmartInitializingSingleton {
 
     private final ObjectProvider<EffiRpcProperties> propertiesProvider;
 
@@ -41,11 +41,11 @@ public final class ProviderExporter implements BeanPostProcessor, SmartInitializ
     private final Map<Class<?>, String> exportedInterfaces = new ConcurrentHashMap<>();
 
     // Collect candidates until all singleton beans are available to make registration order-independent.
-    private final List<ProviderCandidate> candidates = new CopyOnWriteArrayList<>();
+    private final List<ServeGroupCandidate> candidates = new CopyOnWriteArrayList<>();
 
     private volatile boolean ready;
 
-    public ProviderExporter(
+    public ServeGroupRegistrar(
             ObjectProvider<EffiRpcProperties> propertiesProvider,
             ObjectProvider<ScopedApplication> applicationProvider
     ) {
@@ -55,12 +55,12 @@ public final class ProviderExporter implements BeanPostProcessor, SmartInitializ
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof ProviderExporter) {
+        if (bean instanceof ServeGroupRegistrar) {
             return bean;
         }
         ServeGroup annotation = AnnotatedElementUtils.findMergedAnnotation(AopUtils.getTargetClass(bean), ServeGroup.class);
         if (annotation != null) {
-            ProviderCandidate candidate = new ProviderCandidate(beanName, bean, annotation);
+            ServeGroupCandidate candidate = new ServeGroupCandidate(beanName, bean, annotation);
             if (ready) {
                 register(candidate);
             } else {
@@ -77,7 +77,7 @@ public final class ProviderExporter implements BeanPostProcessor, SmartInitializ
         ready = true;
     }
 
-    private void register(ProviderCandidate candidate) {
+    private void register(ServeGroupCandidate candidate) {
         String beanName = candidate.beanName();
         Object bean = candidate.bean();
         ServeGroup annotation = candidate.annotation();
@@ -181,6 +181,6 @@ public final class ProviderExporter implements BeanPostProcessor, SmartInitializ
         return StringUtil.isNotBlank(primary) ? primary : fallback;
     }
 
-    private record ProviderCandidate(String beanName, Object bean, ServeGroup annotation) {
+    private record ServeGroupCandidate(String beanName, Object bean, ServeGroup annotation) {
     }
 }

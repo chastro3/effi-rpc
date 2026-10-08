@@ -11,9 +11,9 @@ import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.spring.autoconfigure.EffiRpcAutoConfiguration;
-import io.effi.rpc.spring.consumer.ConsumerRegistrar;
+import io.effi.rpc.spring.consumer.CallGroupRegistrar;
 import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
-import io.effi.rpc.spring.provider.ProviderExporter;
+import io.effi.rpc.spring.provider.ServeGroupRegistrar;
 import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import io.effi.rpc.spring.support.InfrastructureConfigurer;
 import io.effi.rpc.spring.support.ScopedComponentRegistrar;
@@ -201,7 +201,7 @@ class EffiRpcSpringIntegrationTest {
 
     @Configuration
     @EnableConfigurationProperties(EffiRpcProperties.class)
-    @Import(ConsumerRegistrar.class)
+    @Import(CallGroupRegistrar.class)
     static class UserConsumerConfiguration {
 
         @Bean
@@ -274,11 +274,11 @@ class EffiRpcSpringIntegrationTest {
         }
 
         @Bean
-        ProviderExporter effiRpcProviderExporter(
+        ServeGroupRegistrar serveGroupRegistrar(
                 ObjectProvider<EffiRpcProperties> properties,
                 ObjectProvider<ScopedApplication> application
         ) {
-            return new ProviderExporter(properties, application);
+            return new ServeGroupRegistrar(properties, application);
         }
 
         @Bean
@@ -295,7 +295,7 @@ class EffiRpcSpringIntegrationTest {
     }
 
     @Configuration
-    @Import(ConsumerRegistrar.class)
+    @Import(CallGroupRegistrar.class)
     static class AnnotatedConsumerConfiguration {
 
         @Bean
