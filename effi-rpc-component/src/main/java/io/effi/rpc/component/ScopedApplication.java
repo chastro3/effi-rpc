@@ -55,6 +55,13 @@ public final class ScopedApplication extends ScopedContext implements ScopedPlat
         modules().forEach(ScopedModule::close);
     }
 
+    /**
+     * Returns all modules registered in this application.
+     */
+    public Collection<ScopedModule> modules() {
+        return components(ScopedModule.class);
+    }
+
     @Override
     public ScopedPlatform platform() {
         return (ScopedPlatform) parent;
@@ -80,7 +87,7 @@ public final class ScopedApplication extends ScopedContext implements ScopedPlat
     /**
      * Creates a module with the supplied name and component repository.
      *
-     * @param name module name
+     * @param name       module name
      * @param repository module component repository
      * @return created module
      */
@@ -104,13 +111,6 @@ public final class ScopedApplication extends ScopedContext implements ScopedPlat
      */
     public ScopedModule defaultModule() {
         return defaultModule.ensure();
-    }
-
-    /**
-     * Returns all modules registered in this application.
-     */
-    public Collection<ScopedModule> modules() {
-        return components(ScopedModule.class);
     }
 
     /**

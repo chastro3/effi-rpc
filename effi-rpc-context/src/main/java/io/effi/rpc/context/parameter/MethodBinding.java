@@ -20,7 +20,7 @@ public record MethodBinding(
     /**
      * Creates a non-positional method binding.
      *
-     * @param method reflected method
+     * @param method     reflected method
      * @param parameters parameter bindings
      * @return method binding
      */

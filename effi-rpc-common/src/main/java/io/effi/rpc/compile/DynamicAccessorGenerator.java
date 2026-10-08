@@ -72,50 +72,6 @@ public class DynamicAccessorGenerator {
         return generate(info, info.name() + DynamicAccessor.SUFFIX);
     }
 
-    /**
-     * Generates accessor metadata from a compile-time type element.
-     *
-     * @param type target type element
-     * @param helper compile-time helper
-     * @return generated accessor metadata
-     */
-    public static GeneratedInfo from(TypeElement type, CompileTimeHelper helper) {
-        String pkg = helper.packageOf(type);
-        String qualifiedName = helper.qualifiedNameOf(type);
-        String name = binaryName(qualifiedName, pkg);
-        List<? extends Element> members = helper.processingEnv().getElementUtils().getAllMembers(type);
-        List<MethodInfo> methods = new ArrayList<>(members.size());
-        for (Element e : members) {
-            if (e instanceof ExecutableElement em
-                    && em.getKind() == ElementKind.METHOD
-                    && em.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)
-                    && !helper.isObjectMethod(em)) {
-                methods.add(MethodInfo.from(em, helper));
-            }
-        }
-        MethodInfo[] infos = methods.toArray(new MethodInfo[0]);
-        ClassInfo info = new ClassInfo(
-                pkg,
-                name,
-                qualifiedName,
-                infos,
-                type.getKind() == ElementKind.INTERFACE
-        );
-        return generate(info, name + DynamicAccessor.SUFFIX);
-    }
-
-    static GeneratedInfo from(Class<?> type, String accessorName) {
-        return generate(classInfo(type), accessorName);
-    }
-
-    static Method[] publicMethods(Class<?> type) {
-        return Arrays.stream(type.getMethods())
-                .filter(method -> !method.isBridge())
-                .filter(method -> !method.isSynthetic())
-                .filter(method -> !ReflectionUtil.isObjectMethod(method))
-                .toArray(Method[]::new);
-    }
-
     private static ClassInfo classInfo(Class<?> type) {
         if (type == null || type.isPrimitive() || type.isArray()) {
             throw new IllegalArgumentException("Unsupported dynamic accessor type: " + type);
@@ -148,6 +104,18 @@ public class DynamicAccessorGenerator {
         return new GeneratedInfo(info.pkg(), accessorName, cw.toByteArray());
     }
 
+    private static String binaryName(String qualifiedName, String pkg) {
+        return pkg.isEmpty() ? qualifiedName : qualifiedName.substring(pkg.length() + 1);
+    }
+
+    static Method[] publicMethods(Class<?> type) {
+        return Arrays.stream(type.getMethods())
+                .filter(method -> !method.isBridge())
+                .filter(method -> !method.isSynthetic())
+                .filter(method -> !ReflectionUtil.isObjectMethod(method))
+                .toArray(Method[]::new);
+    }
+
     private static void emitStaticInitializer(ClassWriter cw, String owner, ClassInfo info) {
         cw.visitField(ACC_PRIVATE | ACC_STATIC | ACC_FINAL, METHOD_NAMES, "[Ljava/lang/String;", null, null).visitEnd();
         cw.visitField(ACC_PRIVATE | ACC_STATIC | ACC_FINAL, PARAMETER_TYPES, "[[Ljava/lang/Class;", null, null).visitEnd();
@@ -157,6 +125,45 @@ public class DynamicAccessorGenerator {
         emitStringArray(mv, owner, info.methods(), MethodInfo::name);
         emitClassArray(mv, owner, info.methods(), MethodInfo::parameterTypes);
         mv.visitInsn(RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+    }
+
+    private static void emitConstructor(ClassWriter cw, String owner, String targetInternal, boolean hasMethods) {
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitLdcInsn(Type.getObjectType(targetInternal));
+
+        if (hasMethods) {
+            mv.visitFieldInsn(GETSTATIC, owner, METHOD_NAMES, "[Ljava/lang/String;");
+            mv.visitFieldInsn(GETSTATIC, owner, PARAMETER_TYPES, "[[Ljava/lang/Class;");
+        } else {
+            mv.visitInsn(ACONST_NULL);
+            mv.visitInsn(ACONST_NULL);
+        }
+
+        mv.visitMethodInsn(INVOKESPECIAL, DynamicAccessor.INTERNAL_NAME,
+                "<init>", "(Ljava/lang/Class;[Ljava/lang/String;[[Ljava/lang/Class;)V", false);
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(4, 1);
+        mv.visitEnd();
+    }
+
+    private static void emitInvoke(ClassWriter cw, String targetInternal, ClassInfo info) {
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "invoke", "(Ljava/lang/Object;I[Ljava/lang/Object;)Ljava/lang/Object;", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ILOAD, 2);
+        mv.visitVarInsn(ALOAD, 3);
+        mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                DynamicAccessor.INTERNAL_NAME,
+                "validateInvocation",
+                "(I[Ljava/lang/Object;)V",
+                false
+        );
+        emitMethodSwitch(mv, targetInternal, info);
         mv.visitMaxs(0, 0);
         mv.visitEnd();
     }
@@ -207,45 +214,6 @@ public class DynamicAccessorGenerator {
         mv.visitFieldInsn(PUTSTATIC, owner, PARAMETER_TYPES, "[[Ljava/lang/Class;");
     }
 
-    private static void emitConstructor(ClassWriter cw, String owner, String targetInternal, boolean hasMethods) {
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-        mv.visitCode();
-        mv.visitVarInsn(ALOAD, 0);
-        mv.visitLdcInsn(Type.getObjectType(targetInternal));
-
-        if (hasMethods) {
-            mv.visitFieldInsn(GETSTATIC, owner, METHOD_NAMES, "[Ljava/lang/String;");
-            mv.visitFieldInsn(GETSTATIC, owner, PARAMETER_TYPES, "[[Ljava/lang/Class;");
-        } else {
-            mv.visitInsn(ACONST_NULL);
-            mv.visitInsn(ACONST_NULL);
-        }
-
-        mv.visitMethodInsn(INVOKESPECIAL, DynamicAccessor.INTERNAL_NAME,
-                "<init>", "(Ljava/lang/Class;[Ljava/lang/String;[[Ljava/lang/Class;)V", false);
-        mv.visitInsn(RETURN);
-        mv.visitMaxs(4, 1);
-        mv.visitEnd();
-    }
-
-    private static void emitInvoke(ClassWriter cw, String targetInternal, ClassInfo info) {
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "invoke", "(Ljava/lang/Object;I[Ljava/lang/Object;)Ljava/lang/Object;", null, null);
-        mv.visitCode();
-        mv.visitVarInsn(ALOAD, 0);
-        mv.visitVarInsn(ILOAD, 2);
-        mv.visitVarInsn(ALOAD, 3);
-        mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                DynamicAccessor.INTERNAL_NAME,
-                "validateInvocation",
-                "(I[Ljava/lang/Object;)V",
-                false
-        );
-        emitMethodSwitch(mv, targetInternal, info);
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
-    }
-
     private static void emitMethodSwitch(MethodVisitor mv, String targetInternal, ClassInfo info) {
         MethodInfo[] methods = info.methods();
         int n = methods.length;
@@ -273,7 +241,7 @@ public class DynamicAccessorGenerator {
             }
             int opcode = Modifier.isStatic(mth.modifiers()) ? INVOKESTATIC
                     : info.isInterface() ? INVOKEINTERFACE
-                    : INVOKEVIRTUAL;
+                      : INVOKEVIRTUAL;
             mv.visitMethodInsn(opcode, targetInternal, mth.name(), mth.descriptor(), info.isInterface());
             emitReturnBoxing(mv, mth.returnType());
         }
@@ -292,17 +260,6 @@ public class DynamicAccessorGenerator {
         mv.visitInsn(ATHROW);
     }
 
-    private static void emitParamUnboxing(MethodVisitor mv, Type t) {
-        int sort = t.getSort();
-        PrimitiveInfo info = PrimitiveInfo.of(sort);
-        if (info != null) {
-            mv.visitTypeInsn(CHECKCAST, info.wrapperInternal);
-            mv.visitMethodInsn(INVOKEVIRTUAL, info.wrapperInternal, info.unboxMethodName, info.unboxDesc, false);
-        } else {
-            mv.visitTypeInsn(CHECKCAST, t.getInternalName());
-        }
-    }
-
     private static void emitIntConstant(MethodVisitor mv, int value) {
         if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
             mv.visitIntInsn(BIPUSH, value);
@@ -313,8 +270,15 @@ public class DynamicAccessorGenerator {
         }
     }
 
-    private static String binaryName(String qualifiedName, String pkg) {
-        return pkg.isEmpty() ? qualifiedName : qualifiedName.substring(pkg.length() + 1);
+    private static void emitParamUnboxing(MethodVisitor mv, Type t) {
+        int sort = t.getSort();
+        PrimitiveInfo info = PrimitiveInfo.of(sort);
+        if (info != null) {
+            mv.visitTypeInsn(CHECKCAST, info.wrapperInternal);
+            mv.visitMethodInsn(INVOKEVIRTUAL, info.wrapperInternal, info.unboxMethodName, info.unboxDesc, false);
+        } else {
+            mv.visitTypeInsn(CHECKCAST, t.getInternalName());
+        }
     }
 
     private static void emitReturnBoxing(MethodVisitor mv, Type rt) {
@@ -328,6 +292,79 @@ public class DynamicAccessorGenerator {
             }
         }
         mv.visitInsn(ARETURN);
+    }
+
+    /**
+     * Generates accessor metadata from a compile-time type element.
+     *
+     * @param type   target type element
+     * @param helper compile-time helper
+     * @return generated accessor metadata
+     */
+    public static GeneratedInfo from(TypeElement type, CompileTimeHelper helper) {
+        String pkg = helper.packageOf(type);
+        String qualifiedName = helper.qualifiedNameOf(type);
+        String name = binaryName(qualifiedName, pkg);
+        List<? extends Element> members = helper.processingEnv().getElementUtils().getAllMembers(type);
+        List<MethodInfo> methods = new ArrayList<>(members.size());
+        for (Element e : members) {
+            if (e instanceof ExecutableElement em
+                    && em.getKind() == ElementKind.METHOD
+                    && em.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)
+                    && !helper.isObjectMethod(em)) {
+                methods.add(MethodInfo.from(em, helper));
+            }
+        }
+        MethodInfo[] infos = methods.toArray(new MethodInfo[0]);
+        ClassInfo info = new ClassInfo(
+                pkg,
+                name,
+                qualifiedName,
+                infos,
+                type.getKind() == ElementKind.INTERFACE
+        );
+        return generate(info, name + DynamicAccessor.SUFFIX);
+    }
+
+    static GeneratedInfo from(Class<?> type, String accessorName) {
+        return generate(classInfo(type), accessorName);
+    }
+
+    private enum PrimitiveInfo {
+        BOOLEAN(Type.BOOLEAN, "java/lang/Boolean", "booleanValue", "()Z", "(Z)Ljava/lang/Boolean;"),
+        BYTE(Type.BYTE, "java/lang/Byte", "byteValue", "()B", "(B)Ljava/lang/Byte;"),
+        CHAR(Type.CHAR, "java/lang/Character", "charValue", "()C", "(C)Ljava/lang/Character;"),
+        SHORT(Type.SHORT, "java/lang/Short", "shortValue", "()S", "(S)Ljava/lang/Short;"),
+        INT(Type.INT, "java/lang/Integer", "intValue", "()I", "(I)Ljava/lang/Integer;"),
+        FLOAT(Type.FLOAT, "java/lang/Float", "floatValue", "()F", "(F)Ljava/lang/Float;"),
+        LONG(Type.LONG, "java/lang/Long", "longValue", "()J", "(J)Ljava/lang/Long;"),
+        DOUBLE(Type.DOUBLE, "java/lang/Double", "doubleValue", "()D", "(D)Ljava/lang/Double;");
+
+        private static final Map<Integer, PrimitiveInfo> SORT_LOOKUP = new HashMap<>();
+
+        static {
+            for (PrimitiveInfo info : values()) {
+                SORT_LOOKUP.put(info.sort, info);
+            }
+        }
+
+        private final int sort;
+        private final String wrapperInternal;
+        private final String unboxMethodName;
+        private final String unboxDesc;
+        private final String boxDesc;
+
+        PrimitiveInfo(int sort, String wrapperInternal, String unboxMethodName, String unboxDesc, String boxDesc) {
+            this.sort = sort;
+            this.wrapperInternal = wrapperInternal;
+            this.unboxMethodName = unboxMethodName;
+            this.unboxDesc = unboxDesc;
+            this.boxDesc = boxDesc;
+        }
+
+        public static PrimitiveInfo of(int sort) {
+            return SORT_LOOKUP.get(sort);
+        }
     }
 
     record ClassInfo(String pkg, String name, String qualifiedName, MethodInfo[] methods, boolean isInterface) {
@@ -360,47 +397,6 @@ public class DynamicAccessorGenerator {
             Type returnType = Type.getType(method.getReturnType());
             String descriptor = Type.getMethodDescriptor(method);
             return new MethodInfo(name, parameterTypes, returnType, descriptor, method.getModifiers());
-        }
-    }
-
-    private enum PrimitiveInfo {
-        BOOLEAN(Type.BOOLEAN, "java/lang/Boolean", "booleanValue", "()Z", "(Z)Ljava/lang/Boolean;"),
-        BYTE(Type.BYTE, "java/lang/Byte", "byteValue", "()B", "(B)Ljava/lang/Byte;"),
-        CHAR(Type.CHAR, "java/lang/Character", "charValue", "()C", "(C)Ljava/lang/Character;"),
-        SHORT(Type.SHORT, "java/lang/Short", "shortValue", "()S", "(S)Ljava/lang/Short;"),
-        INT(Type.INT, "java/lang/Integer", "intValue", "()I", "(I)Ljava/lang/Integer;"),
-        FLOAT(Type.FLOAT, "java/lang/Float", "floatValue", "()F", "(F)Ljava/lang/Float;"),
-        LONG(Type.LONG, "java/lang/Long", "longValue", "()J", "(J)Ljava/lang/Long;"),
-        DOUBLE(Type.DOUBLE, "java/lang/Double", "doubleValue", "()D", "(D)Ljava/lang/Double;");
-
-        private final int sort;
-
-        private final String wrapperInternal;
-
-        private final String unboxMethodName;
-
-        private final String unboxDesc;
-
-        private final String boxDesc;
-
-        PrimitiveInfo(int sort, String wrapperInternal, String unboxMethodName, String unboxDesc, String boxDesc) {
-            this.sort = sort;
-            this.wrapperInternal = wrapperInternal;
-            this.unboxMethodName = unboxMethodName;
-            this.unboxDesc = unboxDesc;
-            this.boxDesc = boxDesc;
-        }
-
-        private static final Map<Integer, PrimitiveInfo> SORT_LOOKUP = new HashMap<>();
-
-        static {
-            for (PrimitiveInfo info : values()) {
-                SORT_LOOKUP.put(info.sort, info);
-            }
-        }
-
-        public static PrimitiveInfo of(int sort) {
-            return SORT_LOOKUP.get(sort);
         }
     }
 }

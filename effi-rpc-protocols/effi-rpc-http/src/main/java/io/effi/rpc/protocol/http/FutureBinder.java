@@ -4,8 +4,8 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.Request;
 import io.effi.rpc.context.ReplyFuture;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.netty.NettySupport;
@@ -31,6 +31,10 @@ public abstract class FutureBinder extends ChannelDuplexHandler {
         }
 
     }
+
+    protected abstract SmartURL supports(Object msg);
+
+    protected abstract void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -61,10 +65,6 @@ public abstract class FutureBinder extends ChannelDuplexHandler {
             ctx.close();
         }
     }
-
-    protected abstract SmartURL supports(Object msg);
-
-    protected abstract void writeHttpRequest(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception;
 
     protected abstract boolean readHttpResponse(ChannelHandlerContext ctx, Object msg, CallContext<Request, Caller<?>> context) throws Exception;
 }

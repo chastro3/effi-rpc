@@ -23,10 +23,6 @@ public final class ImmutableStageChain extends ImmutableInteractionUnitChain<Sta
 
     private static final ImmutableStageChain TAIL = new ImmutableStageChain("empty", TAIL_STAGE, null);
 
-    private ImmutableStageChain(String name, Stage stage, ImmutableStageChain next) {
-        super(name, stage, next);
-    }
-
     /**
      * Creates a stage chain for the given module and stage names.
      *
@@ -39,6 +35,14 @@ public final class ImmutableStageChain extends ImmutableInteractionUnitChain<Sta
         return init(module, ImmutableStageChain::lookupStage, names, ImmutableStageChain::new, TAIL);
     }
 
+    private static Stage lookupStage(ScopedModule module, String name) {
+        return module.namedExtension(Stage.class, name);
+    }
+
+    private ImmutableStageChain(String name, Stage stage, ImmutableStageChain next) {
+        super(name, stage, next);
+    }
+
     /**
      * Initializes a stage chain from the given stage map.
      *
@@ -47,10 +51,6 @@ public final class ImmutableStageChain extends ImmutableInteractionUnitChain<Sta
      */
     public static ImmutableStageChain init(Map<String, Stage> stages) {
         return init(stages, ImmutableStageChain::new, TAIL);
-    }
-
-    private static Stage lookupStage(ScopedModule module, String name) {
-        return module.namedExtension(Stage.class, name);
     }
 
     @SuppressWarnings("unchecked")

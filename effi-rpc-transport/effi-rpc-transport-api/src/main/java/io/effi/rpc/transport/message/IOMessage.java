@@ -12,15 +12,15 @@ import io.effi.rpc.transport.endpoint.Channel;
  */
 public interface IOMessage extends Message, TransportProtocol.Supplier, AutoCloseable {
 
-    /**
-     * Returns the associated channel.
-     */
-    Channel channel();
-
     @Override
     default TransportProtocol protocol() {
         return channel().protocol();
     }
+
+    /**
+     * Returns the associated channel.
+     */
+    Channel channel();
 
     /**
      * Releases resources associated with this message.

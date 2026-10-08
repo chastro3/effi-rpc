@@ -1,9 +1,9 @@
 package io.effi.rpc.component.transport.support;
 
 import io.effi.rpc.component.transport.CertificateConfig;
+import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.FileUtil;
-import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.StringUtil;
 
 import java.io.FileInputStream;
@@ -110,6 +110,15 @@ public class DefaultCertificateConfig implements CertificateConfig {
             return self();
         }
 
+        private byte[] readFileBytes(String path) {
+            AssertUtil.notBlank(path, "path");
+            try {
+                return FileUtil.toBytes(new FileInputStream(path));
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to read bytes from '" + path + "'", e);
+            }
+        }
+
         /**
          * Reads the certificate chain from an input stream.
          *
@@ -119,6 +128,15 @@ public class DefaultCertificateConfig implements CertificateConfig {
         public Builder certChain(InputStream certChain) {
             this.certChain = readStreamBytes(certChain, "certChain");
             return self();
+        }
+
+        private byte[] readStreamBytes(InputStream stream, String info) {
+            AssertUtil.notNull(stream, "stream");
+            try {
+                return FileUtil.toBytes(stream);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to read bytes from '" + info + "'", e);
+            }
         }
 
         /**
@@ -190,24 +208,6 @@ public class DefaultCertificateConfig implements CertificateConfig {
         @Override
         public DefaultCertificateConfig build() {
             return new DefaultCertificateConfig(this);
-        }
-
-        private byte[] readFileBytes(String path) {
-            AssertUtil.notBlank(path, "path");
-            try {
-                return FileUtil.toBytes(new FileInputStream(path));
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed to read bytes from '" + path + "'", e);
-            }
-        }
-
-        private byte[] readStreamBytes(InputStream stream, String info) {
-            AssertUtil.notNull(stream, "stream");
-            try {
-                return FileUtil.toBytes(stream);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed to read bytes from '" + info + "'", e);
-            }
         }
     }
 

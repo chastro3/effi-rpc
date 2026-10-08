@@ -50,12 +50,12 @@ final class PublisherGate {
         return true;
     }
 
-    void end() {
-        publisherCount.decrementAndGet();
-    }
-
     boolean canPublish() {
         return !closed.get() && !failed.get() && accepting.get();
+    }
+
+    void end() {
+        publisherCount.decrementAndGet();
     }
 
     boolean close() {
@@ -65,6 +65,16 @@ final class PublisherGate {
         accepting.set(false);
         awaitPublishers();
         return true;
+    }
+
+    private void awaitPublishers() {
+        long deadline = System.nanoTime() + CLOSE_WAIT_MILLIS * 1_000_000L;
+        while (publisherCount.get() != 0 && System.nanoTime() < deadline) {
+            LockSupport.parkNanos(WAIT_PARK_NANOS);
+        }
+        if (publisherCount.get() != 0) {
+            logger.warn("Event bus closed with {} publisher(s) still active", publisherCount.get());
+        }
     }
 
     boolean fail(Throwable failure) {
@@ -86,15 +96,5 @@ final class PublisherGate {
 
     Throwable failure() {
         return failure;
-    }
-
-    private void awaitPublishers() {
-        long deadline = System.nanoTime() + CLOSE_WAIT_MILLIS * 1_000_000L;
-        while (publisherCount.get() != 0 && System.nanoTime() < deadline) {
-            LockSupport.parkNanos(WAIT_PARK_NANOS);
-        }
-        if (publisherCount.get() != 0) {
-            logger.warn("Event bus closed with {} publisher(s) still active", publisherCount.get());
-        }
     }
 }

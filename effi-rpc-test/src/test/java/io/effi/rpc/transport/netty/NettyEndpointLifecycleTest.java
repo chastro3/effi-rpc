@@ -59,26 +59,6 @@ class NettyEndpointLifecycleTest {
         assertFalse(channel.active());
     }
 
-    @Test
-    void idleChannelClosesWithoutInboundTraffic() throws Exception {
-        Http1Client client = start(100, 1);
-        NettyChannel channel = fetchChannel(client);
-        assertTrue(channel.active());
-
-        await(() -> !channel.active(), "idle channel was not closed");
-    }
-
-    @Test
-    void serverIsInactiveAfterClose() throws Exception {
-        start(5000, 6);
-        assertTrue(server.active());
-
-        server.close();
-
-        assertFalse(server.active());
-        server = null;
-    }
-
     private Http1Client start(int idleTriggerInterval, int idleCountThreshold) throws Exception {
         platform = new ScopedPlatform("netty-lifecycle-" + PLATFORM_IDS.incrementAndGet());
         TransportProtocol protocol = platform.namedExtension(TransportProtocol.class, Http1Protocol.NAME);
@@ -119,5 +99,25 @@ class NettyEndpointLifecycleTest {
             Thread.sleep(10);
         }
         assertTrue(condition.getAsBoolean(), message);
+    }
+
+    @Test
+    void idleChannelClosesWithoutInboundTraffic() throws Exception {
+        Http1Client client = start(100, 1);
+        NettyChannel channel = fetchChannel(client);
+        assertTrue(channel.active());
+
+        await(() -> !channel.active(), "idle channel was not closed");
+    }
+
+    @Test
+    void serverIsInactiveAfterClose() throws Exception {
+        start(5000, 6);
+        assertTrue(server.active());
+
+        server.close();
+
+        assertFalse(server.active());
+        server = null;
     }
 }

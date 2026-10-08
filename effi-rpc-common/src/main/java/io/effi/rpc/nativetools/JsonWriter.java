@@ -21,14 +21,14 @@ public class JsonWriter implements Closeable {
 
     private int level = 0;
 
+    public JsonWriter(Writer writer) {
+        this(writer, "  ", true);
+    }
+
     public JsonWriter(Writer writer, String indentUnit, boolean pretty) {
         this.out = writer;
         this.indentUnit = indentUnit;
         this.pretty = pretty;
-    }
-
-    public JsonWriter(Writer writer) {
-        this(writer, "  ", true);
     }
 
     public JsonWriter write(Object obj) throws IOException {

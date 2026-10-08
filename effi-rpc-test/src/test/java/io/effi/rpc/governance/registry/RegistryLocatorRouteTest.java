@@ -59,13 +59,6 @@ class RegistryLocatorRouteTest {
         }
     }
 
-    private static RegistryConfig consulConfig() {
-        return DefaultRegistryConfig.builder()
-                .type("consul")
-                .address("consul://127.0.0.1:8500")
-                .build();
-    }
-
     private static ServiceInstance instance() {
         return DefaultServiceInstance.builder()
                 .id("test-instance")
@@ -76,14 +69,11 @@ class RegistryLocatorRouteTest {
                 .build();
     }
 
-    private static long counter(MetricsSnapshot snapshot, MetricKey key) {
-        return snapshot.samples().stream()
-                .filter(CounterSample.class::isInstance)
-                .map(CounterSample.class::cast)
-                .filter(sample -> sample.key().equals(key))
-                .mapToLong(CounterSample::value)
-                .findFirst()
-                .orElse(0L);
+    private static RegistryConfig consulConfig() {
+        return DefaultRegistryConfig.builder()
+                .type("consul")
+                .address("consul://127.0.0.1:8500")
+                .build();
     }
 
     @SuppressWarnings("unchecked")
@@ -115,6 +105,16 @@ class RegistryLocatorRouteTest {
                 null,
                 new Object[0]
         );
+    }
+
+    private static long counter(MetricsSnapshot snapshot, MetricKey key) {
+        return snapshot.samples().stream()
+                .filter(CounterSample.class::isInstance)
+                .map(CounterSample.class::cast)
+                .filter(sample -> sample.key().equals(key))
+                .mapToLong(CounterSample::value)
+                .findFirst()
+                .orElse(0L);
     }
 
     private static Object defaultValue(Class<?> type) {

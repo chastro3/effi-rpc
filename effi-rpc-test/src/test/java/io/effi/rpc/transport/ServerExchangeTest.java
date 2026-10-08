@@ -27,16 +27,6 @@ class ServerExchangeTest {
         assertEquals(0, creates.get());
     }
 
-    @Test
-    void errorResponseIsEncodedByServerCodecAndSentThroughChannel() {
-        AtomicInteger sends = new AtomicInteger();
-        ServerExchange exchange = exchange(true, new AtomicInteger(), sends);
-
-        exchange.fail(PredefinedErrorCode.COMMON.fail("failure"));
-
-        assertEquals(1, sends.get());
-    }
-
     private static ServerExchange exchange(
             boolean needReply,
             AtomicInteger creates,
@@ -109,5 +99,15 @@ class ServerExchangeTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void errorResponseIsEncodedByServerCodecAndSentThroughChannel() {
+        AtomicInteger sends = new AtomicInteger();
+        ServerExchange exchange = exchange(true, new AtomicInteger(), sends);
+
+        exchange.fail(PredefinedErrorCode.COMMON.fail("failure"));
+
+        assertEquals(1, sends.get());
     }
 }

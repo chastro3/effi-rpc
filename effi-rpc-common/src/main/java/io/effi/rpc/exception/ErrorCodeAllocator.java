@@ -24,8 +24,8 @@ public final class ErrorCodeAllocator {
     /**
      * Creates an {@link ErrorCodeAllocator} with the specified prefix, starting number, and code length.
      *
-     * @param prefix    the prefix for error codes, must not be blank
-     * @param startFrom the starting number for code generation
+     * @param prefix     the prefix for error codes, must not be blank
+     * @param startFrom  the starting number for code generation
      * @param codeLength the length of the numeric part of the code
      * @throws IllegalArgumentException if codeLength is <= 0
      */

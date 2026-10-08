@@ -57,6 +57,33 @@ public abstract class HttpProtocol extends AbstractProtocol {
         initialize(version().name(), ProtocolStack.TCP, createServerCodec(), createClientCodec());
     }
 
+    public HttpVersion version() {
+        return version;
+    }
+
+    private ServerExchangeContextCodec createServerCodec() {
+        HttpServerCodec serverCodec = new HttpServerCodec();
+        return new ConfigurableServerCodec<HttpResponse, HttpRequest>()
+                .encoder(serverCodec)
+                .decoder(serverCodec)
+                .callContextResolver(new HttpCallContextResolver());
+    }
+
+    private ClientExchangeContextCodec createClientCodec() {
+        HttpClientCodec clientCodec = new HttpClientCodec();
+        return new ConfigurableClientCodec<HttpRequest, HttpResponse>()
+                .encoder(clientCodec)
+                .decoder(clientCodec)
+                .resultExtractor(this::extractResult);
+    }
+
+    private Interaction.Result extractResult(HttpResponse response) {
+        if (response.succeeded()) {
+            return Interaction.Result.success(response.url(), response.body());
+        }
+        return Interaction.Result.failure(response.url(), response.cause());
+    }
+
     @Override
     public Request createRequest(Caller<?> caller, Invocation invocation) {
         if (caller instanceof HttpCaller<?> httpCaller) {
@@ -109,6 +136,42 @@ public abstract class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
+    public Class<? extends Request> requestType() {
+        return HttpRequest.class;
+    }
+
+    @Override
+    public Class<? extends Response> responseType() {
+        return HttpResponse.class;
+    }
+
+    private static int errorStatus(EffiRpcException cause) {
+        if (cause.errorCode() == InteractionErrorCodes.SERVANT_NOT_FOUND) {
+            return 404;
+        }
+        if (cause.errorCode() == PredefinedErrorCode.SERVICE_UNAVAILABLE
+                || cause.errorCode() == InteractionErrorCodes.SERVER_OVERLOADED) {
+            return 503;
+        }
+        return 500;
+    }
+
+    private SmartURL createRequestUrl(Caller<?> caller, Map<String, String> pathVariables, Map<String, String> queryParameters) {
+        String[] realPath = caller.queryPath().render(pathVariables);
+        return SmartURL.builder()
+                .scheme(caller.protocol().name())
+                .queryParams(queryParameters)
+                .path(QueryPath.valueOf(Arrays.asList(realPath)))
+                .build();
+    }
+
+    private Object requestBody(Invocation invocation) {
+        return invocation.arguments().isEmpty()
+                ? invocation.get(HttpInvocationKeys.BODY)
+                : invocation.arguments().values();
+    }
+
+    @Override
     public ScopedModule lookupModule(InputMessage inputMessage) {
         HttpDuplexRequest httpRequest = (HttpDuplexRequest) inputMessage;
         ScopedPlatform platform = inputMessage.channel()
@@ -147,69 +210,6 @@ public abstract class HttpProtocol extends AbstractProtocol {
                 .headers(headers)
                 .body(cause.getMessage())
                 .build();
-    }
-
-    @Override
-    public Class<? extends Request> requestType() {
-        return HttpRequest.class;
-    }
-
-    @Override
-    public Class<? extends Response> responseType() {
-        return HttpResponse.class;
-    }
-
-    public HttpVersion version() {
-        return version;
-    }
-
-    private SmartURL createRequestUrl(Caller<?> caller, Map<String, String> pathVariables, Map<String, String> queryParameters) {
-        String[] realPath = caller.queryPath().render(pathVariables);
-        return SmartURL.builder()
-                .scheme(caller.protocol().name())
-                .queryParams(queryParameters)
-                .path(QueryPath.valueOf(Arrays.asList(realPath)))
-                .build();
-    }
-
-    private Object requestBody(Invocation invocation) {
-        return invocation.arguments().isEmpty()
-                ? invocation.get(HttpInvocationKeys.BODY)
-                : invocation.arguments().values();
-    }
-
-    private ClientExchangeContextCodec createClientCodec() {
-        HttpClientCodec clientCodec = new HttpClientCodec();
-        return new ConfigurableClientCodec<HttpRequest, HttpResponse>()
-                .encoder(clientCodec)
-                .decoder(clientCodec)
-                .resultExtractor(this::extractResult);
-    }
-
-    private ServerExchangeContextCodec createServerCodec() {
-        HttpServerCodec serverCodec = new HttpServerCodec();
-        return new ConfigurableServerCodec<HttpResponse, HttpRequest>()
-                .encoder(serverCodec)
-                .decoder(serverCodec)
-                .callContextResolver(new HttpCallContextResolver());
-    }
-
-    private Interaction.Result extractResult(HttpResponse response) {
-        if (response.succeeded()) {
-            return Interaction.Result.success(response.url(), response.body());
-        }
-        return Interaction.Result.failure(response.url(), response.cause());
-    }
-
-    private static int errorStatus(EffiRpcException cause) {
-        if (cause.errorCode() == InteractionErrorCodes.SERVANT_NOT_FOUND) {
-            return 404;
-        }
-        if (cause.errorCode() == PredefinedErrorCode.SERVICE_UNAVAILABLE
-                || cause.errorCode() == InteractionErrorCodes.SERVER_OVERLOADED) {
-            return 503;
-        }
-        return 500;
     }
 
 }

@@ -19,14 +19,6 @@ public interface Future<T> {
     boolean completed();
 
     /**
-     * Registers a callback invoked with the terminal result.
-     *
-     * @param callback completion callback
-     * @return this future
-     */
-    Future<T> onComplete(Consumer<Result<T>> callback);
-
-    /**
      * Registers a callback invoked with the terminal result through an executor.
      *
      * @param executor callback executor
@@ -57,14 +49,6 @@ public interface Future<T> {
     Result<T> await(Deadline deadline) throws InterruptedException;
 
     /**
-     * Attempts to cancel this future.
-     *
-     * @param reason cancellation reason
-     * @return {@code true} when this call transitioned the future to cancelled
-     */
-    boolean cancel(EffiRpcException reason);
-
-    /**
      * Returns a {@link CompletableFuture} adapted from this future.
      * <p>
      * Cancelling the returned future propagates cancellation back to this future.
@@ -89,4 +73,20 @@ public interface Future<T> {
         });
         return adapted;
     }
+
+    /**
+     * Attempts to cancel this future.
+     *
+     * @param reason cancellation reason
+     * @return {@code true} when this call transitioned the future to cancelled
+     */
+    boolean cancel(EffiRpcException reason);
+
+    /**
+     * Registers a callback invoked with the terminal result.
+     *
+     * @param callback completion callback
+     * @return this future
+     */
+    Future<T> onComplete(Consumer<Result<T>> callback);
 }

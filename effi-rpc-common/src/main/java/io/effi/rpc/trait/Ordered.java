@@ -39,13 +39,20 @@ public interface Ordered {
     }
 
     /**
+     * Returns the precedence value, where lower values run first.
+     */
+    default int order() {
+        return DEFAULT;
+    }
+
+    /**
      * Sorts map entries by ascending order value and maps each value.
      *
-     * @param map source map
+     * @param map    source map
      * @param mapper value mapper
-     * @param <K> key type
-     * @param <V> ordered value type
-     * @param <R> mapped value type
+     * @param <K>    key type
+     * @param <V>    ordered value type
+     * @param <R>    mapped value type
      * @return insertion-ordered map containing mapped values
      */
     static <K, V extends Ordered, R> Map<K, R> sort(Map<K, V> map, Function<V, R> mapper) {
@@ -60,13 +67,6 @@ public interface Ordered {
             result.put(entry.getKey(), mapper.apply(entry.getValue()));
         }
         return result;
-    }
-
-    /**
-     * Returns the precedence value, where lower values run first.
-     */
-    default int order() {
-        return DEFAULT;
     }
 }
 

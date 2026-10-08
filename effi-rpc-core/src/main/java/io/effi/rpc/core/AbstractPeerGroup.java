@@ -21,10 +21,8 @@ import java.util.Map;
  */
 public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<P, T> {
 
-    protected Class<T> targetType;
-
     protected final Map<String, P> values = new LinkedHashMap<>();
-
+    protected Class<T> targetType;
     protected HierarchicalOptions options;
 
     protected AbstractPeerGroup() {
@@ -52,13 +50,13 @@ public abstract class AbstractPeerGroup<P extends Peer, T> implements PeerGroup<
     }
 
     @Override
-    public HierarchicalOptions options() {
-        return options;
+    public Collection<P> values() {
+        return Collections.unmodifiableCollection(values.values());
     }
 
     @Override
-    public Collection<P> values() {
-        return Collections.unmodifiableCollection(values.values());
+    public HierarchicalOptions options() {
+        return options;
     }
 
     protected void onInitialized(Class<T> targetType) {

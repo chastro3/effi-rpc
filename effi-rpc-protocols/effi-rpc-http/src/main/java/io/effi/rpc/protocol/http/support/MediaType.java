@@ -31,6 +31,10 @@ public enum MediaType {
         return null;
     }
 
+    public CharSequence contentType() {
+        return contentType;
+    }
+
     public static MediaType fromSerialization(String serialization) {
         if (serialization == null) return null;
         for (MediaType value : MediaType.values()) {
@@ -39,10 +43,6 @@ public enum MediaType {
             }
         }
         return null;
-    }
-
-    public CharSequence contentType() {
-        return contentType;
     }
 
     public String serialization() {

@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,63 +36,6 @@ class WeightedLoadBalancerTest {
         assertSame(high, loadBalancer.select(context, instances));
         assertSame(high, loadBalancer.select(context, instances));
         assertSame(low, loadBalancer.select(context, instances));
-    }
-
-    @Test
-    void weightedRoundRobinTreatsInvalidWeightAsOne() {
-        CallContext<Request, Caller<?>> context = context();
-        ServiceInstance invalid = instance("invalid", "abc");
-        ServiceInstance zero = instance("zero", "0");
-        List<ServiceInstance> instances = List.of(invalid, zero);
-        WeightedRoundRobinLoadBalancer loadBalancer = new WeightedRoundRobinLoadBalancer();
-
-        assertSame(invalid, loadBalancer.select(context, instances));
-        assertSame(zero, loadBalancer.select(context, instances));
-        assertSame(invalid, loadBalancer.select(context, instances));
-        assertSame(zero, loadBalancer.select(context, instances));
-    }
-
-    @Test
-    void weightedRandomSamplesAccordingToWeights() {
-        CallContext<Request, Caller<?>> context = context();
-        ServiceInstance low = instance("low", "1");
-        ServiceInstance high = instance("high", "9");
-        List<ServiceInstance> instances = List.of(low, high);
-        WeightedRandomLoadBalancer loadBalancer = new WeightedRandomLoadBalancer();
-        int lowCount = 0;
-
-        for (int i = 0; i < 1000; i++) {
-            if (loadBalancer.select(context, instances) == low) {
-                lowCount++;
-            }
-        }
-
-        assertTrue(lowCount > 50 && lowCount < 200, "unexpected weighted distribution: " + lowCount);
-    }
-
-    @Test
-    void consistentHashKeepsExplicitHashKeyOnSameInstance() {
-        CallContext<Request, Caller<?>> context = context();
-        context.set(KeyConstant.HASH_KEY, "user-1");
-        List<ServiceInstance> instances = List.of(instance("a", "1"), instance("b", "1"), instance("c", "1"));
-        ConsistentHashLoadBalancer loadBalancer = new ConsistentHashLoadBalancer();
-
-        ServiceInstance selected = loadBalancer.select(context, instances);
-
-        for (int i = 0; i < 10; i++) {
-            assertSame(selected, loadBalancer.select(context, instances));
-        }
-    }
-
-    @Test
-    void consistentHashRejectsMissingHashKey() {
-        CallContext<Request, Caller<?>> context = context();
-        List<ServiceInstance> instances = List.of(instance("a", "1"), instance("b", "1"));
-
-        EffiRpcException failure = assertThrows(EffiRpcException.class,
-                () -> new ConsistentHashLoadBalancer().select(context, instances));
-
-        assertEquals(GovernanceErrorCodes.HASH_KEY_REQUIRED, failure.errorCode());
     }
 
     @SuppressWarnings("unchecked")
@@ -169,5 +112,62 @@ class WeightedLoadBalancerTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void weightedRoundRobinTreatsInvalidWeightAsOne() {
+        CallContext<Request, Caller<?>> context = context();
+        ServiceInstance invalid = instance("invalid", "abc");
+        ServiceInstance zero = instance("zero", "0");
+        List<ServiceInstance> instances = List.of(invalid, zero);
+        WeightedRoundRobinLoadBalancer loadBalancer = new WeightedRoundRobinLoadBalancer();
+
+        assertSame(invalid, loadBalancer.select(context, instances));
+        assertSame(zero, loadBalancer.select(context, instances));
+        assertSame(invalid, loadBalancer.select(context, instances));
+        assertSame(zero, loadBalancer.select(context, instances));
+    }
+
+    @Test
+    void weightedRandomSamplesAccordingToWeights() {
+        CallContext<Request, Caller<?>> context = context();
+        ServiceInstance low = instance("low", "1");
+        ServiceInstance high = instance("high", "9");
+        List<ServiceInstance> instances = List.of(low, high);
+        WeightedRandomLoadBalancer loadBalancer = new WeightedRandomLoadBalancer();
+        int lowCount = 0;
+
+        for (int i = 0; i < 1000; i++) {
+            if (loadBalancer.select(context, instances) == low) {
+                lowCount++;
+            }
+        }
+
+        assertTrue(lowCount > 50 && lowCount < 200, "unexpected weighted distribution: " + lowCount);
+    }
+
+    @Test
+    void consistentHashKeepsExplicitHashKeyOnSameInstance() {
+        CallContext<Request, Caller<?>> context = context();
+        context.set(KeyConstant.HASH_KEY, "user-1");
+        List<ServiceInstance> instances = List.of(instance("a", "1"), instance("b", "1"), instance("c", "1"));
+        ConsistentHashLoadBalancer loadBalancer = new ConsistentHashLoadBalancer();
+
+        ServiceInstance selected = loadBalancer.select(context, instances);
+
+        for (int i = 0; i < 10; i++) {
+            assertSame(selected, loadBalancer.select(context, instances));
+        }
+    }
+
+    @Test
+    void consistentHashRejectsMissingHashKey() {
+        CallContext<Request, Caller<?>> context = context();
+        List<ServiceInstance> instances = List.of(instance("a", "1"), instance("b", "1"));
+
+        EffiRpcException failure = assertThrows(EffiRpcException.class,
+                () -> new ConsistentHashLoadBalancer().select(context, instances));
+
+        assertEquals(GovernanceErrorCodes.HASH_KEY_REQUIRED, failure.errorCode());
     }
 }

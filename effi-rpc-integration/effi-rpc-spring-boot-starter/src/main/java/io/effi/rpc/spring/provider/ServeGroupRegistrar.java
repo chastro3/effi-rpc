@@ -1,14 +1,14 @@
 package io.effi.rpc.spring.provider;
 
 import io.effi.rpc.annotation.rpc.ServeGroup;
-import io.effi.rpc.core.AnnotationSupport;
-import io.effi.rpc.core.InterfaceServantGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.serialization.options.CompressionOptions;
 import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.options.ServantOptions;
 import io.effi.rpc.context.options.ThreadPoolOptions;
+import io.effi.rpc.core.AnnotationSupport;
+import io.effi.rpc.core.InterfaceServantGroup;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import io.effi.rpc.util.CollectionUtil;
@@ -70,13 +70,6 @@ public final class ServeGroupRegistrar implements BeanPostProcessor, SmartInitia
         return bean;
     }
 
-    @Override
-    public void afterSingletonsInstantiated() {
-        candidates.forEach(this::register);
-        candidates.clear();
-        ready = true;
-    }
-
     private void register(ServeGroupCandidate candidate) {
         String beanName = candidate.beanName();
         Object bean = candidate.bean();
@@ -110,16 +103,6 @@ public final class ServeGroupRegistrar implements BeanPostProcessor, SmartInitia
         }
         throw new IllegalStateException("@ServeGroup on '" + targetClass.getName()
                 + "' must declare interfaces when it implements " + candidates.size() + " business interfaces");
-    }
-
-    // Framework interfaces are excluded because they are not RPC contracts.
-    private boolean isBusinessInterface(Class<?> candidate) {
-        String name = candidate.getName();
-        return !name.startsWith("java.")
-                && !name.startsWith("javax.")
-                && !name.startsWith("jakarta.")
-                && !name.startsWith("org.springframework.")
-                && !name.startsWith("io.effi.rpc.");
     }
 
     private List<String> resolveProtocols(ServeGroup annotation, EffiRpcProperties.Provider provider) {
@@ -177,8 +160,25 @@ public final class ServeGroupRegistrar implements BeanPostProcessor, SmartInitia
                 .build();
     }
 
+    // Framework interfaces are excluded because they are not RPC contracts.
+    private boolean isBusinessInterface(Class<?> candidate) {
+        String name = candidate.getName();
+        return !name.startsWith("java.")
+                && !name.startsWith("javax.")
+                && !name.startsWith("jakarta.")
+                && !name.startsWith("org.springframework.")
+                && !name.startsWith("io.effi.rpc.");
+    }
+
     private String value(String primary, String fallback) {
         return StringUtil.isNotBlank(primary) ? primary : fallback;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        candidates.forEach(this::register);
+        candidates.clear();
+        ready = true;
     }
 
     private record ServeGroupCandidate(String beanName, Object bean, ServeGroup annotation) {

@@ -16,18 +16,22 @@ import java.util.List;
 @ServeGroup
 public class HelloService extends CallLogInterceptor {
 
+    private int i = 0;
+
+    public static void helloStatic(String name) {
+        System.out.println("helloStatic " + name);
+    }
+
     public String hello(String name) {
         Chain chain = null;
         return "Hello " + name;
     }
 
-    private int i = 0;
     @GET
     @Path("hello")
     public String hello(@QueryParam("name") String name, @QueryParam("age") Integer age) {
         return "hello " + name + ", age:" + age;
     }
-
 
     @Override
     public String toString() {
@@ -40,15 +44,11 @@ public class HelloService extends CallLogInterceptor {
     public List<ParentObject> helloList(@QueryParam("name") String name,
                                         @HeaderParam("content-type") String contentType,
                                         @Body List<ParentObject> list) {
-//        System.out.println("i:-------" + i++);
-//        if (i < 3) {
-//            int i = 1 / 0;
-//        }
+        //        System.out.println("i:-------" + i++);
+        //        if (i < 3) {
+        //            int i = 1 / 0;
+        //        }
         return ParentObject.getObjList("provider list");
-    }
-
-    public static void helloStatic(String name) {
-        System.out.println("helloStatic " + name);
     }
 
 }

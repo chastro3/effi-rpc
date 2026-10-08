@@ -28,13 +28,13 @@ public interface ServiceRegistrar extends ScopedApplication.Supplier, Closeable 
      */
     Future<Void> register();
 
-    /**
-     * Deregisters every owned service instance and completes when the batch finishes.
-     */
-    Future<Void> deregister();
-
     @Override
     default void close() {
         deregister();
     }
+
+    /**
+     * Deregisters every owned service instance and completes when the batch finishes.
+     */
+    Future<Void> deregister();
 }

@@ -35,7 +35,7 @@ public final class URLUtil {
     /**
      * Converts a map of parameters into a query string with URL encoding using the specified encoding.
      *
-     * @param params query parameters
+     * @param params   query parameters
      * @param encoding character encoding name
      * @return encoded query string
      * @throws UnsupportedEncodingException if the encoding is unsupported
@@ -83,7 +83,7 @@ public final class URLUtil {
      * Invalid formats are ignored without exceptions.
      *
      * @param paramsString query parameter string
-     * @param encoding character encoding name
+     * @param encoding     character encoding name
      * @return decoded query parameters, or {@code null} when none are present
      * @throws UnsupportedEncodingException if the encoding is unsupported
      */

@@ -65,8 +65,8 @@ public final class ComponentDescriptor {
     /**
      * Ensures a component descriptor exists for the given type and scoped context.
      *
-     * @param type           the component type to validate
-     * @param scopedContext  the scoped context to check compatibility
+     * @param type          the component type to validate
+     * @param scopedContext the scoped context to check compatibility
      * @return the component descriptor if valid
      * @throws IllegalArgumentException if descriptor is missing or scope is incompatible
      */
@@ -103,13 +103,6 @@ public final class ComponentDescriptor {
     }
 
     /**
-     * Returns the component registration kind.
-     */
-    public Kind kind() {
-        return kind;
-    }
-
-    /**
      * Returns the scoped context type required by the component.
      */
     public Class<? extends ScopedContext> scopedContextType() {
@@ -119,13 +112,6 @@ public final class ComponentDescriptor {
             case MODULE -> ScopedModule.class;
             default -> ScopedContext.class;
         };
-    }
-
-    /**
-     * Returns whether the component uses single-instance registration.
-     */
-    public boolean single() {
-        return kind == Kind.SINGLE;
     }
 
     private static EnumMap<Scope, EnumMap<Kind, ComponentDescriptor>> createCache() {
@@ -138,10 +124,6 @@ public final class ComponentDescriptor {
             cache.put(s, inner);
         }
         return cache;
-    }
-
-    private static ComponentDescriptor cached(Scope scope, Kind kind) {
-        return CACHE.get(scope).get(kind);
     }
 
     private static Map<Class<?>, ComponentDescriptor> loadComponentDescriptors() {
@@ -170,5 +152,23 @@ public final class ComponentDescriptor {
             throw new IllegalStateException(Messages.parseFile(DESCRIPTOR_FILE), e);
         }
         return map;
+    }
+
+    private static ComponentDescriptor cached(Scope scope, Kind kind) {
+        return CACHE.get(scope).get(kind);
+    }
+
+    /**
+     * Returns the component registration kind.
+     */
+    public Kind kind() {
+        return kind;
+    }
+
+    /**
+     * Returns whether the component uses single-instance registration.
+     */
+    public boolean single() {
+        return kind == Kind.SINGLE;
     }
 }

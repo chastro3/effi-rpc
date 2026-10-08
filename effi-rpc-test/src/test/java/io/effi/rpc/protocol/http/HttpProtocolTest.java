@@ -1,7 +1,7 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.exception.EffiRpcException;
@@ -15,8 +15,8 @@ import io.effi.rpc.protocol.http.support.HttpResponse;
 import io.effi.rpc.protocol.http.support.HttpUtil;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.util.TypeCapture;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.jupiter.api.Test;
 
@@ -77,22 +77,6 @@ class HttpProtocolTest {
         assertTrue(failure.getMessage().contains("overloaded"));
     }
 
-    @Test
-    void advertisesOnlySupportedMediaTypes() {
-        ScopedPlatform platform = new ScopedPlatform("http-accept-platform");
-        try {
-            HttpHeaders headers = Http1Protocol.VERSION.newHeaders();
-            HttpUtil.addRegularRequestHeaders(headers, platform);
-
-            String accept = headers.get(HttpHeaderNames.ACCEPT).toString();
-            assertTrue(accept.contains("application/json"));
-            assertFalse(accept.contains("application/msgpack"));
-            assertFalse(accept.contains("application/text"));
-        } finally {
-            platform.close();
-        }
-    }
-
     private static Channel channel(ScopedPlatform platform) {
         return proxy(Channel.class, (proxy, method, args) -> {
             if ("platform".equals(method.getName())) {
@@ -133,5 +117,21 @@ class HttpProtocolTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void advertisesOnlySupportedMediaTypes() {
+        ScopedPlatform platform = new ScopedPlatform("http-accept-platform");
+        try {
+            HttpHeaders headers = Http1Protocol.VERSION.newHeaders();
+            HttpUtil.addRegularRequestHeaders(headers, platform);
+
+            String accept = headers.get(HttpHeaderNames.ACCEPT).toString();
+            assertTrue(accept.contains("application/json"));
+            assertFalse(accept.contains("application/msgpack"));
+            assertFalse(accept.contains("application/text"));
+        } finally {
+            platform.close();
+        }
     }
 }

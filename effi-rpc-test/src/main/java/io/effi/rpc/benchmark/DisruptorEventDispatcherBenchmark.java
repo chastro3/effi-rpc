@@ -38,6 +38,13 @@ public class DisruptorEventDispatcherBenchmark {
 
     private RingBuffer<EventHolder> ringBuffer;
 
+    public static void main(String[] args) throws RunnerException {
+        Options options = new OptionsBuilder()
+                .include(DisruptorEventDispatcherBenchmark.class.getSimpleName())
+                .build();
+        new Runner(options).run();
+    }
+
     @Setup(Level.Trial)
     public void setup() {
         disruptor = new Disruptor<>(
@@ -81,12 +88,5 @@ public class DisruptorEventDispatcherBenchmark {
         private void set(PayloadEvent event) {
             this.event = event;
         }
-    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options options = new OptionsBuilder()
-                .include(DisruptorEventDispatcherBenchmark.class.getSimpleName())
-                .build();
-        new Runner(options).run();
     }
 }

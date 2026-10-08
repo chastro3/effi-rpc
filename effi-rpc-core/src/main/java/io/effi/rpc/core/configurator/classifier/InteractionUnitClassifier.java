@@ -1,10 +1,10 @@
 package io.effi.rpc.core.configurator.classifier;
 
-import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.core.PeerDescriptor;
+import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.UnitType;
+import io.effi.rpc.core.PeerDescriptor;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
 
@@ -99,9 +99,9 @@ public class InteractionUnitClassifier<T extends Interaction.Unit> {
         /**
          * Tests whether the unit matches this rule.
          *
-         * @param name extension name
-         * @param unit interaction unit
-         * @param unitType extracted unit type
+         * @param name       extension name
+         * @param unit       interaction unit
+         * @param unitType   extracted unit type
          * @param classifier owning classifier
          * @return {@code true} when the unit matches
          */
@@ -126,8 +126,8 @@ public class InteractionUnitClassifier<T extends Interaction.Unit> {
          * Creates a handler from the supplied rule and consumer.
          *
          * @param predicate classification rule
-         * @param consumer matching unit consumer
-         * @param <T> interaction unit type
+         * @param consumer  matching unit consumer
+         * @param <T>       interaction unit type
          * @return classifier handler
          */
         public static <T extends Interaction.Unit> Handler<T> of(Rule<T> predicate, BiConsumer<String, T> consumer) {

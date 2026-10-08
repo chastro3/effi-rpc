@@ -39,6 +39,23 @@ public class SerializationTest {
 
     byte[] jsonBytes;
 
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(SerializationTest.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
+
+    //    @Benchmark
+    //    public byte[] serializeByJson() {
+    //        return jsonSerializer.serialize(ParentObject.getObjList());
+    //    }
+    //
+    //    @Benchmark
+    //    public Object deserializeByJson() {
+    //        return jsonSerializer.deserialize(jsonBytes, type);
+    //    }
+
     @Setup(Level.Trial)
     public void setup() throws Exception {
         ScopedPlatform platform = ScopedPlatform.defaultInstance();
@@ -50,23 +67,6 @@ public class SerializationTest {
         type = typeCapture.type();
         ByteArrayOutputStream jsonOut = new ByteArrayOutputStream();
         jsonSerializer.serialize(objList, jsonOut);
-    }
-
-//    @Benchmark
-//    public byte[] serializeByJson() {
-//        return jsonSerializer.serialize(ParentObject.getObjList());
-//    }
-//
-//    @Benchmark
-//    public Object deserializeByJson() {
-//        return jsonSerializer.deserialize(jsonBytes, type);
-//    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(SerializationTest.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
     }
 }
 

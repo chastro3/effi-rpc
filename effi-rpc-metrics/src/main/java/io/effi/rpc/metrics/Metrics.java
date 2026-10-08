@@ -36,7 +36,7 @@ public interface Metrics extends Closeable {
     /**
      * Returns the gauge registered for the supplied key, creating it on first use.
      *
-     * @param key metric identity
+     * @param key      metric identity
      * @param supplier current value supplier
      * @return gauge bound to the key
      */

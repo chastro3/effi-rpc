@@ -29,7 +29,7 @@ public interface TransportProtocol extends Transporter, Protocol {
      * Creates a protocol-specific response for a failed request.
      *
      * @param inputMessage the request
-     * @param cause the failure cause
+     * @param cause        the failure cause
      * @return the error response
      */
     Response createErrorResponse(InputMessage inputMessage, EffiRpcException cause);

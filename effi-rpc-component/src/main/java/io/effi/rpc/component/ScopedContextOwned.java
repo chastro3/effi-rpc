@@ -9,11 +9,6 @@ package io.effi.rpc.component;
 public interface ScopedContextOwned {
 
     /**
-     * Returns the owning {@link ScopedContext}.
-     */
-    ScopedContext owner();
-
-    /**
      * Rebinds this owner-aware object to the supplied scoped context.
      *
      * @param owner new scoped context owner
@@ -30,5 +25,10 @@ public interface ScopedContextOwned {
     default ComponentDescriptor ensureComponentDescriptor(Class<?> type) {
         return ComponentDescriptor.ensure(type, owner());
     }
+
+    /**
+     * Returns the owning {@link ScopedContext}.
+     */
+    ScopedContext owner();
 }
 

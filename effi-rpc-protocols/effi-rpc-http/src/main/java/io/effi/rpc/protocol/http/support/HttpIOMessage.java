@@ -38,11 +38,15 @@ public class HttpIOMessage<SELF extends HttpIOMessage<SELF>> extends StandardHtt
         return self();
     }
 
+    @SuppressWarnings("unchecked")
+    private SELF self() {
+        return (SELF) this;
+    }
+
     public SELF channel(Channel channel) {
         this.channel = channel;
         return self();
     }
-
 
     public SELF input(InputStream inputStream) {
         this.inputStream = inputStream;
@@ -55,19 +59,13 @@ public class HttpIOMessage<SELF extends HttpIOMessage<SELF>> extends StandardHtt
         return self();
     }
 
+    private void setContentLength(int length) {
+        headers.add(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(length));
+    }
+
     @Override
     public Channel channel() {
         return channel;
-    }
-
-    @Override
-    public InputStream inputStream() {
-        return inputStream;
-    }
-
-    @Override
-    public OutputStream outputStream() {
-        return outputStream;
     }
 
     @Override
@@ -87,12 +85,13 @@ public class HttpIOMessage<SELF extends HttpIOMessage<SELF>> extends StandardHtt
         }
     }
 
-    private void setContentLength(int length) {
-        headers.add(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(length));
+    @Override
+    public InputStream inputStream() {
+        return inputStream;
     }
 
-    @SuppressWarnings("unchecked")
-    private SELF self() {
-        return (SELF) this;
+    @Override
+    public OutputStream outputStream() {
+        return outputStream;
     }
 }

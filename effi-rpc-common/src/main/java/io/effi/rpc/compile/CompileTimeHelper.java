@@ -100,8 +100,8 @@ public class CompileTimeHelper {
     /**
      * Creates a generated class output resource.
      *
-     * @param packageName target package name
-     * @param filePath output resource path
+     * @param packageName         target package name
+     * @param filePath            output resource path
      * @param originatingElements elements that caused the resource generation
      * @return file object for the created resource
      * @throws IOException if the resource cannot be created
@@ -135,23 +135,33 @@ public class CompileTimeHelper {
     }
 
     /**
-     * Builds an erased method signature in {@code methodName(paramType1,paramType2,...)} form.
+     * Extracts the fully qualified class name of a Class-valued annotation attribute.
      *
-     * @param method target executable element
-     * @return erased method signature
+     * @param element       annotated element
+     * @param type          annotation type
+     * @param attributeName target attribute name
+     * @return qualified class name, or {@code null} when the attribute is absent
      */
-    public String buildSignature(ExecutableElement method) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(method.getSimpleName()).append("(");
-        List<? extends VariableElement> params = method.getParameters();
-        int size = params.size();
-        for (int i = 0; i < size; i++) {
-            if (i > 0) sb.append(",");
-            TypeMirror type = params.get(i).asType();
-            sb.append(types.erasure(type).toString());
+    public String extractClassName(Element element, Class<? extends Annotation> type, String attributeName) {
+        AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
+        for (var entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
+                TypeMirror typeMirror = (TypeMirror) entry.getValue().getValue();
+                return qualifiedNameOf(asType(typeMirror));
+            }
         }
-        sb.append(")");
-        return sb.toString();
+        return null;
+    }
+
+    /**
+     * Returns the annotation mirror of the specified type on an element.
+     *
+     * @param element target element
+     * @param type    annotation type
+     * @return matching annotation mirror, or {@code null} when the annotation is absent
+     */
+    public AnnotationMirror findAnnotationMirror(Element element, Class<? extends Annotation> type) {
+        return findAnnotationMirror(element, type.getName());
     }
 
     /**
@@ -178,81 +188,19 @@ public class CompileTimeHelper {
     }
 
     /**
-     * Extracts the fully qualified class name of a Class-valued annotation attribute.
+     * Converts a type mirror to its type element.
      *
-     * @param element annotated element
-     * @param type annotation type
-     * @param attributeName target attribute name
-     * @return qualified class name, or {@code null} when the attribute is absent
+     * @param typeMirror source type mirror
+     * @return declared type element
      */
-    public String extractClassName(Element element, Class<? extends Annotation> type, String attributeName) {
-        AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
-        for (var entry : annotationMirror.getElementValues().entrySet()) {
-            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
-                TypeMirror typeMirror = (TypeMirror) entry.getValue().getValue();
-                return qualifiedNameOf(asType(typeMirror));
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Extracts a list of fully qualified class names from a Class[]-valued annotation attribute.
-     *
-     * @param element annotated element
-     * @param type annotation type
-     * @param attributeName target attribute name
-     * @return qualified class names, or an empty list when the attribute is absent
-     */
-    @SuppressWarnings("unchecked")
-    public List<String> extractClassNames(Element element, Class<? extends Annotation> type, String attributeName) {
-        AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
-        for (var entry : annotationMirror.getElementValues().entrySet()) {
-            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
-                List<? extends AnnotationValue> values = (List<? extends AnnotationValue>)
-                        entry.getValue().getValue();
-                List<String> result = new ArrayList<>();
-                for (AnnotationValue val : values) {
-                    TypeMirror typeMirror = (TypeMirror) val.getValue();
-                    result.add(qualifiedNameOf(asType(typeMirror)));
-                }
-                return result;
-            }
-        }
-        return Collections.emptyList();
-    }
-
-
-    /**
-     * Collects all implemented interface names recursively.
-     *
-     * @param typeElement target type element
-     * @param filter predicate selecting interfaces to collect
-     * @return qualified names of matching interfaces
-     */
-    public Set<String> findAllInterfaceNames(TypeElement typeElement, Predicate<TypeElement> filter) {
-        Set<TypeElement> result = new LinkedHashSet<>();
-        collectInterfaces(typeElement, result, filter);
-        return result.stream()
-                .map(this::qualifiedNameOf)
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * Returns the annotation mirror of the specified type on an element.
-     *
-     * @param element target element
-     * @param type annotation type
-     * @return matching annotation mirror, or {@code null} when the annotation is absent
-     */
-    public AnnotationMirror findAnnotationMirror(Element element, Class<? extends Annotation> type) {
-        return findAnnotationMirror(element, type.getName());
+    public TypeElement asType(TypeMirror typeMirror) {
+        return (TypeElement) types.asElement(typeMirror);
     }
 
     /**
      * Returns the annotation mirror with the specified qualified name.
      *
-     * @param element target element
+     * @param element        target element
      * @param annotationName qualified annotation name
      * @return matching annotation mirror, or {@code null} when the annotation is absent
      */
@@ -277,13 +225,44 @@ public class CompileTimeHelper {
     }
 
     /**
-     * Converts a type mirror to its type element.
+     * Extracts a list of fully qualified class names from a Class[]-valued annotation attribute.
      *
-     * @param typeMirror source type mirror
-     * @return declared type element
+     * @param element       annotated element
+     * @param type          annotation type
+     * @param attributeName target attribute name
+     * @return qualified class names, or an empty list when the attribute is absent
      */
-    public TypeElement asType(TypeMirror typeMirror) {
-        return (TypeElement) types.asElement(typeMirror);
+    @SuppressWarnings("unchecked")
+    public List<String> extractClassNames(Element element, Class<? extends Annotation> type, String attributeName) {
+        AnnotationMirror annotationMirror = findAnnotationMirror(element, type);
+        for (var entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
+                List<? extends AnnotationValue> values = (List<? extends AnnotationValue>)
+                        entry.getValue().getValue();
+                List<String> result = new ArrayList<>();
+                for (AnnotationValue val : values) {
+                    TypeMirror typeMirror = (TypeMirror) val.getValue();
+                    result.add(qualifiedNameOf(asType(typeMirror)));
+                }
+                return result;
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Collects all implemented interface names recursively.
+     *
+     * @param typeElement target type element
+     * @param filter      predicate selecting interfaces to collect
+     * @return qualified names of matching interfaces
+     */
+    public Set<String> findAllInterfaceNames(TypeElement typeElement, Predicate<TypeElement> filter) {
+        Set<TypeElement> result = new LinkedHashSet<>();
+        collectInterfaces(typeElement, result, filter);
+        return result.stream()
+                .map(this::qualifiedNameOf)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -380,6 +359,26 @@ public class CompileTimeHelper {
     public boolean isObjectMethod(ExecutableElement element) {
         String methodName = element.getSimpleName().toString();
         return ReflectionUtil.isObjectMethod(methodName, () -> buildSignature(element));
+    }
+
+    /**
+     * Builds an erased method signature in {@code methodName(paramType1,paramType2,...)} form.
+     *
+     * @param method target executable element
+     * @return erased method signature
+     */
+    public String buildSignature(ExecutableElement method) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(method.getSimpleName()).append("(");
+        List<? extends VariableElement> params = method.getParameters();
+        int size = params.size();
+        for (int i = 0; i < size; i++) {
+            if (i > 0) sb.append(",");
+            TypeMirror type = params.get(i).asType();
+            sb.append(types.erasure(type).toString());
+        }
+        sb.append(")");
+        return sb.toString();
     }
 
     private void collectInterfaces(TypeElement typeElement, Set<TypeElement> collectedList, Predicate<TypeElement> filter) {

@@ -34,6 +34,13 @@ public class ObjectRetrievalBenchmark {
 
     private final Object[] array = new Object[]{directObject};
 
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(ObjectRetrievalBenchmark.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
+
     @Setup
     public void setup() {
         classMap.put(SampleObject.class, directObject);
@@ -58,13 +65,6 @@ public class ObjectRetrievalBenchmark {
     @Benchmark
     public SampleObject arrayLookup() {
         return (SampleObject) array[0];
-    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(ObjectRetrievalBenchmark.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
     }
 
     // 一个简单的示例对象

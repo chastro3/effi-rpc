@@ -1,6 +1,5 @@
 package io.effi.rpc.spring.support;
 
-import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
@@ -9,6 +8,7 @@ import io.effi.rpc.component.registry.options.RegistryOptions;
 import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.component.transport.options.ServerOptions;
 import io.effi.rpc.constant.Tags;
+import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.option.Options;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.protocol.http.h1.Http1ServerConfig;
@@ -37,7 +37,7 @@ public final class InfrastructureConfigurer {
     /**
      * Registers configured registries on the platform.
      *
-     * @param platform target platform
+     * @param platform   target platform
      * @param properties Spring configuration
      */
     public static void registerRegistries(ScopedPlatform platform, EffiRpcProperties properties) {
@@ -76,11 +76,22 @@ public final class InfrastructureConfigurer {
         }
     }
 
+    private static String requireText(String value, String property, String owner) {
+        if (StringUtil.isBlank(value)) {
+            throw new IllegalStateException("Property '" + property + "' is required for " + owner);
+        }
+        return value;
+    }
+
+    private static int millis(Duration duration, int defaultValue) {
+        return duration == null ? defaultValue : Math.toIntExact(duration.toMillis());
+    }
+
     /**
      * Attaches configured servers to the application.
      *
      * @param application target application
-     * @param properties Spring configuration
+     * @param properties  Spring configuration
      */
     public static void attachServers(ScopedApplication application, EffiRpcProperties properties) {
         for (Map.Entry<String, EffiRpcProperties.Server> entry : properties.servers().entrySet()) {
@@ -124,16 +135,5 @@ public final class InfrastructureConfigurer {
         if (server.ioThreads() != null) {
             builder.addOption(ServerOptions.IO_THREADS, server.ioThreads());
         }
-    }
-
-    private static int millis(Duration duration, int defaultValue) {
-        return duration == null ? defaultValue : Math.toIntExact(duration.toMillis());
-    }
-
-    private static String requireText(String value, String property, String owner) {
-        if (StringUtil.isBlank(value)) {
-            throw new IllegalStateException("Property '" + property + "' is required for " + owner);
-        }
-        return value;
     }
 }

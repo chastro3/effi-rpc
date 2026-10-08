@@ -15,6 +15,9 @@ public final class StringUtil {
 
     private static final String[] EMPTY_ARRAY = new String[0];
 
+    private StringUtil() {
+    }
+
     /**
      * Returns an empty string.
      */
@@ -23,10 +26,11 @@ public final class StringUtil {
     }
 
     /**
-     * Returns an empty array if the input array is null.
+     * Checks if a CharSequence is not blank (i.e., it is not null, not empty,
+     * and contains non-whitespace characters).
      */
-    public static String[] emptyArray() {
-        return EMPTY_ARRAY;
+    public static boolean isNotBlank(CharSequence str) {
+        return !isBlank(str);
     }
 
     /**
@@ -37,11 +41,16 @@ public final class StringUtil {
     }
 
     /**
-     * Checks if a CharSequence is not blank (i.e., it is not null, not empty,
-     * and contains non-whitespace characters).
+     * Checks if a CharSequence contains only whitespace characters.
      */
-    public static boolean isNotBlank(CharSequence str) {
-        return !isBlank(str);
+    private static boolean isWhitespace(CharSequence str) {
+        int strLen = str.length();
+        for (int i = 0; i < strLen; i++) {
+            if (!Character.isWhitespace(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -125,6 +134,13 @@ public final class StringUtil {
     }
 
     /**
+     * Returns an empty array if the input array is null.
+     */
+    public static String[] emptyArray() {
+        return EMPTY_ARRAY;
+    }
+
+    /**
      * Formats a message by replacing placeholders ({}) with provided arguments.
      */
     public static String format(String message, Object... args) {
@@ -149,22 +165,6 @@ public final class StringUtil {
             }
         }
         return result.toString();
-    }
-
-    /**
-     * Checks if a CharSequence contains only whitespace characters.
-     */
-    private static boolean isWhitespace(CharSequence str) {
-        int strLen = str.length();
-        for (int i = 0; i < strLen; i++) {
-            if (!Character.isWhitespace(str.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private StringUtil() {
     }
 }
 

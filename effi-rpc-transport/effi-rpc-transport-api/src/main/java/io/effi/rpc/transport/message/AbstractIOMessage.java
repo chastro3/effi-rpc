@@ -9,9 +9,8 @@ import io.effi.rpc.util.AssertUtil;
  */
 public abstract class AbstractIOMessage implements IOMessage {
 
-    protected SmartURL url;
-
     protected final Channel channel;
+    protected SmartURL url;
 
     protected AbstractIOMessage(SmartURL url, Channel channel) {
         this.url = AssertUtil.notNull(url, "url");

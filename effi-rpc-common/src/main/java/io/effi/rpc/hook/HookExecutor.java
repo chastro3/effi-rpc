@@ -37,6 +37,11 @@ public class HookExecutor<H extends Hook<?>, T> {
         return cast(INITIALIZE);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <H extends Hook<?>, T> HookExecutor<H, T> cast(HookExecutor<?, ?> executor) {
+        return (HookExecutor<H, T>) executor;
+    }
+
     /**
      * Returns an executor for start hooks.
      */
@@ -55,7 +60,7 @@ public class HookExecutor<H extends Hook<?>, T> {
      * Creates a hook executor with the supplied before and after actions.
      *
      * @param before action invoked before the target operation
-     * @param after action invoked after the target operation
+     * @param after  action invoked after the target operation
      * @return hook executor
      */
     public static <H extends Hook<T>, T> HookExecutor<H, T> of(BiConsumer<H, T> before, BiConsumer<H, T> after) {
@@ -65,8 +70,8 @@ public class HookExecutor<H extends Hook<?>, T> {
     /**
      * Executes hooks around a value-producing operation.
      *
-     * @param hooks hooks to execute
-     * @param target target passed to each hook
+     * @param hooks    hooks to execute
+     * @param target   target passed to each hook
      * @param supplier operation producing the result
      * @return operation result
      */
@@ -80,18 +85,13 @@ public class HookExecutor<H extends Hook<?>, T> {
     /**
      * Executes hooks around a side-effecting operation.
      *
-     * @param hooks hooks to execute
-     * @param target target passed to each hook
+     * @param hooks    hooks to execute
+     * @param target   target passed to each hook
      * @param runnable operation to execute
      */
     public void execute(Iterable<? extends H> hooks, T target, Runnable runnable) {
         hooks.forEach(hook -> before.accept(hook, target));
         runnable.run();
         hooks.forEach(hook -> after.accept(hook, target));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <H extends Hook<?>, T> HookExecutor<H, T> cast(HookExecutor<?, ?> executor) {
-        return (HookExecutor<H, T>) executor;
     }
 }

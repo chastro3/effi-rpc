@@ -36,6 +36,14 @@ public class DefaultHierarchicalOptions extends DefaultOptions implements Hierar
         return value == null ? name.defaultValue() : value;
     }
 
+    @Override
+    public String toString() {
+        return StringUtil.format(
+                "size={}, hasOwner={}, hasParent={}",
+                items.size(), owner != null, parent != null
+        );
+    }
+
     /**
      * Resolves the current option before falling back to its parent.
      *
@@ -121,13 +129,5 @@ public class DefaultHierarchicalOptions extends DefaultOptions implements Hierar
     @Override
     public Object owner() {
         return owner;
-    }
-
-    @Override
-    public String toString() {
-        return StringUtil.format(
-                "size={}, hasOwner={}, hasParent={}",
-                items.size(), owner != null, parent != null
-        );
     }
 }

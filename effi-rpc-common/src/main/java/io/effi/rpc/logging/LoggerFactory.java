@@ -50,35 +50,6 @@ public final class LoggerFactory {
         return adapter().getLogger(name);
     }
 
-    /**
-     * Installs a custom adapter.
-     * <p>
-     * Intended for bootstrap integration and tests. The next {@link #getLogger(String)} call uses
-     * the installed adapter.
-     *
-     * @param adapter custom adapter
-     */
-    public static void setAdapter(LoggerAdapter adapter) {
-        LoggerAdapter selected = Objects.requireNonNull(adapter, "adapter");
-        synchronized (LoggerFactory.class) {
-            if (currentAdapter != selected) {
-                currentAdapter = selected;
-                logAdapterSelection("switched", selected);
-            }
-        }
-    }
-
-    /**
-     * Clears the selected adapter.
-     * <p>
-     * The next lookup re-selects an adapter from registered SPI providers and built-in adapters.
-     */
-    public static void clearAdapter() {
-        synchronized (LoggerFactory.class) {
-            currentAdapter = null;
-        }
-    }
-
     private static LoggerAdapter adapter() {
         LoggerAdapter selected = currentAdapter;
         if (selected != null) {
@@ -102,6 +73,16 @@ public final class LoggerFactory {
                 .filter(LoggerFactory::available)
                 .max(Comparator.comparingInt(LoggerAdapter::priority))
                 .orElse(NoOpLoggerAdapter.INSTANCE);
+    }
+
+    // Diagnostic logging must not interfere with adapter selection.
+    private static void logAdapterSelection(String action, LoggerAdapter adapter) {
+        try {
+            adapter.getLogger(LoggerFactory.class.getName())
+                    .debug("[effi-rpc] Logging adapter {}: {}", action, adapter.name());
+        } catch (Exception | LinkageError ignored) {
+            // Ignore diagnostic logging failures when selecting an adapter.
+        }
     }
 
     // Skip malformed providers so one broken SPI entry cannot disable logging.
@@ -128,13 +109,32 @@ public final class LoggerFactory {
         }
     }
 
-    // Diagnostic logging must not interfere with adapter selection.
-    private static void logAdapterSelection(String action, LoggerAdapter adapter) {
-        try {
-            adapter.getLogger(LoggerFactory.class.getName())
-                    .debug("[effi-rpc] Logging adapter {}: {}", action, adapter.name());
-        } catch (Exception | LinkageError ignored) {
-            // Ignore diagnostic logging failures when selecting an adapter.
+    /**
+     * Installs a custom adapter.
+     * <p>
+     * Intended for bootstrap integration and tests. The next {@link #getLogger(String)} call uses
+     * the installed adapter.
+     *
+     * @param adapter custom adapter
+     */
+    public static void setAdapter(LoggerAdapter adapter) {
+        LoggerAdapter selected = Objects.requireNonNull(adapter, "adapter");
+        synchronized (LoggerFactory.class) {
+            if (currentAdapter != selected) {
+                currentAdapter = selected;
+                logAdapterSelection("switched", selected);
+            }
+        }
+    }
+
+    /**
+     * Clears the selected adapter.
+     * <p>
+     * The next lookup re-selects an adapter from registered SPI providers and built-in adapters.
+     */
+    public static void clearAdapter() {
+        synchronized (LoggerFactory.class) {
+            currentAdapter = null;
         }
     }
 }

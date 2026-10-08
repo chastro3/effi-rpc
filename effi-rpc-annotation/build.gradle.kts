@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description= "Framework-level annotations and processing metadata."
-dependencies{
+description = "Framework annotations for Effi RPC contracts and extension metadata."
+dependencies {
     api(project(":effi-rpc-common"))
 }

@@ -52,6 +52,19 @@ public final class HttpUtil {
         headers.add(HttpHeaderNames.USER_AGENT, IDENTIFY);
     }
 
+    private static String acceptEncodings(ScopedPlatform platform) {
+        return String.join(",", platform.namedExtensions(Compressor.class).keySet());
+    }
+
+    private static String acceptTypes(ScopedPlatform platform) {
+        var serializerNames = platform.namedExtensions(Serializer.class).keySet();
+        List<String> contentTypes = Arrays.stream(MediaType.values())
+                .filter(mediaType -> serializerNames.contains(mediaType.serialization()))
+                .map(mediaType -> mediaType.contentType().toString())
+                .toList();
+        return String.join(",", contentTypes);
+    }
+
     /**
      * Creates common headers for server responses.
      */
@@ -108,77 +121,6 @@ public final class HttpUtil {
         }
     }
 
-    /**
-     * Encodes the body of the HTTP envelope into a byte array based on its content type.
-     *
-     * @param message the HTTP envelope containing the body to encode.
-     * @return the encoded byte array of the body.
-     */
-    public static void encodeBody(ScopedPlatform platform, HttpMessage message, OutputStream out) throws IOException {
-        if (message instanceof HttpResponse response
-                && !response.succeeded()
-                && response.body() instanceof String bodyStr) {
-            out.write(bodyStr.getBytes(StandardCharsets.UTF_8));
-            return;
-        }
-        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        try {
-            ensureSerializer(platform, contentType, contentEncoding(message)).serialize(message.body(), out);
-        } catch (IOException e) {
-            throw MarshallingErrorCodes.ENCODE.fail(e, message.body() == null ? "null" : message.body().getClass(), contentType);
-        }
-    }
-
-    public static Object decodeBody(ScopedPlatform platform, HttpMessage message, InputStream in, Type bodyType) throws IOException {
-        if (message instanceof HttpResponse response
-                && !response.succeeded()) {
-            return new String(FileUtil.toBytes(in), StandardCharsets.UTF_8);
-        }
-        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        try {
-            return ensureSerializer(platform, contentType, contentEncoding(message)).deserialize(in, bodyType);
-        } catch (IOException e) {
-            throw MarshallingErrorCodes.DECODE.fail(e, bodyType, contentType);
-        }
-    }
-
-    public static Serializer serializer(ScopedPlatform platform, HttpMessage message) throws IOException {
-        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        return ensureSerializer(platform, contentType, contentEncoding(message));
-    }
-
-    /**
-     * Retrieves the appropriate serializer based on the given content type.
-     *
-     * @param contentType the content type used to load the serializer.
-     * @return the serializer corresponding to the content type.
-     * @throws UnsupportedOperationException if the content type is not supported.
-     */
-    private static Serializer ensureSerializer(ScopedPlatform platform, CharSequence contentType, CharSequence contentEncoding) throws IOException {
-        MediaType mediaType = MediaType.fromName(contentType);
-        if (mediaType == null) {
-            throw new IOException("Unsupported content type: " + contentType + "'s serialization");
-        }
-        Serializer serializer = platform.namedExtension(Serializer.class, mediaType.serialization());
-        if (StringUtil.isBlank(contentEncoding)) {
-            return serializer;
-        }
-        return new CompressibleSerializer(serializer, resolveCompressor(platform, contentEncoding), platform.options());
-    }
-
-    private static Compressor resolveCompressor(ScopedPlatform platform, CharSequence contentEncoding) throws IOException {
-        String name = contentEncoding.toString().trim().toLowerCase(Locale.ROOT);
-        try {
-            return platform.namedExtension(Compressor.class, name);
-        } catch (RuntimeException e) {
-            throw new IOException("Unsupported content encoding: " + contentEncoding, e);
-        }
-    }
-
-    private static CharSequence contentEncoding(HttpMessage message) {
-        return message.headers().get(HttpHeaderNames.CONTENT_ENCODING);
-    }
-
     private static boolean acceptsEncoding(HttpMessage request, String encoding) {
         if (request == null) {
             return true;
@@ -211,17 +153,75 @@ public final class HttpUtil {
         return false;
     }
 
-    private static String acceptTypes(ScopedPlatform platform) {
-        var serializerNames = platform.namedExtensions(Serializer.class).keySet();
-        List<String> contentTypes = Arrays.stream(MediaType.values())
-                .filter(mediaType -> serializerNames.contains(mediaType.serialization()))
-                .map(mediaType -> mediaType.contentType().toString())
-                .toList();
-        return String.join(",", contentTypes);
+    /**
+     * Encodes the body of the HTTP envelope into a byte array based on its content type.
+     *
+     * @param message the HTTP envelope containing the body to encode.
+     * @return the encoded byte array of the body.
+     */
+    public static void encodeBody(ScopedPlatform platform, HttpMessage message, OutputStream out) throws IOException {
+        if (message instanceof HttpResponse response
+                && !response.succeeded()
+                && response.body() instanceof String bodyStr) {
+            out.write(bodyStr.getBytes(StandardCharsets.UTF_8));
+            return;
+        }
+        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        try {
+            ensureSerializer(platform, contentType, contentEncoding(message)).serialize(message.body(), out);
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.ENCODE.fail(e, message.body() == null ? "null" : message.body().getClass(), contentType);
+        }
     }
 
-    private static String acceptEncodings(ScopedPlatform platform) {
-        return String.join(",", platform.namedExtensions(Compressor.class).keySet());
+    /**
+     * Retrieves the appropriate serializer based on the given content type.
+     *
+     * @param contentType the content type used to load the serializer.
+     * @return the serializer corresponding to the content type.
+     * @throws UnsupportedOperationException if the content type is not supported.
+     */
+    private static Serializer ensureSerializer(ScopedPlatform platform, CharSequence contentType, CharSequence contentEncoding) throws IOException {
+        MediaType mediaType = MediaType.fromName(contentType);
+        if (mediaType == null) {
+            throw new IOException("Unsupported content type: " + contentType + "'s serialization");
+        }
+        Serializer serializer = platform.namedExtension(Serializer.class, mediaType.serialization());
+        if (StringUtil.isBlank(contentEncoding)) {
+            return serializer;
+        }
+        return new CompressibleSerializer(serializer, resolveCompressor(platform, contentEncoding), platform.options());
+    }
+
+    private static CharSequence contentEncoding(HttpMessage message) {
+        return message.headers().get(HttpHeaderNames.CONTENT_ENCODING);
+    }
+
+    private static Compressor resolveCompressor(ScopedPlatform platform, CharSequence contentEncoding) throws IOException {
+        String name = contentEncoding.toString().trim().toLowerCase(Locale.ROOT);
+        try {
+            return platform.namedExtension(Compressor.class, name);
+        } catch (RuntimeException e) {
+            throw new IOException("Unsupported content encoding: " + contentEncoding, e);
+        }
+    }
+
+    public static Object decodeBody(ScopedPlatform platform, HttpMessage message, InputStream in, Type bodyType) throws IOException {
+        if (message instanceof HttpResponse response
+                && !response.succeeded()) {
+            return new String(FileUtil.toBytes(in), StandardCharsets.UTF_8);
+        }
+        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        try {
+            return ensureSerializer(platform, contentType, contentEncoding(message)).deserialize(in, bodyType);
+        } catch (IOException e) {
+            throw MarshallingErrorCodes.DECODE.fail(e, bodyType, contentType);
+        }
+    }
+
+    public static Serializer serializer(ScopedPlatform platform, HttpMessage message) throws IOException {
+        CharSequence contentType = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        return ensureSerializer(platform, contentType, contentEncoding(message));
     }
 
 }

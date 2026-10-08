@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-description = "Service registry implementation using Nacos."
+description = "Nacos registry implementation for Effi RPC."
 dependencies {
     api(project(":effi-rpc-registry:effi-rpc-registry-api"))
     api("com.alibaba.nacos:nacos-client")

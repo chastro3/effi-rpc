@@ -2,8 +2,8 @@ package io.effi.rpc.core.configurator;
 
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.core.PeerDescriptor;
 import io.effi.rpc.context.Stage;
+import io.effi.rpc.core.PeerDescriptor;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 

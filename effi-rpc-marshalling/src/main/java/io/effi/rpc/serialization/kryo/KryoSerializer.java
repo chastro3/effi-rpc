@@ -54,6 +54,19 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
         this.registeredClasses = resolveClasses(classNames);
     }
 
+    private List<Class<?>> resolveClasses(List<String> classNames) {
+        ClassLoader classLoader = ClassUtil.findClassLoader(KryoSerializer.class);
+        List<Class<?>> classes = new ArrayList<>(classNames.size());
+        for (String className : classNames) {
+            try {
+                classes.add(Class.forName(className, false, classLoader));
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Kryo registered class not found: " + className, e);
+            }
+        }
+        return List.copyOf(classes);
+    }
+
     /**
      * Registers a class before Kryo instances are used.
      *
@@ -97,18 +110,5 @@ public class KryoSerializer extends AbstractSerializer implements ScopedPlatform
         registeredClasses.forEach(kryo::register);
         registrations.forEach(registration -> registration.accept(kryo));
         return kryo;
-    }
-
-    private List<Class<?>> resolveClasses(List<String> classNames) {
-        ClassLoader classLoader = ClassUtil.findClassLoader(KryoSerializer.class);
-        List<Class<?>> classes = new ArrayList<>(classNames.size());
-        for (String className : classNames) {
-            try {
-                classes.add(Class.forName(className, false, classLoader));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Kryo registered class not found: " + className, e);
-            }
-        }
-        return List.copyOf(classes);
     }
 }

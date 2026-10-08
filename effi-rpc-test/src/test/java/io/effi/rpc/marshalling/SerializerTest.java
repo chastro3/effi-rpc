@@ -99,6 +99,11 @@ class SerializerTest {
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hash(name, age);
+        }
+
+        @Override
         public boolean equals(Object object) {
             if (this == object) {
                 return true;
@@ -107,11 +112,6 @@ class SerializerTest {
                 return false;
             }
             return age == payload.age && Objects.equals(name, payload.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, age);
         }
     }
 }

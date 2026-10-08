@@ -12,8 +12,8 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.effi.rpc.context.options.PeerOptions.PATH;
 import static io.effi.rpc.context.options.CallerOptions.PROTOCOL;
+import static io.effi.rpc.context.options.PeerOptions.PATH;
 
 /**
  * Provides a caller group for a plain Java interface.

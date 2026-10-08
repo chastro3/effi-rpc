@@ -41,8 +41,8 @@ public abstract class DynamicAccessor {
      * Invokes the indexed public method.
      *
      * @param target invocation target, ignored for static methods
-     * @param index method index
-     * @param args method arguments
+     * @param index  method index
+     * @param args   method arguments
      * @return invocation result, or {@code null} for void methods
      * @throws IllegalArgumentException if the index or arguments are invalid
      */

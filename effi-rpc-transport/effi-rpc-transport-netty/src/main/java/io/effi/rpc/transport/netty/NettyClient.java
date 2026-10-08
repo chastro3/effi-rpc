@@ -37,21 +37,6 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
     }
 
     @Override
-    public Future<NettyChannel> fetchChannel() {
-        return channelFuture.ensure();
-    }
-
-    @Override
-    public InetSocketAddress remoteAddress() {
-        return address;
-    }
-
-    @Override
-    public boolean active() {
-        return isActive(channelFuture);
-    }
-
-    @Override
     public void close() {
         if (!active()) {
             return;
@@ -64,6 +49,11 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    @Override
+    public boolean active() {
+        return isActive(channelFuture);
     }
 
     @Override
@@ -91,6 +81,16 @@ public class NettyClient extends NettyEndpoint<Bootstrap> implements Client {
         configureIfValid(TcpOptions.KEEP_ALIVE, val -> {
             bootstrap.option(ChannelOption.SO_KEEPALIVE, val);
         });
+    }
+
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return address;
+    }
+
+    @Override
+    public Future<NettyChannel> fetchChannel() {
+        return channelFuture.ensure();
     }
 
     @Override

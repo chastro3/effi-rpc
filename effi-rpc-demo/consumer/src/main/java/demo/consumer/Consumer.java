@@ -1,19 +1,19 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
-import io.effi.rpc.core.AnnotationCallerGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.component.registry.DefaultRegistryConfig;
+import io.effi.rpc.component.registry.RegistryConfig;
 import io.effi.rpc.component.transport.CertificateConfig;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.support.DefaultCertificateConfig;
 import io.effi.rpc.constant.Tags;
+import io.effi.rpc.core.AnnotationCallerGroup;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.h1.Http1ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
-import io.effi.rpc.component.registry.DefaultRegistryConfig;
-import io.effi.rpc.component.registry.RegistryConfig;
 
 import java.util.List;
 import java.util.Scanner;
@@ -38,36 +38,36 @@ public class Consumer {
             }
         }
 
-//        helloClient.helloListAsync("哈哈哈222哈", "xxxx", ParentObject.getObjList("client list"))
-//                .thenAccept(System.out::println);
-//        EffiRpcModule module = application.newModule();
-//        module.registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
-//        HierarchicalNodeConfig nodeConfig = new HierarchicalNodeConfig();
-//        Http2Caller<List<ParentObject>> caller = Http2Caller.<List<ParentObject>>builder(new TypeToken<>() {}, nodeConfig)
-//                .path("helloList")
-//                .serialization("json")
-//                .clientConfig(Http2ClientConfig.defaultConfig())
-//                .module(application.defaultModule())
-//                .locator(RegistryLocator.getInstance("provider"))
-//                .build();
-//        application.start();
-//        ParamVar<Argument.Target> paramVar = ParamVar.target(Map.of("id", "123456", "age", "24"));
-//        ExecutorService executorService = Executors.newFixedThreadPool(200);
-//        for (int i = 0; i < 1; i++) {
-//            executorService.execute(() -> {
-//                long start = System.currentTimeMillis();
-//                List<ParentObject> consumerList = caller.blockingCall(paramVar, Body.wrap(ParentObject.getObjList("consumer list")));
-//                long end = System.currentTimeMillis();
-//                System.out.println("effi-rpc 耗时:" + (end - start) + consumerList);
-//                start = System.currentTimeMillis();
-//                //List<ParentObject> clientList = consumer.http2Test(ParentObject.getObjList("client list"));
-//                end = System.currentTimeMillis();
-//                //System.out.println("h2 耗时:" + (end - start) + clientList);
-//            });
-//        }
+        //        helloClient.helloListAsync("哈哈哈222哈", "xxxx", ParentObject.getObjList("client list"))
+        //                .thenAccept(System.out::println);
+        //        EffiRpcModule module = application.newModule();
+        //        module.registerShared(DefaultRegistryConfig.builder().url("consul://127.0.0.1:8500").build());
+        //        HierarchicalNodeConfig nodeConfig = new HierarchicalNodeConfig();
+        //        Http2Caller<List<ParentObject>> caller = Http2Caller.<List<ParentObject>>builder(new TypeToken<>() {}, nodeConfig)
+        //                .path("helloList")
+        //                .serialization("json")
+        //                .clientConfig(Http2ClientConfig.defaultConfig())
+        //                .module(application.defaultModule())
+        //                .locator(RegistryLocator.getInstance("provider"))
+        //                .build();
+        //        application.start();
+        //        ParamVar<Argument.Target> paramVar = ParamVar.target(Map.of("id", "123456", "age", "24"));
+        //        ExecutorService executorService = Executors.newFixedThreadPool(200);
+        //        for (int i = 0; i < 1; i++) {
+        //            executorService.execute(() -> {
+        //                long start = System.currentTimeMillis();
+        //                List<ParentObject> consumerList = caller.blockingCall(paramVar, Body.wrap(ParentObject.getObjList("consumer list")));
+        //                long end = System.currentTimeMillis();
+        //                System.out.println("effi-rpc 耗时:" + (end - start) + consumerList);
+        //                start = System.currentTimeMillis();
+        //                //List<ParentObject> clientList = consumer.http2Test(ParentObject.getObjList("client list"));
+        //                end = System.currentTimeMillis();
+        //                //System.out.println("h2 耗时:" + (end - start) + clientList);
+        //            });
+        //        }
 
-//        application.stop();
-//        printUserThreads();
+        //        application.stop();
+        //        printUserThreads();
     }
 
     private static void send() {
@@ -91,17 +91,17 @@ public class Consumer {
         application.platform()
                 .registry()
                 .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("consul://127.0.0.1:8500").build().addTags(Tags.CONSUMER, Tags.FORCE_ACTIVE));
-//                .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("nacos://127.0.0.1:8848").build());
+        //                .register(RegistryConfig.class, DefaultRegistryConfig.builder().authority("nacos://127.0.0.1:8848").build());
         AnnotationCallerGroup<HelloClient> callerGroup = AnnotationCallerGroup
                 .<HelloClient>builder()
                 .targetType(HelloClient.class)
                 .module(application.defaultModule())
                 .build();
         HelloClient helloClient = callerGroup.proxy();
-//        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-//        scheduledExecutorService.scheduleAtFixedRate(() -> {
-//
-//        },0,1, TimeUnit.SECONDS);
+        //        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        //        scheduledExecutorService.scheduleAtFixedRate(() -> {
+        //
+        //        },0,1, TimeUnit.SECONDS);
         ExecutorService executorService = Executors.newFixedThreadPool(200);
         for (int i = 0; i < 200; i++) {
             executorService.execute(() -> {

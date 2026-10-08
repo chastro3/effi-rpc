@@ -41,9 +41,9 @@ public abstract class AbstractSerializer implements Serializer {
         }
     }
 
-    protected abstract void doSerialize(Object obj, OutputStream out) throws IOException;
-
     protected abstract Object doDeserialize(InputStream in, Type type) throws IOException;
+
+    protected abstract void doSerialize(Object obj, OutputStream out) throws IOException;
 
 }
 

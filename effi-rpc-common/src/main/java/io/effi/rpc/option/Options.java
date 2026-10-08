@@ -28,19 +28,11 @@ public interface Options {
     /**
      * Adds a typed option value.
      *
-     * @param name option name
+     * @param name  option name
      * @param value option value
      * @return current options instance
      */
     <V> Options addOption(OptionName<V> name, V value);
-
-    /**
-     * Returns the resolved value for the given option name.
-     *
-     * @param name option name
-     * @return resolved option value
-     */
-    <V> V option(OptionName<V> name);
 
     /**
      * Removes and returns the current value for the given option name.
@@ -58,7 +50,7 @@ public interface Options {
     /**
      * Returns the option value when present, otherwise the supplied default value.
      *
-     * @param name option name
+     * @param name         option name
      * @param defaultValue fallback value
      * @return resolved option value
      */
@@ -68,20 +60,28 @@ public interface Options {
     }
 
     /**
+     * Returns the resolved value for the given option name.
+     *
+     * @param name option name
+     * @return resolved option value
+     */
+    <V> V option(OptionName<V> name);
+
+    /**
      * Supplies access to an options instance.
      */
     interface Supplier extends Options {
-
-        /**
-         * Returns the associated options instance.
-         */
-        Options options();
 
         @Override
         default <V> Supplier addOption(OptionName<V> name, V value) {
             options().addOption(name, value);
             return this;
         }
+
+        /**
+         * Returns the associated options instance.
+         */
+        Options options();
 
         @Override
         default <V> V option(OptionName<V> name) {
@@ -102,7 +102,7 @@ public interface Options {
     /**
      * Builds an options-aware instance with fluent method chaining.
      *
-     * @param <T> built instance type
+     * @param <T>    built instance type
      * @param <SELF> concrete builder type
      */
     interface Builder<T, SELF extends Builder<T, SELF>>

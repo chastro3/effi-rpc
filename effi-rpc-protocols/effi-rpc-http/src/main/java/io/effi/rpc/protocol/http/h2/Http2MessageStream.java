@@ -4,8 +4,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http2.*;
 import io.netty.handler.codec.TooLongFrameException;
+import io.netty.handler.codec.http2.DefaultHttp2Headers;
+import io.netty.handler.codec.http2.Http2DataFrame;
+import io.netty.handler.codec.http2.Http2FrameStream;
+import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2HeadersFrame;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,12 +21,9 @@ public abstract class Http2MessageStream {
     protected final Http2FrameStream stream;
 
     protected final Http2Headers headers;
-
-    protected CompositeByteBuf compositeByteBuf;
-
     protected final AtomicBoolean endStream;
-
     private final int maxMessageSize;
+    protected CompositeByteBuf compositeByteBuf;
 
     public Http2MessageStream(Http2FrameStream stream, int maxMessageSize) {
         this.stream = stream;
@@ -39,6 +40,13 @@ public abstract class Http2MessageStream {
     public void parseHeaderFrame(Http2HeadersFrame headersFrame) {
         headers.add(headersFrame.headers());
         if (headersFrame.isEndStream()) end();
+    }
+
+    /**
+     * The current stream read has ended.
+     */
+    protected void end() {
+        endStream.compareAndSet(false, true);
     }
 
     /**
@@ -116,12 +124,5 @@ public abstract class Http2MessageStream {
      */
     public boolean endStream() {
         return endStream.get();
-    }
-
-    /**
-     * The current stream read has ended.
-     */
-    protected void end() {
-        endStream.compareAndSet(false, true);
     }
 }

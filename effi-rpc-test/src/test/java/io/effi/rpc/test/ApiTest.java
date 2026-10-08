@@ -1,10 +1,5 @@
 package io.effi.rpc.test;
 
-import io.effi.rpc.core.AnnotationCallerGroup;
-import io.effi.rpc.core.AnnotationServantGroup;
-import io.effi.rpc.core.ApplicationServiceRegistrar;
-import io.effi.rpc.core.DefaultServantGroup;
-import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
@@ -14,18 +9,23 @@ import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.constant.EffiRpcFramework;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.annotation.AnnotationStyle;
-import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.context.parameter.ParamVar;
+import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.core.AnnotationCallerGroup;
+import io.effi.rpc.core.AnnotationServantGroup;
+import io.effi.rpc.core.ApplicationServiceRegistrar;
+import io.effi.rpc.core.DefaultServantGroup;
+import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.nativetools.ConditionItem;
 import io.effi.rpc.nativetools.ReflectConfig;
 import io.effi.rpc.protocol.http.arg.annotation.jax.JaxRsStyleResolver;
 import io.effi.rpc.protocol.http.arg.api.HttpServantMethodBuilder;
-import io.effi.rpc.protocol.http.h2.Http2Servant;
 import io.effi.rpc.protocol.http.h2.Http2Caller;
 import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2Protocol;
+import io.effi.rpc.protocol.http.h2.Http2Servant;
 import io.effi.rpc.protocol.http.h2.Http2ServerConfig;
 import io.effi.rpc.test.service.HelloClient;
 import io.effi.rpc.test.service.HelloService;
@@ -77,7 +77,7 @@ public class ApiTest {
     }
 
     @Test
-    public void caller(){
+    public void caller() {
         application.platform().registry().register(
                 RegistryConfig.class,
                 DefaultRegistryConfig.builder()
@@ -90,7 +90,7 @@ public class ApiTest {
                 .module(application.defaultModule())
                 .compressor("xxx")
                 .clientConfig(Http2ClientConfig.defaultConfig())
-                .addRequestHeader("zzz","ahahah")
+                .addRequestHeader("zzz", "ahahah")
                 .endpoint("provifer")
                 .build();
         System.out.println(caller);
@@ -146,7 +146,7 @@ public class ApiTest {
                 .condition(new ConditionItem().typeReached("io.effi.rpc.config.Config"))
                 .method("<init>", null)
                 .method("hello", List.of("java.lang.String"));
-        try  {
+        try {
             // JsonWriter w = new JsonWriter(new BufferedWriter(new FileWriter("out.json")));
             Map<String, Object> data = reflectConfigItem.toMap();
             //w.write(data).flush();

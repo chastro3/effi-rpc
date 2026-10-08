@@ -24,7 +24,7 @@ public class LazySingleton<T> {
      * Creates a lazy singleton initialized by the supplied supplier.
      *
      * @param creator instance supplier
-     * @param <T> instance type
+     * @param <T>     instance type
      * @return lazy singleton
      */
     public static <T> LazySingleton<T> from(Supplier<T> creator) {
@@ -36,7 +36,7 @@ public class LazySingleton<T> {
      * Creates a lazy singleton initialized by the supplied factory.
      *
      * @param creator instance factory
-     * @param <T> instance type
+     * @param <T>     instance type
      * @return lazy singleton
      */
     public static <T> LazySingleton<T> from(Function<LazySingleton<T>, T> creator) {

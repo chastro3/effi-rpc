@@ -1,8 +1,8 @@
 package io.effi.rpc.component.transport;
 
 import io.effi.rpc.component.transport.options.TransportOptions;
-import io.effi.rpc.option.Options;
 import io.effi.rpc.config.IdentifiableConfig;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.trait.Fluent;
 import io.effi.rpc.trait.Identifiable;
 
@@ -89,7 +89,7 @@ public interface EndpointConfig extends Options.Supplier, Identifiable {
     /**
      * Builds endpoint configurations with non-option transport fields.
      *
-     * @param <T> built endpoint configuration type
+     * @param <T>    built endpoint configuration type
      * @param <SELF> concrete builder type
      */
     abstract class Builder<T extends EndpointConfig, SELF extends Builder<T, SELF>>

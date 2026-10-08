@@ -28,13 +28,6 @@ public final class CallFutureRegistry implements Closeable {
     private final ConcurrentMap<Long, Future<?>> calls = new ConcurrentHashMap<>();
 
     /**
-     * Returns the next call identifier.
-     */
-    public long nextId() {
-        return sequence.incrementAndGet();
-    }
-
-    /**
      * Registers one in-flight call future.
      *
      * @param future call future
@@ -51,6 +44,23 @@ public final class CallFutureRegistry implements Closeable {
     }
 
     /**
+     * Returns the next call identifier.
+     */
+    public long nextId() {
+        return sequence.incrementAndGet();
+    }
+
+    /**
+     * Removes the call future registered for the supplied identifier.
+     *
+     * @param callId call identifier
+     * @return removed future, or {@code null} when absent
+     */
+    public synchronized Future<?> remove(long callId) {
+        return calls.remove(callId);
+    }
+
+    /**
      * Returns the call future registered for the supplied identifier.
      *
      * @param callId call identifier
@@ -63,7 +73,7 @@ public final class CallFutureRegistry implements Closeable {
     /**
      * Executes the listener when the supplied call terminates.
      *
-     * @param callId call identifier
+     * @param callId   call identifier
      * @param listener termination listener
      */
     public void onTerminate(long callId, Runnable listener) {
@@ -73,16 +83,6 @@ public final class CallFutureRegistry implements Closeable {
             return;
         }
         future.onComplete(_ -> listener.run());
-    }
-
-    /**
-     * Removes the call future registered for the supplied identifier.
-     *
-     * @param callId call identifier
-     * @return removed future, or {@code null} when absent
-     */
-    public synchronized Future<?> remove(long callId) {
-        return calls.remove(callId);
     }
 
     /**
@@ -105,11 +105,6 @@ public final class CallFutureRegistry implements Closeable {
     }
 
     @Override
-    public boolean active() {
-        return active.get();
-    }
-
-    @Override
     public void close() {
         List<Future<?>> pending;
         synchronized (this) {
@@ -121,5 +116,10 @@ public final class CallFutureRegistry implements Closeable {
         }
         EffiRpcException reason = PredefinedErrorCode.SERVICE_UNAVAILABLE.fail("platform is closing");
         pending.forEach(future -> future.cancel(reason));
+    }
+
+    @Override
+    public boolean active() {
+        return active.get();
     }
 }

@@ -5,11 +5,11 @@ import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.Interceptor;
-import io.effi.rpc.core.configurator.InterceptorChainResolver;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.PeerGroup;
 import io.effi.rpc.context.Protocol;
 import io.effi.rpc.context.Stage;
+import io.effi.rpc.core.configurator.InterceptorChainResolver;
 import io.effi.rpc.core.configurator.StageChainResolver;
 import io.effi.rpc.core.configurator.ThreadPoolResolver;
 import io.effi.rpc.option.HierarchicalOptions;
@@ -21,11 +21,11 @@ import io.effi.rpc.util.TypeCapture;
 import java.util.Arrays;
 
 import static io.effi.rpc.component.serialization.options.CompressionOptions.COMPRESSOR;
+import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 import static io.effi.rpc.context.options.PeerOptions.PATH;
 import static io.effi.rpc.context.options.ResolverOptions.INTERCEPTOR_CHAIN_RESOLVER;
 import static io.effi.rpc.context.options.ResolverOptions.STAGE_CHAIN_RESOLVER;
 import static io.effi.rpc.context.options.ResolverOptions.THREAD_POOL_RESOLVER;
-import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provides an immutable implementation of {@link Peer}.
@@ -67,11 +67,6 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     }
 
     @Override
-    public QueryPath queryPath() {
-        return descriptor.path();
-    }
-
-    @Override
     public Protocol protocol() {
         return descriptor.protocol();
     }
@@ -82,13 +77,28 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     }
 
     @Override
-    public ThreadPool threadPool() {
-        return threadPool;
+    public String id() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return queryPath().toString();
+    }
+
+    @Override
+    public QueryPath queryPath() {
+        return descriptor.path();
     }
 
     @Override
     public TypeCapture<?> replyType() {
         return descriptor.replyType();
+    }
+
+    @Override
+    public ThreadPool threadPool() {
+        return threadPool;
     }
 
     @Override
@@ -109,16 +119,6 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
     @Override
     public Interceptor.Chain replyInterceptorChain() {
         return replyInterceptorChain;
-    }
-
-    @Override
-    public String id() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return queryPath().toString();
     }
 
     /**
@@ -254,14 +254,17 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
             return peer;
         }
 
-        protected abstract Class<? extends Peer> peerType();
+        protected void validate() {
+            AssertUtil.notNull(module, "module");
+            AssertUtil.notNull(replyType, "replyType");
+        }
 
-        protected abstract PeerDescriptor.Kind kind();
-
-        protected abstract T newInstance();
-
-        protected PeerGroup<?, ?> group() {
-            return null;
+        private void resolve() {
+            this.protocol = module.platform().namedExtension(Protocol.class, protocolName);
+            if (protocol == null) {
+                throw InteractionErrorCodes.PROTOCOL_NOT_FOUND.fail(protocolName);
+            }
+            this.descriptor = new PeerDescriptor(kind(), protocol, queryPath(), replyType, options);
         }
 
         protected void prepare() {
@@ -294,11 +297,6 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
             }
         }
 
-        protected void validate() {
-            AssertUtil.notNull(module, "module");
-            AssertUtil.notNull(replyType, "replyType");
-        }
-
         protected void checkState() {
             AssertUtil.notNull(threadPool, "threadPool");
             AssertUtil.notNull(callStageChain, "callStageChain");
@@ -307,13 +305,15 @@ public abstract class AbstractPeer<B extends AbstractPeer.Builder> extends Abstr
             AssertUtil.notNull(replyInterceptorChain, "replyInterceptorChain");
         }
 
-        private void resolve() {
-            this.protocol = module.platform().namedExtension(Protocol.class, protocolName);
-            if (protocol == null) {
-                throw InteractionErrorCodes.PROTOCOL_NOT_FOUND.fail(protocolName);
-            }
-            this.descriptor = new PeerDescriptor(kind(), protocol, queryPath(), replyType, options);
+        protected abstract T newInstance();
+
+        protected abstract Class<? extends Peer> peerType();
+
+        protected PeerGroup<?, ?> group() {
+            return null;
         }
+
+        protected abstract PeerDescriptor.Kind kind();
 
         private QueryPath queryPath() {
             String[] pathSegments = option(PATH);

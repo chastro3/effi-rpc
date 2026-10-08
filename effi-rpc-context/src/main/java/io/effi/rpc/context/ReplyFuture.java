@@ -41,7 +41,7 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
      * Looks up the reply future registered for the supplied URL.
      *
      * @param platform owning platform
-     * @param url request URL
+     * @param url      request URL
      * @return matching reply future, or {@code null} when absent
      */
     public static ReplyFuture lookup(ScopedPlatform platform, SmartURL url) {
@@ -53,7 +53,7 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
      * Looks up the reply future registered for the supplied call identifier.
      *
      * @param platform owning platform
-     * @param callId call identifier
+     * @param callId   call identifier
      * @return matching reply future, or {@code null} when absent
      */
     public static ReplyFuture lookup(ScopedPlatform platform, Long callId) {
@@ -116,12 +116,6 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
     }
 
     @Override
-    public ReplyFuture onComplete(Consumer<Result<ReplyContext<Response, Caller<?>>>> handler) {
-        delegate.onComplete(handler);
-        return this;
-    }
-
-    @Override
     public ReplyFuture onCompleteAsync(
             Executor executor,
             Consumer<Result<ReplyContext<Response, Caller<?>>>> handler
@@ -148,6 +142,12 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
     @Override
     public boolean cancel(EffiRpcException reason) {
         return delegate.cancel(reason);
+    }
+
+    @Override
+    public ReplyFuture onComplete(Consumer<Result<ReplyContext<Response, Caller<?>>>> handler) {
+        delegate.onComplete(handler);
+        return this;
     }
 
     @Override

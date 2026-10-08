@@ -29,14 +29,6 @@ public class RegisterTask implements Runnable {
         this.preparers = client.platform().extensions(RegistrationPreparer.class);
     }
 
-    /**
-     * Runs the configured preparers and returns the registration future.
-     */
-    public Future<Void> execute() {
-        preparers.forEach(p -> p.prepare(instance));
-        return registration.register(instance);
-    }
-
     @Override
     public void run() {
         execute().onComplete(res -> {
@@ -47,6 +39,14 @@ public class RegisterTask implements Runnable {
                 );
             }
         });
+    }
+
+    /**
+     * Runs the configured preparers and returns the registration future.
+     */
+    public Future<Void> execute() {
+        preparers.forEach(p -> p.prepare(instance));
+        return registration.register(instance);
     }
 
 }

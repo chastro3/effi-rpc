@@ -27,8 +27,8 @@ public interface ServantGroup<T> extends PeerGroup<Servant, T> {
      * Invokes one servant method and returns its result.
      *
      * @param servant servant to invoke
-     * @param args method arguments
-     * @param <R> result type
+     * @param args    method arguments
+     * @param <R>     result type
      * @return invocation result
      */
     <R> R invoke(Servant servant, Object... args);

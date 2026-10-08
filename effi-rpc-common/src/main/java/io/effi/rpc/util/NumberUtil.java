@@ -5,6 +5,9 @@ package io.effi.rpc.util;
  */
 public final class NumberUtil {
 
+    private NumberUtil() {
+    }
+
     /**
      * Converts an int[] to an Integer[].
      */
@@ -45,9 +48,6 @@ public final class NumberUtil {
             result[i] = array[i];
         }
         return result;
-    }
-
-    private NumberUtil() {
     }
 
 }

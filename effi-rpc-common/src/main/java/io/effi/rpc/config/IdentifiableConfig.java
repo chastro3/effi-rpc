@@ -1,8 +1,8 @@
 package io.effi.rpc.config;
 
 import io.effi.rpc.option.Options;
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.Identifiable;
+import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 
 import java.util.UUID;
@@ -27,7 +27,7 @@ public abstract class IdentifiableConfig implements Identifiable, Options.Suppli
     /**
      * Returns the supplied identifier or generates one with the specified prefix.
      *
-     * @param id candidate identifier
+     * @param id     candidate identifier
      * @param prefix fallback identifier prefix
      * @return supplied identifier or generated identifier
      */

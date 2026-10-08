@@ -74,8 +74,8 @@ public final class RuntimeClassLoader extends ClassLoader {
      * Defines class from bytecode in the target type's package when accessible.
      *
      * @param targetType target type whose package owns the generated class
-     * @param name generated class name used as fallback
-     * @param bytes generated class bytecode
+     * @param name       generated class name used as fallback
+     * @param bytes      generated class bytecode
      * @return defined class
      */
     public Class<?> define(Class<?> targetType, String name, byte[] bytes) {

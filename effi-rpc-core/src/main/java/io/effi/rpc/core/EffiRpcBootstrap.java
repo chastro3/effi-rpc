@@ -23,17 +23,6 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
     }
 
     /**
-     * Creates a bootstrap with a new application on the supplied platform.
-     *
-     * @param platform owning platform
-     * @param applicationName application name
-     * @return new bootstrap
-     */
-    public static EffiRpcBootstrap newInstance(ScopedPlatform platform, String applicationName) {
-        return newInstance(platform.newApplication(applicationName));
-    }
-
-    /**
      * Creates a new instance of EffiRpcBootstrap with the specified application name.
      *
      * @param applicationName the id of the application
@@ -41,6 +30,17 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      */
     public static EffiRpcBootstrap newInstance(String applicationName) {
         return newInstance(ScopedPlatform.defaultInstance(), applicationName);
+    }
+
+    /**
+     * Creates a bootstrap with a new application on the supplied platform.
+     *
+     * @param platform        owning platform
+     * @param applicationName application name
+     * @return new bootstrap
+     */
+    public static EffiRpcBootstrap newInstance(ScopedPlatform platform, String applicationName) {
+        return newInstance(platform.newApplication(applicationName));
     }
 
     /**
@@ -57,7 +57,7 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      * Attaches a server bound to the local host.
      *
      * @param serverConfig server configuration
-     * @param port bound port
+     * @param port         bound port
      * @return this bootstrap
      */
     public EffiRpcBootstrap server(ServerConfig serverConfig, int port) {
@@ -69,8 +69,8 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      * Attaches a server bound to the supplied host.
      *
      * @param serverConfig server configuration
-     * @param host bound host
-     * @param port bound port
+     * @param host         bound host
+     * @param port         bound port
      * @return this bootstrap
      */
     public EffiRpcBootstrap server(ServerConfig serverConfig, String host, int port) {
@@ -109,7 +109,7 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      * Provides one interface-based service.
      *
      * @param targetType service interface
-     * @param service service implementation
+     * @param service    service implementation
      * @param customizer service option customizer
      * @return this bootstrap
      */
@@ -121,6 +121,14 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
                 .module(application.defaultModule())
                 .build();
         return this;
+    }
+
+    private HierarchicalOptions options(Consumer<HierarchicalOptions> customizer) {
+        HierarchicalOptions options = HierarchicalOptions.create();
+        if (customizer != null) {
+            customizer.accept(options);
+        }
+        return options;
     }
 
     /**
@@ -164,6 +172,13 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
                 .registry()
                 .register(RegistryConfig.class, registryConfig);
         return this;
+    }
+
+    /**
+     * Returns the application.
+     */
+    public ScopedApplication application() {
+        return application;
     }
 
     /**
@@ -214,25 +229,10 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
     }
 
     /**
-     * Returns the application.
-     */
-    public ScopedApplication application() {
-        return application;
-    }
-
-    /**
      * Returns the default module.
      */
     public ScopedModule defaultModule() {
         return application.defaultModule();
-    }
-
-    private HierarchicalOptions options(Consumer<HierarchicalOptions> customizer) {
-        HierarchicalOptions options = HierarchicalOptions.create();
-        if (customizer != null) {
-            customizer.accept(options);
-        }
-        return options;
     }
 
 }

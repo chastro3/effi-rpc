@@ -53,8 +53,8 @@ public class JacksonSerializer extends AbstractSerializer {
                 values[i] = token == JsonToken.VALUE_NULL
                         ? null
                         : jsonMapper.readerFor(jsonMapper.constructType(types[i]))
-                                .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                                .readValue(parser);
+                        .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                        .readValue(parser);
             }
             if (parser.nextToken() != JsonToken.END_ARRAY) {
                 throw new IOException("JSON array contains more values than parameters");

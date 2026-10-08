@@ -73,6 +73,16 @@ class AbstractRegistryClientTest {
         scheduler.close();
     }
 
+    private static ServiceInstance instance(String id) {
+        return DefaultServiceInstance.builder()
+                .id(id)
+                .serviceName("test-service")
+                .protocol("http/1.1")
+                .host("127.0.0.1")
+                .port(8080)
+                .build();
+    }
+
     @Test
     void lookupReturnsLatestSnapshotAfterSubscriptionUpdate() throws Exception {
         ScopedPlatform platform = new ScopedPlatform("registry-snapshot-platform");
@@ -156,16 +166,6 @@ class AbstractRegistryClientTest {
         assertSame(first, second);
         client.close();
         scheduler.close();
-    }
-
-    private static ServiceInstance instance(String id) {
-        return DefaultServiceInstance.builder()
-                .id(id)
-                .serviceName("test-service")
-                .protocol("http/1.1")
-                .host("127.0.0.1")
-                .port(8080)
-                .build();
     }
 
     private static final class TestRegistryClient extends AbstractRegistryClient {

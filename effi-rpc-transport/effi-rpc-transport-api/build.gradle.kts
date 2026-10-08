@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-description = "Transport layer API definitions."
+description = "Transport API contracts, codecs, and exchange handlers for Effi RPC."
 dependencies {
     compileOnly("at.yawk.lz4:lz4-java")
     compileOnly("org.xerial.snappy:snappy-java")

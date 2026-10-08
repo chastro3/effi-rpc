@@ -25,8 +25,8 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public Future<NettyChannel> fetchChannel() {
-        return NettyChannel.wrap(channelPool.acquire());
+    public void close() {
+        channelPool.close();
     }
 
     @Override
@@ -35,8 +35,22 @@ public class NettyPoolClient extends NettyClient {
     }
 
     @Override
-    public void close() {
-        channelPool.close();
+    public Future<NettyChannel> fetchChannel() {
+        return NettyChannel.wrap(channelPool.acquire());
+    }
+
+    @Override
+    protected void configureChannelHandler(Bootstrap bootstrap) {
+        int maxConnections = config().option(ClientOptions.MAX_CONNECTIONS);
+        int maxPendingAcquires = config().option(ClientOptions.MAX_PENDING_ACQUIRES);
+        int acquireTimeout = config().option(ClientOptions.ACQUIRE_TIMEOUT);
+        this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
+            @Override
+            public void channelCreated(Channel ch) throws Exception {
+                configureChannel(ch);
+            }
+        }, ChannelHealthChecker.ACTIVE, FixedChannelPool.AcquireTimeoutAction.FAIL,
+                acquireTimeout, maxConnections, maxPendingAcquires);
     }
 
     @Override
@@ -66,20 +80,6 @@ public class NettyPoolClient extends NettyClient {
                 channelPool.acquiredChannelCount(),
                 config().option(ClientOptions.MAX_CONNECTIONS)
         );
-    }
-
-    @Override
-    protected void configureChannelHandler(Bootstrap bootstrap) {
-        int maxConnections = config().option(ClientOptions.MAX_CONNECTIONS);
-        int maxPendingAcquires = config().option(ClientOptions.MAX_PENDING_ACQUIRES);
-        int acquireTimeout = config().option(ClientOptions.ACQUIRE_TIMEOUT);
-        this.channelPool = new FixedChannelPool(bootstrap, new AbstractChannelPoolHandler() {
-            @Override
-            public void channelCreated(Channel ch) throws Exception {
-                configureChannel(ch);
-            }
-        }, ChannelHealthChecker.ACTIVE, FixedChannelPool.AcquireTimeoutAction.FAIL,
-                acquireTimeout, maxConnections, maxPendingAcquires);
     }
 
     public record PoolMetrics(int acquired, int maxConnections) {

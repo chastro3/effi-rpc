@@ -12,6 +12,9 @@ public final class DateUtil {
 
     private static final DateTimeFormatter COMPACT_FORMATTER = DateTimeFormatter.ofPattern(COMPACT_FORMAT);
 
+    private DateUtil() {
+    }
+
     /**
      * Parses a date-time string using the compact format.
      */
@@ -24,9 +27,5 @@ public final class DateUtil {
      */
     public static String format(LocalDateTime dateTime) {
         return dateTime.format(COMPACT_FORMATTER);
-    }
-
-
-    private DateUtil() {
     }
 }

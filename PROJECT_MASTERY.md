@@ -37,7 +37,8 @@ $env:JAVA_HOME = 'C:\dev\Java\jdk-25.0.3'
 .\gradlew.bat :effi-rpc-test:test --no-daemon
 ```
 
-`gradle.properties` 已开启 `org.gradle.caching=true`。配置缓存改成命令行显式开启，因为 IDEA 的 compile/reload 与 included build `build-logic` 会触发 Gradle issue #29087。
+`gradle.properties` 已开启 `org.gradle.caching=true`。配置缓存改成命令行显式开启，因为 IDEA 的 compile/reload 与 included
+build `build-logic` 会触发 Gradle issue #29087。
 
 ## 3. 模块拓扑
 
@@ -262,7 +263,8 @@ proxy / caller proxy
 - component registry：`ComponentRepository` / `ComponentRegistry` / `DelegateComponentRepository`。
 - extension registry：`ExtensionRepository` / `ExtensionLoader` / `ExtensionEntry`。
 - event：`EventBus`、`MpscEventBus`、`EventLane`、`EventHandler`。
-- metrics impl：`DefaultMetrics` 与 `DefaultMetricCounter` / `DefaultMetricTimer` / `DefaultMetricGauge`，使用 `LongAdder` / `AtomicLong` 做无锁聚合，构造时直接接收 `ScopedPlatform`。
+- metrics impl：`DefaultMetrics` 与 `DefaultMetricCounter` / `DefaultMetricTimer` / `DefaultMetricGauge`，使用
+  `LongAdder` / `AtomicLong` 做无锁聚合，构造时直接接收 `ScopedPlatform`。
 - config：client/server/registry/endpoint/TLS/compression/transport options。
 - tools：`Scheduler`、`ThreadPool`。
 
@@ -271,8 +273,10 @@ proxy / caller proxy
 - `CONTROL` lane 用于生命周期和连接控制事件，单 consumer、保序，默认队列满时阻塞。
 - `TELEMETRY` lane 用于异步可观测事件，可配置多个 consumer 分片，默认队列满时丢弃；RPC 指标聚合不依赖该 lane。
 - 发布方只判断 `EventLane` 和 `BackpressurePolicy`；handler 解析、异常隔离、批处理和关闭 drain 都在 `MpscEventBus` 内完成。
-- `EventOptions` 定义平台级 option：`event.capacity`、`event.batchSize`、`event.idleParkNanos`、`event.publishTimeoutNanos`、`event.daemon`、`event.telemetryConsumers`。
-- `EventBusMetrics implements MetricsRegistrar`，指标 `MetricKey` 由它自己持有；`EventBus` 接口不承担指标注册职责，boot 通过 `metrics.register(eventBus.metrics())` 接入，`MpscEventBus` 只调用语义方法记录指标。
+- `EventOptions` 定义平台级 option：`event.capacity`、`event.batchSize`、`event.idleParkNanos`、`event.publishTimeoutNanos`、
+  `event.daemon`、`event.telemetryConsumers`。
+- `EventBusMetrics implements MetricsRegistrar`，指标 `MetricKey` 由它自己持有；`EventBus` 接口不承担指标注册职责，boot 通过
+  `metrics.register(eventBus.metrics())` 接入，`MpscEventBus` 只调用语义方法记录指标。
 
 2026-10-01 本机 JMH 参考值，4 producer、no-op handler：
 
@@ -432,12 +436,20 @@ ReplyInterceptorStage
 
 **指标**
 
-- 通用指标内核位于 `effi-rpc-metrics`，只依赖 `common + annotation`：`MetricKey / MetricSample / MetricCounter / MetricTimer / MetricGauge / Metrics / MetricsRegistrar / MetricsReporter`。
-- `Metrics` 标注 `@ScopedComponent(scope = PLATFORM, kind = SINGLE)`，boot 以 `register(Metrics.class, metrics)` 注册为平台单例组件，使用方通过 `platform.singleComponent(Metrics.class)` 获取。
-- `PeerMetrics` 是 Caller/Servant 共用的抽象指标集合并实现 `MetricsRegistrar`；`CallerMetrics` 和 `ServantMetrics` 分别负责两侧指标。
-- caller 侧由 `CallExecution` 在 attempt 结束时记录（`beginCall / recordCall`，失败与超时同样计入），servant 侧由 `ServantMetricsInterceptor` 记录（`beginRequest / recordRequest`），codec 只记录 `recordSerialization / recordDeserialization`；这些调用点都不直接拼 `MetricKey`。
-- 计时 key 由指标类自己持有（`CallerMetrics.CALL_START`、`ServantMetrics.REQUEST_START`），`MetricsSupport` 与 `constant/MetricsKey` 已删除。
-- `EventBusMetrics` 记录 `eventbus.publish.count{result=published|accepted|dropped|rejected}`、`eventbus.event.count{result=handled|failed}`（按事件计数，一个事件里多个 handler 失败也只记一次）、`eventbus.queue.pending`（所有 lane 排队总数）和 `eventbus.consumer.failure.count`（consumer 线程退出）。
+- 通用指标内核位于 `effi-rpc-metrics`，只依赖 `common + annotation`：
+  `MetricKey / MetricSample / MetricCounter / MetricTimer / MetricGauge / Metrics / MetricsRegistrar / MetricsReporter`。
+- `Metrics` 标注 `@ScopedComponent(scope = PLATFORM, kind = SINGLE)`，boot 以 `register(Metrics.class, metrics)`
+  注册为平台单例组件，使用方通过 `platform.singleComponent(Metrics.class)` 获取。
+- `PeerMetrics` 是 Caller/Servant 共用的抽象指标集合并实现 `MetricsRegistrar`；`CallerMetrics` 和 `ServantMetrics`
+  分别负责两侧指标。
+- caller 侧由 `CallExecution` 在 attempt 结束时记录（`beginCall / recordCall`，失败与超时同样计入），servant 侧由
+  `ServantMetricsInterceptor` 记录（`beginRequest / recordRequest`），codec 只记录
+  `recordSerialization / recordDeserialization`；这些调用点都不直接拼 `MetricKey`。
+- 计时 key 由指标类自己持有（`CallerMetrics.CALL_START`、`ServantMetrics.REQUEST_START`），`MetricsSupport` 与
+  `constant/MetricsKey` 已删除。
+- `EventBusMetrics` 记录 `eventbus.publish.count{result=published|accepted|dropped|rejected}`、
+  `eventbus.event.count{result=handled|failed}`（按事件计数，一个事件里多个 handler 失败也只记一次）、
+  `eventbus.queue.pending`（所有 lane 排队总数）和 `eventbus.consumer.failure.count`（consumer 线程退出）。
 
 **当前边界**
 
@@ -503,9 +515,12 @@ EffiRpcBootstrap.stop()
 - `ServiceDiscovery`：服务发现抽象。
 - `Router` / `DefaultRouter`：按有序规则过滤候选实例；URL 命中后按实例 metadata 过滤。
 - `RouterConfig`：module 级不可变规则表，规则包含 URL 正则与 metadata 全等条件，正则构建时编译。
-- `LoadBalancer` / `RandomLoadBalancer` / `RoundRobinLoadBalancer` / `WeightedRandomLoadBalancer` / `WeightedRoundRobinLoadBalancer` / `ConsistentHashLoadBalancer`。
-- `HashKeyInterceptor`：call 阶段按 `GovernanceOptions.HASH_KEY_INDEX` 从位置参数提取 `KeyConstant.HASH_KEY`，供 `ConsistentHashLoadBalancer` 使用。
-- `ApplicationServiceRegistrar.server(..., weight)` / `ServerLauncher.weight()`：将实例权重写入注册 metadata，供加权 LB 使用。
+- `LoadBalancer` / `RandomLoadBalancer` / `RoundRobinLoadBalancer` / `WeightedRandomLoadBalancer` /
+  `WeightedRoundRobinLoadBalancer` / `ConsistentHashLoadBalancer`。
+- `HashKeyInterceptor`：call 阶段按 `GovernanceOptions.HASH_KEY_INDEX` 从位置参数提取 `KeyConstant.HASH_KEY`，供
+  `ConsistentHashLoadBalancer` 使用。
+- `ApplicationServiceRegistrar.server(..., weight)` / `ServerLauncher.weight()`：将实例权重写入注册 metadata，供加权 LB
+  使用。
 - `GovernanceMetrics`：由 `DefaultLifecycleConfiguration` 创建并注册到平台 `Metrics`，记录发现、路由、LB 选择的次数与耗时。
 - `RegistryLocator`：组合 discovery、router、load balancer 完成实际定位。
 - `ServiceRegistrar`：注册/注销协调。
@@ -565,7 +580,9 @@ Locator.locate(context)
 - `MetricSample`、`CounterSample`、`GaugeSample`、`TimerSample`。
 - `MetricCounter`、`MetricTimer`、`MetricGauge`、`Metrics`、`MetricsRegistrar`、`MetricsSnapshot`。
 - `MetricCounter` / `MetricTimer` / `MetricGauge` 各自导出 `NOOP` 默认实现，指标关闭或尚未注册时自动降级，业务侧无需判空。
-- `MetricsReporter`、`LoggingMetricsReporter`；reporter 默认不注册，`metrics.report()` 在没有 reporter 时直接返回，因此默认不打印任何内容；需要日志或外部上报时自行 `registerReporter`（boot 只按 `metrics.reportIntervalMillis` 调度周期上报）。
+- `MetricsReporter`、`LoggingMetricsReporter`；reporter 默认不注册，`metrics.report()` 在没有 reporter
+  时直接返回，因此默认不打印任何内容；需要日志或外部上报时自行 `registerReporter`（boot 只按 `metrics.reportIntervalMillis`
+  调度周期上报）。
 - 默认实现 `DefaultMetrics` 位于 `effi-rpc-component` 的 `io.effi.rpc.component.metrics`，构造时接收 `ScopedPlatform`。
 
 依赖边界：

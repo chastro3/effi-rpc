@@ -11,14 +11,6 @@ import java.util.Set;
 public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequence>> {
 
     /**
-     * Retrieves the first value of the specified header.
-     *
-     * @param name the header id
-     * @return the first header value or null if not present
-     */
-    CharSequence get(CharSequence name);
-
-    /**
      * Retrieves all values associated with the specified header id.
      *
      * @param name the header id
@@ -90,6 +82,14 @@ public interface HttpHeaders extends Iterable<Map.Entry<CharSequence, CharSequen
         CharSequence value = get(name);
         return value != null ? value : defaultValue;
     }
+
+    /**
+     * Retrieves the first value of the specified header.
+     *
+     * @param name the header id
+     * @return the first header value or null if not present
+     */
+    CharSequence get(CharSequence name);
 
     /**
      * Returns a set of all header names.

@@ -53,6 +53,40 @@ public final class CallAttempt {
         replyFuture.onComplete(result -> release());
     }
 
+    private void cancel() {
+        State previous = transition(Cancelled.INSTANCE);
+        if (previous instanceof Active(Channel channel)) {
+            discardQuietly(channel);
+        }
+    }
+
+    private void release() {
+        State previous = transition(Done.INSTANCE);
+        if (previous instanceof Active(Channel channel)) {
+            channelBindings.unbind(replyFuture.id(), channel);
+        }
+    }
+
+    private State transition(State target) {
+        while (true) {
+            State current = state.get();
+            if (current == Done.INSTANCE || current == Cancelled.INSTANCE) {
+                return current;
+            }
+            if (state.compareAndSet(current, target)) {
+                return current;
+            }
+        }
+    }
+
+    private void discardQuietly(Channel channel) {
+        try {
+            client.discard(channel);
+        } catch (Throwable e) {
+            logger.warn("Failed to discard transport channel '{}'", e, channel);
+        }
+    }
+
     /**
      * Dispatches the attempt by acquiring a channel and sending the request.
      */
@@ -128,21 +162,6 @@ public final class CallAttempt {
         }
     }
 
-    private void discardQuietly(Channel channel) {
-        try {
-            client.discard(channel);
-        } catch (Throwable e) {
-            logger.warn("Failed to discard transport channel '{}'", e, channel);
-        }
-    }
-
-    private void cancel() {
-        State previous = transition(Cancelled.INSTANCE);
-        if (previous instanceof Active(Channel channel)) {
-            discardQuietly(channel);
-        }
-    }
-
     private void onSendFailed(Channel channel, Throwable cause) {
         if (!(transition(Done.INSTANCE) instanceof Active(Channel channel1))) {
             return;
@@ -155,18 +174,6 @@ public final class CallAttempt {
     private void failAcquisition(State expected, Throwable cause) {
         if (state.compareAndSet(expected, Done.INSTANCE)) {
             replyFuture.failure(acquisitionFailure(cause));
-        }
-    }
-
-    private State transition(State target) {
-        while (true) {
-            State current = state.get();
-            if (current == Done.INSTANCE || current == Cancelled.INSTANCE) {
-                return current;
-            }
-            if (state.compareAndSet(current, target)) {
-                return current;
-            }
         }
     }
 
@@ -183,16 +190,6 @@ public final class CallAttempt {
         return cause.withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
     }
 
-    private void release() {
-        State previous = transition(Done.INSTANCE);
-        if (previous instanceof Active(Channel channel)) {
-            channelBindings.unbind(replyFuture.id(), channel);
-        }
-    }
-
-    private sealed interface State permits Idle, Acquiring, Active, Done, Cancelled {
-    }
-
     private enum Idle implements State {
         INSTANCE
     }
@@ -201,14 +198,17 @@ public final class CallAttempt {
         INSTANCE
     }
 
-    private record Active(Channel channel) implements State {
-    }
-
     private enum Done implements State {
         INSTANCE
     }
 
     private enum Cancelled implements State {
         INSTANCE
+    }
+
+    private sealed interface State permits Idle, Acquiring, Active, Done, Cancelled {
+    }
+
+    private record Active(Channel channel) implements State {
     }
 }

@@ -19,8 +19,8 @@ import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -64,6 +64,30 @@ public final class CallExecution<R> {
         this.deadline = resolveDeadline();
         this.completion.onCancel(this::onCancelled);
         this.completion.onComplete(ignored -> cancelDeadline());
+    }
+
+    private Deadline resolveDeadline() {
+        long timeout = caller.option(TIMEOUT);
+        return timeout < 0
+                ? Deadline.none()
+                : Deadline.after(timeout, TimeUnit.MILLISECONDS);
+    }
+
+    private void onCancelled(EffiRpcException reason) {
+        cancelled.set(true);
+        cancelDeadline();
+        ReplyFuture attempt = attemptFuture.getAndSet(null);
+        if (attempt != null) {
+            attempt.cancel(reason);
+        }
+    }
+
+    private void cancelDeadline() {
+        ScheduledFuture<?> task = deadlineTask;
+        deadlineTask = null;
+        if (task != null) {
+            task.cancel(false);
+        }
     }
 
     /**
@@ -179,15 +203,6 @@ public final class CallExecution<R> {
         return delay + (jitter == 0 ? 0 : ThreadLocalRandom.current().nextLong(jitter + 1L));
     }
 
-    private void onCancelled(EffiRpcException reason) {
-        cancelled.set(true);
-        cancelDeadline();
-        ReplyFuture attempt = attemptFuture.getAndSet(null);
-        if (attempt != null) {
-            attempt.cancel(reason);
-        }
-    }
-
     private boolean cancelIfExpired() {
         if (!deadline.expired()) {
             return false;
@@ -231,14 +246,6 @@ public final class CallExecution<R> {
         completion.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(0L));
     }
 
-    private void cancelDeadline() {
-        ScheduledFuture<?> task = deadlineTask;
-        deadlineTask = null;
-        if (task != null) {
-            task.cancel(false);
-        }
-    }
-
     private ReplyFuture invoke(CallContext<Request, Caller<?>> context) {
         Interaction.Result result = caller.callStageChain().proceed(context);
         return result.excepted();
@@ -253,13 +260,6 @@ public final class CallExecution<R> {
                 Unary.MODE,
                 invocation.arguments().values()
         );
-    }
-
-    private Deadline resolveDeadline() {
-        long timeout = caller.option(TIMEOUT);
-        return timeout < 0
-                ? Deadline.none()
-                : Deadline.after(timeout, TimeUnit.MILLISECONDS);
     }
 
     private EffiRpcException toRpcException(Throwable cause) {

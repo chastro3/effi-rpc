@@ -35,6 +35,12 @@ public abstract class PeerMetrics implements MetricsRegistrar {
         registerSpecific(metrics);
     }
 
+    protected final MetricKey key(MetricKey metric) {
+        return metric.withTag("protocol", protocol);
+    }
+
+    protected abstract void registerSpecific(Metrics metrics);
+
     /**
      * Records the serialization duration of one operation.
      *
@@ -65,11 +71,5 @@ public abstract class PeerMetrics implements MetricsRegistrar {
      */
     public final double averageDeserializationNanos() {
         return deserializationTimer.snapshot().averageNanos();
-    }
-
-    protected abstract void registerSpecific(Metrics metrics);
-
-    protected final MetricKey key(MetricKey metric) {
-        return metric.withTag("protocol", protocol);
     }
 }

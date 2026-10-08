@@ -69,9 +69,9 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
         /**
          * Writes one value into the invocation.
          *
-         * @param value source value
+         * @param value      source value
          * @param annotation parameter annotation
-         * @param binding parameter binding
+         * @param binding    parameter binding
          * @param invocation target invocation
          */
         void write(Object value, T annotation, ParameterBinding binding, Invocation invocation);
@@ -88,10 +88,10 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
         /**
          * Reads one value from the request.
          *
-         * @param request source request
-         * @param peer target peer
+         * @param request    source request
+         * @param peer       target peer
          * @param annotation parameter annotation
-         * @param binding parameter binding
+         * @param binding    parameter binding
          * @return parameter value
          */
         Object read(Request request, Peer peer, T annotation, ParameterBinding binding);

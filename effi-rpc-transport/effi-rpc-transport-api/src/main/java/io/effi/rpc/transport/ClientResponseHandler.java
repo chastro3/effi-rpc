@@ -19,6 +19,28 @@ public final class ClientResponseHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientResponseHandler.class);
 
+    private static void submit(InputMessage inputMessage, ReplyFuture future, ThreadPool threadPool, Runnable task) {
+        Future<Void> delivery = threadPool.execute(task);
+        delivery.onComplete(result -> {
+            inputMessage.close();
+            if (result.failed()) {
+                fail(future, result.cause());
+            }
+        });
+    }
+
+    private static void fail(InputMessage inputMessage, ReplyFuture future, Throwable cause) {
+        inputMessage.close();
+        fail(future, cause instanceof EffiRpcException exception
+                ? exception
+                : TransportErrorCodes.CHANNEL_READ.fail(cause, inputMessage.channel().remoteAddress()));
+    }
+
+    private static void fail(ReplyFuture future, EffiRpcException cause) {
+        future.failure(cause);
+        logger.error(cause);
+    }
+
     /**
      * Handles one client-side response message.
      *
@@ -55,27 +77,5 @@ public final class ClientResponseHandler {
             ReplyContext<Response, Caller<?>> replyContext = clientCodec.decode(inputMessage, caller);
             future.complete(replyContext);
         });
-    }
-
-    private static void submit(InputMessage inputMessage, ReplyFuture future, ThreadPool threadPool, Runnable task) {
-        Future<Void> delivery = threadPool.execute(task);
-        delivery.onComplete(result -> {
-            inputMessage.close();
-            if (result.failed()) {
-                fail(future, result.cause());
-            }
-        });
-    }
-
-    private static void fail(InputMessage inputMessage, ReplyFuture future, Throwable cause) {
-        inputMessage.close();
-        fail(future, cause instanceof EffiRpcException exception
-                ? exception
-                : TransportErrorCodes.CHANNEL_READ.fail(cause, inputMessage.channel().remoteAddress()));
-    }
-
-    private static void fail(ReplyFuture future, EffiRpcException cause) {
-        future.failure(cause);
-        logger.error(cause);
     }
 }

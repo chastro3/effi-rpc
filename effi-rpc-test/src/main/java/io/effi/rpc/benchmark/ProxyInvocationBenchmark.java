@@ -1,7 +1,6 @@
 package io.effi.rpc.benchmark;
 
 import io.effi.rpc.proxy.InvocationHandler;
-import io.effi.rpc.proxy.ProxyFactory;
 import io.effi.rpc.proxy.bytebuddy.ByteBuddyProxyFactory;
 import io.effi.rpc.proxy.cglib.CGLibProxyFactory;
 import io.effi.rpc.proxy.jdk.JDKProxyFactory;
@@ -55,6 +54,13 @@ public class ProxyInvocationBenchmark {
 
     private EchoService bytebuddyTarget;
 
+    public static void main(String[] args) throws RunnerException {
+        Options options = new OptionsBuilder()
+                .include(ProxyInvocationBenchmark.class.getSimpleName())
+                .build();
+        new Runner(options).run();
+    }
+
     @Setup(Level.Trial)
     public void setup() {
         impl = new EchoServiceImpl();
@@ -104,6 +110,11 @@ public class ProxyInvocationBenchmark {
         return bytebuddyTarget.echo(input.value);
     }
 
+    public interface EchoService {
+
+        int echo(int value);
+    }
+
     @State(Scope.Thread)
     public static class Input {
 
@@ -118,23 +129,11 @@ public class ProxyInvocationBenchmark {
         }
     }
 
-    public interface EchoService {
-
-        int echo(int value);
-    }
-
     public static class EchoServiceImpl implements EchoService {
 
         @Override
         public int echo(int value) {
             return value + 1;
         }
-    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options options = new OptionsBuilder()
-                .include(ProxyInvocationBenchmark.class.getSimpleName())
-                .build();
-        new Runner(options).run();
     }
 }

@@ -1,7 +1,7 @@
 package io.effi.rpc.spring.consumer;
 
-import io.effi.rpc.core.AnnotationCallerGroup;
 import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.core.AnnotationCallerGroup;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import org.springframework.beans.BeansException;
@@ -37,11 +37,6 @@ public final class AnnotationCallGroupFactoryBean<T> implements FactoryBean<T>, 
         return true;
     }
 
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
-
     private T createProxy() {
         EffiRpcProperties properties = beanFactory.getBeanProvider(EffiRpcProperties.class)
                 .getIfAvailable(EffiRpcProperties::defaults);
@@ -54,5 +49,10 @@ public final class AnnotationCallGroupFactoryBean<T> implements FactoryBean<T>, 
                 .options(options)
                 .build()
                 .proxy();
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 }

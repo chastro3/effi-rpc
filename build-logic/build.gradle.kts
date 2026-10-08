@@ -1,6 +1,9 @@
 plugins {
     `kotlin-dsl`
 }
+
+description = "Gradle build logic for Effi RPC."
+
 repositories {
     defaultRepositories()
 }

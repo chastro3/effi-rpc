@@ -25,10 +25,6 @@ public final class ImmutableInterceptorChain extends ImmutableInteractionUnitCha
 
     private static final ImmutableInterceptorChain TAIL = new ImmutableInterceptorChain("empty", TAIL_INTERCEPTOR, null);
 
-    private ImmutableInterceptorChain(String name, Interceptor interceptor, ImmutableInterceptorChain next) {
-        super(name, interceptor, next);
-    }
-
     /**
      * Creates an interceptor chain for the given module and interceptor names.
      *
@@ -43,8 +39,8 @@ public final class ImmutableInterceptorChain extends ImmutableInteractionUnitCha
     /**
      * Creates an interceptor chain with additional named interceptors.
      *
-     * @param module               the scoped module to lookup interceptors from
-     * @param names                the interceptor names to include in the chain
+     * @param module                 the scoped module to lookup interceptors from
+     * @param names                  the interceptor names to include in the chain
      * @param additionalInterceptors interceptors that are not registered as extensions
      * @return the interceptor chain, or empty chain if names are empty
      */
@@ -58,6 +54,17 @@ public final class ImmutableInterceptorChain extends ImmutableInteractionUnitCha
                 TAIL);
     }
 
+    private static Interceptor lookupInterceptor(ScopedModule module, String name,
+                                                 Map<String, Interceptor> additionalInterceptors) {
+        Interceptor interceptor = additionalInterceptors.get(name);
+        if (interceptor != null) return interceptor;
+        return module.namedExtension(Interceptor.class, name);
+    }
+
+    private ImmutableInterceptorChain(String name, Interceptor interceptor, ImmutableInterceptorChain next) {
+        super(name, interceptor, next);
+    }
+
     /**
      * Initializes an interceptor chain from the given interceptor map.
      *
@@ -67,13 +74,6 @@ public final class ImmutableInterceptorChain extends ImmutableInteractionUnitCha
     public static ImmutableInterceptorChain init(Map<String, Interceptor> filters) {
         if (CollectionUtil.isEmpty(filters)) return TAIL;
         return init(filters, ImmutableInterceptorChain::new, TAIL);
-    }
-
-    private static Interceptor lookupInterceptor(ScopedModule module, String name,
-                                                 Map<String, Interceptor> additionalInterceptors) {
-        Interceptor interceptor = additionalInterceptors.get(name);
-        if (interceptor != null) return interceptor;
-        return module.namedExtension(Interceptor.class, name);
     }
 
     @SuppressWarnings("unchecked")

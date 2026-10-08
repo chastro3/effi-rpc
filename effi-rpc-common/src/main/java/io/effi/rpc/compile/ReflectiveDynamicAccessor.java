@@ -36,6 +36,13 @@ final class ReflectiveDynamicAccessor extends DynamicAccessor {
         return new ReflectiveDynamicAccessor(type, methodNames, parameterTypes, methods, staticMethods);
     }
 
+    private static void trySetAccessible(Method method) {
+        try {
+            method.trySetAccessible();
+        } catch (RuntimeException ignored) {
+        }
+    }
+
     @Override
     public Object invoke(Object target, int index, Object... args) {
         validateInvocation(index, args);
@@ -47,13 +54,6 @@ final class ReflectiveDynamicAccessor extends DynamicAccessor {
             throw DynamicAccessorSupport.rethrow(e.getCause());
         } catch (ReflectiveOperationException | RuntimeException e) {
             throw new IllegalStateException("Failed to invoke method: " + methodNames[index], e);
-        }
-    }
-
-    private static void trySetAccessible(Method method) {
-        try {
-            method.trySetAccessible();
-        } catch (RuntimeException ignored) {
         }
     }
 }

@@ -7,10 +7,10 @@ import io.effi.rpc.component.metrics.DefaultMetrics;
 import io.effi.rpc.component.tools.Scheduler;
 import io.effi.rpc.concurrent.Result;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
 import io.effi.rpc.core.call.CallExecution;
 import io.effi.rpc.core.call.Unary;
-import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.exception.PredefinedErrorCode;
 import io.effi.rpc.metrics.MetricKey;
@@ -28,6 +28,46 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CallExecutionTest {
+
+    private static Object option(Class<?> returnType, OptionName<?> option, long timeoutMillis) {
+        if (option == TIMEOUT) {
+            return Math.toIntExact(timeoutMillis);
+        }
+        return defaultValue(returnType);
+    }
+
+    private static Object defaultValue(Class<?> type) {
+        if (!type.isPrimitive() || type == void.class) {
+            return null;
+        }
+        if (type == boolean.class) {
+            return false;
+        }
+        if (type == char.class) {
+            return '\0';
+        }
+        if (type == byte.class) {
+            return (byte) 0;
+        }
+        if (type == short.class) {
+            return (short) 0;
+        }
+        if (type == int.class) {
+            return 0;
+        }
+        if (type == long.class) {
+            return 0L;
+        }
+        if (type == float.class) {
+            return 0F;
+        }
+        return 0D;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T proxy(Class<T> type, InvocationHandler handler) {
+        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, handler);
+    }
 
     @Test
     void retriesUntilSuccess() throws Exception {
@@ -58,6 +98,17 @@ class CallExecutionTest {
         assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "success")));
         assertEquals(1L, fixture.counter(CallerMetrics.CALL_COUNT.withTag("status", "failure")));
         assertEquals(2L, fixture.timerCount(CallerMetrics.CALL_DURATION));
+    }
+
+    private static void complete(
+            ReplyFuture future,
+            CallContext<Request, Caller<?>> context,
+            String value,
+            Response response
+    ) {
+        Interaction.Result result = Interaction.Result.success(context.message().url(), value);
+        future.withRawResult(result);
+        future.complete(new ReplyContext<>(context, response, result));
     }
 
     @Test
@@ -166,15 +217,10 @@ class CallExecutionTest {
         assertEquals(0, fixture.attempts.get());
     }
 
-    private static void complete(
-            ReplyFuture future,
-            CallContext<Request, Caller<?>> context,
-            String value,
-            Response response
-    ) {
-        Interaction.Result result = Interaction.Result.success(context.message().url(), value);
-        future.withRawResult(result);
-        future.complete(new ReplyContext<>(context, response, result));
+    @FunctionalInterface
+    private interface AttemptFactory {
+
+        ReplyFuture create(CallContext<Request, Caller<?>> context, int attempt);
     }
 
     private static final class Fixture {
@@ -274,51 +320,5 @@ class CallExecutionTest {
         private long timerCount(MetricKey key) {
             return registry.timer(key.withTag("protocol", "test")).snapshot().count();
         }
-    }
-
-    @FunctionalInterface
-    private interface AttemptFactory {
-
-        ReplyFuture create(CallContext<Request, Caller<?>> context, int attempt);
-    }
-
-    private static Object option(Class<?> returnType, OptionName<?> option, long timeoutMillis) {
-        if (option == TIMEOUT) {
-            return Math.toIntExact(timeoutMillis);
-        }
-        return defaultValue(returnType);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T proxy(Class<T> type, InvocationHandler handler) {
-        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, handler);
-    }
-
-    private static Object defaultValue(Class<?> type) {
-        if (!type.isPrimitive() || type == void.class) {
-            return null;
-        }
-        if (type == boolean.class) {
-            return false;
-        }
-        if (type == char.class) {
-            return '\0';
-        }
-        if (type == byte.class) {
-            return (byte) 0;
-        }
-        if (type == short.class) {
-            return (short) 0;
-        }
-        if (type == int.class) {
-            return 0;
-        }
-        if (type == long.class) {
-            return 0L;
-        }
-        if (type == float.class) {
-            return 0F;
-        }
-        return 0D;
     }
 }

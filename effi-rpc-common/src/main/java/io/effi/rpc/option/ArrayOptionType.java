@@ -21,7 +21,7 @@ public interface ArrayOptionType<A> extends OptionType<A> {
     /**
      * Creates an option name that merges its parent and current arrays.
      *
-     * @param name option name
+     * @param name         option name
      * @param defaultValue default option value
      * @return typed option name
      */
@@ -32,7 +32,7 @@ public interface ArrayOptionType<A> extends OptionType<A> {
     /**
      * Merges the resolved parent array with the current array.
      *
-     * @param parent resolved parent array
+     * @param parent  resolved parent array
      * @param current current array
      * @return merged array
      */

@@ -30,22 +30,17 @@ public class PathSplitBenchmark {
 
     private static final String TEST_PATH = "/a/b//c///d/e/f///g/h/i/j";
 
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(PathSplitBenchmark.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
 
     @Benchmark
-    public String[] a(){
+    public String[] a() {
         return methodA(TEST_PATH);
     }
-
-    @Benchmark
-     public String[] b(){
-        return methodB(TEST_PATH);
-    }
-
-     @Benchmark
-      public String[] c(){
-        return methodC(TEST_PATH);
-    }
-
 
     // 方法A：List收集再toArray
     public static String[] methodA(String path) {
@@ -60,6 +55,11 @@ public class PathSplitBenchmark {
             }
         }
         return list.toArray(StringUtil.emptyArray());
+    }
+
+    @Benchmark
+    public String[] b() {
+        return methodB(TEST_PATH);
     }
 
     // 方法B：双遍历计数+一次性数组填充
@@ -84,6 +84,11 @@ public class PathSplitBenchmark {
         return result;
     }
 
+    @Benchmark
+    public String[] c() {
+        return methodC(TEST_PATH);
+    }
+
     public static String[] methodC(String path) {
         if (StringUtil.isBlank(path)) {
             return StringUtil.emptyArray();
@@ -101,13 +106,5 @@ public class PathSplitBenchmark {
         }
         // 截断数组返回
         return Arrays.copyOf(temp, count);
-    }
-
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(PathSplitBenchmark.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
     }
 }

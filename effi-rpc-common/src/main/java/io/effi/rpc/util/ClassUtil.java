@@ -6,6 +6,9 @@ package io.effi.rpc.util;
 public final class ClassUtil {
 
 
+    private ClassUtil() {
+    }
+
     /**
      * Gets the class loader for the specified class.
      */
@@ -34,9 +37,6 @@ public final class ClassUtil {
             }
         }
         return cl;
-    }
-
-    private ClassUtil() {
     }
 
 }

@@ -26,14 +26,6 @@ public final class HttpPathParameterBinder implements ParameterBinder {
         this.defaultValue = defaultValue;
     }
 
-    public static Object resolveValue(Request request, Peer peer, String name, String defaultValue) {
-        HttpRequest httpRequest = (HttpRequest) request;
-        QueryPath pathTemplate = peer.queryPath();
-        Map<String, String> values = pathTemplate.match(httpRequest.url().path());
-        Object value = values == null ? null : values.get(name);
-        return value == null ? defaultValue : value;
-    }
-
     @Override
     public void write(Object value, ParameterBinding binding, Invocation invocation) {
         Map<String, String> values = invocation.computeIfAbsent(HttpInvocationKeys.PATH_VARIABLES, HashMap::new);
@@ -43,5 +35,13 @@ public final class HttpPathParameterBinder implements ParameterBinder {
     @Override
     public Object resolve(ParameterBinding binding, Request request, Peer peer) {
         return resolveValue(request, peer, name, defaultValue);
+    }
+
+    public static Object resolveValue(Request request, Peer peer, String name, String defaultValue) {
+        HttpRequest httpRequest = (HttpRequest) request;
+        QueryPath pathTemplate = peer.queryPath();
+        Map<String, String> values = pathTemplate.match(httpRequest.url().path());
+        Object value = values == null ? null : values.get(name);
+        return value == null ? defaultValue : value;
     }
 }

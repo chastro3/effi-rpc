@@ -1,9 +1,9 @@
 package io.effi.rpc.benchmark;
 
+import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.event.Event;
 import io.effi.rpc.component.event.MpscEventBus;
 import io.effi.rpc.component.event.PublishResult;
-import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.metrics.DefaultMetrics;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -40,6 +40,13 @@ public class MpscEventBusBenchmark {
 
     private DefaultMetrics metrics;
 
+    public static void main(String[] args) throws RunnerException {
+        Options options = new OptionsBuilder()
+                .include(MpscEventBusBenchmark.class.getSimpleName())
+                .build();
+        new Runner(options).run();
+    }
+
     @Setup(Level.Trial)
     public void setup() {
         platform = new ScopedPlatform("mpsc-event-bus-benchmark-" + System.nanoTime());
@@ -70,13 +77,5 @@ public class MpscEventBusBenchmark {
     }
 
     private static final class PayloadEvent implements Event {
-    }
-
-
-    public static void main(String[] args) throws RunnerException {
-        Options options = new OptionsBuilder()
-                .include(MpscEventBusBenchmark.class.getSimpleName())
-                .build();
-        new Runner(options).run();
     }
 }

@@ -6,13 +6,6 @@ package io.effi.rpc.component.event;
 public interface Event {
 
     /**
-     * Returns the delivery lane for this event.
-     */
-    default EventLane lane() {
-        return EventLane.TELEMETRY;
-    }
-
-    /**
      * Returns the backpressure policy applied when the target lane is full.
      * <p>
      * Control events block by default because dropping lifecycle events can
@@ -23,5 +16,12 @@ public interface Event {
         return lane() == EventLane.CONTROL
                 ? BackpressurePolicy.BLOCK
                 : BackpressurePolicy.DROP;
+    }
+
+    /**
+     * Returns the delivery lane for this event.
+     */
+    default EventLane lane() {
+        return EventLane.TELEMETRY;
     }
 }

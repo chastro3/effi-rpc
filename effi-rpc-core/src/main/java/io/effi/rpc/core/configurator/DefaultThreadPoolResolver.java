@@ -1,16 +1,16 @@
 package io.effi.rpc.core.configurator;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.core.PeerDescriptor;
 import io.effi.rpc.executor.RpcThreadPool;
 import io.effi.rpc.util.StringUtil;
 
-import static io.effi.rpc.core.configurator.DefaultThreadPoolResolver.NAME;
 import static io.effi.rpc.context.options.ThreadPoolOptions.THREAD_POOL;
+import static io.effi.rpc.core.configurator.DefaultThreadPoolResolver.NAME;
 
 /**
  * Provides default thread pool resolution for a peer.

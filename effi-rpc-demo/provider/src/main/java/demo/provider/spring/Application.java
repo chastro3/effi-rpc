@@ -1,5 +1,6 @@
 package demo.provider.spring;
 
+import demo.provider.interfaceapi.InterfaceHelloServiceImpl;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.protocol.http.h2.Http2ClientConfig;
@@ -7,7 +8,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import demo.provider.interfaceapi.InterfaceHelloServiceImpl;
 
 /**
  * @Author WenBo Zhou

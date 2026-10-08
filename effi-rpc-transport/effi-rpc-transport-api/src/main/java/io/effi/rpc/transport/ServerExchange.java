@@ -53,6 +53,16 @@ public final class ServerExchange {
         return send(EncodableOutputMessage.create(context, channel, protocol.serverCodec()));
     }
 
+    private Future<Void> send(OutputMessage outputMessage) {
+        Future<Void> result = channel.send(outputMessage);
+        result.onComplete(completion -> {
+            if (completion.failed()) {
+                logger.error("Failed to send server response to '{}'.", completion.cause(), channel.remoteAddress());
+            }
+        });
+        return result;
+    }
+
     /**
      * Sends a failure response when the request expects one.
      *
@@ -66,15 +76,5 @@ public final class ServerExchange {
         Response response = protocol.createErrorResponse(inputMessage, cause);
         OutputMessage outputMessage = protocol.serverCodec().encode(response, channel);
         return send(outputMessage);
-    }
-
-    private Future<Void> send(OutputMessage outputMessage) {
-        Future<Void> result = channel.send(outputMessage);
-        result.onComplete(completion -> {
-            if (completion.failed()) {
-                logger.error("Failed to send server response to '{}'.", completion.cause(), channel.remoteAddress());
-            }
-        });
-        return result;
     }
 }

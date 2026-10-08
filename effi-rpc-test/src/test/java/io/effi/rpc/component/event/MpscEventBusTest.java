@@ -9,14 +9,14 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,6 +54,47 @@ class MpscEventBusTest {
 
         assertEquals(PublishResult.ACCEPTED, bus.publish(new PayloadEvent("hello")));
         assertTrue(received.await(1, TimeUnit.SECONDS));
+    }
+
+    private MpscEventBus newBus() {
+        return newBus(16, 4, 10_000L, true, true, 1);
+    }
+
+    private MpscEventBus newBus(
+            int capacity,
+            int batchSize,
+            long idleParkNanos,
+            boolean daemon,
+            boolean metricsEnabled,
+            int telemetryConsumers
+    ) {
+        return newBus(capacity, batchSize, idleParkNanos, daemon, metricsEnabled,
+                telemetryConsumers, EventOptions.PUBLISH_TIMEOUT_NANOS.defaultValue());
+    }
+
+    private MpscEventBus newBus(
+            int capacity,
+            int batchSize,
+            long idleParkNanos,
+            boolean daemon,
+            boolean metricsEnabled,
+            int telemetryConsumers,
+            long publishTimeoutNanos
+    ) {
+        platform = new ScopedPlatform("event-bus-test-" + System.nanoTime());
+        platform.options()
+                .addOption(EventOptions.CAPACITY, capacity)
+                .addOption(EventOptions.BATCH_SIZE, batchSize)
+                .addOption(EventOptions.IDLE_PARK_NANOS, idleParkNanos)
+                .addOption(EventOptions.PUBLISH_TIMEOUT_NANOS, publishTimeoutNanos)
+                .addOption(EventOptions.DAEMON, daemon)
+                .addOption(MetricsOptions.ENABLED, metricsEnabled)
+                .addOption(EventOptions.TELEMETRY_CONSUMERS, telemetryConsumers);
+        metrics = new DefaultMetrics(platform);
+        MpscEventBus eventBus = new MpscEventBus(platform);
+        metrics.register(eventBus.metrics());
+        eventBus.start();
+        return eventBus;
     }
 
     @Test
@@ -105,6 +146,10 @@ class MpscEventBusTest {
         assertEquals(1L, metrics.counter(EventBusMetrics.DROPPED).count());
 
         release.countDown();
+    }
+
+    private MpscEventBus newBus(int capacity, int batchSize, long idleParkNanos, boolean daemon) {
+        return newBus(capacity, batchSize, idleParkNanos, daemon, true, 1);
     }
 
     @Test
@@ -358,51 +403,6 @@ class MpscEventBusTest {
                 .findFirst()
                 .orElseThrow();
         assertEquals(1L, accepted.value());
-    }
-
-    private MpscEventBus newBus() {
-        return newBus(16, 4, 10_000L, true, true, 1);
-    }
-
-    private MpscEventBus newBus(int capacity, int batchSize, long idleParkNanos, boolean daemon) {
-        return newBus(capacity, batchSize, idleParkNanos, daemon, true, 1);
-    }
-
-    private MpscEventBus newBus(
-            int capacity,
-            int batchSize,
-            long idleParkNanos,
-            boolean daemon,
-            boolean metricsEnabled,
-            int telemetryConsumers
-    ) {
-        return newBus(capacity, batchSize, idleParkNanos, daemon, metricsEnabled,
-                telemetryConsumers, EventOptions.PUBLISH_TIMEOUT_NANOS.defaultValue());
-    }
-
-    private MpscEventBus newBus(
-            int capacity,
-            int batchSize,
-            long idleParkNanos,
-            boolean daemon,
-            boolean metricsEnabled,
-            int telemetryConsumers,
-            long publishTimeoutNanos
-    ) {
-        platform = new ScopedPlatform("event-bus-test-" + System.nanoTime());
-        platform.options()
-                .addOption(EventOptions.CAPACITY, capacity)
-                .addOption(EventOptions.BATCH_SIZE, batchSize)
-                .addOption(EventOptions.IDLE_PARK_NANOS, idleParkNanos)
-                .addOption(EventOptions.PUBLISH_TIMEOUT_NANOS, publishTimeoutNanos)
-                .addOption(EventOptions.DAEMON, daemon)
-                .addOption(MetricsOptions.ENABLED, metricsEnabled)
-                .addOption(EventOptions.TELEMETRY_CONSUMERS, telemetryConsumers);
-        metrics = new DefaultMetrics(platform);
-        MpscEventBus eventBus = new MpscEventBus(platform);
-        metrics.register(eventBus.metrics());
-        eventBus.start();
-        return eventBus;
     }
 
     private static final class PayloadEvent implements Event {

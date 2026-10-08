@@ -25,6 +25,9 @@ public final class CollectionUtil {
 
     private static final Map.Entry[] EMPTY_ENTRY_ARRAY = new Map.Entry[0];
 
+    private CollectionUtil() {
+    }
+
     /**
      * Returns an empty entry array.
      */
@@ -48,7 +51,7 @@ public final class CollectionUtil {
      * Flattens nested iterables into a sorted distinct collection.
      *
      * @param collection nested iterables
-     * @param <T> comparable element type
+     * @param <T>        comparable element type
      * @return sorted distinct elements
      */
     public static <T extends Comparable> Collection<T> flatDistinctCollection(Collection<? extends Iterable<T>> collection) {
@@ -65,10 +68,17 @@ public final class CollectionUtil {
     }
 
     /**
+     * Checks if a collection is empty or null.
+     */
+    public static boolean isEmpty(Collection<?> value) {
+        return Objects.isNull(value) || value.isEmpty();
+    }
+
+    /**
      * Flattens nested arrays into a sorted distinct collection.
      *
      * @param collection nested arrays
-     * @param <T> comparable element type
+     * @param <T>        comparable element type
      * @return sorted distinct elements
      */
     public static <T extends Comparable> Collection<T> flatDistinctArray(Collection<? extends T[]> collection) {
@@ -83,7 +93,6 @@ public final class CollectionUtil {
         }
         return result.isEmpty() ? Collections.emptySet() : result;
     }
-
 
     /**
      * Converts an array to a hash set.
@@ -108,6 +117,13 @@ public final class CollectionUtil {
             }
         }
         return set;
+    }
+
+    /**
+     * Checks if an array is empty or null.
+     */
+    public static boolean isEmpty(Object[] value) {
+        return value == null || value.length == 0;
     }
 
     /**
@@ -180,6 +196,13 @@ public final class CollectionUtil {
     }
 
     /**
+     * Checks if a map is empty or null.
+     */
+    public static boolean isEmpty(Map<?, ?> value) {
+        return Objects.isNull(value) || value.isEmpty();
+    }
+
+    /**
      * Returns an unmodifiable view of a filtered and mapped map.
      */
     public static <T, R> Map<String, R> unmodifiable(Map<String, T> source, BiPredicate<String, T> predicate, Function<T, R> mapper) {
@@ -225,14 +248,13 @@ public final class CollectionUtil {
         }
     }
 
-
     /**
      * Merges multiple collections into a single set.
      * <p>
      * Duplicates are eliminated. Returns an empty list if input is empty.
      *
      * @param collections collections to merge
-     * @param <E> element type
+     * @param <E>         element type
      * @return merged distinct elements
      */
     @SafeVarargs
@@ -245,6 +267,12 @@ public final class CollectionUtil {
         return set.isEmpty() ? Collections.emptyList() : set;
     }
 
+    /**
+     * Checks if a collection is not empty and not null.
+     */
+    public static boolean isNotEmpty(Collection<?> value) {
+        return !isEmpty(value);
+    }
 
     /**
      * Adds items to a collection based on the provided predicate.
@@ -293,34 +321,6 @@ public final class CollectionUtil {
     }
 
     /**
-     * Checks if a collection is empty or null.
-     */
-    public static boolean isEmpty(Collection<?> value) {
-        return Objects.isNull(value) || value.isEmpty();
-    }
-
-    /**
-     * Checks if a map is empty or null.
-     */
-    public static boolean isEmpty(Map<?, ?> value) {
-        return Objects.isNull(value) || value.isEmpty();
-    }
-
-    /**
-     * Checks if an array is empty or null.
-     */
-    public static boolean isEmpty(Object[] value) {
-        return value == null || value.length == 0;
-    }
-
-    /**
-     * Checks if a collection is not empty and not null.
-     */
-    public static boolean isNotEmpty(Collection<?> value) {
-        return !isEmpty(value);
-    }
-
-    /**
      * Checks if a map is not empty and not null.
      */
     public static boolean isNotEmpty(Map<?, ?> value) {
@@ -332,9 +332,5 @@ public final class CollectionUtil {
      */
     public static boolean isNotEmpty(Object[] value) {
         return !isEmpty(value);
-    }
-
-
-    private CollectionUtil() {
     }
 }

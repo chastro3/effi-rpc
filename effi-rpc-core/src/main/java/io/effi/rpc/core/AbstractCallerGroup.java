@@ -5,8 +5,8 @@ import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallerGroup;
 import io.effi.rpc.context.RpcType;
 import io.effi.rpc.context.invocation.Invocation;
-import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.context.parameter.MethodBinder;
+import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.proxy.InvocationHandler;
 import io.effi.rpc.proxy.ProxyFactory;
 import io.effi.rpc.util.AssertUtil;
@@ -20,11 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static io.effi.rpc.context.options.CallerOptions.PROXY;
+import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 import static io.effi.rpc.context.options.CallerOptions.ENDPOINT;
+import static io.effi.rpc.context.options.CallerOptions.PROXY;
 import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
 import static io.effi.rpc.context.options.GovernanceOptions.LOCATOR;
-import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 
 /**
  * Provides the common proxy and caller registry behavior for caller groups.
@@ -44,6 +44,11 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         this.proxy = createProxy(builder.module);
     }
 
+    private T createProxy(ScopedModule module) {
+        ProxyFactory proxyFactory = module.platform().preferredExtension(ProxyFactory.class, proxyName);
+        return proxyFactory.createProxy(targetType, this);
+    }
+
     @Override
     public final T proxy() {
         return proxy;
@@ -59,6 +64,13 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         return invokeCaller(methodCaller.caller(), methodCaller.rpcType(), invocation);
     }
 
+    static Object invokeCaller(Caller<?> caller, RpcType rpcType, Invocation invocation) {
+        return switch (rpcType) {
+            case SYNC -> caller.blockingCall(invocation);
+            case ASYNC -> caller.call(invocation).toCompletableFuture();
+        };
+    }
+
     public final String proxyName() {
         return proxyName;
     }
@@ -71,18 +83,6 @@ public abstract class AbstractCallerGroup<T> extends AbstractPeerGroup<Caller<?>
         MethodCaller previous = methodCallers.putIfAbsent(method, new MethodCaller(caller, rpcType, new MethodBinder(binding)));
         AssertUtil.valid(previous == null, "Duplicate caller mapping for method: {}", method.toGenericString());
         register(caller);
-    }
-
-    private T createProxy(ScopedModule module) {
-        ProxyFactory proxyFactory = module.platform().preferredExtension(ProxyFactory.class, proxyName);
-        return proxyFactory.createProxy(targetType, this);
-    }
-
-    static Object invokeCaller(Caller<?> caller, RpcType rpcType, Invocation invocation) {
-        return switch (rpcType) {
-            case SYNC -> caller.blockingCall(invocation);
-            case ASYNC -> caller.call(invocation).toCompletableFuture();
-        };
     }
 
     private record MethodCaller(

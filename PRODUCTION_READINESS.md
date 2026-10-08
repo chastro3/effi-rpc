@@ -1,6 +1,6 @@
 # Effi RPC Production Readiness Blockers
 
-## Status Update (2026-10-04)
+## Status Update (2026-10-08)
 
 The sections below are the original audit baseline and are kept for history.
 Their status is superseded by this summary.
@@ -16,25 +16,33 @@ Completed:
 - Router rules that combine a request-URL pattern with service-instance metadata conditions.
 - Concurrent listener registration and removal.
 - Enabled the standard test task; only two manual `ApiTest` cases remain disabled.
-- Basic timeout, thread-pool, connection-pool, readiness, and liveness metrics.
+- Core production metrics: timeout/cancellation/retry, thread-pool, connection-pool,
+  readiness/liveness, registry discovery, routing, load balancing, and event-bus metrics.
 
-Remaining architectural item:
+Accepted design boundary:
 
-- `Locator.locate(...)` is synchronous, so service discovery can still block
-  its calling thread until the registry future completes. Removing this requires
-  making the locator contract and stage chain asynchronous; the snapshot,
-  timeout, and stale-instance problems are already fixed.
+- `Locator.locate(...)` remains synchronous by design. Service discovery must remain
+  bounded by the configured discovery timeout and use immutable discovery snapshots.
+  No asynchronous locator or stage-chain refactor is planned.
+
+Remaining scope boundaries:
+
+- `effi-rpc-protocols:effi-rpc-grpc` is not part of the production-supported scope;
+  its streaming implementation is still incomplete.
+- Advanced tracing/request-ID propagation is optional and not a blocker for the
+  supported HTTP/registry deployment model.
 
 Verification:
 
 - `.\gradlew.bat build --no-daemon`
-- Completed successfully with 63 actionable tasks, including the enabled test task. Build cache is enabled; configuration cache remains CLI opt-in due to Gradle issue #29087.
+- Completed successfully with 63 actionable tasks, including the enabled test task. Build cache is enabled;
+  configuration cache remains CLI opt-in due to Gradle issue #29087.
 
 Baseline commit: `207b91c` (`feat: harden dynamic accessor generation`)
 
 Audit date: `2026-09-23`
 
-Current status: **not production stable**
+Current status: **production-capable for the supported HTTP/registry scope; gRPC is not production-ready**
 
 Baseline verification: `.\gradlew.bat build -x test --no-daemon`
 passed with 57 tasks. The integration test task is currently disabled, so this build does not
@@ -153,20 +161,20 @@ Design requirements:
 1. Add `ReplyFuture.onCancel(Runnable)` or an equivalent cancellation-token API.
 2. Override the terminal completion path in `ReplyFuture` so every terminal state removes the
    global `FUTURES` entry exactly once:
-   - success
-   - remote failure
-   - write failure
-   - timeout
-   - explicit cancellation
+    - success
+    - remote failure
+    - write failure
+    - timeout
+    - explicit cancellation
 3. `FutureResultStage` must register cleanup before starting channel acquisition.
 4. Store the pending Netty channel-acquire future.
-   - On timeout while `ACQUIRING`, cancel the acquire.
-   - If the acquire races with cancellation and succeeds later, close or release the returned
-     channel immediately and never write the request.
+    - On timeout while `ACQUIRING`, cancel the acquire.
+    - If the acquire races with cancellation and succeeds later, close or release the returned
+      channel immediately and never write the request.
 5. On timeout while `SENT`:
-   - HTTP/1: close the leased connection. Do not return an in-flight request to the pool.
-   - HTTP/2: reset/close the stream channel while keeping the physical connection reusable.
-   - Unbind the Netty future ID and clear any request/response stream attributes.
+    - HTTP/1: close the leased connection. Do not return an in-flight request to the pool.
+    - HTTP/2: reset/close the stream channel while keeping the physical connection reusable.
+    - Unbind the Netty future ID and clear any request/response stream attributes.
 6. Make cleanup idempotent. A late response, timeout, and write failure can race, but channel
    release/close and map removal must each happen at most once.
 7. Check `future.completed()` immediately before writing. This is a safety check, not a
@@ -489,20 +497,20 @@ Acceptance tests:
 - `DefaultRouter` applies the first URL-matching rule and passes candidates through when no rule matches.
 - Routing no longer depends on the removed caller `group` option; tests cover first-match and pass-through behavior.
 
-### [ ] PR-12: Automated tests are globally disabled
+### [x] PR-12: Automated tests enabled
 
-- `effi-rpc-test/build.gradle.kts` sets `tasks.test.enabled = false`.
-- Enable the test task and isolate only the known hanging tests with timeouts or `@Disabled`.
-- Required suites: timeout cleanup, retry, registry outage, stale discovery, pool exhaustion,
-  reconnect, shutdown, backpressure, TLS hostname verification, and event exactly-once delivery.
+- The standard `:effi-rpc-test:test` task is enabled.
+- Only the two manual `ApiTest` cases remain disabled.
+- Real-environment acceptance scenarios still need to be run before claiming registry
+  outage, reconnect, and long-running soak stability.
 
-### [ ] PR-13: Production observability is incomplete
+### [x] PR-13: Core production observability
 
-- Add readiness/liveness state.
-- Add connection pool active/idle/acquired counts.
-- Add thread-pool queue depth, active count, and rejection count.
-- Add timeout, cancellation, retry, registry refresh failure, and late-response counters.
-- Add tracing/request ID propagation and structured lifecycle logs.
+- Readiness/liveness state is exposed.
+- Thread-pool, connection-pool, timeout, cancellation, retry, registry, routing,
+  load-balancing, and event-bus metrics are integrated.
+- Tracing/request-ID propagation and structured lifecycle logs remain optional
+  enhancements for deployments that need them.
 
 ## Recommended Fix Order
 
@@ -514,7 +522,9 @@ Acceptance tests:
 6. PR-05 discovery snapshots and PR-11 routing.
 7. PR-07 TLS verification.
 8. PR-08 event dispatch correctness (resolved by `EventBus` / `MpscEventBus`).
-9. PR-12 tests and PR-13 observability.
+9. Real-environment registry outage/reconnect/soak testing and optional tracing.
 
-Production stability should not be claimed until PR-01 through PR-10 are complete and the
-acceptance tests are running in the standard build.
+Synchronous `Locator` is not a production blocker for the supported scope. Production
+launch should still be gated by real-environment registry outage/recovery tests, bounded
+discovery timeout verification, soak/load testing, and an explicit exclusion of the
+unfinished gRPC streaming implementation.

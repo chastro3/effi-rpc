@@ -16,7 +16,7 @@ import java.util.Objects;
  * Implements an immutable chain structure for processing execution units
  * in a linked sequence with support for named chain elements and terminal nodes.
  *
- * @param <U>    the execution unit type
+ * @param <U>     the execution unit type
  * @param <CHAIN> the chain type
  */
 @SuppressWarnings({"rawtypes", "unchecked"})

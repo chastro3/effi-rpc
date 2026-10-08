@@ -44,25 +44,21 @@ public class ReflectConfig implements NativeConfig<List<Map<String, Object>>> {
     public static class Item implements NativeConfig.Item {
 
         /**
-         * Optional. Only register when this class is reachable.
-         */
-        private ConditionItem condition;
-
-        /**
-         * Required. Type descriptor of the class ("type" property).
-         */
-        private String type;
-
-        /**
          * Optional. Methods to register for reflection.
          */
         private final List<MethodConfigItem> methods = new ArrayList<>();
-
         /**
          * Optional. Methods to register for lookup only.
          */
         private final List<MethodConfigItem> queriedMethods = new ArrayList<>();
-
+        /**
+         * Optional. Only register when this class is reachable.
+         */
+        private ConditionItem condition;
+        /**
+         * Required. Type descriptor of the class ("type" property).
+         */
+        private String type;
         /**
          * Optional. Field names to register for reflection.
          */
@@ -195,6 +191,91 @@ public class ReflectConfig implements NativeConfig<List<Map<String, Object>>> {
             return this;
         }
 
+        public Item unsafeAllocated(Boolean v) {
+            this.unsafeAllocated = v;
+            return this;
+        }
+
+        public Item queryAllPublicConstructors(Boolean v) {
+            this.queryAllPublicConstructors = v;
+            return this;
+        }
+
+        public Item queryAllPublicMethods(Boolean v) {
+            this.queryAllPublicMethods = v;
+            return this;
+        }
+
+        public Item queryAllDeclaredConstructors(Boolean v) {
+            this.queryAllDeclaredConstructors = v;
+            return this;
+        }
+
+        public Item queryAllDeclaredMethods(Boolean v) {
+            this.queryAllDeclaredMethods = v;
+            return this;
+        }
+
+        public Item allSigners(Boolean v) {
+            this.allSigners = v;
+            return this;
+        }
+
+        public Item allNestMembers(Boolean v) {
+            this.allNestMembers = v;
+            return this;
+        }
+
+        public Item allPermittedSubclasses(Boolean v) {
+            this.allPermittedSubclasses = v;
+            return this;
+        }
+
+        public Item allRecordComponents(Boolean v) {
+            this.allRecordComponents = v;
+            return this;
+        }
+
+        public Item allPublicConstructors(Boolean v) {
+            this.allPublicConstructors = v;
+            return this;
+        }
+
+        public Item allPublicFields(Boolean v) {
+            this.allPublicFields = v;
+            return this;
+        }
+
+        public Item allPublicMethods(Boolean v) {
+            this.allPublicMethods = v;
+            return this;
+        }
+
+        public Item allPublicClasses(Boolean v) {
+            this.allPublicClasses = v;
+            return this;
+        }
+
+        public Item allDeclaredConstructors(Boolean v) {
+            this.allDeclaredConstructors = v;
+            return this;
+        }
+
+        public Item allDeclaredFields(Boolean v) {
+            this.allDeclaredFields = v;
+            return this;
+        }
+
+        public Item allDeclaredMethods(Boolean v) {
+            this.allDeclaredMethods = v;
+            return this;
+        }
+
+        public Item allDeclaredClasses(Boolean v) {
+            this.allDeclaredClasses = v;
+            return this;
+        }
+
         public Item type(String type) {
             this.type = type;
             return this;
@@ -212,91 +293,6 @@ public class ReflectConfig implements NativeConfig<List<Map<String, Object>>> {
 
         public Item fields(List<String> fields) {
             this.fields = fields;
-            return this;
-        }
-
-        public Item allDeclaredClasses(Boolean v) {
-            this.allDeclaredClasses = v;
-            return this;
-        }
-
-        public Item allDeclaredMethods(Boolean v) {
-            this.allDeclaredMethods = v;
-            return this;
-        }
-
-        public Item allDeclaredFields(Boolean v) {
-            this.allDeclaredFields = v;
-            return this;
-        }
-
-        public Item allDeclaredConstructors(Boolean v) {
-            this.allDeclaredConstructors = v;
-            return this;
-        }
-
-        public Item allPublicClasses(Boolean v) {
-            this.allPublicClasses = v;
-            return this;
-        }
-
-        public Item allPublicMethods(Boolean v) {
-            this.allPublicMethods = v;
-            return this;
-        }
-
-        public Item allPublicFields(Boolean v) {
-            this.allPublicFields = v;
-            return this;
-        }
-
-        public Item allPublicConstructors(Boolean v) {
-            this.allPublicConstructors = v;
-            return this;
-        }
-
-        public Item allRecordComponents(Boolean v) {
-            this.allRecordComponents = v;
-            return this;
-        }
-
-        public Item allPermittedSubclasses(Boolean v) {
-            this.allPermittedSubclasses = v;
-            return this;
-        }
-
-        public Item allNestMembers(Boolean v) {
-            this.allNestMembers = v;
-            return this;
-        }
-
-        public Item allSigners(Boolean v) {
-            this.allSigners = v;
-            return this;
-        }
-
-        public Item queryAllDeclaredMethods(Boolean v) {
-            this.queryAllDeclaredMethods = v;
-            return this;
-        }
-
-        public Item queryAllDeclaredConstructors(Boolean v) {
-            this.queryAllDeclaredConstructors = v;
-            return this;
-        }
-
-        public Item queryAllPublicMethods(Boolean v) {
-            this.queryAllPublicMethods = v;
-            return this;
-        }
-
-        public Item queryAllPublicConstructors(Boolean v) {
-            this.queryAllPublicConstructors = v;
-            return this;
-        }
-
-        public Item unsafeAllocated(Boolean v) {
-            this.unsafeAllocated = v;
             return this;
         }
 

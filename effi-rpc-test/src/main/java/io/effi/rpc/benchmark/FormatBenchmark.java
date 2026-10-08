@@ -25,6 +25,13 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Thread)
 public class FormatBenchmark {
 
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(FormatBenchmark.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
+
     // 测试 String.format 的性能
     @Benchmark
     public String testStringFormat() {
@@ -38,12 +45,5 @@ public class FormatBenchmark {
         return StringUtil.format(
                 "%s[local=%s, remote=%s, active=%b, type=%s]",
                 "MyClass", "127.0.0.1", "192.168.1.1", true, "physical");
-    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(FormatBenchmark.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
     }
 }

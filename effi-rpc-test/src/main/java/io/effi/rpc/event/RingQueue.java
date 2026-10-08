@@ -6,14 +6,6 @@ import java.util.concurrent.locks.LockSupport;
 
 public class RingQueue<T> {
     private static final VarHandle ARRAY_HANDLE;
-
-    private final Object[] buffer;
-    private final int capacity;
-    private final int mask;
-
-    private final PaddedLong head = new PaddedLong(0);
-    private final PaddedLong tail = new PaddedLong(0);
-
     private static final int SPIN_LIMIT = 100; // 自旋上限次数
 
     static {
@@ -23,6 +15,12 @@ public class RingQueue<T> {
             throw new RuntimeException(e);
         }
     }
+
+    private final Object[] buffer;
+    private final int capacity;
+    private final int mask;
+    private final PaddedLong head = new PaddedLong(0);
+    private final PaddedLong tail = new PaddedLong(0);
 
     public RingQueue(int capacity) {
         if (Integer.bitCount(capacity) != 1) {
@@ -92,12 +90,12 @@ public class RingQueue<T> {
         }
     }
 
-    public int size() {
-        return (int) (tail.get() - head.get());
-    }
-
     public boolean isEmpty() {
         return size() == 0;
+    }
+
+    public int size() {
+        return (int) (tail.get() - head.get());
     }
 }
 

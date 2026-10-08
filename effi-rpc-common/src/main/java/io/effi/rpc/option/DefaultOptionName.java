@@ -5,7 +5,8 @@ import io.effi.rpc.util.AssertUtil;
 /**
  * Provides the default implementation of {@link OptionName}.
  */
-record DefaultOptionName<T>(String name, OptionStrategy strategy, T defaultValue, OptionType<T> type) implements OptionName<T> {
+record DefaultOptionName<T>(String name, OptionStrategy strategy, T defaultValue,
+                            OptionType<T> type) implements OptionName<T> {
 
     DefaultOptionName(String name, OptionStrategy strategy, T defaultValue, OptionType<T> type) {
         this.name = AssertUtil.notBlank(name, "name");

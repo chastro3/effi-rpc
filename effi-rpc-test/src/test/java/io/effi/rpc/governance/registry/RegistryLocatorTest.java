@@ -38,6 +38,18 @@ class RegistryLocatorTest {
         );
     }
 
+    private static RegistryConfig consulConfig() {
+        return consulConfig(null);
+    }
+
+    private static RegistryConfig consulConfig(String id) {
+        return DefaultRegistryConfig.builder()
+                .id(id)
+                .type("consul")
+                .address("consul://127.0.0.1:8500")
+                .build();
+    }
+
     @Test
     void evictsCachedLocatorWhenPlatformCloses() {
         ScopedPlatform platform = new ScopedPlatform("registry-locator-close-platform");
@@ -87,18 +99,6 @@ class RegistryLocatorTest {
         assertEquals(1, client.lookups.get());
     }
 
-    private static RegistryConfig consulConfig() {
-        return consulConfig(null);
-    }
-
-    private static RegistryConfig consulConfig(String id) {
-        return DefaultRegistryConfig.builder()
-                .id(id)
-                .type("consul")
-                .address("consul://127.0.0.1:8500")
-                .build();
-    }
-
     private static final class CountingRegistryClient implements RegistryClient {
 
         private final ScopedPlatform platform;
@@ -131,12 +131,12 @@ class RegistryLocatorTest {
         }
 
         @Override
-        public boolean active() {
-            return true;
+        public void close() {
         }
 
         @Override
-        public void close() {
+        public boolean active() {
+            return true;
         }
     }
 }

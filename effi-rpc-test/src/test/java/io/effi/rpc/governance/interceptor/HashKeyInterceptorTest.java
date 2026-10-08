@@ -26,15 +26,6 @@ class HashKeyInterceptorTest {
         assertEquals("tenant-1", context.get(KeyConstant.HASH_KEY));
     }
 
-    @Test
-    void leavesHashKeyUnsetWhenIndexIsMissing() {
-        CallContext<Request, Caller<?>> context = context(-1, new Object[]{"tenant-1"});
-
-        new HashKeyInterceptor().intercept(context, chain());
-
-        assertNull(context.get(KeyConstant.HASH_KEY));
-    }
-
     @SuppressWarnings("unchecked")
     private static CallContext<Request, Caller<?>> context(int index, Object[] args) {
         Caller<?> caller = (Caller<?>) Proxy.newProxyInstance(
@@ -93,5 +84,14 @@ class HashKeyInterceptorTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void leavesHashKeyUnsetWhenIndexIsMissing() {
+        CallContext<Request, Caller<?>> context = context(-1, new Object[]{"tenant-1"});
+
+        new HashKeyInterceptor().intercept(context, chain());
+
+        assertNull(context.get(KeyConstant.HASH_KEY));
     }
 }

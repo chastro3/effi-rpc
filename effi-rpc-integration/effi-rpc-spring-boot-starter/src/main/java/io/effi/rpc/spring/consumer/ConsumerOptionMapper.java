@@ -23,7 +23,7 @@ public final class ConsumerOptionMapper {
     /**
      * Applies consumer property values to the target options.
      *
-     * @param options target options
+     * @param options  target options
      * @param consumer consumer properties
      */
     public static void apply(HierarchicalOptions options, EffiRpcProperties.Consumer consumer) {

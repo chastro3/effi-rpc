@@ -26,32 +26,6 @@ class Http2MessageStreamTest {
         stream.close();
     }
 
-    @Test
-    void takeBodyTransfersBufferedDataExactlyOnce() {
-        Http2ResponseStream stream = new Http2ResponseStream(frameStream(), 16);
-        DefaultHttp2DataFrame frame = new DefaultHttp2DataFrame(Unpooled.wrappedBuffer(new byte[]{1, 2}), true);
-        stream.parseDataFrame(frame);
-
-        ByteBuf body = stream.takeBody();
-        assertEquals(2, body.readableBytes());
-        body.release();
-    }
-
-    @Test
-    void rejectsMissingRequestPseudoHeaders() {
-        Http2RequestStream stream = new Http2RequestStream(null, frameStream(), 16);
-
-        assertThrows(EffiRpcException.class, stream::method);
-        assertThrows(EffiRpcException.class, stream::end);
-    }
-
-    @Test
-    void rejectsMissingResponseStatusPseudoHeader() {
-        Http2ResponseStream stream = new Http2ResponseStream(frameStream(), 16);
-
-        assertThrows(EffiRpcException.class, stream::statusCode);
-    }
-
     private static Http2FrameStream frameStream() {
         return (Http2FrameStream) Proxy.newProxyInstance(
                 Http2FrameStream.class.getClassLoader(),
@@ -91,5 +65,31 @@ class Http2MessageStreamTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void takeBodyTransfersBufferedDataExactlyOnce() {
+        Http2ResponseStream stream = new Http2ResponseStream(frameStream(), 16);
+        DefaultHttp2DataFrame frame = new DefaultHttp2DataFrame(Unpooled.wrappedBuffer(new byte[]{1, 2}), true);
+        stream.parseDataFrame(frame);
+
+        ByteBuf body = stream.takeBody();
+        assertEquals(2, body.readableBytes());
+        body.release();
+    }
+
+    @Test
+    void rejectsMissingRequestPseudoHeaders() {
+        Http2RequestStream stream = new Http2RequestStream(null, frameStream(), 16);
+
+        assertThrows(EffiRpcException.class, stream::method);
+        assertThrows(EffiRpcException.class, stream::end);
+    }
+
+    @Test
+    void rejectsMissingResponseStatusPseudoHeader() {
+        Http2ResponseStream stream = new Http2ResponseStream(frameStream(), 16);
+
+        assertThrows(EffiRpcException.class, stream::statusCode);
     }
 }

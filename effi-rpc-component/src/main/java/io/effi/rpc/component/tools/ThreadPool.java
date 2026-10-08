@@ -1,12 +1,12 @@
 package io.effi.rpc.component.tools;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
+import io.effi.rpc.concurrent.ConcurrentErrorCodes;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Promise;
-import io.effi.rpc.concurrent.ConcurrentErrorCodes;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.trait.Closeable;
+import io.effi.rpc.trait.Identifiable;
+import io.effi.rpc.util.AssertUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -34,7 +34,7 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
      * Executes a result-producing task.
      *
      * @param supplier task supplier
-     * @param <T> result type
+     * @param <T>      result type
      * @return task future
      */
     public <T> Future<T> execute(Supplier<T> supplier) {
@@ -88,11 +88,6 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
     }
 
     @Override
-    public boolean active() {
-        return !executor.isShutdown();
-    }
-
-    @Override
     public void close() {
         executor.shutdown();
         try {
@@ -103,6 +98,11 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
             Thread.currentThread().interrupt();
             executor.shutdownNow();
         }
+    }
+
+    @Override
+    public boolean active() {
+        return !executor.isShutdown();
     }
 
     /**

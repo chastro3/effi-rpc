@@ -25,12 +25,6 @@ public final class HttpHeaderParameterBinder implements ParameterBinder {
         this.defaultValue = defaultValue;
     }
 
-    public static Object resolveValue(Request request, String name, String defaultValue) {
-        HttpRequest httpRequest = (HttpRequest) request;
-        Object value = httpRequest.headers().get(name);
-        return value == null ? defaultValue : value;
-    }
-
     @Override
     public void write(Object value, ParameterBinding binding, Invocation invocation) {
         Map<String, String> values = invocation.computeIfAbsent(HttpInvocationKeys.HEADERS, HashMap::new);
@@ -40,5 +34,11 @@ public final class HttpHeaderParameterBinder implements ParameterBinder {
     @Override
     public Object resolve(ParameterBinding binding, Request request, Peer peer) {
         return resolveValue(request, name, defaultValue);
+    }
+
+    public static Object resolveValue(Request request, String name, String defaultValue) {
+        HttpRequest httpRequest = (HttpRequest) request;
+        Object value = httpRequest.headers().get(name);
+        return value == null ? defaultValue : value;
     }
 }

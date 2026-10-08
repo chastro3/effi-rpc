@@ -5,6 +5,9 @@ package io.effi.rpc.util;
  */
 public final class ExceptionUtil {
 
+    private ExceptionUtil() {
+    }
+
     /**
      * Returns a non-blank message for the given exception.
      */
@@ -14,8 +17,5 @@ public final class ExceptionUtil {
         return StringUtil.isBlank(message)
                 ? cause.getClass().getName()
                 : message;
-    }
-
-    private ExceptionUtil() {
     }
 }

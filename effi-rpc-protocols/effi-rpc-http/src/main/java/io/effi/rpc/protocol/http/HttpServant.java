@@ -1,5 +1,6 @@
 package io.effi.rpc.protocol.http;
 
+import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.core.AbstractServant;
@@ -8,7 +9,6 @@ import io.effi.rpc.serialization.json.JacksonSerializer;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 import io.netty.handler.codec.http.HttpMethod;
-import io.effi.rpc.component.serialization.options.SerializationOptions;
 
 /**
  * Provides a standard http implementation of {@link Servant}.

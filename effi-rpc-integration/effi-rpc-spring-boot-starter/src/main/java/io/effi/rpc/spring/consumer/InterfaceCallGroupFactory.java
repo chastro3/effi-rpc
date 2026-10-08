@@ -1,8 +1,8 @@
 package io.effi.rpc.spring.consumer;
 
-import io.effi.rpc.core.InterfaceCallerGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.options.CallerOptions;
+import io.effi.rpc.core.InterfaceCallerGroup;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 
@@ -25,7 +25,7 @@ public final class InterfaceCallGroupFactory {
     /**
      * Creates a consumer proxy targeting the named remote service.
      *
-     * @param targetType the remote interface
+     * @param targetType        the remote interface
      * @param remoteServiceName the remote service name used as the call endpoint
      * @return the consumer proxy
      */

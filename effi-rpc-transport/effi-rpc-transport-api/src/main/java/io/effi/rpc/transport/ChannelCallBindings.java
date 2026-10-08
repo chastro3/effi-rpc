@@ -91,11 +91,6 @@ public final class ChannelCallBindings implements Closeable {
     }
 
     @Override
-    public boolean active() {
-        return active.get();
-    }
-
-    @Override
     public void close() {
         Map<Channel, Set<Long>> bindings;
         synchronized (this) {
@@ -109,5 +104,10 @@ public final class ChannelCallBindings implements Closeable {
         Set<Long> callIds = new HashSet<>();
         bindings.values().forEach(callIds::addAll);
         callIds.forEach(callId -> callFutureRegistry.cancel(callId, reason));
+    }
+
+    @Override
+    public boolean active() {
+        return active.get();
     }
 }

@@ -30,13 +30,13 @@ public class DelegateComponentRepository implements ComponentRepository, ScopedC
         this(null, beanFactory);
     }
 
-    public DelegateComponentRepository(ScopedContext owner) {
-        this(owner, new DefaultBeanFactory(owner));
-    }
-
     public DelegateComponentRepository(ScopedContext owner, BeanFactory beanFactory) {
         this.owner = owner;
         this.beanFactory = AssertUtil.notNull(beanFactory, "bean factory");
+    }
+
+    public DelegateComponentRepository(ScopedContext owner) {
+        this(owner, new DefaultBeanFactory(owner));
     }
 
     @Override
@@ -49,6 +49,18 @@ public class DelegateComponentRepository implements ComponentRepository, ScopedC
     public <T> DelegateComponentRepository register(Class<T> type, String name, T component) {
         if (StringUtil.isBlank(name)) name = ObjectUtil.resolveName(component);
         beanFactory.registerBean(type, name, component);
+        return this;
+    }
+
+    @Override
+    public DelegateComponentRepository remove(Class<?> type) {
+        beanFactory.removeBean(type);
+        return this;
+    }
+
+    @Override
+    public DelegateComponentRepository remove(Class<?> type, String name) {
+        beanFactory.removeBean(type, name);
         return this;
     }
 
@@ -74,11 +86,6 @@ public class DelegateComponentRepository implements ComponentRepository, ScopedC
     }
 
     @Override
-    public int componentCount(Class<?> type) {
-        return beanFactory.getBeanNames(type).length;
-    }
-
-    @Override
     public <T> Collection<T> components(Class<T> type, BiPredicate<String, T> filter) {
         return namedComponents(type, filter).values();
     }
@@ -90,15 +97,8 @@ public class DelegateComponentRepository implements ComponentRepository, ScopedC
     }
 
     @Override
-    public DelegateComponentRepository remove(Class<?> type) {
-        beanFactory.removeBean(type);
-        return this;
-    }
-
-    @Override
-    public DelegateComponentRepository remove(Class<?> type, String name) {
-        beanFactory.removeBean(type, name);
-        return this;
+    public int componentCount(Class<?> type) {
+        return beanFactory.getBeanNames(type).length;
     }
 
     @Override

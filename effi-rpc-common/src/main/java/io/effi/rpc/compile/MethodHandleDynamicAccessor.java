@@ -43,6 +43,20 @@ final class MethodHandleDynamicAccessor extends DynamicAccessor {
         return new MethodHandleDynamicAccessor(type, methodNames, parameterTypes, handles, staticMethods);
     }
 
+    private static MethodHandle unReflect(Method method) {
+        try {
+            Class<?> declaringType = method.getDeclaringClass();
+            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(declaringType, MethodHandles.lookup());
+            return lookup.unreflect(method);
+        } catch (IllegalAccessException | IllegalArgumentException | SecurityException ignored) {
+            try {
+                return MethodHandles.publicLookup().unreflect(method);
+            } catch (IllegalAccessException | RuntimeException ignoredAgain) {
+                return null;
+            }
+        }
+    }
+
     @Override
     public Object invoke(Object target, int index, Object... args) {
         validateInvocation(index, args);
@@ -60,20 +74,6 @@ final class MethodHandleDynamicAccessor extends DynamicAccessor {
             return handles[index].invokeWithArguments(invocationArgs);
         } catch (Throwable throwable) {
             throw DynamicAccessorSupport.rethrow(throwable);
-        }
-    }
-
-    private static MethodHandle unReflect(Method method) {
-        try {
-            Class<?> declaringType = method.getDeclaringClass();
-            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(declaringType, MethodHandles.lookup());
-            return lookup.unreflect(method);
-        } catch (IllegalAccessException | IllegalArgumentException | SecurityException ignored) {
-            try {
-                return MethodHandles.publicLookup().unreflect(method);
-            } catch (IllegalAccessException | RuntimeException ignoredAgain) {
-                return null;
-            }
         }
     }
 }

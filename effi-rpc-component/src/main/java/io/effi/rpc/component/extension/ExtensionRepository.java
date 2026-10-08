@@ -1,10 +1,9 @@
 package io.effi.rpc.component.extension;
 
-import io.effi.rpc.component.ComponentDescriptor;
 import io.effi.rpc.component.ScopedContext;
 import io.effi.rpc.component.ScopedContextOwned;
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.Cleanable;
+import io.effi.rpc.util.AssertUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,7 +28,10 @@ public class ExtensionRepository implements ScopedContextOwned, ExtensionAccesso
         this.owner = AssertUtil.notNull(owner, "owner");
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
+    public ScopedContext owner() {
+        return owner;
+    }    @SuppressWarnings("unchecked")
     @Override
     public <T> ExtensionLoader<T> extensionLoader(Class<T> type) {
         AssertUtil.notNull(type, "extension type");
@@ -39,6 +41,10 @@ public class ExtensionRepository implements ScopedContextOwned, ExtensionAccesso
     }
 
     @Override
+    public void clear() {
+        loaders.values().forEach(ExtensionLoader::clear);
+        loaders.clear();
+    }    @Override
     public <T> T preferredExtension(Class<T> type, String name) {
         return extensionLoader(type).preferredExtension(name);
     }
@@ -63,14 +69,7 @@ public class ExtensionRepository implements ScopedContextOwned, ExtensionAccesso
         return extensionLoader(type).namedExtensions(filter);
     }
 
-    @Override
-    public ScopedContext owner() {
-        return owner;
-    }
 
-    @Override
-    public void clear() {
-        loaders.values().forEach(ExtensionLoader::clear);
-        loaders.clear();
-    }
+
+
 }

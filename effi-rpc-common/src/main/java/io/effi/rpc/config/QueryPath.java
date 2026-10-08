@@ -32,6 +32,57 @@ public class QueryPath {
         this.queryParams = params;
     }
 
+    private String[] splitPath(String path) {
+        if (StringUtil.isBlank(path)) {
+            return StringUtil.emptyArray();
+        }
+        String[] parts = path.split("/");
+        List<String> list = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(parts)) {
+            for (String part : parts) {
+                if (StringUtil.isNotBlank(part)) {
+                    list.add(part);
+                }
+            }
+        }
+        return list.isEmpty()
+                ? StringUtil.emptyArray()
+                : list.toArray(StringUtil.emptyArray());
+    }
+
+    /**
+     * Extracts variable name from path variable segment.
+     */
+    private PathVariable[] extractPathVariable(String[] pathSegments) {
+        if (CollectionUtil.isEmpty(pathSegments)) {
+            return null;
+        }
+        int count = 0;
+        for (String seg : pathSegments) {
+            if (isPathVariable(seg)) {
+                count++;
+            }
+        }
+        if (count == 0) return null;
+        PathVariable[] result = new PathVariable[count];
+        int idx = 0;
+        for (int i = 0; i < pathSegments.length; i++) {
+            String segment = pathSegments[i];
+            if (isPathVariable(segment)) {
+                result[idx++] = new PathVariable(i, extractPathVariableName(segment));
+            }
+        }
+        return result;
+    }
+
+    private boolean isPathVariable(String segment) {
+        return segment.startsWith("{") && segment.endsWith("}");
+    }
+
+    private String extractPathVariableName(String segment) {
+        return segment.substring(1, segment.length() - 1).trim();
+    }
+
     /**
      * Returns the shared empty query path.
      */
@@ -102,6 +153,13 @@ public class QueryPath {
     }
 
     /**
+     * Indicates whether this path contains variables.
+     */
+    public boolean hasPathVariable() {
+        return pathVariables != null && pathVariables.length > 0;
+    }
+
+    /**
      * Indicates whether the supplied path matches this template.
      *
      * @param realPath actual path
@@ -146,18 +204,14 @@ public class QueryPath {
         return result;
     }
 
-    /**
-     * Returns the normalized path.
-     */
-    public String path() {
-        return path;
-    }
-
-    /**
-     * Indicates whether this path contains variables.
-     */
-    public boolean hasPathVariable() {
-        return pathVariables != null && pathVariables.length > 0;
+    private PathVariable lookupPathVariable(int index) {
+        if (!hasPathVariable()) return null;
+        for (PathVariable var : pathVariables) {
+            if (var.index == index) {
+                return var;
+            }
+        }
+        return null;
     }
 
     /**
@@ -185,66 +239,11 @@ public class QueryPath {
         }
     }
 
-    private String[] splitPath(String path) {
-        if (StringUtil.isBlank(path)) {
-            return StringUtil.emptyArray();
-        }
-        String[] parts = path.split("/");
-        List<String> list = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(parts)) {
-            for (String part : parts) {
-                if (StringUtil.isNotBlank(part)) {
-                    list.add(part);
-                }
-            }
-        }
-        return list.isEmpty()
-                ? StringUtil.emptyArray()
-                : list.toArray(StringUtil.emptyArray());
-    }
-
     /**
-     * Extracts variable name from path variable segment.
+     * Returns the normalized path.
      */
-    private PathVariable[] extractPathVariable(String[] pathSegments) {
-        if (CollectionUtil.isEmpty(pathSegments)) {
-            return null;
-        }
-        int count = 0;
-        for (String seg : pathSegments) {
-            if (isPathVariable(seg)) {
-                count++;
-            }
-        }
-        if (count == 0) return null;
-        PathVariable[] result = new PathVariable[count];
-        int idx = 0;
-        for (int i = 0; i < pathSegments.length; i++) {
-            String segment = pathSegments[i];
-            if (isPathVariable(segment)) {
-                result[idx++] = new PathVariable(i, extractPathVariableName(segment));
-            }
-        }
-        return result;
-    }
-
-
-    private boolean isPathVariable(String segment) {
-        return segment.startsWith("{") && segment.endsWith("}");
-    }
-
-    private String extractPathVariableName(String segment) {
-        return segment.substring(1, segment.length() - 1).trim();
-    }
-
-    private PathVariable lookupPathVariable(int index) {
-        if (!hasPathVariable()) return null;
-        for (PathVariable var : pathVariables) {
-            if (var.index == index) {
-                return var;
-            }
-        }
-        return null;
+    public String path() {
+        return path;
     }
 
     private record PathVariable(int index, String name) {

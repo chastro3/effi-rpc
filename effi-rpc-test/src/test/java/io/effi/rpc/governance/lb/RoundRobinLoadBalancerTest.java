@@ -25,18 +25,6 @@ class RoundRobinLoadBalancerTest {
         assertSame(instances.get(0), selected);
     }
 
-    @Test
-    void cyclesThroughCandidates() {
-        CallContext<Request, Caller<?>> context = context(new AtomicInteger(-1));
-        List<ServiceInstance> instances = List.of(instance("a"), instance("b"), instance("c"));
-        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
-
-        assertSame(instances.get(0), loadBalancer.select(context, instances));
-        assertSame(instances.get(1), loadBalancer.select(context, instances));
-        assertSame(instances.get(2), loadBalancer.select(context, instances));
-        assertSame(instances.get(0), loadBalancer.select(context, instances));
-    }
-
     @SuppressWarnings("unchecked")
     private static CallContext<Request, Caller<?>> context(AtomicInteger lastIndex) {
         Caller<?> caller = (Caller<?>) Proxy.newProxyInstance(
@@ -94,5 +82,17 @@ class RoundRobinLoadBalancerTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void cyclesThroughCandidates() {
+        CallContext<Request, Caller<?>> context = context(new AtomicInteger(-1));
+        List<ServiceInstance> instances = List.of(instance("a"), instance("b"), instance("c"));
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+
+        assertSame(instances.get(0), loadBalancer.select(context, instances));
+        assertSame(instances.get(1), loadBalancer.select(context, instances));
+        assertSame(instances.get(2), loadBalancer.select(context, instances));
+        assertSame(instances.get(0), loadBalancer.select(context, instances));
     }
 }

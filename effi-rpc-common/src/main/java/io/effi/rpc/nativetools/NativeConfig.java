@@ -36,17 +36,17 @@ public interface NativeConfig<T> {
      */
     interface Item {
         /**
-         * Converts the current configuration entry to a map representation.
-         */
-        Map<String, Object> toMap();
-
-        /**
          * Converts a list of configuration entries to a list of maps.
          */
         static <T extends Item> List<Map<String, Object>> toMapList(List<T> list) {
             return CollectionUtil.isEmpty(list) ? Collections.emptyList()
                     : list.stream().map(Item::toMap).toList();
         }
+
+        /**
+         * Converts the current configuration entry to a map representation.
+         */
+        Map<String, Object> toMap();
     }
 
     @Target(ElementType.TYPE)

@@ -2,7 +2,6 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.util.AssertUtil;
 
 /**
  * Provides contextual data for an RPC call.

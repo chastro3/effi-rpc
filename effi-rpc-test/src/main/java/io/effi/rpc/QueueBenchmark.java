@@ -11,46 +11,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class QueueBenchmark {
-    // 你的自定义环形队列接口（示例）
-    interface SimpleQueue<E> {
-        boolean offer(E e);
+    public static void main(String[] args) throws InterruptedException {
+        int capacity = 1024 * 1024;
+        int producers = 4;
+        int consumers = 4;
+        int testDuration = 10;
 
-        E poll();
-    }
+        // 测试自定义 RingQueue
+        SimpleQueue<Integer> ringQueue = new RingQueueWrapper<>(new RingQueue<>(capacity));
+        benchmark(ringQueue, producers, consumers, testDuration, "RingQueue");
 
+        // 测试 JDK ConcurrentLinkedQueue
+        SimpleQueue<Integer> clq = new JdkQueueWrapper<>(new ConcurrentLinkedQueue<>());
+        benchmark(clq, producers, consumers, testDuration, "ConcurrentLinkedQueue");
 
-    // 示例：自定义 RingQueue 实现（简化版）
-    static class RingQueueWrapper<E> implements SimpleQueue<E> {
-        private RingQueue<E> queue;
-
-        public RingQueueWrapper(RingQueue<E> queue) {
-            this.queue = queue;
-        }
-
-        public boolean offer(E e) {
-            return queue.offer(e);
-        }
-
-        public E poll() {
-            return queue.poll();
-        }
-    }
-
-    // 包装 JDK 队列适配 SimpleQueue 接口
-    static class JdkQueueWrapper<E> implements SimpleQueue<E> {
-        private final Queue<E> queue;
-
-        public JdkQueueWrapper(Queue<E> queue) {
-            this.queue = queue;
-        }
-
-        public boolean offer(E e) {
-            return queue.offer(e);
-        }
-
-        public E poll() {
-            return queue.poll();
-        }
+        // 测试 JDK ArrayBlockingQueue
+        SimpleQueue<Integer> abq = new JdkQueueWrapper<>(new ArrayBlockingQueue<>(capacity));
+        benchmark(abq, producers, consumers, testDuration, "ArrayBlockingQueue");
     }
 
     // 基准测试方法
@@ -93,22 +70,44 @@ public class QueueBenchmark {
                 name, produced.get(), consumed.get(), consumed.get() / seconds);
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        int capacity = 1024 * 1024;
-        int producers = 4;
-        int consumers = 4;
-        int testDuration = 10;
+    // 你的自定义环形队列接口（示例）
+    interface SimpleQueue<E> {
+        boolean offer(E e);
 
-        // 测试自定义 RingQueue
-        SimpleQueue<Integer> ringQueue = new RingQueueWrapper<>(new RingQueue<>(capacity));
-        benchmark(ringQueue, producers, consumers, testDuration, "RingQueue");
+        E poll();
+    }
 
-        // 测试 JDK ConcurrentLinkedQueue
-        SimpleQueue<Integer> clq = new JdkQueueWrapper<>(new ConcurrentLinkedQueue<>());
-        benchmark(clq, producers, consumers, testDuration, "ConcurrentLinkedQueue");
+    // 示例：自定义 RingQueue 实现（简化版）
+    static class RingQueueWrapper<E> implements SimpleQueue<E> {
+        private RingQueue<E> queue;
 
-        // 测试 JDK ArrayBlockingQueue
-        SimpleQueue<Integer> abq = new JdkQueueWrapper<>(new ArrayBlockingQueue<>(capacity));
-        benchmark(abq, producers, consumers, testDuration, "ArrayBlockingQueue");
+        public RingQueueWrapper(RingQueue<E> queue) {
+            this.queue = queue;
+        }
+
+        public boolean offer(E e) {
+            return queue.offer(e);
+        }
+
+        public E poll() {
+            return queue.poll();
+        }
+    }
+
+    // 包装 JDK 队列适配 SimpleQueue 接口
+    static class JdkQueueWrapper<E> implements SimpleQueue<E> {
+        private final Queue<E> queue;
+
+        public JdkQueueWrapper(Queue<E> queue) {
+            this.queue = queue;
+        }
+
+        public boolean offer(E e) {
+            return queue.offer(e);
+        }
+
+        public E poll() {
+            return queue.poll();
+        }
     }
 }

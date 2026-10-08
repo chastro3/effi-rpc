@@ -41,23 +41,6 @@ public class JdkSerializer extends AbstractSerializer implements ScopedPlatform.
         inputFilter = createInputFilter(allowedPackages);
     }
 
-    @Override
-    protected void doSerialize(Object obj, OutputStream out) throws IOException {
-        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(out)) {
-            objectOutputStream.writeObject(obj);
-        }
-    }
-
-    @Override
-    protected Object doDeserialize(InputStream in, Type type) throws IOException {
-        try (ObjectInputStream objectInputStream = new ObjectInputStream(in)) {
-            objectInputStream.setObjectInputFilter(inputFilter);
-            return objectInputStream.readObject();
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-    }
-
     // Unwrap arrays and reject any class outside the configured package allowlist.
     private static ObjectInputFilter createInputFilter(List<String> allowedPackages) {
         return info -> {
@@ -76,5 +59,22 @@ public class JdkSerializer extends AbstractSerializer implements ScopedPlatform.
             }
             return ObjectInputFilter.Status.REJECTED;
         };
+    }
+
+    @Override
+    protected void doSerialize(Object obj, OutputStream out) throws IOException {
+        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(out)) {
+            objectOutputStream.writeObject(obj);
+        }
+    }
+
+    @Override
+    protected Object doDeserialize(InputStream in, Type type) throws IOException {
+        try (ObjectInputStream objectInputStream = new ObjectInputStream(in)) {
+            objectInputStream.setObjectInputFilter(inputFilter);
+            return objectInputStream.readObject();
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 }

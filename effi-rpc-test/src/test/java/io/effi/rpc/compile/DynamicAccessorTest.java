@@ -19,50 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DynamicAccessorTest {
 
-    public interface Sample {
-
-        String echo(String value);
-
-        int add(int left, int right);
-
-        void noop();
-
-        static String staticEcho(String value) {
-            return "static:" + value;
-        }
-    }
-
-    public static class NestedTarget {
-
-        public String value() {
-            return "nested";
-        }
-    }
-
-    public interface OverloadedSample {
-
-        String value(String value);
-
-        String value(String value, int count);
-    }
-
-    public interface BaseSample {
-
-        default String defaultValue() {
-            return "default";
-        }
-    }
-
-    public interface InheritedSample extends BaseSample {
-
-        String own();
-    }
-
-    public interface ThrowingSample {
-
-        String checked() throws IOException;
-    }
-
     @Test
     void cachesAccessorPerType() {
         assertSame(DynamicAccessor.fetch(Sample.class), DynamicAccessor.fetch(Sample.class));
@@ -268,14 +224,58 @@ public class DynamicAccessorTest {
         }
     }
 
+    public interface Sample {
+
+        static String staticEcho(String value) {
+            return "static:" + value;
+        }
+
+        String echo(String value);
+
+        int add(int left, int right);
+
+        void noop();
+    }
+
+    public interface OverloadedSample {
+
+        String value(String value);
+
+        String value(String value, int count);
+    }
+
+    public interface BaseSample {
+
+        default String defaultValue() {
+            return "default";
+        }
+    }
+
+    public interface InheritedSample extends BaseSample {
+
+        String own();
+    }
+
+    public interface ThrowingSample {
+
+        String checked() throws IOException;
+    }
+
+    public static class NestedTarget {
+
+        public String value() {
+            return "nested";
+        }
+    }
+
     private static final class ChildFirstClassLoader extends ClassLoader {
+
+        private final Class<?> type;
 
         private ChildFirstClassLoader(Class<?> type) {
             super(type.getClassLoader());
             this.type = type;
         }
-
-        private final Class<?> type;
 
         @Override
         protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {

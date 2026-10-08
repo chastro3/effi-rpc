@@ -11,9 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractRegistryClientFactory implements RegistryClient.Factory, ScopedPlatform.Acceptor {
 
-    protected ScopedPlatform platform;
-
     private final Map<String, RegistryClient> registryServices = new ConcurrentHashMap<>();
+    protected ScopedPlatform platform;
 
     @Override
     public void accept(ScopedPlatform platform) {
@@ -25,12 +24,12 @@ public abstract class AbstractRegistryClientFactory implements RegistryClient.Fa
         return registryServices.computeIfAbsent(config.id(), k -> newClient(config, platform));
     }
 
+    protected abstract RegistryClient newClient(RegistryConfig config, ScopedPlatform platform);
+
     @Override
     public void clear() {
         registryServices.values().forEach(RegistryClient::close);
         registryServices.clear();
     }
-
-    protected abstract RegistryClient newClient(RegistryConfig config, ScopedPlatform platform);
 }
 

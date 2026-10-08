@@ -35,6 +35,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CallAttemptTest {
 
+    @SuppressWarnings("unchecked")
+    private static <T> T proxy(Class<T> type, java.lang.reflect.InvocationHandler handler) {
+        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, handler);
+    }
+
+    private static Object defaultValue(Class<?> type) {
+        if (!type.isPrimitive() || type == void.class) {
+            return null;
+        }
+        if (type == boolean.class) {
+            return false;
+        }
+        if (type == char.class) {
+            return '\0';
+        }
+        if (type == byte.class) {
+            return (byte) 0;
+        }
+        if (type == short.class) {
+            return (short) 0;
+        }
+        if (type == int.class) {
+            return 0;
+        }
+        if (type == long.class) {
+            return 0L;
+        }
+        if (type == float.class) {
+            return 0F;
+        }
+        return 0D;
+    }
+
     @Test
     void timeoutWhileAcquiringClosesLateChannelWithoutSending() throws Exception {
         TestContext fixture = new TestContext(200);
@@ -52,6 +85,14 @@ class CallAttemptTest {
         assertNull(fixture.registry.lookup(fixture.future.id()));
     }
 
+    private static void assertTimedOut(ReplyFuture future) throws Exception {
+        assertThrows(
+                ExecutionException.class,
+                () -> future.toCompletableFuture().get(1, TimeUnit.SECONDS)
+        );
+        assertTrue(future.await().failed());
+    }
+
     @Test
     void timeoutAfterSendClosesActiveChannel() throws Exception {
         TestContext fixture = new TestContext(200);
@@ -67,14 +108,6 @@ class CallAttemptTest {
         assertEquals(1, channel.sends.get());
         assertEquals(1, channel.closes.get());
         assertNull(fixture.registry.lookup(fixture.future.id()));
-    }
-
-    private static void assertTimedOut(ReplyFuture future) throws Exception {
-        assertThrows(
-                ExecutionException.class,
-                () -> future.toCompletableFuture().get(1, TimeUnit.SECONDS)
-        );
-        assertTrue(future.await().failed());
     }
 
     private static final class TestContext {
@@ -169,38 +202,5 @@ class CallAttemptTest {
             case "localAddress", "remoteAddress" -> InetSocketAddress.createUnresolved("127.0.0.1", 8080);
             default -> defaultValue(method.getReturnType());
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T proxy(Class<T> type, java.lang.reflect.InvocationHandler handler) {
-        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, handler);
-    }
-
-    private static Object defaultValue(Class<?> type) {
-        if (!type.isPrimitive() || type == void.class) {
-            return null;
-        }
-        if (type == boolean.class) {
-            return false;
-        }
-        if (type == char.class) {
-            return '\0';
-        }
-        if (type == byte.class) {
-            return (byte) 0;
-        }
-        if (type == short.class) {
-            return (short) 0;
-        }
-        if (type == int.class) {
-            return 0;
-        }
-        if (type == long.class) {
-            return 0L;
-        }
-        if (type == float.class) {
-            return 0F;
-        }
-        return 0D;
     }
 }

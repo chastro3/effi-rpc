@@ -6,14 +6,14 @@ import io.effi.rpc.component.ScopedContext;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.TagComponent;
+import io.effi.rpc.trait.Cleanable;
+import io.effi.rpc.trait.Ordered;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ClassUtil;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.trait.Ordered;
 import io.effi.rpc.util.ReflectionUtil;
 import io.effi.rpc.util.StringUtil;
-import io.effi.rpc.trait.Cleanable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -82,13 +82,6 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
     }
 
     /**
-     * Returns whether the extension is singleton-scoped.
-     */
-    public boolean singleton() {
-        return extension.scope() == Extension.Scope.SINGLETON;
-    }
-
-    /**
      * Returns the extension instance, creating it when necessary.
      */
     public T extension() {
@@ -107,46 +100,17 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         }
     }
 
-    @Override
-    public synchronized void clear() {
+    /**
+     * Returns whether the extension is singleton-scoped.
+     */
+    public boolean singleton() {
+        return extension.scope() == Extension.Scope.SINGLETON;
+    }
+
+    private void ensureActive() {
         if (cleared) {
-            return;
+            throw new IllegalStateException("Extension '" + type.getName() + "' is already cleared");
         }
-        cleared = true;
-        T current = instance;
-        instance = null;
-        if (current != null) {
-            ObjectUtil.release(current);
-        }
-    }
-
-
-    @Override
-    public String toString() {
-        return ObjectUtil.simpleClassName(this)
-                + "<" + type.getSimpleName() + "> {names="
-                + Arrays.toString(names) + "}";
-    }
-
-    boolean available() {
-        String[] classes = extension.onClass();
-        if (CollectionUtil.isEmpty(classes)) return true;
-        try {
-            for (String type : classes) {
-                ClassUtil.findClassLoader(this.type).loadClass(type);
-            }
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    boolean canOverride() {
-        return extension.override();
-    }
-
-    boolean primary() {
-        return extension.primary();
     }
 
     @SuppressWarnings("unchecked")
@@ -180,11 +144,6 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         return finalInstance;
     }
 
-    private boolean matchesExtensionType(String name, ExtensionLoadedListener<?> listener) {
-        Class<?> extensionType = listener.extensionType();
-        return extensionType != null && extensionType.isAssignableFrom(type);
-    }
-
     private void injectScopedContext(Object target, ScopedContext context) {
         if (target instanceof ScopedPlatform.Acceptor acceptor
                 && context instanceof ScopedPlatform platform) {
@@ -198,9 +157,49 @@ public final class ExtensionEntry<T> implements TagComponent, Cleanable, Ordered
         }
     }
 
-    private void ensureActive() {
+    private boolean matchesExtensionType(String name, ExtensionLoadedListener<?> listener) {
+        Class<?> extensionType = listener.extensionType();
+        return extensionType != null && extensionType.isAssignableFrom(type);
+    }
+
+    @Override
+    public synchronized void clear() {
         if (cleared) {
-            throw new IllegalStateException("Extension '" + type.getName() + "' is already cleared");
+            return;
         }
+        cleared = true;
+        T current = instance;
+        instance = null;
+        if (current != null) {
+            ObjectUtil.release(current);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return ObjectUtil.simpleClassName(this)
+                + "<" + type.getSimpleName() + "> {names="
+                + Arrays.toString(names) + "}";
+    }
+
+    boolean available() {
+        String[] classes = extension.onClass();
+        if (CollectionUtil.isEmpty(classes)) return true;
+        try {
+            for (String type : classes) {
+                ClassUtil.findClassLoader(this.type).loadClass(type);
+            }
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    boolean canOverride() {
+        return extension.override();
+    }
+
+    boolean primary() {
+        return extension.primary();
     }
 }

@@ -3,10 +3,10 @@ package io.effi.rpc.registry;
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
-import io.effi.rpc.trait.Cleanable;
-import io.effi.rpc.trait.Closeable;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.concurrent.Futures;
+import io.effi.rpc.trait.Cleanable;
+import io.effi.rpc.trait.Closeable;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,14 +34,6 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
     }
 
     /**
-     * Registers a service into the registry.
-     *
-     * @param instance the service instance to register
-     * @return a future completed when registration finishes
-     */
-    Future<Void> register(ServiceInstance instance);
-
-    /**
      * Registers multiple service instances.
      *
      * @param instances the service instances to register
@@ -52,12 +44,12 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
     }
 
     /**
-     * Deregisters a service from the registry.
+     * Registers a service into the registry.
      *
-     * @param instance the service instance to deregister
-     * @return a future completed when deregistration finishes
+     * @param instance the service instance to register
+     * @return a future completed when registration finishes
      */
-    Future<Void> deregister(ServiceInstance instance);
+    Future<Void> register(ServiceInstance instance);
 
     /**
      * Deregisters multiple service instances.
@@ -68,6 +60,14 @@ public interface RegistryClient extends ScopedPlatform.Supplier, Closeable {
     default Future<Void> deregister(Collection<ServiceInstance> instances) {
         return Futures.allOf(instances.stream().map(this::deregister).toList());
     }
+
+    /**
+     * Deregisters a service from the registry.
+     *
+     * @param instance the service instance to deregister
+     * @return a future completed when deregistration finishes
+     */
+    Future<Void> deregister(ServiceInstance instance);
 
     /**
      * Discovers services from the registry by service id.

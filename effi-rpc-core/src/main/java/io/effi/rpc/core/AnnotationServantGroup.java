@@ -17,9 +17,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.effi.rpc.context.options.ServantOptions.DECLARED_PROTOCOL;
 import static io.effi.rpc.core.AnnotationSupport.annotationStyleParserForMethod;
 import static io.effi.rpc.core.AnnotationSupport.checkAnnotationStyle;
-import static io.effi.rpc.context.options.ServantOptions.DECLARED_PROTOCOL;
 
 /**
  * Provides the annotation-based implementation of {@link io.effi.rpc.context.ServantGroup}.
@@ -97,6 +97,20 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
             AssertUtil.notNull(group.annotationStyle(), "annotationStyle");
         }
 
+        private MethodBinding methodBinding(HierarchicalOptions options, Method method) {
+            AnnotationStyleResolver resolver = annotationStyleParserForMethod(
+                    options,
+                    annotationStyle,
+                    module.platform()
+            );
+            if (resolver != null && resolver.supports(method)) {
+                MethodBinding binding = resolver.resolveMethodBinding(method);
+                resolver.resolveMethod(method, options);
+                return binding;
+            }
+            return MethodBinding.positional(method);
+        }
+
         private List<TransportProtocol> resolveProtocols(ScopedModule module, HierarchicalOptions options) {
             String[] protocolNames = options.option(DECLARED_PROTOCOL);
             if (CollectionUtil.isEmpty(protocolNames)) {
@@ -112,20 +126,6 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
                         return AssertUtil.notNull(protocol, "protocol");
                     })
                     .toList();
-        }
-
-        private MethodBinding methodBinding(HierarchicalOptions options, Method method) {
-            AnnotationStyleResolver resolver = annotationStyleParserForMethod(
-                    options,
-                    annotationStyle,
-                    module.platform()
-            );
-            if (resolver != null && resolver.supports(method)) {
-                MethodBinding binding = resolver.resolveMethodBinding(method);
-                resolver.resolveMethod(method, options);
-                return binding;
-            }
-            return MethodBinding.positional(method);
         }
     }
 }

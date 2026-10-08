@@ -36,6 +36,15 @@ public class HttpCombineChannelConfigurer extends EndpointChannelConfigurer<Http
         }
     }
 
+    private Http1ServerConfig findHttp1ServerConfig() {
+        ServerConfig config = endpoint.config();
+        if (config instanceof Http2ServerConfig http2ServerConfig) {
+            Http1ServerConfig http1ServerConfig = http2ServerConfig.http1ServerConfig();
+            if (http1ServerConfig != null) return http1ServerConfig;
+        }
+        return Http1ServerConfig.defaultConfig();
+    }
+
     @Override
     public void configure(Channel channel, EndpointConfig config) {
         ChannelPipeline pipeline = channel.pipeline();
@@ -45,14 +54,5 @@ public class HttpCombineChannelConfigurer extends EndpointChannelConfigurer<Http
         } else {
             pipeline.addLast(new HttpClearTextSniffHandler(this));
         }
-    }
-
-    private Http1ServerConfig findHttp1ServerConfig() {
-        ServerConfig config = endpoint.config();
-        if (config instanceof Http2ServerConfig http2ServerConfig) {
-            Http1ServerConfig http1ServerConfig = http2ServerConfig.http1ServerConfig();
-            if (http1ServerConfig != null) return http1ServerConfig;
-        }
-        return Http1ServerConfig.defaultConfig();
     }
 }

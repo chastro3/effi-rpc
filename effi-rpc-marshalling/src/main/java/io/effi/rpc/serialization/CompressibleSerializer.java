@@ -30,14 +30,14 @@ public class CompressibleSerializer implements Serializer {
         this(serializer, compressor, CompressionOptions.MAX_DECOMPRESSED_BYTES.defaultValue());
     }
 
-    public CompressibleSerializer(Serializer serializer, Compressor compressor, Options options) {
-        this(serializer, compressor, options.option(CompressionOptions.MAX_DECOMPRESSED_BYTES));
-    }
-
     public CompressibleSerializer(Serializer serializer, Compressor compressor, int maxDecompressedBytes) {
         this.serializer = AssertUtil.notNull(serializer, "serializer");
         this.compressor = compressor;
         this.maxDecompressedBytes = maxDecompressedBytes;
+    }
+
+    public CompressibleSerializer(Serializer serializer, Compressor compressor, Options options) {
+        this(serializer, compressor, options.option(CompressionOptions.MAX_DECOMPRESSED_BYTES));
     }
 
     @Override

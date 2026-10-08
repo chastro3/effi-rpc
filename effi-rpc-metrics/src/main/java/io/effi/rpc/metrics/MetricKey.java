@@ -39,7 +39,7 @@ public record MetricKey(String name, Map<String, String> tags) {
     /**
      * Returns a copy with one additional or replaced tag.
      *
-     * @param key tag key
+     * @param key   tag key
      * @param value tag value
      * @return metric key carrying the supplied tag
      */

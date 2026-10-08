@@ -61,6 +61,15 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         application.registry().register(ApplicationServiceRegistrar.class, this);
     }
 
+    private List<ServerLauncher> lookupServerLaunchers() {
+        return new ArrayList<>(application.components(ServerLauncher.class, (name, item) -> !item.active()));
+    }
+
+    private List<RegistryConfig> lookupRegistryConfigs() {
+        return new ArrayList<>(platform().components(RegistryConfig.class,
+                (name, item) -> item.hasTags(Tags.PROVIDER, Tags.FORCE_ACTIVE)));
+    }
+
     /**
      * Creates a registrar for the supplied application.
      *
@@ -69,6 +78,21 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
      */
     public static ApplicationServiceRegistrar forApplication(ScopedApplication application) {
         return new ApplicationServiceRegistrar(application);
+    }
+
+    @Override
+    public boolean active() {
+        return state == State.READY;
+    }
+
+    @Override
+    public List<ServiceInstance> serviceInstances() {
+        return serviceInstances;
+    }
+
+    @Override
+    public List<RegistryConfig> registryConfigs() {
+        return registryConfigs;
     }
 
     @Override
@@ -124,130 +148,19 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         return result;
     }
 
-    @Override
-    public boolean active() {
-        return state == State.READY;
-    }
-
-    @Override
-    public List<ServiceInstance> serviceInstances() {
-        return serviceInstances;
-    }
-
-    @Override
-    public List<RegistryConfig> registryConfigs() {
-        return registryConfigs;
-    }
-
-    /**
-     * Attaches a server bound to the local host with default weight.
-     *
-     * @param config server configuration
-     * @param port bound port
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar server(ServerConfig config, int port) {
-        return server(config, NetUtil.localHost(), port, 1);
-    }
-
-    /**
-     * Attaches a weighted server bound to the local host.
-     *
-     * @param config server configuration
-     * @param port bound port
-     * @param weight server weight
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar server(ServerConfig config, int port, int weight) {
-        return server(config, NetUtil.localHost(), port, weight);
-    }
-
-    /**
-     * Attaches a server bound to the supplied host with default weight.
-     *
-     * @param config server configuration
-     * @param host bound host
-     * @param port bound port
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar server(ServerConfig config, String host, int port) {
-        return server(config, host, port, 1);
-    }
-
-    /**
-     * Attaches a weighted server bound to the supplied host.
-     *
-     * @param config server configuration
-     * @param host bound host
-     * @param port bound port
-     * @param weight server weight
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar server(ServerConfig config, String host, int port, int weight) {
-        return server(config, InetSocketAddress.createUnresolved(host, port), weight);
-    }
-
-    /**
-     * Attaches a server bound to the supplied address with default weight.
-     *
-     * @param config server configuration
-     * @param boundAddress bound address
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar server(ServerConfig config, InetSocketAddress boundAddress) {
-        return server(config, boundAddress, 1);
-    }
-
-    /**
-     * Attaches a weighted server bound to the supplied address.
-     *
-     * @param config server configuration
-     * @param boundAddress bound address
-     * @param weight server weight
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar server(ServerConfig config, InetSocketAddress boundAddress, int weight) {
-        synchronized (lifecycleLock) {
-            requireConfigurable();
-            ServerLauncher serverLauncher = ServerLauncher.attach(application, config, boundAddress, weight);
-            serverLaunchers.add(serverLauncher);
-        }
-        return this;
-    }
-
-    /**
-     * Registers additional registry configurations.
-     *
-     * @param configs registry configurations
-     * @return this registrar
-     */
-    public ApplicationServiceRegistrar registry(RegistryConfig... configs) {
-        synchronized (lifecycleLock) {
-            requireConfigurable();
-            if (CollectionUtil.isNotEmpty(configs)) {
-                for (RegistryConfig config : configs) {
-                    application.platform().registry().register(RegistryConfig.class, config);
-                    registryConfigs.add(config);
-                }
+    private void stop(Promise<Void> result) {
+        deregisterServiceInstances(serviceInstances).onComplete(res -> {
+            serviceInstances = null;
+            serverLaunchers.forEach(ServerLauncher::close);
+            synchronized (lifecycleLock) {
+                state = State.CLOSED;
             }
-        }
-        return this;
+            result.complete(res);
+        });
     }
 
-    /**
-     * Returns the attached server launchers.
-     */
-    public List<ServerLauncher> serverLaunchers() {
-        return serverLaunchers;
-    }
-
-    private List<ServerLauncher> lookupServerLaunchers() {
-        return new ArrayList<>(application.components(ServerLauncher.class, (name, item) -> !item.active()));
-    }
-
-    private List<RegistryConfig> lookupRegistryConfigs() {
-        return new ArrayList<>(platform().components(RegistryConfig.class,
-                (name, item) -> item.hasTags(Tags.PROVIDER, Tags.FORCE_ACTIVE)));
+    private EffiRpcException applicationClosed() {
+        return PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(application.name());
     }
 
     private void startRegistration(Promise<Void> result) {
@@ -315,6 +228,18 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         return Futures.allOf(futures);
     }
 
+    private void failRegistration(Promise<Void> result, Throwable cause) {
+        serverLaunchers.forEach(ServerLauncher::close);
+        synchronized (lifecycleLock) {
+            serviceInstances = null;
+            if (state == State.STARTING && registrationFuture == result) {
+                state = State.CLOSED;
+            }
+        }
+        logger.error("Failed to start service server(s).", cause);
+        result.failure(toRpcException(cause));
+    }
+
     private void completeRegistration(Promise<Void> result, List<ServiceInstance> instances) {
         boolean completed;
         synchronized (lifecycleLock) {
@@ -343,27 +268,10 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         rollback.onComplete(ignored -> failRegistration(result, cause));
     }
 
-    private void failRegistration(Promise<Void> result, Throwable cause) {
-        serverLaunchers.forEach(ServerLauncher::close);
-        synchronized (lifecycleLock) {
-            serviceInstances = null;
-            if (state == State.STARTING && registrationFuture == result) {
-                state = State.CLOSED;
-            }
-        }
-        logger.error("Failed to start service server(s).", cause);
-        result.failure(toRpcException(cause));
-    }
-
-    private void stop(Promise<Void> result) {
-        deregisterServiceInstances(serviceInstances).onComplete(res -> {
-            serviceInstances = null;
-            serverLaunchers.forEach(ServerLauncher::close);
-            synchronized (lifecycleLock) {
-                state = State.CLOSED;
-            }
-            result.complete(res);
-        });
+    private EffiRpcException toRpcException(Throwable cause) {
+        return cause instanceof EffiRpcException exception
+                ? exception
+                : PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(cause, cause.getMessage());
     }
 
     private Future<Void> deregisterServiceInstances(List<ServiceInstance> instances) {
@@ -378,20 +286,112 @@ public class ApplicationServiceRegistrar extends ScopedApplication.Holder implem
         return Futures.allOf(futures);
     }
 
+    /**
+     * Attaches a server bound to the local host with default weight.
+     *
+     * @param config server configuration
+     * @param port   bound port
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar server(ServerConfig config, int port) {
+        return server(config, NetUtil.localHost(), port, 1);
+    }
+
+    /**
+     * Attaches a weighted server bound to the supplied host.
+     *
+     * @param config server configuration
+     * @param host   bound host
+     * @param port   bound port
+     * @param weight server weight
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar server(ServerConfig config, String host, int port, int weight) {
+        return server(config, InetSocketAddress.createUnresolved(host, port), weight);
+    }
+
+    /**
+     * Attaches a weighted server bound to the supplied address.
+     *
+     * @param config       server configuration
+     * @param boundAddress bound address
+     * @param weight       server weight
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar server(ServerConfig config, InetSocketAddress boundAddress, int weight) {
+        synchronized (lifecycleLock) {
+            requireConfigurable();
+            ServerLauncher serverLauncher = ServerLauncher.attach(application, config, boundAddress, weight);
+            serverLaunchers.add(serverLauncher);
+        }
+        return this;
+    }
+
     private void requireConfigurable() {
         if (state != State.NEW) {
             throw new IllegalStateException("Application '" + application.name() + "' has already started");
         }
     }
 
-    private EffiRpcException applicationClosed() {
-        return PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(application.name());
+    /**
+     * Attaches a weighted server bound to the local host.
+     *
+     * @param config server configuration
+     * @param port   bound port
+     * @param weight server weight
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar server(ServerConfig config, int port, int weight) {
+        return server(config, NetUtil.localHost(), port, weight);
     }
 
-    private EffiRpcException toRpcException(Throwable cause) {
-        return cause instanceof EffiRpcException exception
-                ? exception
-                : PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(cause, cause.getMessage());
+    /**
+     * Attaches a server bound to the supplied host with default weight.
+     *
+     * @param config server configuration
+     * @param host   bound host
+     * @param port   bound port
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar server(ServerConfig config, String host, int port) {
+        return server(config, host, port, 1);
+    }
+
+    /**
+     * Attaches a server bound to the supplied address with default weight.
+     *
+     * @param config       server configuration
+     * @param boundAddress bound address
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar server(ServerConfig config, InetSocketAddress boundAddress) {
+        return server(config, boundAddress, 1);
+    }
+
+    /**
+     * Registers additional registry configurations.
+     *
+     * @param configs registry configurations
+     * @return this registrar
+     */
+    public ApplicationServiceRegistrar registry(RegistryConfig... configs) {
+        synchronized (lifecycleLock) {
+            requireConfigurable();
+            if (CollectionUtil.isNotEmpty(configs)) {
+                for (RegistryConfig config : configs) {
+                    application.platform().registry().register(RegistryConfig.class, config);
+                    registryConfigs.add(config);
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Returns the attached server launchers.
+     */
+    public List<ServerLauncher> serverLaunchers() {
+        return serverLaunchers;
     }
 
     private enum State {

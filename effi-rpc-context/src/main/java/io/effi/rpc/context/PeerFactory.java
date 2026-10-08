@@ -1,8 +1,8 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedModule;
-import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.util.TypeCapture;
 
 /**
@@ -17,8 +17,8 @@ public interface PeerFactory {
      * Creates a servant from the specified method mapper and configuration.
      *
      * @param servantMethod the method mapper defining the exposed methods
-     * @param options the servant options
-     * @param module the associated module
+     * @param options       the servant options
+     * @param module        the associated module
      * @return the created servant
      */
     <T> Servant createServant(ServantMethod<T> servantMethod, HierarchicalOptions options, ScopedModule module);
@@ -27,8 +27,8 @@ public interface PeerFactory {
      * Creates a caller for the specified reply type, configuration.
      *
      * @param returnType the expected reply type
-     * @param options the caller options
-     * @param module the associated module
+     * @param options    the caller options
+     * @param module     the associated module
      * @return the created caller
      */
     <T> Caller<T> createCaller(TypeCapture<T> replyType, HierarchicalOptions options, ScopedModule module);

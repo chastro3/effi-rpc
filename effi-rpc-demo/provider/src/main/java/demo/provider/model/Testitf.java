@@ -7,15 +7,15 @@ import io.effi.rpc.annotation.rpc.ServeGroup;
  * @Date 2025/4/14 10:41
  */
 @ServeGroup
-public interface Testitf{
+public interface Testitf {
+
+    static String staticHello(String name) {
+        return "static: " + name;
+    }
 
     String sayHello(String name);
 
     default String defaultHello(String name) {
         return "default: " + name;
-    }
-
-    static String staticHello(String name) {
-        return "static: " + name;
     }
 }

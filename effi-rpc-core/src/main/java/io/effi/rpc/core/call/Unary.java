@@ -26,9 +26,9 @@ public interface Unary {
         /**
          * Handles the failure when an {@link EffiRpcException} is thrown.
          *
-         * @param context the failed call context
+         * @param context      the failed call context
          * @param failureCount the number of failed attempts
-         * @param cause the exception encountered during RPC execution
+         * @param cause        the exception encountered during RPC execution
          * @throws EffiRpcException when the failure should terminate the call
          */
         void handle(CallContext<Request, Caller<?>> context, int failureCount, EffiRpcException cause) throws EffiRpcException;

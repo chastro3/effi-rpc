@@ -15,7 +15,7 @@ public interface ChannelConfigurer {
      * Configures the given channel using the provided endpoint configuration.
      *
      * @param channel the channel to configure
-     * @param config the configuration to apply
+     * @param config  the configuration to apply
      */
     void configure(Channel channel, EndpointConfig config);
 }

@@ -1,7 +1,7 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
@@ -16,7 +16,7 @@ import io.effi.rpc.transport.message.OutputMessage;
  * and {@link InputMessage} to {@link ReplyContext} in client-side communication.
  */
 public interface ClientExchangeContextCodec
-        extends Encoder<CallContext<Request, Caller<?>> >,
+        extends Encoder<CallContext<Request, Caller<?>>>,
         Decoder<ReplyContext<Response, Caller<?>>, Caller<?>> {
 
     /**

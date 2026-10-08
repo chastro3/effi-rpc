@@ -4,19 +4,19 @@ import io.effi.rpc.component.extension.ExtensionAccessor;
 import io.effi.rpc.component.extension.ExtensionEntry;
 import io.effi.rpc.component.extension.ExtensionLoader;
 import io.effi.rpc.component.extension.ExtensionRepository;
-import io.effi.rpc.option.HierarchicalOptions;
-import io.effi.rpc.option.Options;
 import io.effi.rpc.constant.Constant;
-import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.trait.Closeable;
-import io.effi.rpc.util.GenericKey;
-import io.effi.rpc.util.LazySingleton;
-import io.effi.rpc.util.ObjectUtil;
-import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.hook.CloseHook;
 import io.effi.rpc.hook.HookExecutor;
 import io.effi.rpc.hook.InitializeHook;
 import io.effi.rpc.hook.StartHook;
+import io.effi.rpc.option.HierarchicalOptions;
+import io.effi.rpc.option.Options;
+import io.effi.rpc.trait.Closeable;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.GenericKey;
+import io.effi.rpc.util.LazySingleton;
+import io.effi.rpc.util.ObjectUtil;
+import io.effi.rpc.util.StringUtil;
 
 import java.util.Collection;
 import java.util.EventListener;
@@ -63,6 +63,79 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         name(name);
     }
 
+    @SuppressWarnings("unchecked")
+    protected void initialize(Scope scope, Class<? extends Listener<?>> listenerType, ScopedContext parent, ComponentRepository repository) {
+        this.scope = scope;
+        this.parent = parent;
+        this.componentRepository = checkComponentRepository(repository);
+        this.extensionRepository = new ExtensionRepository(this);
+        this.listeners = (Collection<Listener<?>>) extensions(listenerType);
+        this.callOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.callOptions());
+        this.serveOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.serveOptions());
+        this.options = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.options());
+        HookExecutor.initialize().execute(listeners, this, this::doInit);
+    }
+
+    /**
+     * Renames this context and updates its parent registry.
+     *
+     * @param name new context name
+     * @return this context
+     */
+    public ScopedContext name(String name) {
+        String newName = AssertUtil.notBlank(name, "id");
+        this.name = changeName(this.name, newName);
+        return this;
+    }
+
+    private ComponentRepository checkComponentRepository(ComponentRepository repository) {
+        if (repository == null) return new DelegateComponentRepository(this);
+        if (repository instanceof ScopedContextOwned owned) owned.withOwner(this);
+        return repository;
+    }
+
+    /**
+     * Returns call-scoped options.
+     */
+    public Options callOptions() {
+        return callOptions;
+    }
+
+    /**
+     * Returns serve-scoped options.
+     */
+    public Options serveOptions() {
+        return serveOptions;
+    }
+
+    /**
+     * Returns context-level options.
+     */
+    public HierarchicalOptions options() {
+        return options;
+    }
+
+    protected void doInit() {
+    }
+
+    @SuppressWarnings("unchecked")
+    protected String changeName(String oldName, String newName) {
+        if (parent != null && !Objects.equals(oldName, newName)) {
+            Class<ScopedContext> type = (Class<ScopedContext>) this.getClass();
+            if (StringUtil.isNotBlank(oldName))
+                parent.registry().remove(type, oldName);
+            parent.registry().register(type, newName, this);
+        }
+        return newName;
+    }
+
+    /**
+     * Returns the component registry for this context.
+     */
+    public ComponentRegistry registry() {
+        return componentRepository;
+    }
+
     /**
      * Constructs the default instance of a {@link ScopedContext}.
      * <p>
@@ -97,11 +170,6 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     @Override
-    public int componentCount(Class<?> type) {
-        return componentRepository.componentCount(type);
-    }
-
-    @Override
     public <T> Collection<T> components(Class<T> type, BiPredicate<String, T> filter) {
         return componentRepository.components(type, filter);
     }
@@ -109,6 +177,11 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     @Override
     public <T> Map<String, T> namedComponents(Class<T> type, BiPredicate<String, T> filter) {
         return componentRepository.namedComponents(type, filter);
+    }
+
+    @Override
+    public int componentCount(Class<?> type) {
+        return componentRepository.componentCount(type);
     }
 
     @Override
@@ -152,25 +225,6 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     /**
-     * Renames this context and updates its parent registry.
-     *
-     * @param name new context name
-     * @return this context
-     */
-    public ScopedContext name(String name) {
-        String newName = AssertUtil.notBlank(name, "id");
-        this.name = changeName(this.name, newName);
-        return this;
-    }
-
-    /**
-     * Returns the component registry for this context.
-     */
-    public ComponentRegistry registry() {
-        return componentRepository;
-    }
-
-    /**
      * Returns the context name.
      */
     public String name() {
@@ -192,27 +246,6 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
     }
 
     /**
-     * Returns call-scoped options.
-     */
-    public Options callOptions() {
-        return callOptions;
-    }
-
-    /**
-     * Returns serve-scoped options.
-     */
-    public Options serveOptions() {
-        return serveOptions;
-    }
-
-    /**
-     * Returns context-level options.
-     */
-    public HierarchicalOptions options() {
-        return options;
-    }
-
-    /**
      * Starts this context and notifies start listeners.
      */
     public void start() {
@@ -224,9 +257,8 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         }
     }
 
-    @Override
-    public boolean active() {
-        return active.get();
+    protected void doStart() {
+
     }
 
     @Override
@@ -239,45 +271,13 @@ public abstract class ScopedContext implements ComponentAccessor, ExtensionAcces
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected void initialize(Scope scope, Class<? extends Listener<?>> listenerType, ScopedContext parent, ComponentRepository repository) {
-        this.scope = scope;
-        this.parent = parent;
-        this.componentRepository = checkComponentRepository(repository);
-        this.extensionRepository = new ExtensionRepository(this);
-        this.listeners = (Collection<Listener<?>>) extensions(listenerType);
-        this.callOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.callOptions());
-        this.serveOptions = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.serveOptions());
-        this.options = HierarchicalOptions.create().withOwner(this).withParent(parent == null ? null : parent.options());
-        HookExecutor.initialize().execute(listeners, this, this::doInit);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected String changeName(String oldName, String newName) {
-        if (parent != null && !Objects.equals(oldName, newName)) {
-            Class<ScopedContext> type = (Class<ScopedContext>) this.getClass();
-            if (StringUtil.isNotBlank(oldName))
-                parent.registry().remove(type, oldName);
-            parent.registry().register(type, newName, this);
-        }
-        return newName;
-    }
-
-    protected void doInit() {
-    }
-
-    protected void doStart() {
-
+    @Override
+    public boolean active() {
+        return active.get();
     }
 
     protected void doClose() {
 
-    }
-
-    private ComponentRepository checkComponentRepository(ComponentRepository repository) {
-        if (repository == null) return new DelegateComponentRepository(this);
-        if (repository instanceof ScopedContextOwned owned) owned.withOwner(this);
-        return repository;
     }
 
     /**

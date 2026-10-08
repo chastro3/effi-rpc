@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Module integration and default implementation support."
+description = "Default bootstrap, lifecycle, registry, and protocol integration for Effi RPC."
 dependencies {
     api(project(":effi-rpc-context"))
     api(project(":effi-rpc-transport:effi-rpc-transport-api"))

@@ -1,9 +1,9 @@
 package io.effi.rpc.core;
 
 import io.effi.rpc.compile.DynamicAccessor;
-import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.ServantGroup;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.ObjectUtil;
 import io.effi.rpc.util.ReflectionUtil;
@@ -34,6 +34,12 @@ public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implem
         this.methodAccess = DynamicAccessor.fetch(targetType);
     }
 
+    protected String checkName(String name, Class<T> targetType) {
+        if (StringUtil.isBlank(name))
+            name = ObjectUtil.lowercaseName(targetType);
+        return name;
+    }
+
     public DefaultServantGroup(T service) {
         this(null, service);
     }
@@ -55,6 +61,21 @@ public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implem
         onInitialized(targetType);
     }
 
+    @SuppressWarnings("unchecked")
+    protected Class<T> checkTargetType(T service, Class<T> targetType) {
+        if (targetType == null)
+            targetType = (Class<T>) ReflectionUtil.getTargetClass(service.getClass());
+        return targetType;
+    }
+
+    protected HierarchicalOptions checkOptions(HierarchicalOptions options) {
+        if (options == null) {
+            options = HierarchicalOptions.create().withOwner(this);
+        } else {
+            options.withOwner(this);
+        }
+        return options;
+    }
 
     @Override
     public String name() {
@@ -65,7 +86,6 @@ public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implem
     public T service() {
         return service;
     }
-
 
     @Override
     public int indexOf(Servant servant) {
@@ -82,28 +102,6 @@ public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implem
     @Override
     public String toString() {
         return "service=" + service + ", id=" + name;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected Class<T> checkTargetType(T service, Class<T> targetType) {
-        if (targetType == null)
-            targetType = (Class<T>) ReflectionUtil.getTargetClass(service.getClass());
-        return targetType;
-    }
-
-    protected String checkName(String name, Class<T> targetType) {
-        if (StringUtil.isBlank(name))
-            name = ObjectUtil.lowercaseName(targetType);
-        return name;
-    }
-
-    protected HierarchicalOptions checkOptions(HierarchicalOptions options) {
-        if (options == null) {
-            options = HierarchicalOptions.create().withOwner(this);
-        } else {
-            options.withOwner(this);
-        }
-        return options;
     }
 
     /**

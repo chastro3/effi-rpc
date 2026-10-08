@@ -46,7 +46,7 @@ public record MethodBinder(MethodBinding binding) {
      * Resolves named parameter values from the supplied request and peer.
      *
      * @param request protocol request
-     * @param peer target peer
+     * @param peer    target peer
      * @return resolved argument values
      */
     public Object[] resolve(Request request, Peer peer) {

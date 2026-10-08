@@ -51,11 +51,6 @@ public class ExtensionResourceSection extends Helper implements ResourceSection 
         }
     }
 
-    public void add(String interfaceName, String extensionName) {
-        Set<String> services = extensionEntries.computeIfAbsent(interfaceName, k -> new HashSet<>());
-        services.add(extensionName);
-    }
-
     private Set<String> readServiceFile(InputStream input) throws IOException {
         HashSet<String> serviceClasses = new HashSet<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, UTF_8))) {
@@ -81,6 +76,11 @@ public class ExtensionResourceSection extends Helper implements ResourceSection 
             writer.newLine();
         }
         writer.flush();
+    }
+
+    public void add(String interfaceName, String extensionName) {
+        Set<String> services = extensionEntries.computeIfAbsent(interfaceName, k -> new HashSet<>());
+        services.add(extensionName);
     }
 
 }

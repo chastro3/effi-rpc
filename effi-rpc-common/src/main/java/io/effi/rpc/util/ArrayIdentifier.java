@@ -17,6 +17,15 @@ public final class ArrayIdentifier<T> implements Comparable<ArrayIdentifier<T>> 
         this.hash = computeHash(elements);
     }
 
+    private int computeHash(T[] elements) {
+        if (elements == null) return 0;
+        int h = 1;
+        for (T element : elements) {
+            h = 31 * h + (element == null ? 0 : element.hashCode());
+        }
+        return h;
+    }
+
     /**
      * Creates an array identifier from the supplied elements.
      *
@@ -74,15 +83,6 @@ public final class ArrayIdentifier<T> implements Comparable<ArrayIdentifier<T>> 
             }
         }
         return Integer.compare(len1, len2);
-    }
-
-    private int computeHash(T[] elements) {
-        if (elements == null) return 0;
-        int h = 1;
-        for (T element : elements) {
-            h = 31 * h + (element == null ? 0 : element.hashCode());
-        }
-        return h;
     }
 
 }

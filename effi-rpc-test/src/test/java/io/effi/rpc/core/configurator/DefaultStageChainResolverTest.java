@@ -1,13 +1,13 @@
 package io.effi.rpc.core.configurator;
 
-import io.effi.rpc.core.stage.CallInterceptorStage;
-import io.effi.rpc.core.stage.ChosenInterceptorStage;
-import io.effi.rpc.core.stage.CallAttemptStage;
-import io.effi.rpc.core.stage.LocatorStage;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.Stage;
+import io.effi.rpc.core.stage.CallAttemptStage;
+import io.effi.rpc.core.stage.CallInterceptorStage;
+import io.effi.rpc.core.stage.ChosenInterceptorStage;
+import io.effi.rpc.core.stage.LocatorStage;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotSame;

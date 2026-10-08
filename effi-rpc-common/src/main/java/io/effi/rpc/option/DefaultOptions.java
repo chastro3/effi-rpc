@@ -44,12 +44,6 @@ public class DefaultOptions implements Options {
     }
 
     @Override
-    public <T> T option(OptionName<T> name) {
-        T value = currentOption(name);
-        return value == null ? name.defaultValue() : value;
-    }
-
-    @Override
     public <T> T removeOption(OptionName<T> name) {
         Object value = items.remove(name.name());
         return value == null ? null : name.type().convert(value);
@@ -61,6 +55,12 @@ public class DefaultOptions implements Options {
     @Override
     public Map<String, Object> items() {
         return Collections.unmodifiableMap(items);
+    }
+
+    @Override
+    public <T> T option(OptionName<T> name) {
+        T value = currentOption(name);
+        return value == null ? name.defaultValue() : value;
     }
 
     protected <T> T currentOption(OptionName<T> name) {

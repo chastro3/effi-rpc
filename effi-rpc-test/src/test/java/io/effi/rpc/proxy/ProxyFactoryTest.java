@@ -16,44 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProxyFactoryTest {
 
-    interface Greeter {
-
-        String greet(String name);
-
-        default String casual() {
-            return "yo";
-        }
-    }
-
-    interface Counter {
-
-        int value();
-
-        void value(int value);
-
-        String fail();
-    }
-
-    static class DefaultCounter implements Counter {
-
-        private int value = 7;
-
-        @Override
-        public int value() {
-            return value;
-        }
-
-        @Override
-        public void value(int value) {
-            this.value = value;
-        }
-
-        @Override
-        public String fail() {
-            throw new IllegalStateException("boom");
-        }
-    }
-
     static Stream<ProxyFactory> interfaceFactories() {
         return Stream.of(new JDKProxyFactory(), new CGLibProxyFactory(), new ByteBuddyProxyFactory());
     }
@@ -114,5 +76,43 @@ class ProxyFactoryTest {
     void interfaceCreationRejectsConcreteType() {
         assertThrows(IllegalArgumentException.class, () -> new JDKProxyFactory()
                 .createProxy(String.class, (proxy, method, args, superInvoker) -> null));
+    }
+
+    interface Greeter {
+
+        String greet(String name);
+
+        default String casual() {
+            return "yo";
+        }
+    }
+
+    interface Counter {
+
+        int value();
+
+        void value(int value);
+
+        String fail();
+    }
+
+    static class DefaultCounter implements Counter {
+
+        private int value = 7;
+
+        @Override
+        public int value() {
+            return value;
+        }
+
+        @Override
+        public void value(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public String fail() {
+            throw new IllegalStateException("boom");
+        }
     }
 }

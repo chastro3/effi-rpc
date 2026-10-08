@@ -2,8 +2,8 @@ package io.effi.rpc.protocol.http.support;
 
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.protocol.http.HttpVersion;
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.trait.FluentBuilder;
+import io.effi.rpc.util.AssertUtil;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.Map;
@@ -47,11 +47,6 @@ public abstract class StandardHttpMessage implements HttpMessage {
     }
 
     @Override
-    public SmartURL url() {
-        return url;
-    }
-
-    @Override
     public HttpHeaders headers() {
         return headers;
     }
@@ -60,6 +55,11 @@ public abstract class StandardHttpMessage implements HttpMessage {
     @Override
     public <T> T body() {
         return (T) body;
+    }
+
+    @Override
+    public SmartURL url() {
+        return url;
     }
 
     /**

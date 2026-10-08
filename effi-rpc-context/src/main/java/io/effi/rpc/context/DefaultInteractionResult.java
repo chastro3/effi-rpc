@@ -30,8 +30,14 @@ final class DefaultInteractionResult<T> implements Interaction.Result {
     }
 
     @Override
-    public boolean succeeded() {
-        return result.succeeded();
+    public EffiRpcException cause() {
+        return result.cause();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <R> R excepted() {
+        return (R) result.requireValue();
     }
 
     @Override
@@ -45,13 +51,7 @@ final class DefaultInteractionResult<T> implements Interaction.Result {
     }
 
     @Override
-    public EffiRpcException cause() {
-        return result.cause();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <R> R excepted() {
-        return (R) result.requireValue();
+    public boolean succeeded() {
+        return result.succeeded();
     }
 }

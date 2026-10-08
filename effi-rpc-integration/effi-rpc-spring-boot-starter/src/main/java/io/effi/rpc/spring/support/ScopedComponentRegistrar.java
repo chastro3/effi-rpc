@@ -46,13 +46,6 @@ public final class ScopedComponentRegistrar implements BeanPostProcessor, SmartI
         return bean;
     }
 
-    @Override
-    public void afterSingletonsInstantiated() {
-        candidates.forEach(this::register);
-        candidates.clear();
-        ready = true;
-    }
-
     @SuppressWarnings("unchecked")
     private void register(ScopedComponentCandidate candidate) {
         for (Class<?> componentType : candidate.componentTypes()) {
@@ -71,6 +64,13 @@ public final class ScopedComponentRegistrar implements BeanPostProcessor, SmartI
                 context.registry().register((Class<Object>) componentType, candidate.beanName(), candidate.bean());
             }
         }
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        candidates.forEach(this::register);
+        candidates.clear();
+        ready = true;
     }
 
     private record ScopedComponentCandidate(String beanName, Object bean, List<Class<?>> componentTypes) {

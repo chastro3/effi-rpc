@@ -60,12 +60,12 @@ public interface Attributes extends Cleanable {
             return this;
         }
 
+        Attributes attributes();
+
         @Override
         default void clear() {
             attributes().clear();
         }
-
-        Attributes attributes();
 
     }
 }

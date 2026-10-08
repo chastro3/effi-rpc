@@ -53,6 +53,29 @@ public class JaxRsStyleResolver extends AbstractAnnotationStyleResolver<HttpRequ
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    protected AnnotationOptionResolver<Class<?>, ?>[] typeConfigParsers() {
+        return new AnnotationOptionResolver[]{
+                new AnnotationOptionResolver<>(Path.class, PeerOptions.PATH, path -> new String[]{path.value()})
+        };
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected AnnotationOptionResolver<Method, ?>[] methodConfigParsers() {
+        return new AnnotationOptionResolver[]{
+                new AnnotationOptionResolver<>(Path.class, PeerOptions.PATH, path -> new String[]{path.value()}),
+                new AnnotationOptionResolver<>(GET.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.GET.name()),
+                new AnnotationOptionResolver<>(POST.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.POST.name()),
+                new AnnotationOptionResolver<>(PUT.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.PUT.name()),
+                new AnnotationOptionResolver<>(DELETE.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.DELETE.name()),
+                new AnnotationOptionResolver<>(PATCH.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.PATCH.name()),
+                new AnnotationOptionResolver<>(HEAD.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.HEAD.name()),
+                new AnnotationOptionResolver<>(OPTIONS.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.OPTIONS.name())
+        };
+    }
+
+    @Override
     protected AnnotationParameterBinder<?>[] parameterBinders() {
         return new AnnotationParameterBinder<?>[]{
                 new AnnotationParameterBinder<>(
@@ -80,29 +103,6 @@ public class JaxRsStyleResolver extends AbstractAnnotationStyleResolver<HttpRequ
                         (request, peer, annotation, binding) ->
                                 HttpBodyParameterBinder.INSTANCE.resolve(binding, request, peer)
                 )
-        };
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected AnnotationOptionResolver<Class<?>, ?>[] typeConfigParsers() {
-        return new AnnotationOptionResolver[]{
-                new AnnotationOptionResolver<>(Path.class, PeerOptions.PATH, path -> new String[]{path.value()})
-        };
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected AnnotationOptionResolver<Method, ?>[] methodConfigParsers() {
-        return new AnnotationOptionResolver[]{
-                new AnnotationOptionResolver<>(Path.class, PeerOptions.PATH, path -> new String[]{path.value()}),
-                new AnnotationOptionResolver<>(GET.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.GET.name()),
-                new AnnotationOptionResolver<>(POST.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.POST.name()),
-                new AnnotationOptionResolver<>(PUT.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.PUT.name()),
-                new AnnotationOptionResolver<>(DELETE.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.DELETE.name()),
-                new AnnotationOptionResolver<>(PATCH.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.PATCH.name()),
-                new AnnotationOptionResolver<>(HEAD.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.HEAD.name()),
-                new AnnotationOptionResolver<>(OPTIONS.class, HttpOptions.HTTP_METHOD, v -> HttpMethod.OPTIONS.name())
         };
     }
 

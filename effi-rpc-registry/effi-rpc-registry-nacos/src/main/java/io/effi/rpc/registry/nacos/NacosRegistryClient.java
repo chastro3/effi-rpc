@@ -7,12 +7,12 @@ import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.RegistryConfig;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.registry.AbstractRegistryClient;
 import io.effi.rpc.registry.DefaultServiceInstance;
 import io.effi.rpc.registry.RegistryClient;
 import io.effi.rpc.registry.ServiceInstance;
-import io.effi.rpc.concurrent.Future;
 
 import java.util.List;
 import java.util.Locale;
@@ -32,44 +32,17 @@ public class NacosRegistryClient extends AbstractRegistryClient {
         this.namingService = createNamingService(config);
     }
 
+    private NamingService createNamingService(RegistryConfig config) {
+        try {
+            return NamingFactory.createNamingService(config.address());
+        } catch (NacosException e) {
+            throw NacosErrorCodes.NAMING_SERVICE_CREATE.fail(e);
+        }
+    }
+
     @Override
     public boolean active() {
         return namingService.getServerStatus().equals("UP");
-    }
-
-    @Override
-    public Registration createRegistration(ServiceInstance instance) {
-        String instanceId = instance.id();
-        Instance inst = new Instance();
-        inst.setInstanceId(instanceId);
-        inst.setIp(instance.host());
-        inst.setPort(instance.port());
-        return (serviceInst) -> {
-            inst.setMetadata(serviceInst.metadata());
-            return threadPool.execute(() -> {
-                try {
-                    namingService.registerInstance(instance.serviceName(), inst);
-                } catch (Exception e) {
-                    throw NacosErrorCodes.REGISTER_INSTANCE.fail(e);
-                }
-            });
-        };
-    }
-
-    @Override
-    public void doClose() throws Throwable {
-        namingService.shutDown();
-    }
-
-    @Override
-    protected Future<Void> doDeregister(ServiceInstance instance) {
-        return threadPool.execute(() -> {
-            try {
-                namingService.deregisterInstance(instance.serviceName(), instance.host(), instance.port());
-            } catch (NacosException e) {
-                throw NacosErrorCodes.DEREGISTER_INSTANCE.fail(e);
-            }
-        });
     }
 
     @Override
@@ -103,12 +76,39 @@ public class NacosRegistryClient extends AbstractRegistryClient {
         });
     }
 
-    private NamingService createNamingService(RegistryConfig config) {
-        try {
-            return NamingFactory.createNamingService(config.address());
-        } catch (NacosException e) {
-            throw NacosErrorCodes.NAMING_SERVICE_CREATE.fail(e);
-        }
+    @Override
+    public void doClose() throws Throwable {
+        namingService.shutDown();
+    }
+
+    @Override
+    protected Future<Void> doDeregister(ServiceInstance instance) {
+        return threadPool.execute(() -> {
+            try {
+                namingService.deregisterInstance(instance.serviceName(), instance.host(), instance.port());
+            } catch (NacosException e) {
+                throw NacosErrorCodes.DEREGISTER_INSTANCE.fail(e);
+            }
+        });
+    }
+
+    @Override
+    public Registration createRegistration(ServiceInstance instance) {
+        String instanceId = instance.id();
+        Instance inst = new Instance();
+        inst.setInstanceId(instanceId);
+        inst.setIp(instance.host());
+        inst.setPort(instance.port());
+        return (serviceInst) -> {
+            inst.setMetadata(serviceInst.metadata());
+            return threadPool.execute(() -> {
+                try {
+                    namingService.registerInstance(instance.serviceName(), inst);
+                } catch (Exception e) {
+                    throw NacosErrorCodes.REGISTER_INSTANCE.fail(e);
+                }
+            });
+        };
     }
 
     private boolean hasProtocolMetadata(Instance instance) {

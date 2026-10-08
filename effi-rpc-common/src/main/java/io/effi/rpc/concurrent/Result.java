@@ -31,28 +31,6 @@ public interface Result<T> {
     }
 
     /**
-     * Indicates whether this result is successful.
-     */
-    boolean succeeded();
-
-    /**
-     * Indicates whether this result represents a failure.
-     */
-    default boolean failed() {
-        return !succeeded();
-    }
-
-    /**
-     * Returns the success value, or {@code null} when failed.
-     */
-    T value();
-
-    /**
-     * Returns the failure cause, or {@code null} when successful.
-     */
-    EffiRpcException cause();
-
-    /**
      * Returns the success value or throws the failure cause.
      *
      * @throws EffiRpcException if this result represents a failure
@@ -63,6 +41,28 @@ public interface Result<T> {
         }
         return value();
     }
+
+    /**
+     * Indicates whether this result represents a failure.
+     */
+    default boolean failed() {
+        return !succeeded();
+    }
+
+    /**
+     * Returns the failure cause, or {@code null} when successful.
+     */
+    EffiRpcException cause();
+
+    /**
+     * Returns the success value, or {@code null} when failed.
+     */
+    T value();
+
+    /**
+     * Indicates whether this result is successful.
+     */
+    boolean succeeded();
 
     /**
      * Stores a successful result.

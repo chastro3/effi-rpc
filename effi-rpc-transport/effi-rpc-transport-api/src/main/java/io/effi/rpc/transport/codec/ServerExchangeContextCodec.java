@@ -1,10 +1,10 @@
 package io.effi.rpc.transport.codec;
 
-import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
+import io.effi.rpc.context.Servant;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
 import io.effi.rpc.transport.message.OutputMessage;
@@ -32,7 +32,7 @@ public interface ServerExchangeContextCodec extends Encoder<ReplyContext<Respons
      * Encodes a response that was created outside a normal invocation context.
      *
      * @param response the response to encode
-     * @param channel the associated channel
+     * @param channel  the associated channel
      * @return the encoded output message
      */
     OutputMessage encode(Response response, Channel channel);
@@ -41,7 +41,7 @@ public interface ServerExchangeContextCodec extends Encoder<ReplyContext<Respons
      * Decodes the input message into a call context using the given callee.
      *
      * @param inputMessage the message to decode
-     * @param servant       the associated callee
+     * @param servant      the associated callee
      * @return the decoded call context
      */
     @Override

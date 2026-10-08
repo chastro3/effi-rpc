@@ -76,6 +76,12 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         this.addresses = config.address().split(",");
     }
 
+    private ThreadPool createThreadPool(RegistryConfig config) {
+        String name = config.type() + "-" + REGISTRY;
+        ExecutorService executor = RpcThreadPool.defaultIOExecutor(name);
+        return new ThreadPool(name, executor);
+    }
+
     @Override
     public Future<Void> register(ServiceInstance instance) {
         String serviceName = instance.serviceName();
@@ -89,14 +95,6 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         Promise<Void> result = new Promise<>();
         attemptRegistration(instance, serviceName, task, 0, result);
         return result;
-    }
-
-    @Override
-    public Future<List<ServiceInstance>> lookup(String serviceName) {
-        if (closed.get()) {
-            return Promise.failed(serviceUnavailable());
-        }
-        return subscribedHealthServices.computeIfAbsent(serviceName, this::startDiscovery).current();
     }
 
     @Override
@@ -114,6 +112,65 @@ public abstract class AbstractRegistryClient implements RegistryClient {
     }
 
     @Override
+    public Future<List<ServiceInstance>> lookup(String serviceName) {
+        if (closed.get()) {
+            return Promise.failed(serviceUnavailable());
+        }
+        return subscribedHealthServices.computeIfAbsent(serviceName, this::startDiscovery).current();
+    }
+
+    private EffiRpcException serviceUnavailable() {
+        return PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(config);
+    }
+
+    private DiscoveredService startDiscovery(String serviceName) {
+        DiscoveredService service = new DiscoveredService();
+        doLookup(serviceName).onComplete(outcome -> completeDiscovery(serviceName, service, outcome));
+        return service;
+    }
+
+    protected abstract Future<List<ServiceInstance>> doLookup(String serviceName);
+
+    private void completeDiscovery(
+            String serviceName,
+            DiscoveredService service,
+            Result<List<ServiceInstance>> outcome
+    ) {
+        if (closed.get()) {
+            service.fail(serviceUnavailable());
+            return;
+        }
+        if (outcome.failed()) {
+            subscribedHealthServices.remove(serviceName, service);
+            service.fail(outcome.cause());
+            return;
+        }
+
+        List<ServiceInstance> instances = outcome.value();
+        logger.info("Discovered {} instance(s) for '{}' '{}'", instances.size(), serviceName, config);
+        service.complete(instances);
+        threadPool.execute(() -> subscribe(serviceName)).onComplete(subscription -> {
+            if (subscription.failed()) {
+                subscribedHealthServices.remove(serviceName, service);
+                logger.error("Failed to schedule subscription for '{}' from '{}'",
+                        subscription.cause(), serviceName, config);
+            }
+        });
+    }
+
+    private void subscribe(String serviceName) {
+        try {
+            doSubscribe(serviceName);
+            logger.info("Subscribed service(s) for '{}' from '{}'", serviceName, config);
+        } catch (Throwable cause) {
+            subscribedHealthServices.remove(serviceName);
+            logger.error("Failed to subscribe service '{}' from '{}'", cause, serviceName, config);
+        }
+    }
+
+    protected abstract void doSubscribe(String serviceName) throws Throwable;
+
+    @Override
     public ScopedPlatform platform() {
         return platform;
     }
@@ -127,6 +184,50 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         long timeout = Math.max(1, config.option(RegistryOptions.CLOSE_TIMEOUT));
         Futures.withDeadline(deregisterServices(), Deadline.after(timeout, TimeUnit.MILLISECONDS))
                 .onComplete(outcome -> release());
+    }
+
+    private void cancelScheduledTasks() {
+        scheduledTasks.forEach(task -> task.cancel(false));
+        scheduledTasks.clear();
+    }
+
+    private Future<Void> deregisterServices() {
+        if (registeredServiceInstances.isEmpty()) {
+            return Futures.completedVoid();
+        }
+        List<Future<Void>> futures = new ArrayList<>();
+        registeredServiceInstances.values().forEach(instances ->
+                instances.forEach(instance -> futures.add(deregister(instance))));
+        return Futures.allOf(futures);
+    }
+
+    private void release() {
+        subscribedHealthServices.clear();
+        registeredServiceInstances.clear();
+        try {
+            doClose();
+        } catch (Throwable cause) {
+            logger.error("Failed to close registry client connected to '{}'", cause, this);
+        } finally {
+            if (ownsThreadPool) {
+                threadPool.executor().shutdown();
+            }
+        }
+    }
+
+    protected abstract void doClose() throws Throwable;
+
+    protected abstract Future<Void> doDeregister(ServiceInstance instance);
+
+    private void removeRegisteredInstance(String serviceName, ServiceInstance instance) {
+        Set<ServiceInstance> instances = registeredServiceInstances.get(serviceName);
+        if (instances == null) {
+            return;
+        }
+        instances.remove(instance);
+        if (instances.isEmpty()) {
+            registeredServiceInstances.remove(serviceName, instances);
+        }
     }
 
     @Override
@@ -143,14 +244,6 @@ public abstract class AbstractRegistryClient implements RegistryClient {
     }
 
     protected abstract Registration createRegistration(ServiceInstance instance);
-
-    protected abstract void doSubscribe(String serviceName) throws Throwable;
-
-    protected abstract Future<Void> doDeregister(ServiceInstance instance);
-
-    protected abstract Future<List<ServiceInstance>> doLookup(String serviceName);
-
-    protected abstract void doClose() throws Throwable;
 
     private void attemptRegistration(
             ServiceInstance instance,
@@ -215,70 +308,6 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         scheduleIfOpen(task, interval, interval);
     }
 
-    private void removeRegisteredInstance(String serviceName, ServiceInstance instance) {
-        Set<ServiceInstance> instances = registeredServiceInstances.get(serviceName);
-        if (instances == null) {
-            return;
-        }
-        instances.remove(instance);
-        if (instances.isEmpty()) {
-            registeredServiceInstances.remove(serviceName, instances);
-        }
-    }
-
-    private DiscoveredService startDiscovery(String serviceName) {
-        DiscoveredService service = new DiscoveredService();
-        doLookup(serviceName).onComplete(outcome -> completeDiscovery(serviceName, service, outcome));
-        return service;
-    }
-
-    private void completeDiscovery(
-            String serviceName,
-            DiscoveredService service,
-            Result<List<ServiceInstance>> outcome
-    ) {
-        if (closed.get()) {
-            service.fail(serviceUnavailable());
-            return;
-        }
-        if (outcome.failed()) {
-            subscribedHealthServices.remove(serviceName, service);
-            service.fail(outcome.cause());
-            return;
-        }
-
-        List<ServiceInstance> instances = outcome.value();
-        logger.info("Discovered {} instance(s) for '{}' '{}'", instances.size(), serviceName, config);
-        service.complete(instances);
-        threadPool.execute(() -> subscribe(serviceName)).onComplete(subscription -> {
-            if (subscription.failed()) {
-                subscribedHealthServices.remove(serviceName, service);
-                logger.error("Failed to schedule subscription for '{}' from '{}'",
-                        subscription.cause(), serviceName, config);
-            }
-        });
-    }
-
-    private void subscribe(String serviceName) {
-        try {
-            doSubscribe(serviceName);
-            logger.info("Subscribed service(s) for '{}' from '{}'", serviceName, config);
-        } catch (Throwable cause) {
-            subscribedHealthServices.remove(serviceName);
-            logger.error("Failed to subscribe service '{}' from '{}'", cause, serviceName, config);
-        }
-    }
-
-    private Future<Void> deregisterServices() {
-        if (registeredServiceInstances.isEmpty()) {
-            return Futures.completedVoid();
-        }
-        List<Future<Void>> futures = new ArrayList<>();
-        registeredServiceInstances.values().forEach(instances ->
-                instances.forEach(instance -> futures.add(deregister(instance))));
-        return Futures.allOf(futures);
-    }
-
     private boolean scheduleIfOpen(Runnable task, long delay, long interval) {
         if (closed.get()) {
             return false;
@@ -302,35 +331,6 @@ public abstract class AbstractRegistryClient implements RegistryClient {
         return false;
     }
 
-    private void cancelScheduledTasks() {
-        scheduledTasks.forEach(task -> task.cancel(false));
-        scheduledTasks.clear();
-    }
-
-    private void release() {
-        subscribedHealthServices.clear();
-        registeredServiceInstances.clear();
-        try {
-            doClose();
-        } catch (Throwable cause) {
-            logger.error("Failed to close registry client connected to '{}'", cause, this);
-        } finally {
-            if (ownsThreadPool) {
-                threadPool.executor().shutdown();
-            }
-        }
-    }
-
-    private ThreadPool createThreadPool(RegistryConfig config) {
-        String name = config.type() + "-" + REGISTRY;
-        ExecutorService executor = RpcThreadPool.defaultIOExecutor(name);
-        return new ThreadPool(name, executor);
-    }
-
-    private EffiRpcException serviceUnavailable() {
-        return PredefinedErrorCode.SERVICE_UNAVAILABLE.fail(config);
-    }
-
     protected static class DiscoveredService {
 
         private final Promise<List<ServiceInstance>> firstLookup = new Promise<>();
@@ -347,15 +347,15 @@ public abstract class AbstractRegistryClient implements RegistryClient {
             firstLookup.success(snapshot);
         }
 
-        void fail(EffiRpcException cause) {
-            firstLookup.failure(cause);
-        }
-
         void update(List<ServiceInstance> instances) {
             snapshot = List.copyOf(instances);
             if (initialized) {
                 current = Promise.completed(snapshot);
             }
+        }
+
+        void fail(EffiRpcException cause) {
+            firstLookup.failure(cause);
         }
 
         Future<List<ServiceInstance>> current() {

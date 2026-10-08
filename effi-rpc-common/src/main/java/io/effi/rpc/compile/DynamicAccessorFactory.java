@@ -63,13 +63,6 @@ final class DynamicAccessorFactory {
         }
     }
 
-    private static String runtimeAccessorName(Class<?> type, String accessorName) {
-        String pkg = type.getPackageName();
-        String binaryName = pkg.isEmpty() ? accessorName : accessorName.substring(pkg.length() + 1);
-        // Include target identity so same-named types from different loaders do not share a generated class.
-        return binaryName + "$" + Integer.toHexString(System.identityHashCode(type));
-    }
-
     private static DynamicAccessor createFallback(Class<?> type, Throwable cause) {
         DynamicAccessor accessor = MethodHandleDynamicAccessor.create(type);
         if (accessor == null) {
@@ -79,5 +72,12 @@ final class DynamicAccessorFactory {
             logger.warn("Failed to generate dynamic accessor for {}; using {}", cause, type.getName(), ObjectUtil.simpleClassName(accessor));
         }
         return accessor;
+    }
+
+    private static String runtimeAccessorName(Class<?> type, String accessorName) {
+        String pkg = type.getPackageName();
+        String binaryName = pkg.isEmpty() ? accessorName : accessorName.substring(pkg.length() + 1);
+        // Include target identity so same-named types from different loaders do not share a generated class.
+        return binaryName + "$" + Integer.toHexString(System.identityHashCode(type));
     }
 }

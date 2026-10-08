@@ -42,6 +42,17 @@ public final class ReflectionUtil {
         OBJECT_METHOD_SIGNATURES = Collections.unmodifiableSet(signatures);
     }
 
+    private ReflectionUtil() {
+
+    }
+
+    /**
+     * Checks if a method is an Object class method.
+     */
+    public static boolean isObjectMethod(Method method) {
+        return isObjectMethod(method.getName(), () -> buildMethodSignature(method));
+    }
+
     /**
      * Checks if a method name and signature match an Object class method.
      */
@@ -50,13 +61,6 @@ public final class ReflectionUtil {
             return false;
         }
         return OBJECT_METHOD_SIGNATURES.contains(signatureGetter.get());
-    }
-
-    /**
-     * Checks if a method is an Object class method.
-     */
-    public static boolean isObjectMethod(Method method) {
-        return isObjectMethod(method.getName(), () -> buildMethodSignature(method));
     }
 
     /**
@@ -135,6 +139,18 @@ public final class ReflectionUtil {
         throw new IllegalArgumentException("Unsupported conversion from " + object.getClass() + " to " + parameterType);
     }
 
+    private static Class<?> primitiveToWrapper(Class<?> primitiveType) {
+        if (primitiveType == int.class) return Integer.class;
+        if (primitiveType == double.class) return Double.class;
+        if (primitiveType == boolean.class) return Boolean.class;
+        if (primitiveType == long.class) return Long.class;
+        if (primitiveType == float.class) return Float.class;
+        if (primitiveType == short.class) return Short.class;
+        if (primitiveType == byte.class) return Byte.class;
+        if (primitiveType == char.class) return Character.class;
+        return primitiveType;
+    }
+
     /**
      * Creates an instance using the specified class and arguments.
      */
@@ -154,6 +170,44 @@ public final class ReflectionUtil {
         } catch (Throwable e) {
             throw new IllegalArgumentException("Create Instance is Failed for " + type.getName(), e);
         }
+    }
+
+    /**
+     * Finds matching constructors.
+     */
+    public static Class<?>[] findMatchingConstructor(Class<?> type, Object... args) throws NoSuchMethodException {
+        if (CollectionUtil.isEmpty(args)) {
+            return null;
+        }
+        // Find all constructors
+        Constructor<?>[] constructors = type.getDeclaredConstructors();
+        for (Constructor<?> constructor : constructors) {
+            // Gets the parameter type of the constructor
+            Class<?>[] parameterTypes = constructor.getParameterTypes();
+            // If the number of parameters is the same as the number of parameters to be passed,
+            // the parameter type is matched
+            if (parameterTypes.length == args.length) {
+                int index = 0;
+                while (index < args.length) {
+                    // Get the parameter type
+                    Class<?> parameterType = parameterTypes[index];
+                    // Get the arguments you want to pass
+                    Object obj = args[index];
+                    // If the parameter type is assignable, the next parameter is matched
+                    if (parameterType.isAssignableFrom(obj.getClass())) {
+                        index++;
+                    } else {
+                        break;
+                    }
+                }
+                // If the match is successful, the constructor is returned
+                if (index == args.length) {
+                    return constructor.getParameterTypes();
+                }
+            }
+        }
+        // If no matching constructor is found, an exception is thrown
+        throw new NoSuchMethodException("Can't find the Constructor(" + Arrays.toString(args) + ")");
     }
 
     /**
@@ -229,107 +283,6 @@ public final class ReflectionUtil {
         return (T) annotation;
     }
 
-    /**
-     * Finds matching constructors.
-     */
-    public static Class<?>[] findMatchingConstructor(Class<?> type, Object... args) throws NoSuchMethodException {
-        if (CollectionUtil.isEmpty(args)) {
-            return null;
-        }
-        // Find all constructors
-        Constructor<?>[] constructors = type.getDeclaredConstructors();
-        for (Constructor<?> constructor : constructors) {
-            // Gets the parameter type of the constructor
-            Class<?>[] parameterTypes = constructor.getParameterTypes();
-            // If the number of parameters is the same as the number of parameters to be passed,
-            // the parameter type is matched
-            if (parameterTypes.length == args.length) {
-                int index = 0;
-                while (index < args.length) {
-                    // Get the parameter type
-                    Class<?> parameterType = parameterTypes[index];
-                    // Get the arguments you want to pass
-                    Object obj = args[index];
-                    // If the parameter type is assignable, the next parameter is matched
-                    if (parameterType.isAssignableFrom(obj.getClass())) {
-                        index++;
-                    } else {
-                        break;
-                    }
-                }
-                // If the match is successful, the constructor is returned
-                if (index == args.length) {
-                    return constructor.getParameterTypes();
-                }
-            }
-        }
-        // If no matching constructor is found, an exception is thrown
-        throw new NoSuchMethodException("Can't find the Constructor(" + Arrays.toString(args) + ")");
-    }
-
-    /**
-     * Finds the constructor for the class.
-     */
-    public static <T> Constructor<T> finfConstructor(Class<T> type, Class<?>... parameterTypes) {
-        Constructor<T> constructor = null;
-        if (type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
-            return constructor;
-        }
-        try {
-            constructor = type.getConstructor(parameterTypes);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(type + " can't find public constructor <" + Arrays.toString(parameterTypes) + ">");
-        }
-        return constructor;
-    }
-
-    /**
-     * Finds other annotation specified in the annotatedElement(Class、Method、Field).
-     */
-    public static <T extends Annotation> T findAnnotation(AnnotatedElement annotatedElement, Class<T> annotationType) {
-        T annotation = annotatedElement.getAnnotation(annotationType);
-        if (annotation != null) {
-            return annotation;
-        }
-        List<Annotation> annotations = Arrays.stream(annotatedElement.getAnnotations()).
-                filter(item -> !item.annotationType().getPackageName().startsWith("java.lang.annotation")).toList();
-        for (Annotation anno : annotations) {
-            annotation = findAnnotation(anno, annotationType);
-            if (annotation != null) {
-                return annotation;
-            }
-        }
-        return null;
-    }
-
-    private static Class<?> primitiveToWrapper(Class<?> primitiveType) {
-        if (primitiveType == int.class) return Integer.class;
-        if (primitiveType == double.class) return Double.class;
-        if (primitiveType == boolean.class) return Boolean.class;
-        if (primitiveType == long.class) return Long.class;
-        if (primitiveType == float.class) return Float.class;
-        if (primitiveType == short.class) return Short.class;
-        if (primitiveType == byte.class) return Byte.class;
-        if (primitiveType == char.class) return Character.class;
-        return primitiveType;
-    }
-
-    private static <T extends Annotation> T findAnnotation(Annotation annotation, Class<T> annotationType) {
-        Class<? extends Annotation> type = annotation.annotationType();
-        if (type == annotationType) {
-            return (T) annotation;
-        }
-        List<Annotation> innerAnnotations = Arrays.stream(type.getAnnotations()).
-                filter(item -> !item.annotationType().getPackageName().startsWith("java.lang.annotation")).toList();
-        for (Annotation innerAnnotation : innerAnnotations) {
-            T result = findAnnotation(innerAnnotation, annotationType);
-            if (result != null) {
-                return result;
-            }
-        }
-        return null;
-    }
-
     private static String formatAnnotationToString(Class<?> annotationType, Object proxy) {
         StringBuilder sb = new StringBuilder();
         sb.append('@').append(annotationType.getName()).append('(');
@@ -379,7 +332,54 @@ public final class ReflectionUtil {
         return String.valueOf(value);
     }
 
-    private ReflectionUtil() {
+    /**
+     * Finds the constructor for the class.
+     */
+    public static <T> Constructor<T> finfConstructor(Class<T> type, Class<?>... parameterTypes) {
+        Constructor<T> constructor = null;
+        if (type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
+            return constructor;
+        }
+        try {
+            constructor = type.getConstructor(parameterTypes);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(type + " can't find public constructor <" + Arrays.toString(parameterTypes) + ">");
+        }
+        return constructor;
+    }
 
+    /**
+     * Finds other annotation specified in the annotatedElement(Class、Method、Field).
+     */
+    public static <T extends Annotation> T findAnnotation(AnnotatedElement annotatedElement, Class<T> annotationType) {
+        T annotation = annotatedElement.getAnnotation(annotationType);
+        if (annotation != null) {
+            return annotation;
+        }
+        List<Annotation> annotations = Arrays.stream(annotatedElement.getAnnotations()).
+                filter(item -> !item.annotationType().getPackageName().startsWith("java.lang.annotation")).toList();
+        for (Annotation anno : annotations) {
+            annotation = findAnnotation(anno, annotationType);
+            if (annotation != null) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static <T extends Annotation> T findAnnotation(Annotation annotation, Class<T> annotationType) {
+        Class<? extends Annotation> type = annotation.annotationType();
+        if (type == annotationType) {
+            return (T) annotation;
+        }
+        List<Annotation> innerAnnotations = Arrays.stream(type.getAnnotations()).
+                filter(item -> !item.annotationType().getPackageName().startsWith("java.lang.annotation")).toList();
+        for (Annotation innerAnnotation : innerAnnotations) {
+            T result = findAnnotation(innerAnnotation, annotationType);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
     }
 }

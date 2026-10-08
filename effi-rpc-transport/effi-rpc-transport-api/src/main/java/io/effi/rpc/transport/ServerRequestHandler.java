@@ -88,15 +88,15 @@ public final class ServerRequestHandler {
         logger.error(failure.getMessage(), failure);
     }
 
-    private static EffiRpcException toRpcException(Throwable cause, Servant servant) {
-        return cause instanceof EffiRpcException exception
-                ? exception
-                : InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(cause, servant.id());
-    }
-
     private static EffiRpcException toRpcException(Throwable cause, InputMessage inputMessage) {
         return cause instanceof EffiRpcException exception
                 ? exception
                 : TransportErrorCodes.DECODE.fail(cause, Request.class, inputMessage.getClass());
+    }
+
+    private static EffiRpcException toRpcException(Throwable cause, Servant servant) {
+        return cause instanceof EffiRpcException exception
+                ? exception
+                : InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(cause, servant.id());
     }
 }

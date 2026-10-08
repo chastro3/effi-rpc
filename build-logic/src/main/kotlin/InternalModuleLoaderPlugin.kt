@@ -13,12 +13,12 @@ class InternalModuleLoaderPlugin : Plugin<Settings> {
     }
 }
 
-open class ModuleLoader(private val settings: Settings, private val prefix: String = "", ) {
+open class ModuleLoader(private val settings: Settings, private val prefix: String = "") {
     companion object {
         val moduleConfigs = mutableMapOf<String, (Project) -> Unit>()
     }
 
-    open fun module(name: String, configure: ((Project) -> Unit)? = null, children: ModuleLoader.() -> Unit = {}, ) {
+    open fun module(name: String, configure: ((Project) -> Unit)? = null, children: ModuleLoader.() -> Unit = {}) {
         val path = if (prefix.isEmpty()) name else "$prefix:$name"
         settings.include(path)
         if (configure != null) {

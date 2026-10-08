@@ -8,14 +8,14 @@ import io.netty.handler.codec.http.HttpResponseStatus;
  */
 public interface HttpResponse extends HttpMessage, Response {
 
-    /**
-     * Returns the HTTP response status code.
-     */
-    int statusCode();
-
     @Override
     default boolean succeeded() {
         return statusCode() == HttpResponseStatus.OK.code();
     }
+
+    /**
+     * Returns the HTTP response status code.
+     */
+    int statusCode();
 }
 

@@ -43,9 +43,26 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
         }
     }
 
-    protected abstract <T> T doCreateProxy(Class<T> interfaceClass, ProxyMethodInvoker invoker) throws Exception;
-
     protected abstract <T> T doCreateProxy(T target, ProxyMethodInvoker invoker) throws Exception;
+
+    private ProxyMethodInvoker targetInvoker(Object target, InvocationHandler handler) {
+        return (proxy, method, args) -> {
+            if (Object.class.equals(method.getDeclaringClass())) {
+                return invokeObjectMethod(target, method, args);
+            }
+            return handler.invoke(proxy, method, args, () -> invokeTargetMethod(target, method, args));
+        };
+    }
+
+    private Object invokeTargetMethod(Object target, Method method, Object[] args) throws Throwable {
+        try {
+            return method.invoke(target, args);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
+    }
+
+    protected abstract <T> T doCreateProxy(Class<T> interfaceClass, ProxyMethodInvoker invoker) throws Exception;
 
     private ProxyMethodInvoker interfaceInvoker(InvocationHandler handler) {
         return (proxy, method, args) -> {
@@ -60,13 +77,12 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
         };
     }
 
-    private ProxyMethodInvoker targetInvoker(Object target, InvocationHandler handler) {
-        return (proxy, method, args) -> {
-            if (Object.class.equals(method.getDeclaringClass())) {
-                return invokeObjectMethod(target, method, args);
-            }
-            return handler.invoke(proxy, method, args, () -> invokeTargetMethod(target, method, args));
-        };
+    private Object invokeDefaultMethod(Object proxy, Method method, Object[] args) throws Throwable {
+        Class<?> declaringClass = method.getDeclaringClass();
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(declaringClass, MethodHandles.lookup());
+        return lookup.unreflectSpecial(method, declaringClass)
+                .bindTo(proxy)
+                .invokeWithArguments(args == null ? NO_ARGS : args);
     }
 
     private Object invokeProxyObjectMethod(Object proxy, Method method, Object[] args) {
@@ -77,21 +93,5 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
             case "equals" -> proxy == args[0];
             default -> throw new UnsupportedOperationException("Unsupported Object method: " + method);
         };
-    }
-
-    private Object invokeTargetMethod(Object target, Method method, Object[] args) throws Throwable {
-        try {
-            return method.invoke(target, args);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-    }
-
-    private Object invokeDefaultMethod(Object proxy, Method method, Object[] args) throws Throwable {
-        Class<?> declaringClass = method.getDeclaringClass();
-        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(declaringClass, MethodHandles.lookup());
-        return lookup.unreflectSpecial(method, declaringClass)
-                .bindTo(proxy)
-                .invokeWithArguments(args == null ? NO_ARGS : args);
     }
 }

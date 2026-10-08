@@ -32,6 +32,19 @@ class OptionsStrategyTest {
         assertEquals("default", current.option(ONLY_CURRENT_NAME));
     }
 
+    private static DefaultHierarchicalOptions options(String value) {
+        DefaultHierarchicalOptions options = options();
+        options.addOption(CURRENT_FIRST_NAME, value);
+        options.addOption(ONLY_CURRENT_NAME, value);
+        options.addOption(PARENT_FIRST_NAME, value);
+        options.addOption(MERGE_NAME, new String[]{value});
+        return options;
+    }
+
+    private static DefaultHierarchicalOptions options() {
+        return new DefaultHierarchicalOptions();
+    }
+
     @Test
     void prefersCurrentThenParent() {
         DefaultHierarchicalOptions parent = options("parent");
@@ -101,18 +114,5 @@ class OptionsStrategyTest {
         options.addOption(CURRENT_FIRST_NAME, null);
 
         assertEquals("current", options.option(CURRENT_FIRST_NAME));
-    }
-
-    private static DefaultHierarchicalOptions options() {
-        return new DefaultHierarchicalOptions();
-    }
-
-    private static DefaultHierarchicalOptions options(String value) {
-        DefaultHierarchicalOptions options = options();
-        options.addOption(CURRENT_FIRST_NAME, value);
-        options.addOption(ONLY_CURRENT_NAME, value);
-        options.addOption(PARENT_FIRST_NAME, value);
-        options.addOption(MERGE_NAME, new String[]{value});
-        return options;
     }
 }

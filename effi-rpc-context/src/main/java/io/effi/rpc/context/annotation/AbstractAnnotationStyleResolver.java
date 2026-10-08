@@ -1,10 +1,10 @@
 package io.effi.rpc.context.annotation;
 
-import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.context.parameter.ParameterBinder;
 import io.effi.rpc.context.parameter.ParameterBinding;
+import io.effi.rpc.option.HierarchicalOptions;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -25,6 +25,12 @@ public abstract class AbstractAnnotationStyleResolver<REQ extends Request> imple
         this.methodAnnotationOptionResolvers = methodConfigParsers();
         this.parameterBinders = parameterBinders();
     }
+
+    protected abstract AnnotationOptionResolver<Class<?>, ?>[] typeConfigParsers();
+
+    protected abstract AnnotationOptionResolver<Method, ?>[] methodConfigParsers();
+
+    protected abstract AnnotationParameterBinder<?>[] parameterBinders();
 
     @Override
     public HierarchicalOptions resolveType(Class<?> type, HierarchicalOptions options) {
@@ -62,11 +68,5 @@ public abstract class AbstractAnnotationStyleResolver<REQ extends Request> imple
         }
         return MethodBinding.of(method, bindings);
     }
-
-    protected abstract AnnotationOptionResolver<Class<?>, ?>[] typeConfigParsers();
-
-    protected abstract AnnotationOptionResolver<Method, ?>[] methodConfigParsers();
-
-    protected abstract AnnotationParameterBinder<?>[] parameterBinders();
 
 }

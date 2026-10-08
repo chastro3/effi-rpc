@@ -24,6 +24,15 @@ public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Help
         this.modulePath = findModulePath();
     }
 
+    private String findModulePath() {
+        String groupId = processingEnv().getOptions().get(SystemKeys.GROUP_ID);
+        String artifactId = processingEnv().getOptions().get(SystemKeys.ARTIFACT_ID);
+        if (groupId == null || artifactId == null) {
+            return "";
+        }
+        return groupId + "/" + artifactId + "/";
+    }
+
     @Override
     public void write() throws IOException {
         if (nativeConfig.hasResource()) {
@@ -37,14 +46,5 @@ public class NativeConfigResourceSection<T extends NativeConfig<?>> extends Help
 
     public T nativeConfig() {
         return nativeConfig;
-    }
-
-    private String findModulePath() {
-        String groupId = processingEnv().getOptions().get(SystemKeys.GROUP_ID);
-        String artifactId = processingEnv().getOptions().get(SystemKeys.ARTIFACT_ID);
-        if (groupId == null || artifactId == null) {
-            return "";
-        }
-        return groupId + "/" + artifactId + "/";
     }
 }

@@ -1,19 +1,19 @@
 package io.effi.rpc.core.configurator;
 
 import io.effi.rpc.annotation.component.Extension;
-import io.effi.rpc.core.stage.CallInterceptorStage;
-import io.effi.rpc.core.stage.ChosenInterceptorStage;
-import io.effi.rpc.core.stage.ReplyInterceptorStage;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.constant.Tags;
 import io.effi.rpc.context.Interceptor;
-import io.effi.rpc.core.PeerDescriptor;
 import io.effi.rpc.context.Stage;
+import io.effi.rpc.core.PeerDescriptor;
 import io.effi.rpc.core.configurator.classifier.CallInterceptorClassifier;
 import io.effi.rpc.core.configurator.classifier.ChosenInterceptorClassifier;
 import io.effi.rpc.core.configurator.classifier.InteractionUnitClassifier;
 import io.effi.rpc.core.configurator.classifier.ReplyInterceptorClassifier;
+import io.effi.rpc.core.stage.CallInterceptorStage;
+import io.effi.rpc.core.stage.ChosenInterceptorStage;
+import io.effi.rpc.core.stage.ReplyInterceptorStage;
 import io.effi.rpc.util.CollectionUtil;
 import io.effi.rpc.util.StringUtil;
 
@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static io.effi.rpc.core.configurator.DefaultInterceptorChainResolver.NAME;
 import static io.effi.rpc.context.options.InterceptorOptions.EXCLUDE;
 import static io.effi.rpc.context.options.InterceptorOptions.INCLUDE;
 import static io.effi.rpc.context.options.ResolverOptions.STAGE_CHAIN_RESOLVER;
+import static io.effi.rpc.core.configurator.DefaultInterceptorChainResolver.NAME;
 
 /**
  * Provides default interceptor chain resolution for a peer.
@@ -54,6 +54,10 @@ public class DefaultInterceptorChainResolver implements InterceptorChainResolver
     @Override
     public Interceptor.Chain resolveReplyChain(PeerDescriptor descriptor, ScopedModule module) {
         return resolve(descriptor, module, ChainType.REPLY);
+    }
+
+    private Interceptor.Chain empty(ScopedModule module) {
+        return ImmutableInterceptorChain.of(module, StringUtil.emptyArray());
     }
 
     private Interceptor.Chain resolve(PeerDescriptor descriptor, ScopedModule module, ChainType type) {
@@ -109,10 +113,6 @@ public class DefaultInterceptorChainResolver implements InterceptorChainResolver
                 interceptorNames.add(stageInterceptor.name());
             }
         }
-    }
-
-    private Interceptor.Chain empty(ScopedModule module) {
-        return ImmutableInterceptorChain.of(module, StringUtil.emptyArray());
     }
 
     private enum ChainType {

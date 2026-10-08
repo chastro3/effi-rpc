@@ -2,10 +2,10 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.transport.ClientConfig;
+import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.exception.EffiRpcException;
-import io.effi.rpc.concurrent.Future;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 
@@ -34,15 +34,6 @@ public interface Caller<R> extends Peer {
     Interceptor.Chain chosenInterceptorChain();
 
     /**
-     * Initiates an asynchronous RPC call with the specified arguments.
-     *
-     * @param invocation the method invocation to send
-     * @return a {@link Future} containing the result
-     * @throws EffiRpcException if an error occurs during the call
-     */
-    Future<R> call(Invocation invocation) throws EffiRpcException;
-
-    /**
      * Initiates an asynchronous RPC call with positional arguments.
      *
      * @param args positional call arguments
@@ -54,28 +45,37 @@ public interface Caller<R> extends Peer {
     }
 
     /**
+     * Initiates an asynchronous RPC call with the specified arguments.
+     *
+     * @param invocation the method invocation to send
+     * @return a {@link Future} containing the result
+     * @throws EffiRpcException if an error occurs during the call
+     */
+    Future<R> call(Invocation invocation) throws EffiRpcException;
+
+    /**
+     * Performs the call with positional arguments and waits for its result.
+     *
+     * @param args positional call arguments
+     * @param <T>  expected result type
+     * @return reply value
+     * @throws EffiRpcException when the call fails
+     */
+    default <T> T blockingCall(Object... args) throws EffiRpcException {
+        return blockingCall(new PositionalInvocation(args));
+    }
+
+    /**
      * Performs the call and waits for its result.
      *
      * @param invocation method invocation to send
-     * @param <T> expected result type
+     * @param <T>        expected result type
      * @return reply value
      * @throws EffiRpcException when the call fails
      */
     @SuppressWarnings("unchecked")
     default <T> T blockingCall(Invocation invocation) throws EffiRpcException {
         return (T) call(invocation).toCompletableFuture().join();
-    }
-
-    /**
-     * Performs the call with positional arguments and waits for its result.
-     *
-     * @param args positional call arguments
-     * @param <T> expected result type
-     * @return reply value
-     * @throws EffiRpcException when the call fails
-     */
-    default <T> T blockingCall(Object... args) throws EffiRpcException {
-        return blockingCall(new PositionalInvocation(args));
     }
 
 }

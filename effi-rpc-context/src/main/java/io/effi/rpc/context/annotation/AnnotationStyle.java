@@ -1,8 +1,8 @@
 package io.effi.rpc.context.annotation;
 
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.option.Options;
 import io.effi.rpc.context.options.PeerOptions;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.StringUtil;
 
@@ -23,10 +23,22 @@ public class AnnotationStyle {
     }
 
     /**
+     * Resolves the annotation style from the default platform.
+     *
+     * @param options options carrying the style name
+     * @return resolved annotation style
+     * @deprecated use {@link #getInstance(ScopedPlatform, Options)}
+     */
+    @Deprecated
+    public static AnnotationStyle getInstance(Options options) {
+        return getInstance(ScopedPlatform.defaultInstance(), options);
+    }
+
+    /**
      * Resolves the annotation style configured by the supplied options.
      *
      * @param platform owning platform
-     * @param options options carrying the style name
+     * @param options  options carrying the style name
      * @return resolved annotation style
      */
     public static AnnotationStyle getInstance(ScopedPlatform platform, Options options) {
@@ -38,7 +50,7 @@ public class AnnotationStyle {
      * Resolves the named annotation style from the owning platform.
      *
      * @param platform owning platform
-     * @param name style name
+     * @param name     style name
      * @return resolved annotation style
      */
     public static AnnotationStyle getInstance(ScopedPlatform platform, String name) {
@@ -50,18 +62,6 @@ public class AnnotationStyle {
                 name,
                 platform.namedExtension(AnnotationStyleResolver.class, name)
         );
-    }
-
-    /**
-     * Resolves the annotation style from the default platform.
-     *
-     * @param options options carrying the style name
-     * @return resolved annotation style
-     * @deprecated use {@link #getInstance(ScopedPlatform, Options)}
-     */
-    @Deprecated
-    public static AnnotationStyle getInstance(Options options) {
-        return getInstance(ScopedPlatform.defaultInstance(), options);
     }
 
     /**

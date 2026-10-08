@@ -14,7 +14,7 @@ public interface ParameterResolver {
      *
      * @param binding parameter binding
      * @param request protocol request
-     * @param peer target peer
+     * @param peer    target peer
      * @return resolved argument value
      */
     Object resolve(ParameterBinding binding, Request request, Peer peer);

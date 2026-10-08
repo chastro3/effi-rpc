@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-description="HTTP protocol support."
+description = "HTTP/1 and HTTP/2 protocol support for Effi RPC."
 dependencies {
     compileOnly("jakarta.ws.rs:jakarta.ws.rs-api")
     api(project(":effi-rpc-core"))

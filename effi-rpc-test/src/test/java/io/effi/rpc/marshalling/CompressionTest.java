@@ -48,6 +48,16 @@ class CompressionTest {
         assertCompressionRoundTrip(new Lz4Compressor());
     }
 
+    private static void assertCompressionRoundTrip(Compressor compressor) throws IOException {
+        CompressibleSerializer serializer = new CompressibleSerializer(new JacksonSerializer(), compressor);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        serializer.serialize(Map.of("name", "tom"), out);
+
+        Object value = serializer.deserialize(new ByteArrayInputStream(out.toByteArray()), Map.class);
+
+        assertEquals(Map.of("name", "tom"), value);
+    }
+
     @Test
     void snappyRoundTripsJson() throws IOException {
         assertCompressionRoundTrip(new SnappyCompressor());
@@ -92,6 +102,18 @@ class CompressionTest {
         HttpUtil.addContentEncoding(headers, options, request);
 
         assertNull(headers.get(HttpHeaderNames.CONTENT_ENCODING));
+    }
+
+    private static HttpDuplexRequest request(String acceptEncoding) {
+        HttpHeaders headers = Http1Protocol.VERSION.newHeaders();
+        headers.set(HttpHeaderNames.ACCEPT_ENCODING, acceptEncoding);
+        return HttpDuplexRequest.builder()
+                .version(Http1Protocol.VERSION)
+                .method(HttpMethod.POST)
+                .url(SmartURL.builder().scheme(Http1Protocol.VERSION.name()).path("test").build())
+                .headers(headers)
+                .body(Map.of("name", "tom"))
+                .build();
     }
 
     @Test
@@ -139,27 +161,5 @@ class CompressionTest {
         } finally {
             platform.close();
         }
-    }
-
-    private static void assertCompressionRoundTrip(Compressor compressor) throws IOException {
-        CompressibleSerializer serializer = new CompressibleSerializer(new JacksonSerializer(), compressor);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        serializer.serialize(Map.of("name", "tom"), out);
-
-        Object value = serializer.deserialize(new ByteArrayInputStream(out.toByteArray()), Map.class);
-
-        assertEquals(Map.of("name", "tom"), value);
-    }
-
-    private static HttpDuplexRequest request(String acceptEncoding) {
-        HttpHeaders headers = Http1Protocol.VERSION.newHeaders();
-        headers.set(HttpHeaderNames.ACCEPT_ENCODING, acceptEncoding);
-        return HttpDuplexRequest.builder()
-                .version(Http1Protocol.VERSION)
-                .method(HttpMethod.POST)
-                .url(SmartURL.builder().scheme(Http1Protocol.VERSION.name()).path("test").build())
-                .headers(headers)
-                .body(Map.of("name", "tom"))
-                .build();
     }
 }

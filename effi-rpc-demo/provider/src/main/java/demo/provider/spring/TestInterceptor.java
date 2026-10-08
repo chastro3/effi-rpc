@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class TestInterceptor implements Interceptor.CallUnit<Request, Caller<?>>{
+public class TestInterceptor implements Interceptor.CallUnit<Request, Caller<?>> {
 
     @Override
     public Interaction.Result intercept(CallContext<Request, Caller<?>> context, Chain chain) {

@@ -31,7 +31,15 @@ public class HttpClearTextSniffHandler extends ChannelInboundHandlerAdapter {
     private CompositeByteBuf compositeByteBuf;
 
     public HttpClearTextSniffHandler(HttpCombineChannelConfigurer configurer) {
-        this.configurer = AssertUtil.notNull(configurer,"configurer");
+        this.configurer = AssertUtil.notNull(configurer, "configurer");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (compositeByteBuf != null) {
+            ReferenceCountUtil.safeRelease(compositeByteBuf);
+            compositeByteBuf = null;
+        }
     }
 
     @Override
@@ -60,13 +68,5 @@ public class HttpClearTextSniffHandler extends ChannelInboundHandlerAdapter {
         if (byteBuf == compositeByteBuf) compositeByteBuf = null;
         ctx.fireChannelRead(byteBuf);
         pipeline.remove(this);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (compositeByteBuf != null) {
-            ReferenceCountUtil.safeRelease(compositeByteBuf);
-            compositeByteBuf = null;
-        }
     }
 }

@@ -7,6 +7,9 @@ import io.effi.rpc.option.OptionType;
  */
 public final class ScalarTypeSupport {
 
+    private ScalarTypeSupport() {
+    }
+
     /**
      * Creates a string option type.
      */
@@ -112,8 +115,5 @@ public final class ScalarTypeSupport {
             }
             return text.charAt(0);
         });
-    }
-
-    private ScalarTypeSupport() {
     }
 }

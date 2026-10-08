@@ -67,6 +67,37 @@ public final class AnnotationSupport {
         return options;
     }
 
+    // Preserve legacy blank defaults only when no explicit option exists in the current scope.
+    private static <C extends Options> void addIfNotBlank(C options, OptionName<String> name, String value) {
+        if (StringUtil.isNotBlank(value) || !options.items().containsKey(name.name())) {
+            options.addOption(name, value);
+        }
+    }
+
+    private static <C extends Options> void addIfNotBlank(C options, OptionName<String[]> name, String[] value) {
+        if (value == null || value.length == 0) {
+            return;
+        }
+        if (hasText(value) || !options.items().containsKey(name.name())) {
+            options.addOption(name, value);
+        }
+    }
+
+    private static <C extends Options> void addIfNonNegative(C options, OptionName<Long> name, long value) {
+        if (value >= 0) {
+            options.addOption(name, value);
+        }
+    }
+
+    private static boolean hasText(String[] values) {
+        for (String value : values) {
+            if (StringUtil.isNotBlank(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Applies servant annotation values to the target options.
      *
@@ -139,6 +170,12 @@ public final class AnnotationSupport {
         return options;
     }
 
+    private static <C extends Options> void addIfNonNegative(C options, OptionName<Integer> name, int value) {
+        if (value >= 0) {
+            options.addOption(name, value);
+        }
+    }
+
     /**
      * Applies caller annotation values to the target options.
      *
@@ -183,6 +220,19 @@ public final class AnnotationSupport {
     }
 
     /**
+     * Resolves the annotation style from the default platform.
+     *
+     * @param targetType annotated type
+     * @param options    target options
+     * @return resolved annotation style
+     * @deprecated use {@link #checkAnnotationStyle(Class, HierarchicalOptions, ScopedPlatform)}
+     */
+    @Deprecated
+    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalOptions options) {
+        return checkAnnotationStyle(targetType, options, ScopedPlatform.defaultInstance());
+    }
+
+    /**
      * Resolves the annotation style and applies its type-level options.
      *
      * @param targetType annotated type
@@ -203,19 +253,6 @@ public final class AnnotationSupport {
     }
 
     /**
-     * Resolves the annotation style from the default platform.
-     *
-     * @param targetType annotated type
-     * @param options target options
-     * @return resolved annotation style
-     * @deprecated use {@link #checkAnnotationStyle(Class, HierarchicalOptions, ScopedPlatform)}
-     */
-    @Deprecated
-    public static AnnotationStyle checkAnnotationStyle(Class<?> targetType, HierarchicalOptions options) {
-        return checkAnnotationStyle(targetType, options, ScopedPlatform.defaultInstance());
-    }
-
-    /**
      * Filters methods eligible for RPC peer registration.
      *
      * @param methods candidate methods
@@ -228,24 +265,6 @@ public final class AnnotationSupport {
                                 && !ReflectionUtil.isObjectMethod(method)
                                 && !Modifier.isStatic(method.getModifiers()))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Resolves the annotation style used for one RPC method.
-     *
-     * @param options         method options
-     * @param annotationStyle fallback annotation style
-     * @param platform        owning platform
-     * @return effective annotation style resolver
-     */
-    public static AnnotationStyleResolver annotationStyleParserForMethod(Options options,
-                                                                         AnnotationStyle annotationStyle,
-                                                                         ScopedPlatform platform) {
-        String style = options.option(PeerOptions.ANNOTATION_STYLE);
-        if (StringUtil.isBlank(style)) return annotationStyle.resolver();
-        return Objects.equals(style, annotationStyle.name())
-                ? annotationStyle.resolver()
-                : AnnotationStyle.getInstance(platform, style).resolver();
     }
 
     /**
@@ -264,40 +283,21 @@ public final class AnnotationSupport {
         return annotationStyleParserForMethod(options, annotationStyle, ScopedPlatform.defaultInstance());
     }
 
-    // Preserve legacy blank defaults only when no explicit option exists in the current scope.
-    private static <C extends Options> void addIfNotBlank(C options, OptionName<String> name, String value) {
-        if (StringUtil.isNotBlank(value) || !options.items().containsKey(name.name())) {
-            options.addOption(name, value);
-        }
-    }
-
-    private static <C extends Options> void addIfNotBlank(C options, OptionName<String[]> name, String[] value) {
-        if (value == null || value.length == 0) {
-            return;
-        }
-        if (hasText(value) || !options.items().containsKey(name.name())) {
-            options.addOption(name, value);
-        }
-    }
-
-    private static boolean hasText(String[] values) {
-        for (String value : values) {
-            if (StringUtil.isNotBlank(value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static <C extends Options> void addIfNonNegative(C options, OptionName<Integer> name, int value) {
-        if (value >= 0) {
-            options.addOption(name, value);
-        }
-    }
-
-    private static <C extends Options> void addIfNonNegative(C options, OptionName<Long> name, long value) {
-        if (value >= 0) {
-            options.addOption(name, value);
-        }
+    /**
+     * Resolves the annotation style used for one RPC method.
+     *
+     * @param options         method options
+     * @param annotationStyle fallback annotation style
+     * @param platform        owning platform
+     * @return effective annotation style resolver
+     */
+    public static AnnotationStyleResolver annotationStyleParserForMethod(Options options,
+                                                                         AnnotationStyle annotationStyle,
+                                                                         ScopedPlatform platform) {
+        String style = options.option(PeerOptions.ANNOTATION_STYLE);
+        if (StringUtil.isBlank(style)) return annotationStyle.resolver();
+        return Objects.equals(style, annotationStyle.name())
+                ? annotationStyle.resolver()
+                : AnnotationStyle.getInstance(platform, style).resolver();
     }
 }

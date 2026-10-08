@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Service governance, routing and load balancing."
+description = "Service discovery, routing, and load balancing for Effi RPC."
 dependencies {
     api(project(":effi-rpc-context"))
     api(project(":effi-rpc-registry:effi-rpc-registry-api"))

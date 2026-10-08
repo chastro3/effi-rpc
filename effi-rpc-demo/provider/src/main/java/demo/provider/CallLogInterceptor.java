@@ -7,7 +7,7 @@ import io.effi.rpc.context.UnitType;
 import io.effi.rpc.protocol.http.h2.Http2Servant;
 import io.effi.rpc.protocol.http.support.HttpRequest;
 
-public class CallLogInterceptor implements Interceptor.CallUnit<HttpRequest, Http2Servant>{
+public class CallLogInterceptor implements Interceptor.CallUnit<HttpRequest, Http2Servant> {
 
     public void ppHlleo() {
         System.out.println("cccc");

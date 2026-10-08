@@ -79,6 +79,48 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         }
     }
 
+    private static int requirePositive(int value, String name) {
+        if (value <= 0) {
+            throw new IllegalArgumentException(name + " must be > 0");
+        }
+        return value;
+    }
+
+    private static long requireNonNegative(long value, String name) {
+        if (value < 0) {
+            throw new IllegalArgumentException(name + " must be >= 0");
+        }
+        return value;
+    }
+
+    private static int requireRange(int value, String name) {
+        if (value < 1 || value > MpscEventBus.MAX_TELEMETRY_CONSUMERS) {
+            throw new IllegalArgumentException(name + " must be between " + 1 + " and " + MpscEventBus.MAX_TELEMETRY_CONSUMERS);
+        }
+        return value;
+    }
+
+    private void fail(EventConsumerLane lane, Throwable failure) {
+        if (!publisherGate.fail(failure)) {
+            return;
+        }
+        running.set(false);
+        metrics.consumerFailed();
+        logger.error("Event consumer '{}' failed", failure, lane.name());
+        controlLane.unpark();
+        for (EventConsumerLane telemetryLane : telemetryLanes) {
+            telemetryLane.unpark();
+        }
+    }
+
+    private static int powerOfTwo(int value) {
+        int result = 1;
+        while (result < value) {
+            result <<= 1;
+        }
+        return result;
+    }
+
     /**
      * Starts event consumers after handlers have been registered.
      */
@@ -126,36 +168,6 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         return doPublish(event, policy);
     }
 
-    @Override
-    public boolean active() {
-        return running.get() && !publisherGate.closed() && !publisherGate.failed();
-    }
-
-    /**
-     * Returns the metrics registrar owned by this event bus.
-     *
-     * @return event bus metrics registrar
-     */
-    public EventBusMetrics metrics() {
-        return metrics;
-    }
-
-    @Override
-    public void close() {
-        if (!publisherGate.close()) {
-            return;
-        }
-        running.set(false);
-        controlLane.unpark();
-        for (EventConsumerLane lane : telemetryLanes) {
-            lane.unpark();
-        }
-        controlLane.join(CLOSE_JOIN_MILLIS);
-        for (EventConsumerLane lane : telemetryLanes) {
-            lane.join(CLOSE_JOIN_MILLIS);
-        }
-    }
-
     private PublishResult doPublish(Event event, BackpressurePolicy policy) {
         metrics.published();
         EventConsumerLane lane = lane(event);
@@ -170,6 +182,20 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
             }
             case BLOCK -> blockUntilAccepted(lane, event);
         };
+    }
+
+    private EventConsumerLane lane(Event event) {
+        EventLane lane = event.lane();
+        if (lane == EventLane.CONTROL) {
+            return controlLane;
+        }
+        if (telemetryLanes.length == 1) {
+            return telemetryLanes[0];
+        }
+        // Hash the thread id so adjacent ids do not collapse onto the same lane.
+        long threadId = Thread.currentThread().threadId();
+        int index = (int) ((threadId * 0x9E3779B97F4A7C15L) >>> 32) & telemetryLaneMask;
+        return telemetryLanes[index];
     }
 
     private PublishResult blockUntilAccepted(EventConsumerLane lane, Event event) {
@@ -197,18 +223,34 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
         return PublishResult.REJECTED;
     }
 
-    private EventConsumerLane lane(Event event) {
-        EventLane lane = event.lane();
-        if (lane == EventLane.CONTROL) {
-            return controlLane;
+    /**
+     * Returns the metrics registrar owned by this event bus.
+     *
+     * @return event bus metrics registrar
+     */
+    public EventBusMetrics metrics() {
+        return metrics;
+    }
+
+    @Override
+    public void close() {
+        if (!publisherGate.close()) {
+            return;
         }
-        if (telemetryLanes.length == 1) {
-            return telemetryLanes[0];
+        running.set(false);
+        controlLane.unpark();
+        for (EventConsumerLane lane : telemetryLanes) {
+            lane.unpark();
         }
-        // Hash the thread id so adjacent ids do not collapse onto the same lane.
-        long threadId = Thread.currentThread().threadId();
-        int index = (int) ((threadId * 0x9E3779B97F4A7C15L) >>> 32) & telemetryLaneMask;
-        return telemetryLanes[index];
+        controlLane.join(CLOSE_JOIN_MILLIS);
+        for (EventConsumerLane lane : telemetryLanes) {
+            lane.join(CLOSE_JOIN_MILLIS);
+        }
+    }
+
+    @Override
+    public boolean active() {
+        return running.get() && !publisherGate.closed() && !publisherGate.failed();
     }
 
     public long pendingCount() {
@@ -217,48 +259,6 @@ public final class MpscEventBus extends ScopedPlatform.Holder implements EventBu
             pending += lane.size();
         }
         return pending;
-    }
-
-    private void fail(EventConsumerLane lane, Throwable failure) {
-        if (!publisherGate.fail(failure)) {
-            return;
-        }
-        running.set(false);
-        metrics.consumerFailed();
-        logger.error("Event consumer '{}' failed", failure, lane.name());
-        controlLane.unpark();
-        for (EventConsumerLane telemetryLane : telemetryLanes) {
-            telemetryLane.unpark();
-        }
-    }
-
-    private static int powerOfTwo(int value) {
-        int result = 1;
-        while (result < value) {
-            result <<= 1;
-        }
-        return result;
-    }
-
-    private static int requirePositive(int value, String name) {
-        if (value <= 0) {
-            throw new IllegalArgumentException(name + " must be > 0");
-        }
-        return value;
-    }
-
-    private static int requireRange(int value, String name) {
-        if (value < 1 || value > MpscEventBus.MAX_TELEMETRY_CONSUMERS) {
-            throw new IllegalArgumentException(name + " must be between " + 1 + " and " + MpscEventBus.MAX_TELEMETRY_CONSUMERS);
-        }
-        return value;
-    }
-
-    private static long requireNonNegative(long value, String name) {
-        if (value < 0) {
-            throw new IllegalArgumentException(name + " must be >= 0");
-        }
-        return value;
     }
 
 }

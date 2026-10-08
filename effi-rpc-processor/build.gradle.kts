@@ -1,8 +1,8 @@
 plugins {
     id("java-library")
 }
-description= "Annotation processor for generating files or classes at compile time."
-dependencies{
+description = "Compile-time annotation processing for Effi RPC metadata and native-image configuration."
+dependencies {
     api(project(":effi-rpc-annotation"))
 }
 

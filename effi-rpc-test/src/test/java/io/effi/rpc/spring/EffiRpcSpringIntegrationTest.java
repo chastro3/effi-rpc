@@ -1,9 +1,9 @@
 package io.effi.rpc.spring;
 
+import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.annotation.rpc.Call;
 import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.annotation.rpc.ServeGroup;
-import io.effi.rpc.annotation.component.ScopedComponent;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
@@ -11,20 +11,20 @@ import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
 import io.effi.rpc.spring.autoconfigure.EffiRpcAutoConfiguration;
+import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import io.effi.rpc.spring.consumer.CallGroupRegistrar;
 import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
 import io.effi.rpc.spring.provider.ServeGroupRegistrar;
-import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;
 import io.effi.rpc.spring.support.InfrastructureConfigurer;
 import io.effi.rpc.spring.support.ScopedComponentRegistrar;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -174,6 +174,22 @@ class EffiRpcSpringIntegrationTest {
         }
     }
 
+    interface TestConsumer {
+        String hello(String name);
+    }
+
+    @CallGroup
+    interface TestAnnotatedConsumer {
+
+        @Call(
+                path = "/hello",
+                protocol = Http1Protocol.NAME,
+                locator = "direct",
+                endpoint = "127.0.0.1:1"
+        )
+        String hello();
+    }
+
     @Configuration
     @EnableConfigurationProperties(EffiRpcProperties.class)
     static class ConsumerConfiguration {
@@ -312,22 +328,6 @@ class EffiRpcSpringIntegrationTest {
         ScopedModule module(ScopedApplication application) {
             return application.defaultModule();
         }
-    }
-
-    interface TestConsumer {
-        String hello(String name);
-    }
-
-    @CallGroup
-    interface TestAnnotatedConsumer {
-
-        @Call(
-                path = "/hello",
-                protocol = Http1Protocol.NAME,
-                locator = "direct",
-                endpoint = "127.0.0.1:1"
-        )
-        String hello();
     }
 
     @ServeGroup(interfaces = TestConsumer.class, protocol = {Http1Protocol.NAME})

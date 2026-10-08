@@ -7,13 +7,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MpmcRingBuffer<T> {
     private static final VarHandle ARRAY_HANDLE;
-    private final Object[] buffer;
-    private final int capacity;
-    private final int mask;
-
-    private final PaddedLong tail = new PaddedLong(0);
-    private final PaddedLong cursor = new PaddedLong(0);
-    private final List<Sequence> gatingSequences = new CopyOnWriteArrayList<>();
 
     static {
         try {
@@ -22,6 +15,13 @@ public class MpmcRingBuffer<T> {
             throw new RuntimeException(e);
         }
     }
+
+    private final Object[] buffer;
+    private final int capacity;
+    private final int mask;
+    private final PaddedLong tail = new PaddedLong(0);
+    private final PaddedLong cursor = new PaddedLong(0);
+    private final List<Sequence> gatingSequences = new CopyOnWriteArrayList<>();
 
     public MpmcRingBuffer(int capacity) {
         if (Integer.bitCount(capacity) != 1) {
@@ -55,6 +55,15 @@ public class MpmcRingBuffer<T> {
         return true;
     }
 
+    private long getMinimumGatingSequence() {
+        long min = Long.MAX_VALUE;
+        for (Sequence seq : gatingSequences) {
+            long v = seq.get();
+            if (v < min) min = v;
+        }
+        return min;
+    }
+
     @SuppressWarnings("unchecked")
     public T poll(Sequence seq) {
         long current = seq.get();
@@ -74,17 +83,7 @@ public class MpmcRingBuffer<T> {
         return item;
     }
 
-    private long getMinimumGatingSequence() {
-        long min = Long.MAX_VALUE;
-        for (Sequence seq : gatingSequences) {
-            long v = seq.get();
-            if (v < min) min = v;
-        }
-        return min;
-    }
-
     public static class Sequence {
-        private volatile long value;
         private static final VarHandle VALUE;
 
         static {
@@ -94,6 +93,8 @@ public class MpmcRingBuffer<T> {
                 throw new RuntimeException(e);
             }
         }
+
+        private volatile long value;
 
         public Sequence(long initial) {
             this.value = initial;
@@ -109,11 +110,8 @@ public class MpmcRingBuffer<T> {
     }
 
     static final class PaddedLong {
-        private long p1, p2, p3, p4, p5, p6, p7;
-        private volatile long value;
-        private long p9, p10, p11, p12, p13, p14, p15;
-
         private static final VarHandle VALUE;
+
         static {
             try {
                 VALUE = MethodHandles.lookup().findVarHandle(PaddedLong.class, "value", long.class);
@@ -121,6 +119,10 @@ public class MpmcRingBuffer<T> {
                 throw new RuntimeException(e);
             }
         }
+
+        private long p1, p2, p3, p4, p5, p6, p7;
+        private volatile long value;
+        private long p9, p10, p11, p12, p13, p14, p15;
 
         public PaddedLong(long value) {
             this.value = value;

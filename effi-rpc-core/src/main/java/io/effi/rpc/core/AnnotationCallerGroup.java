@@ -14,9 +14,9 @@ import io.effi.rpc.util.StringUtil;
 
 import java.lang.reflect.Method;
 
+import static io.effi.rpc.context.options.CallerOptions.PROTOCOL;
 import static io.effi.rpc.core.AnnotationSupport.annotationStyleParserForMethod;
 import static io.effi.rpc.core.AnnotationSupport.checkAnnotationStyle;
-import static io.effi.rpc.context.options.CallerOptions.PROTOCOL;
 
 /**
  * Provides the annotation-based implementation of {@link io.effi.rpc.context.CallerGroup}.

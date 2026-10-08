@@ -43,6 +43,11 @@ public class IdleDetectionHandler extends ChannelInboundHandlerAdapter {
         NettyChannel.ensure(ctx.channel()).set(KeyConstant.IDLE_COUNT, new AtomicInteger(0));
     }
 
+    private IdleStateHandler newIdleStateHandler() {
+        int allIdleTime = endpoint.config().option(TransportOptions.IDLE_TRIGGER_INTERVAL);
+        return new IdleStateHandler(0, 0, allIdleTime, TimeUnit.MILLISECONDS);
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         AtomicInteger idleCount = NettyChannel.ensure(ctx.channel()).get(KeyConstant.IDLE_COUNT);
@@ -63,10 +68,5 @@ public class IdleDetectionHandler extends ChannelInboundHandlerAdapter {
             endpoint.platform().singleComponent(EventBus.class).publish(new IdleEvent(nettyChannel));
         }
         super.userEventTriggered(ctx, evt);
-    }
-
-    private IdleStateHandler newIdleStateHandler() {
-        int allIdleTime = endpoint.config().option(TransportOptions.IDLE_TRIGGER_INTERVAL);
-        return new IdleStateHandler(0, 0, allIdleTime, TimeUnit.MILLISECONDS);
     }
 }

@@ -21,7 +21,7 @@ public class DefaultErrorCode implements ErrorCode {
     /**
      * Creates a default error code.
      *
-     * @param code error code
+     * @param code    error code
      * @param message error message
      * @return default error code
      */
@@ -40,6 +40,11 @@ public class DefaultErrorCode implements ErrorCode {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(code, message);
+    }
+
+    @Override
     public boolean equals(Object object) {
         if (this == object) {
             return true;
@@ -48,10 +53,5 @@ public class DefaultErrorCode implements ErrorCode {
             return false;
         }
         return code.equals(other.code) && message.equals(other.message);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(code, message);
     }
 }

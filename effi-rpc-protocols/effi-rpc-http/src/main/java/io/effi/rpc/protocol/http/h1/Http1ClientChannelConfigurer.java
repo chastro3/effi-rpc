@@ -23,6 +23,17 @@ public class Http1ClientChannelConfigurer extends EndpointChannelConfigurer<Http
         this.clientHandler = new Http1ClientHandler(client);
     }
 
+    @Override
+    protected void doConfigure(Channel channel, EndpointConfig config) {
+        super.doConfigure(channel, config);
+        ChannelPipeline pipeline = channel.pipeline();
+        NamedChannelHandler messageAggregator = ClientMessageAggregator.getInstance();
+        pipeline.addLast("httpClientCodec", newCodec());
+        pipeline.addLast("httpClientAggregator", newMessageAggregator());
+        pipeline.addLast("httpClientHandler", clientHandler);
+        pipeline.addLast(messageAggregator.name(), messageAggregator.handler());
+    }
+
     public HttpClientCodec newCodec() {
         return new HttpClientCodec(
                 H1Support.newDecoderConfig(endpoint.config()),
@@ -34,16 +45,5 @@ public class Http1ClientChannelConfigurer extends EndpointChannelConfigurer<Http
     public HttpObjectAggregator newMessageAggregator() {
         int maxMessageSize = endpoint.config().option(HttpOptions.MAX_MESSAGE_SIZE);
         return new HttpObjectAggregator(maxMessageSize);
-    }
-
-    @Override
-    protected void doConfigure(Channel channel, EndpointConfig config) {
-        super.doConfigure(channel, config);
-        ChannelPipeline pipeline = channel.pipeline();
-        NamedChannelHandler messageAggregator = ClientMessageAggregator.getInstance();
-        pipeline.addLast("httpClientCodec", newCodec());
-        pipeline.addLast("httpClientAggregator", newMessageAggregator());
-        pipeline.addLast("httpClientHandler", clientHandler);
-        pipeline.addLast(messageAggregator.name(), messageAggregator.handler());
     }
 }

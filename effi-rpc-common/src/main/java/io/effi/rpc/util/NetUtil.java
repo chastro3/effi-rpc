@@ -19,41 +19,7 @@ public final class NetUtil {
 
     private static volatile String LOCAL_HOST = null;
 
-    /**
-     * Validates the given IP and port string.
-     * Returns the corresponding InetSocketAddress if valid, null otherwise.
-     */
-    public static InetSocketAddress validateAddress(String address) {
-        if (address == null || address.isEmpty()) {
-            return null;
-        }
-
-        // Find the last colon to separate IP and port
-        int colonIndex = address.lastIndexOf(':');
-        if (colonIndex == -1 || colonIndex == 0 || colonIndex == address.length() - 1) {
-            return null; // No port or no IP part
-        }
-
-        String ip = address.substring(0, colonIndex);
-        String portStr = address.substring(colonIndex + 1);
-
-        // Validate IP
-        if (!isValidIP(ip)) {
-            return null;
-        }
-
-        // Validate port
-        int port;
-        try {
-            port = Integer.parseInt(portStr);
-            if (port < 1 || port > 65535) {
-                return null; // Port must be in the range of 1-65535
-            }
-        } catch (NumberFormatException e) {
-            return null; // Invalid port
-        }
-
-        return InetSocketAddress.createUnresolved(ip, port);
+    private NetUtil() {
     }
 
     /**
@@ -64,11 +30,89 @@ public final class NetUtil {
     }
 
     /**
+     * Resolves the given address if it is unresolved.
+     */
+    public static InetSocketAddress resolveIfUnresolved(InetSocketAddress address) {
+        if (!address.isUnresolved()) {
+            return address;
+        }
+        try {
+            InetAddress resolved = InetAddress.getByName(address.getHostString());
+            return new InetSocketAddress(resolved, address.getPort());
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Failed to resolve host: " + address.getHostString(), e);
+        }
+    }
+
+    /**
+     * Converts an InetSocketAddress to its string representation.
+     */
+    public static String toAddress(InetSocketAddress address) {
+        return (isLoopbackAddress(address.getHostString())
+                ? toAddress(localHost(), address.getPort())
+                : toAddress(address.getHostString(), address.getPort()));
+    }
+
+    /**
+     * Checks if the given host is a loopback address.
+     */
+    public static boolean isLoopbackAddress(String host) {
+        try {
+            InetAddress address = InetAddress.getByName(host);
+            return address.isLoopbackAddress();
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Converts the given hostname and port into a string representation.
+     */
+    public static String toAddress(String host, int port) {
+        return host + ":" + port;
+    }
+
+    /**
+     * Gets the local host address.
+     */
+    public static String localHost() {
+        if (LOCAL_HOST != null) return LOCAL_HOST;
+        String configuredHost = System.getProperty(SystemKeys.LOCAL_HOST);
+        if (isValidIP(configuredHost)) {
+            return LOCAL_HOST = configuredHost;
+        }
+        InetAddress localAddress = findFirstIPv4();
+        if (localAddress != null) {
+            LOCAL_ADDRESS = localAddress;
+            return LOCAL_HOST = localAddress.getHostAddress();
+        }
+        return null;
+    }
+
+    /**
      * Checks if the given string is a valid IP address (IPv4 or IPv6).
      */
     public static boolean isValidIP(String ip) {
         if (StringUtil.isBlank(ip)) return false;
         return isValidIPv4(ip) || isValidIPv6(ip);
+    }
+
+    private static InetAddress findFirstIPv4() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (!networkInterface.isUp() || networkInterface.isLoopback() || networkInterface.isVirtual()) continue;
+                Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress address = addresses.nextElement();
+                    if (isUsableIP(address)) return address;
+                }
+            }
+        } catch (SocketException e) {
+            throw new IllegalStateException("Failed to get local host", e);
+        }
+        return null;
     }
 
     /**
@@ -120,29 +164,8 @@ public final class NetUtil {
         return true;
     }
 
-    /**
-     * Resolves the given address if it is unresolved.
-     */
-    public static InetSocketAddress resolveIfUnresolved(InetSocketAddress address) {
-        if (!address.isUnresolved()) {
-            return address;
-        }
-        try {
-            InetAddress resolved = InetAddress.getByName(address.getHostString());
-            return new InetSocketAddress(resolved, address.getPort());
-        } catch (UnknownHostException e) {
-            throw new IllegalArgumentException("Failed to resolve host: " + address.getHostString(), e);
-        }
-    }
-
-
-    /**
-     * Converts an InetSocketAddress to its string representation.
-     */
-    public static String toAddress(InetSocketAddress address) {
-        return (isLoopbackAddress(address.getHostString())
-                ? toAddress(localHost(), address.getPort())
-                : toAddress(address.getHostString(), address.getPort()));
+    private static boolean isUsableIP(InetAddress address) {
+        return address != null && !address.isLoopbackAddress() && address instanceof Inet4Address;
     }
 
     /**
@@ -153,18 +176,6 @@ public final class NetUtil {
             return false;
         }
         return addr1.getAddress().equals(addr2.getAddress()) && addr1.getPort() == addr2.getPort();
-    }
-
-    /**
-     * Checks if the given host is a loopback address.
-     */
-    public static boolean isLoopbackAddress(String host) {
-        try {
-            InetAddress address = InetAddress.getByName(host);
-            return address.isLoopbackAddress();
-        } catch (UnknownHostException e) {
-            return false;
-        }
     }
 
     /**
@@ -179,51 +190,39 @@ public final class NetUtil {
     }
 
     /**
-     * Converts the given hostname and port into a string representation.
+     * Validates the given IP and port string.
+     * Returns the corresponding InetSocketAddress if valid, null otherwise.
      */
-    public static String toAddress(String host, int port) {
-        return host + ":" + port;
-    }
-
-    /**
-     *  Gets the local host address.
-     */
-    public static String localHost() {
-        if (LOCAL_HOST != null) return LOCAL_HOST;
-        String configuredHost = System.getProperty(SystemKeys.LOCAL_HOST);
-        if (isValidIP(configuredHost)) {
-            return LOCAL_HOST = configuredHost;
+    public static InetSocketAddress validateAddress(String address) {
+        if (address == null || address.isEmpty()) {
+            return null;
         }
-        InetAddress localAddress = findFirstIPv4();
-        if (localAddress != null) {
-            LOCAL_ADDRESS = localAddress;
-            return LOCAL_HOST = localAddress.getHostAddress();
-        }
-        return null;
-    }
 
-    private static InetAddress findFirstIPv4() {
+        // Find the last colon to separate IP and port
+        int colonIndex = address.lastIndexOf(':');
+        if (colonIndex == -1 || colonIndex == 0 || colonIndex == address.length() - 1) {
+            return null; // No port or no IP part
+        }
+
+        String ip = address.substring(0, colonIndex);
+        String portStr = address.substring(colonIndex + 1);
+
+        // Validate IP
+        if (!isValidIP(ip)) {
+            return null;
+        }
+
+        // Validate port
+        int port;
         try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = interfaces.nextElement();
-                if (!networkInterface.isUp() || networkInterface.isLoopback() || networkInterface.isVirtual()) continue;
-                Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress address = addresses.nextElement();
-                    if (isUsableIP(address)) return address;
-                }
+            port = Integer.parseInt(portStr);
+            if (port < 1 || port > 65535) {
+                return null; // Port must be in the range of 1-65535
             }
-        } catch (SocketException e) {
-            throw new IllegalStateException("Failed to get local host", e);
+        } catch (NumberFormatException e) {
+            return null; // Invalid port
         }
-        return null;
-    }
 
-    private static boolean isUsableIP(InetAddress address) {
-        return address != null && !address.isLoopbackAddress() && address instanceof Inet4Address;
-    }
-
-    private NetUtil() {
+        return InetSocketAddress.createUnresolved(ip, port);
     }
 }

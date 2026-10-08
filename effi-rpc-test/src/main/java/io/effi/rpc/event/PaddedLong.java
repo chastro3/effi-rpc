@@ -4,13 +4,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 
 public class PaddedLong {
-    // 前置填充（64 字节对齐）
-    private long p1, p2, p3, p4, p5, p6, p7;
-
-    // 核心值
-    private volatile long value;
-    long p8, p9, p10, p11, p12, p13, p14;
-
     private static final VarHandle VALUE;
 
     static {
@@ -21,6 +14,12 @@ public class PaddedLong {
             throw new RuntimeException(e);
         }
     }
+
+    long p8, p9, p10, p11, p12, p13, p14;
+    // 前置填充（64 字节对齐）
+    private long p1, p2, p3, p4, p5, p6, p7;
+    // 核心值
+    private volatile long value;
 
     public PaddedLong(long value) {
         this.value = value;

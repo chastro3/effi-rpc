@@ -49,6 +49,16 @@ public abstract class EndpointChannelConfigurer<E extends Endpoint> implements C
         }
     }
 
+    protected void configureIdleDetectionHandlerIfAbsent(ChannelPipeline pipeline) {
+        if (idleDetectionHandler != null && pipeline.get(IdleDetectionHandler.class) == null) {
+            pipeline.addLast("idleDetectionHandler", idleDetectionHandler);
+        }
+    }
+
+    protected void doConfigure(Channel channel, EndpointConfig config) {
+
+    }
+
     protected SslHandler createSslHandler(ByteBufAllocator allocator) {
         if (endpoint instanceof Client client) {
             InetSocketAddress remoteAddress = client.remoteAddress();
@@ -63,16 +73,6 @@ public abstract class EndpointChannelConfigurer<E extends Endpoint> implements C
             return handler;
         }
         return sslContext.newHandler(allocator);
-    }
-
-    protected void configureIdleDetectionHandlerIfAbsent(ChannelPipeline pipeline) {
-        if (idleDetectionHandler != null && pipeline.get(IdleDetectionHandler.class) == null) {
-            pipeline.addLast("idleDetectionHandler", idleDetectionHandler);
-        }
-    }
-
-    protected void doConfigure(Channel channel, EndpointConfig config) {
-
     }
 }
 

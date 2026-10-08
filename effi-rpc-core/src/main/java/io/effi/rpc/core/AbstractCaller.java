@@ -1,20 +1,20 @@
 package io.effi.rpc.core;
 
-import io.effi.rpc.core.call.CallExecution;
-import io.effi.rpc.core.call.Unary;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.support.DefaultClientConfig;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interceptor;
-import io.effi.rpc.core.configurator.InterceptorChainResolver;
 import io.effi.rpc.context.Locator;
 import io.effi.rpc.context.LocatorResolver;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.CallerMetrics;
+import io.effi.rpc.core.call.CallExecution;
+import io.effi.rpc.core.call.Unary;
+import io.effi.rpc.core.configurator.InterceptorChainResolver;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.option.Options;
@@ -29,10 +29,10 @@ import static io.effi.rpc.context.options.CallerOptions.CLIENT;
 import static io.effi.rpc.context.options.CallerOptions.ENDPOINT;
 import static io.effi.rpc.context.options.CallerOptions.TIMEOUT;
 import static io.effi.rpc.context.options.FaultToleranceOptions.FAILURE_HANDLER;
+import static io.effi.rpc.context.options.GovernanceOptions.HASH_KEY_INDEX;
 import static io.effi.rpc.context.options.GovernanceOptions.LOAD_BALANCER;
 import static io.effi.rpc.context.options.GovernanceOptions.LOCATOR;
 import static io.effi.rpc.context.options.GovernanceOptions.REGISTRY;
-import static io.effi.rpc.context.options.GovernanceOptions.HASH_KEY_INDEX;
 import static io.effi.rpc.context.options.GovernanceOptions.SERVICE_DISCOVERY_TIMEOUT;
 import static io.effi.rpc.context.options.ResolverOptions.INTERCEPTOR_CHAIN_RESOLVER;
 
@@ -66,8 +66,8 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
     }
 
     @Override
-    public Future<R> call(Invocation invocation) throws EffiRpcException {
-        return new CallExecution<>(this, invocation, failureHandler).execute();
+    public Locator locator() {
+        return locator;
     }
 
     @Override
@@ -76,13 +76,13 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
     }
 
     @Override
-    public Locator locator() {
-        return locator;
+    public Interceptor.Chain chosenInterceptorChain() {
+        return chosenInterceptorChain;
     }
 
     @Override
-    public Interceptor.Chain chosenInterceptorChain() {
-        return chosenInterceptorChain;
+    public Future<R> call(Invocation invocation) throws EffiRpcException {
+        return new CallExecution<>(this, invocation, failureHandler).execute();
     }
 
     @Override
@@ -115,16 +115,6 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
         }
 
         @Override
-        protected Class<? extends Peer> peerType() {
-            return Caller.class;
-        }
-
-        @Override
-        protected PeerDescriptor.Kind kind() {
-            return PeerDescriptor.Kind.CALLER;
-        }
-
-        @Override
         protected void prepare() {
             this.locator = ensureLocator(descriptor.options());
             this.clientConfig = ensureClientConfig(descriptor);
@@ -153,6 +143,45 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
             AssertUtil.notNull(clientConfig, "clientConfig");
             AssertUtil.notNull(failureHandler, "failureHandler");
             AssertUtil.notNull(chosenInterceptorChain, "chosenInterceptorChain");
+        }
+
+        @Override
+        protected Class<? extends Peer> peerType() {
+            return Caller.class;
+        }
+
+        @Override
+        protected PeerDescriptor.Kind kind() {
+            return PeerDescriptor.Kind.CALLER;
+        }
+
+        private Locator ensureLocator(Options options) {
+            if (locator != null) {
+                return locator;
+            }
+            String locatorName = options.option(LOCATOR);
+            LocatorResolver resolver = module.platform().preferredExtension(LocatorResolver.class, locatorName);
+            return resolver.resolve(options, module.platform());
+        }
+
+        private ClientConfig ensureClientConfig(PeerDescriptor descriptor) {
+            if (clientConfig != null) {
+                return clientConfig;
+            }
+            String clientConfigName = descriptor.options().option(CLIENT);
+            if (StringUtil.isBlank(clientConfigName)) {
+                return DefaultClientConfig.cached(
+                        descriptor.protocol().name(),
+                        descriptor.protocol().stack()
+                );
+            }
+            ClientConfig configured = module.platform().namedComponent(ClientConfig.class, clientConfigName);
+            return configured == null
+                    ? DefaultClientConfig.cached(
+                    descriptor.protocol().name(),
+                    descriptor.protocol().stack()
+            )
+                    : configured;
         }
 
         public ClientConfig clientConfig() {
@@ -217,35 +246,6 @@ public abstract class AbstractCaller<R> extends AbstractPeer<AbstractCaller.Buil
         public SELF failureHandler(String failureHandler) {
             addOption(FAILURE_HANDLER, failureHandler);
             return self();
-        }
-
-        private Locator ensureLocator(Options options) {
-            if (locator != null) {
-                return locator;
-            }
-            String locatorName = options.option(LOCATOR);
-            LocatorResolver resolver = module.platform().preferredExtension(LocatorResolver.class, locatorName);
-            return resolver.resolve(options, module.platform());
-        }
-
-        private ClientConfig ensureClientConfig(PeerDescriptor descriptor) {
-            if (clientConfig != null) {
-                return clientConfig;
-            }
-            String clientConfigName = descriptor.options().option(CLIENT);
-            if (StringUtil.isBlank(clientConfigName)) {
-                return DefaultClientConfig.cached(
-                        descriptor.protocol().name(),
-                        descriptor.protocol().stack()
-                );
-            }
-            ClientConfig configured = module.platform().namedComponent(ClientConfig.class, clientConfigName);
-            return configured == null
-                    ? DefaultClientConfig.cached(
-                            descriptor.protocol().name(),
-                            descriptor.protocol().stack()
-                    )
-                    : configured;
         }
     }
 }

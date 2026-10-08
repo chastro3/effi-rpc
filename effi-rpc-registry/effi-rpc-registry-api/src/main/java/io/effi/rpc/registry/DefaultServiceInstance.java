@@ -37,6 +37,10 @@ public final class DefaultServiceInstance implements ServiceInstance {
         this.id = safeGenerateId(builder.id);
     }
 
+    private String safeGenerateId(String id) {
+        return StringUtil.isNotBlank(id) ? id : RegistryUtil.generateId(protocol, host, port);
+    }
+
     /**
      * Returns a new service instance builder.
      */
@@ -89,6 +93,11 @@ public final class DefaultServiceInstance implements ServiceInstance {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ServiceInstance that)) return false;
@@ -96,32 +105,18 @@ public final class DefaultServiceInstance implements ServiceInstance {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
     public String toString() {
         return id;
     }
 
-    private String safeGenerateId(String id) {
-        return StringUtil.isNotBlank(id) ? id : RegistryUtil.generateId(protocol, host, port);
-    }
-
     public static final class Builder implements FluentBuilder<DefaultServiceInstance, Builder> {
 
-        private String id;
-
-        private String serviceName;
-
-        private String protocol;
-
-        private String host;
-
-        private int port;
-
         private final Map<String, String> metadata = new HashMap<>();
+        private String id;
+        private String serviceName;
+        private String protocol;
+        private String host;
+        private int port;
 
         private Builder() {
         }

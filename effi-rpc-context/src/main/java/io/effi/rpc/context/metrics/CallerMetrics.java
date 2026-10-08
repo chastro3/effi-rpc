@@ -82,7 +82,7 @@ public final class CallerMetrics extends PeerMetrics {
      * Records one finished call attempt.
      *
      * @param durationNanos elapsed nanoseconds
-     * @param success whether the attempt succeeded
+     * @param success       whether the attempt succeeded
      */
     public void recordCall(long durationNanos, boolean success) {
         callCount.increment();

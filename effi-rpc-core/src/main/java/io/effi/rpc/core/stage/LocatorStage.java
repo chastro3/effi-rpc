@@ -2,10 +2,10 @@ package io.effi.rpc.core.stage;
 
 
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Locator;
-import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
 

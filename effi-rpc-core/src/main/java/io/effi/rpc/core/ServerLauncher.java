@@ -7,11 +7,11 @@ import io.effi.rpc.component.transport.ServerConfig;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.registry.util.RegistryUtil;
+import io.effi.rpc.trait.Closeable;
+import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.endpoint.Server;
 import io.effi.rpc.util.AssertUtil;
-import io.effi.rpc.trait.Closeable;
-import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.util.LazySingleton;
 import io.effi.rpc.util.NetUtil;
 import io.effi.rpc.util.StringUtil;
@@ -57,8 +57,8 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
      * Attaches a server bound to the local host.
      *
      * @param application owning application
-     * @param config server configuration
-     * @param port bound port
+     * @param config      server configuration
+     * @param port        bound port
      * @return attached server launcher
      */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, int port) {
@@ -69,9 +69,9 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
      * Attaches a server bound to the supplied host.
      *
      * @param application owning application
-     * @param config server configuration
-     * @param host bound host
-     * @param port bound port
+     * @param config      server configuration
+     * @param host        bound host
+     * @param port        bound port
      * @return attached server launcher
      */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, String host, int port) {
@@ -81,8 +81,8 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
     /**
      * Attaches a server bound to the supplied address.
      *
-     * @param application owning application
-     * @param config server configuration
+     * @param application  owning application
+     * @param config       server configuration
      * @param boundAddress bound address
      * @return attached server launcher
      */
@@ -93,10 +93,10 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
     /**
      * Attaches a weighted server bound to the supplied address.
      *
-     * @param application owning application
-     * @param config server configuration
+     * @param application  owning application
+     * @param config       server configuration
      * @param boundAddress bound address
-     * @param weight server weight
+     * @param weight       server weight
      * @return attached server launcher
      */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress, int weight) {

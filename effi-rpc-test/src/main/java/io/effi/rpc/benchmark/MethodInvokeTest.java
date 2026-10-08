@@ -32,17 +32,18 @@ import java.util.concurrent.TimeUnit;
 public class MethodInvokeTest {
 
 
-    public static class Target {
-        public Object hello(String name) {
-            return "hello" + name;
-        }
-    }
-
     private Target target;
     private Method reflectMethod;
     private MethodHandle methodHandle;
     private DynamicAccessor dynamicAccessor;
     private int methodIndex;
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(MethodInvokeTest.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
@@ -78,12 +79,10 @@ public class MethodInvokeTest {
         return dynamicAccessor.invoke(target, methodIndex, "zzz");
     }
 
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(MethodInvokeTest.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
+    public static class Target {
+        public Object hello(String name) {
+            return "hello" + name;
+        }
     }
 
 }

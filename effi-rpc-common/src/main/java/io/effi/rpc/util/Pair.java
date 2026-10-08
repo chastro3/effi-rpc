@@ -21,7 +21,7 @@ public final class Pair<L, R> implements Comparable<Pair<L, R>> {
     /**
      * Creates a pair from the supplied values.
      *
-     * @param left left value
+     * @param left  left value
      * @param right right value
      * @return immutable pair
      */
@@ -44,6 +44,11 @@ public final class Pair<L, R> implements Comparable<Pair<L, R>> {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hashCode(left) ^ Objects.hashCode(right);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Pair<?, ?> pair)) return false;
@@ -51,8 +56,8 @@ public final class Pair<L, R> implements Comparable<Pair<L, R>> {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(left) ^ Objects.hashCode(right);
+    public String toString() {
+        return "(" + left + ", " + right + ")";
     }
 
     @Override
@@ -68,10 +73,5 @@ public final class Pair<L, R> implements Comparable<Pair<L, R>> {
         if (o1 == null) return -1;
         if (o2 == null) return 1;
         return ((Comparable) o1).compareTo(o2);
-    }
-
-    @Override
-    public String toString() {
-        return "(" + left + ", " + right + ")";
     }
 }

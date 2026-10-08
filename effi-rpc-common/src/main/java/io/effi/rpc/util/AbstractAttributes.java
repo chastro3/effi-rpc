@@ -14,11 +14,18 @@ public abstract class AbstractAttributes implements Attributes {
     private volatile Map<GenericKey<?>, Object> attributes;
 
     @Override
+    public void clear() {
+        if (attributes != null)
+            attributes.clear();
+    }    @Override
     public <T> T get(GenericKey<T> key) {
         return (T) delayedAttributes().get(key);
     }
 
     @Override
+    public String toString() {
+        return "attributes=" + (attributes == null ? 0 : attributes.size());
+    }    @Override
     public <T> T getOrDefault(GenericKey<T> key, T defaultValue) {
         T value = get(key);
         return value == null ? defaultValue : value;
@@ -40,16 +47,9 @@ public abstract class AbstractAttributes implements Attributes {
         return this;
     }
 
-    @Override
-    public void clear() {
-        if (attributes != null)
-            attributes.clear();
-    }
 
-    @Override
-    public String toString() {
-        return "attributes=" + (attributes == null ? 0 : attributes.size());
-    }
+
+
 
     protected Map<GenericKey<?>, Object> delayedAttributes() {
         Map<GenericKey<?>, Object> result = attributes;

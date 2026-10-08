@@ -1,12 +1,12 @@
 package demo.provider;
 
-import io.effi.rpc.core.ApplicationServiceRegistrar;
-import io.effi.rpc.core.DefaultServantGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.parameter.Header;
 import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.core.ApplicationServiceRegistrar;
+import io.effi.rpc.core.DefaultServantGroup;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.protocol.http.arg.api.HttpServantMethodBuilder;

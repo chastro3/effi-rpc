@@ -1,7 +1,7 @@
 package io.effi.rpc.component;
 
-import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.trait.Cleanable;
+import io.effi.rpc.trait.Identifiable;
 
 /**
  * Manages registration and removal of components within a registry.

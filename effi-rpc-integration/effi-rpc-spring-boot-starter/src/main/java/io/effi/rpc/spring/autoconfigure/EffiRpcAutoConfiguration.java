@@ -2,17 +2,18 @@ package io.effi.rpc.spring.autoconfigure;
 
 import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.annotation.rpc.ServeGroup;
-import io.effi.rpc.core.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
-import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
+import io.effi.rpc.core.EffiRpcBootstrap;
 import io.effi.rpc.spring.consumer.CallGroupRegistrar;
+import io.effi.rpc.spring.consumer.InterfaceCallGroupFactory;
 import io.effi.rpc.spring.provider.ServeGroupRegistrar;
 import io.effi.rpc.spring.support.EffiRpcApplicationLifecycle;
 import io.effi.rpc.spring.support.InfrastructureConfigurer;
 import io.effi.rpc.spring.support.ScopedComponentRegistrar;
 import io.effi.rpc.util.StringUtil;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -24,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.beans.factory.ObjectProvider;
 
 /**
  * Provides Spring Boot auto-configuration for Effi RPC.

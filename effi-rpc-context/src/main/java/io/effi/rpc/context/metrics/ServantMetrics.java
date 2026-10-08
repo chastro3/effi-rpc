@@ -74,7 +74,7 @@ public final class ServantMetrics extends PeerMetrics {
      * Records one finished request.
      *
      * @param durationNanos elapsed nanoseconds
-     * @param success whether the request succeeded
+     * @param success       whether the request succeeded
      */
     public void recordRequest(long durationNanos, boolean success) {
         requestCount.increment();

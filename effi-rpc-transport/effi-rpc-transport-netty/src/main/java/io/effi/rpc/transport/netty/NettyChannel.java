@@ -45,6 +45,63 @@ public final class NettyChannel extends AbstractChannel {
         track();
     }
 
+    private void track() {
+        maybeTrackChannel();
+        channel.closeFuture().addListener(this::handleClose);
+    }
+
+    private void maybeTrackChannel() {
+        if (physical()) {
+            ChannelTracker channelTracker = findChannelTracker();
+            if (channelTracker != null) channelTracker.add(this);
+        }
+    }
+
+    private void handleClose(io.netty.util.concurrent.Future<? super Void> future) {
+        if (future.isSuccess()) {
+            maybeUnTrackChannel();
+            maybeCancelCalls();
+            if (CHANNELS.remove(channel, this)) {
+                clear();
+                if (physical()) {
+                    logger.debug("Channel '{}' closed", this);
+                }
+            }
+        } else {
+            logger.error("Closure of '{}' failed", future.cause(), this);
+        }
+    }
+
+    /**
+     * Indicates whether this channel is a physical channel.
+     */
+    public boolean physical() {
+        return !virtual;
+    }
+
+    private ChannelTracker findChannelTracker() {
+        if (endpoint instanceof ChannelTracker channelTracker) {
+            return channelTracker;
+        } else if (endpoint instanceof ChannelTracker.Supplier supplier) {
+            return supplier.channelTracker();
+        }
+        return null;
+    }
+
+    private void maybeUnTrackChannel() {
+        if (physical()) {
+            ChannelTracker channelTracker = findChannelTracker();
+            if (channelTracker != null) channelTracker.remove(this);
+        }
+    }
+
+    private void maybeCancelCalls() {
+        ChannelCallBindings bindings = endpoint.platform().singleComponent(ChannelCallBindings.class);
+        if (bindings != null) {
+            bindings.cancelChannel(this, TransportErrorCodes.CHANNEL_INACTIVE.fail(this));
+        }
+    }
+
     /**
      * Wraps a Netty future into a channel promise.
      *
@@ -53,6 +110,32 @@ public final class NettyChannel extends AbstractChannel {
      */
     public static Promise<NettyChannel> wrap(io.netty.util.concurrent.Future<? extends Channel> future) {
         return wrap(future, future::getNow, NettyChannel::ensure);
+    }
+
+    private static <T extends io.netty.util.concurrent.Future<?>> Promise<NettyChannel>
+    wrap(T future, java.util.function.Supplier<Channel> channelSupplier, Function<Channel, NettyChannel> wrapper) {
+        Promise<NettyChannel> promise = new Promise<>();
+        promise.onCancel(reason -> future.cancel(false));
+        future.addListener(result -> {
+            if (result.isSuccess()) {
+                Channel channel = channelSupplier.get();
+                try {
+                    NettyChannel nettyChannel = wrapper.apply(channel);
+                    if (promise.completed()) {
+                        nettyChannel.close();
+                        return;
+                    }
+                    promise.success(nettyChannel);
+                } catch (Exception e) {
+                    promise.failure(TransportErrorCodes.CHANNEL_EXCEPTION.fail(
+                            e, "unknown", ExceptionUtil.message(e)));
+                }
+            } else {
+                promise.failure(TransportErrorCodes.CHANNEL_EXCEPTION.fail(
+                        result.cause(), "unknown", ExceptionUtil.message(result.cause())));
+            }
+        });
+        return promise;
     }
 
     /**
@@ -68,6 +151,19 @@ public final class NettyChannel extends AbstractChannel {
         if (nettyChannel != null) return nettyChannel;
         throw new IllegalStateException("Netty channel is unexpectedly null."
                 + "Please ensure that the current endpoint has properly initialized its Netty channel.");
+    }
+
+    @Override
+    public void close() {
+        ChannelFuture closeFuture = channel.close();
+        if (!channel.eventLoop().inEventLoop()) {
+            closeFuture.awaitUninterruptibly();
+        }
+    }
+
+    @Override
+    public boolean active() {
+        return channel.isActive();
     }
 
     /**
@@ -103,29 +199,6 @@ public final class NettyChannel extends AbstractChannel {
     }
 
     @Override
-    public InetSocketAddress remoteAddress() {
-        return (InetSocketAddress) channel.remoteAddress();
-    }
-
-    @Override
-    public InetSocketAddress localAddress() {
-        return (InetSocketAddress) channel.localAddress();
-    }
-
-    @Override
-    public void close() {
-        ChannelFuture closeFuture = channel.close();
-        if (!channel.eventLoop().inEventLoop()) {
-            closeFuture.awaitUninterruptibly();
-        }
-    }
-
-    @Override
-    public boolean active() {
-        return channel.isActive();
-    }
-
-    @Override
     public String toString() {
         return StringUtil.format(
                 "{}[local={}, remote={}, active={}, type={}]",
@@ -135,18 +208,21 @@ public final class NettyChannel extends AbstractChannel {
         );
     }
 
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return (InetSocketAddress) channel.remoteAddress();
+    }
+
+    @Override
+    public InetSocketAddress localAddress() {
+        return (InetSocketAddress) channel.localAddress();
+    }
+
     /**
      * Indicates whether this channel is a virtual stream channel.
      */
     public boolean virtual() {
         return virtual;
-    }
-
-    /**
-     * Indicates whether this channel is a physical channel.
-     */
-    public boolean physical() {
-        return !virtual;
     }
 
     /**
@@ -176,84 +252,6 @@ public final class NettyChannel extends AbstractChannel {
      */
     public static Promise<NettyChannel> wrap(ChannelFuture future) {
         return wrap(future, future::channel, NettyChannel::ensure);
-    }
-
-    private static <T extends io.netty.util.concurrent.Future<?>> Promise<NettyChannel>
-    wrap(T future, java.util.function.Supplier<Channel> channelSupplier, Function<Channel, NettyChannel> wrapper) {
-        Promise<NettyChannel> promise = new Promise<>();
-        promise.onCancel(reason -> future.cancel(false));
-        future.addListener(result -> {
-            if (result.isSuccess()) {
-                Channel channel = channelSupplier.get();
-                try {
-                    NettyChannel nettyChannel = wrapper.apply(channel);
-                    if (promise.completed()) {
-                        nettyChannel.close();
-                        return;
-                    }
-                    promise.success(nettyChannel);
-                } catch (Exception e) {
-                    promise.failure(TransportErrorCodes.CHANNEL_EXCEPTION.fail(
-                            e, "unknown", ExceptionUtil.message(e)));
-                }
-            } else {
-                promise.failure(TransportErrorCodes.CHANNEL_EXCEPTION.fail(
-                        result.cause(), "unknown", ExceptionUtil.message(result.cause())));
-            }
-        });
-        return promise;
-    }
-
-
-    private void track() {
-        maybeTrackChannel();
-        channel.closeFuture().addListener(this::handleClose);
-    }
-
-    private void handleClose(io.netty.util.concurrent.Future<? super Void> future) {
-        if (future.isSuccess()) {
-            maybeUnTrackChannel();
-            maybeCancelCalls();
-            if (CHANNELS.remove(channel, this)) {
-                clear();
-                if (physical()) {
-                    logger.debug("Channel '{}' closed", this);
-                }
-            }
-        } else {
-            logger.error("Closure of '{}' failed", future.cause(), this);
-        }
-    }
-
-
-    private void maybeTrackChannel() {
-        if (physical()) {
-            ChannelTracker channelTracker = findChannelTracker();
-            if (channelTracker != null) channelTracker.add(this);
-        }
-    }
-
-    private void maybeUnTrackChannel() {
-        if (physical()) {
-            ChannelTracker channelTracker = findChannelTracker();
-            if (channelTracker != null) channelTracker.remove(this);
-        }
-    }
-
-    private void maybeCancelCalls() {
-        ChannelCallBindings bindings = endpoint.platform().singleComponent(ChannelCallBindings.class);
-        if (bindings != null) {
-            bindings.cancelChannel(this, TransportErrorCodes.CHANNEL_INACTIVE.fail(this));
-        }
-    }
-
-    private ChannelTracker findChannelTracker() {
-        if (endpoint instanceof ChannelTracker channelTracker) {
-            return channelTracker;
-        } else if (endpoint instanceof ChannelTracker.Supplier supplier) {
-            return supplier.channelTracker();
-        }
-        return null;
     }
 
 }

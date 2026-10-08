@@ -26,14 +26,6 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
         initialize();
     }
 
-    public void channelConfigurer(ChannelConfigurer channelConfigurer) {
-        this.channelConfigurer = ensureChannelConfigurer(channelConfigurer);
-    }
-
-    protected void configureChannel(io.netty.channel.Channel channel) {
-        ensureChannelConfigurer(channelConfigurer).configure(channel, config);
-    }
-
     protected void initialize() {
         configureBootStrap();
     }
@@ -41,6 +33,22 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
     protected void configureBootStrap() {
         configureOptions(bootstrap);
         configureChannelHandler(bootstrap);
+    }
+
+    protected abstract void configureOptions(B bootstrap);
+
+    protected abstract void configureChannelHandler(B bootstrap);
+
+    public void channelConfigurer(ChannelConfigurer channelConfigurer) {
+        this.channelConfigurer = ensureChannelConfigurer(channelConfigurer);
+    }
+
+    private ChannelConfigurer ensureChannelConfigurer(ChannelConfigurer channelConfigurer) {
+        return AssertUtil.notNull(channelConfigurer, "channel configurer");
+    }
+
+    protected void configureChannel(io.netty.channel.Channel channel) {
+        ensureChannelConfigurer(channelConfigurer).configure(channel, config);
     }
 
     protected <V> void configureIfValid(OptionName<V> name, Consumer<V> consumer) {
@@ -63,13 +71,5 @@ public abstract class NettyEndpoint<B> extends AbstractEndpoint {
             Thread.currentThread().interrupt();
             return false;
         }
-    }
-
-    protected abstract void configureOptions(B bootstrap);
-
-    protected abstract void configureChannelHandler(B bootstrap);
-
-    private ChannelConfigurer ensureChannelConfigurer(ChannelConfigurer channelConfigurer) {
-        return AssertUtil.notNull(channelConfigurer, "channel configurer");
     }
 }

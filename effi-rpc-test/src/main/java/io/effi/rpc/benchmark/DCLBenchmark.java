@@ -23,18 +23,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 @State(Scope.Thread)
 public class DCLBenchmark {
 
-    static class FieldType {
-        final int value;
-
-        FieldType(int value) {
-            this.value = value;
-        }
-    }
-
     // volatile 字段
     private volatile FieldType field;
-
     private AtomicInteger counter = new AtomicInteger(0);
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(DCLBenchmark.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
+
+    // JMH 基准测试方法
+    @Benchmark
+    public FieldType testLocal() {
+        return getFieldWithLocal();
+    }
 
     // 1. 使用局部变量快照
     public FieldType getFieldWithLocal() {
@@ -46,12 +50,26 @@ public class DCLBenchmark {
         }
     }
 
+    private FieldType computeField() {
+        return new FieldType(counter.incrementAndGet());
+    }
+
+    @Benchmark
+    public FieldType testDirect() {
+        return getFieldDirect();
+    }
+
     // 2. 直接访问 volatile
     public FieldType getFieldDirect() {
         if (field != null) return field;
         synchronized (this) {
             return field != null ? field : (field = computeField());
         }
+    }
+
+    @Benchmark
+    public FieldType testDcl() {
+        return getFieldDcl();
     }
 
     public FieldType getFieldDcl() {
@@ -63,30 +81,11 @@ public class DCLBenchmark {
         return field;
     }
 
-    private FieldType computeField() {
-        return new FieldType(counter.incrementAndGet());
-    }
+    static class FieldType {
+        final int value;
 
-    // JMH 基准测试方法
-    @Benchmark
-    public FieldType testLocal() {
-        return getFieldWithLocal();
-    }
-
-    @Benchmark
-    public FieldType testDirect() {
-        return getFieldDirect();
-    }
-
-    @Benchmark
-    public FieldType testDcl() {
-        return getFieldDcl();
-    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(DCLBenchmark.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
+        FieldType(int value) {
+            this.value = value;
+        }
     }
 }

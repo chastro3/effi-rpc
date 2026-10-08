@@ -5,8 +5,8 @@ import io.effi.rpc.component.TagComponent;
 import io.effi.rpc.component.registry.options.RegistryOptions;
 import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.config.IdentifiableConfig;
-import io.effi.rpc.option.Options;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.option.Options;
 import io.effi.rpc.trait.Identifiable;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
@@ -50,6 +50,19 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
         protected ThreadPool threadPool;
 
         /**
+         * Sets the registry type and address from a registry URL.
+         *
+         * @param authority registry URL, such as {@code consul://127.0.0.1:8500}
+         * @return this builder
+         */
+        public SELF authority(String authority) {
+            SmartURL smartUrl = SmartURL.valueOf(authority);
+            type(smartUrl.scheme());
+            address(smartUrl.address());
+            return self();
+        }
+
+        /**
          * Sets the registry type.
          *
          * @param type registry type, such as {@code consul} or {@code nacos}
@@ -70,19 +83,6 @@ public interface RegistryConfig extends Options.Supplier, Identifiable, TagCompo
          */
         public SELF address(String address) {
             this.address = address;
-            return self();
-        }
-
-        /**
-         * Sets the registry type and address from a registry URL.
-         *
-         * @param authority registry URL, such as {@code consul://127.0.0.1:8500}
-         * @return this builder
-         */
-        public SELF authority(String authority) {
-            SmartURL smartUrl = SmartURL.valueOf(authority);
-            type(smartUrl.scheme());
-            address(smartUrl.address());
             return self();
         }
 

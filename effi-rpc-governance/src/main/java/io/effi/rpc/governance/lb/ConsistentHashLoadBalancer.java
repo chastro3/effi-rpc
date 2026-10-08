@@ -42,10 +42,6 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
         return selected;
     }
 
-    private String instanceKey(ServiceInstance instance) {
-        return instance.protocol() + "://" + instance.host() + ":" + instance.port();
-    }
-
     private long score(String key, String instanceKey) {
         // Finalize the mixed hash so adjacent keys spread across the full score range.
         long hash = key.hashCode();
@@ -56,5 +52,9 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
         hash *= 0xc4ceb9fe1a85ec53L;
         hash ^= hash >>> 33;
         return hash;
+    }
+
+    private String instanceKey(ServiceInstance instance) {
+        return instance.protocol() + "://" + instance.host() + ":" + instance.port();
     }
 }

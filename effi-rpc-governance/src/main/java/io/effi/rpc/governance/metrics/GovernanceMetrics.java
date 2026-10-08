@@ -35,11 +35,8 @@ public final class GovernanceMetrics implements MetricsRegistrar {
     public static final MetricKey LOAD_BALANCER_COUNT = MetricKey.of("governance.lb.selection.count");
 
     public static final MetricKey LOAD_BALANCER_DURATION = MetricKey.of("governance.lb.selection.duration");
-
-    private volatile Metrics metrics;
-
     private final ConcurrentMap<String, LoadBalancerInstruments> loadBalancerInstruments = new ConcurrentHashMap<>();
-
+    private volatile Metrics metrics;
     private MetricTimer discoveryTimer = MetricTimer.NOOP;
 
     private MetricCounter discoverySuccess = MetricCounter.NOOP;

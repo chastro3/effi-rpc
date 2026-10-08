@@ -73,6 +73,16 @@ public final class H2Support {
         );
     }
 
+    private static <T extends Http2MessageStream> T getOrCreateStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey, Supplier<T> creator) {
+        Attribute<T> streamAttribute = ctx.channel().attr(streamAttributeKey);
+        T nettyHttp2Stream = streamAttribute.get();
+        if (nettyHttp2Stream == null) {
+            nettyHttp2Stream = creator.get();
+            streamAttribute.set(nettyHttp2Stream);
+        }
+        return nettyHttp2Stream;
+    }
+
     /**
      * Gets or creates http2 response stream from channel,Create if it doesn't exist.
      */
@@ -95,6 +105,10 @@ public final class H2Support {
         removeStream(ctx, REQUEST_STREAM_KEY);
     }
 
+    private static <T extends Http2MessageStream> T removeStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey) {
+        return ctx.channel().attr(streamAttributeKey).getAndSet(null);
+    }
+
     /**
      * Removes http2 response stream from channel.
      */
@@ -106,18 +120,15 @@ public final class H2Support {
         closeStream(ctx, REQUEST_STREAM_KEY);
     }
 
-    public static void releaseResponseStream(ChannelHandlerContext ctx) {
-        closeStream(ctx, RESPONSE_STREAM_KEY);
+    private static <T extends Http2MessageStream> void closeStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey) {
+        T stream = removeStream(ctx, streamAttributeKey);
+        if (stream != null) {
+            stream.close();
+        }
     }
 
-    /**
-     * Converts http2 headers and data to http2 stream frames.
-     */
-    public static Http2StreamFrame[] toHttp2StreamFrames(Http2Headers headers, ByteBuf data) {
-        boolean headersEndStream = !data.isReadable();
-        Http2StreamFrame headersFrame = new DefaultHttp2HeadersFrame(headers, headersEndStream);
-        Http2StreamFrame dataFrame = headersEndStream ? null : new DefaultHttp2DataFrame(data, true);
-        return headersEndStream ? new Http2StreamFrame[]{headersFrame} : new Http2StreamFrame[]{headersFrame, dataFrame};
+    public static void releaseResponseStream(ChannelHandlerContext ctx) {
+        closeStream(ctx, RESPONSE_STREAM_KEY);
     }
 
     /**
@@ -136,6 +147,16 @@ public final class H2Support {
         }
         // wrapper http2 body
         return toHttp2StreamFrames(http2Headers, NettySupport.toByteBuf(request.outputStream()));
+    }
+
+    /**
+     * Converts http2 headers and data to http2 stream frames.
+     */
+    public static Http2StreamFrame[] toHttp2StreamFrames(Http2Headers headers, ByteBuf data) {
+        boolean headersEndStream = !data.isReadable();
+        Http2StreamFrame headersFrame = new DefaultHttp2HeadersFrame(headers, headersEndStream);
+        Http2StreamFrame dataFrame = headersEndStream ? null : new DefaultHttp2DataFrame(data, true);
+        return headersEndStream ? new Http2StreamFrame[]{headersFrame} : new Http2StreamFrame[]{headersFrame, dataFrame};
     }
 
     /**
@@ -195,27 +216,6 @@ public final class H2Support {
         settings.maxHeaderListSize(maxHeaderListSize);
         settings.headerTableSize(headerTableSize);
         return settings;
-    }
-
-    private static <T extends Http2MessageStream> T getOrCreateStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey, Supplier<T> creator) {
-        Attribute<T> streamAttribute = ctx.channel().attr(streamAttributeKey);
-        T nettyHttp2Stream = streamAttribute.get();
-        if (nettyHttp2Stream == null) {
-            nettyHttp2Stream = creator.get();
-            streamAttribute.set(nettyHttp2Stream);
-        }
-        return nettyHttp2Stream;
-    }
-
-    private static <T extends Http2MessageStream> T removeStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey) {
-        return ctx.channel().attr(streamAttributeKey).getAndSet(null);
-    }
-
-    private static <T extends Http2MessageStream> void closeStream(ChannelHandlerContext ctx, AttributeKey<T> streamAttributeKey) {
-        T stream = removeStream(ctx, streamAttributeKey);
-        if (stream != null) {
-            stream.close();
-        }
     }
 
 }

@@ -33,14 +33,14 @@ public class ProxyConfig implements NativeConfig<List<Map<String, Object>>> {
     public boolean hasResource() {
         return CollectionUtil.isNotEmpty(items);
     }
+
     /**
      * Represents a proxy configuration item in proxy-config.
      */
     public static class Item implements NativeConfig.Item {
 
-        private ConditionItem condition;
-
         private final List<String> interfaces = new ArrayList<>();
+        private ConditionItem condition;
 
         public Item condition(ConditionItem condition) {
             this.condition = condition;

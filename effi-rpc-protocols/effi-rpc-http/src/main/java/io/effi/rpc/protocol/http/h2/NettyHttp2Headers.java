@@ -38,6 +38,10 @@ public class NettyHttp2Headers implements HttpHeaders {
         }
     }
 
+    public Http2Headers headers() {
+        return headers;
+    }
+
     @Override
     public CharSequence get(CharSequence name) {
         return headers.get(name);
@@ -106,9 +110,5 @@ public class NettyHttp2Headers implements HttpHeaders {
     @Override
     public Iterator<Map.Entry<CharSequence, CharSequence>> iterator() {
         return headers.iterator();
-    }
-
-    public Http2Headers headers() {
-        return headers;
     }
 }

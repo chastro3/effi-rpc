@@ -92,36 +92,6 @@ class PeerMetricsTest {
         servantMetrics.recordRequest(10L, false);
     }
 
-    @Test
-    void transportTreatsMissingOrUnregisteredMetricsAsUnmeasured() {
-        Peer missing = peer(Peer.class, null, 1_000L);
-        assertTrue(TransportSupport.inIOSerialization(missing));
-        assertTrue(TransportSupport.inIODeserialization(missing));
-
-        Peer unregistered = peer(Peer.class, new CallerMetrics("test"), 1_000L);
-        assertTrue(TransportSupport.inIOSerialization(unregistered));
-        assertTrue(TransportSupport.inIODeserialization(unregistered));
-    }
-
-    @Test
-    void transportComparesRecordedAverageWithThreshold() {
-        DefaultMetrics registry = new DefaultMetrics(ScopedPlatform.defaultInstance());
-        CallerMetrics metrics = new CallerMetrics("test");
-        registry.register(metrics);
-
-        metrics.recordSerialization(200L);
-        metrics.recordDeserialization(200L);
-        Peer fast = peer(Peer.class, metrics, 1_000L);
-        assertTrue(TransportSupport.inIOSerialization(fast));
-        assertTrue(TransportSupport.inIODeserialization(fast));
-
-        metrics.recordSerialization(5_000L);
-        metrics.recordDeserialization(5_000L);
-        Peer slow = peer(Peer.class, metrics, 1_000L);
-        assertFalse(TransportSupport.inIOSerialization(slow));
-        assertFalse(TransportSupport.inIODeserialization(slow));
-    }
-
     @SuppressWarnings("unchecked")
     private static <P extends Peer> P peer(Class<P> type, PeerMetrics metrics, long threshold) {
         return (P) Proxy.newProxyInstance(
@@ -171,5 +141,35 @@ class PeerMetricsTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void transportTreatsMissingOrUnregisteredMetricsAsUnmeasured() {
+        Peer missing = peer(Peer.class, null, 1_000L);
+        assertTrue(TransportSupport.inIOSerialization(missing));
+        assertTrue(TransportSupport.inIODeserialization(missing));
+
+        Peer unregistered = peer(Peer.class, new CallerMetrics("test"), 1_000L);
+        assertTrue(TransportSupport.inIOSerialization(unregistered));
+        assertTrue(TransportSupport.inIODeserialization(unregistered));
+    }
+
+    @Test
+    void transportComparesRecordedAverageWithThreshold() {
+        DefaultMetrics registry = new DefaultMetrics(ScopedPlatform.defaultInstance());
+        CallerMetrics metrics = new CallerMetrics("test");
+        registry.register(metrics);
+
+        metrics.recordSerialization(200L);
+        metrics.recordDeserialization(200L);
+        Peer fast = peer(Peer.class, metrics, 1_000L);
+        assertTrue(TransportSupport.inIOSerialization(fast));
+        assertTrue(TransportSupport.inIODeserialization(fast));
+
+        metrics.recordSerialization(5_000L);
+        metrics.recordDeserialization(5_000L);
+        Peer slow = peer(Peer.class, metrics, 1_000L);
+        assertFalse(TransportSupport.inIOSerialization(slow));
+        assertFalse(TransportSupport.inIODeserialization(slow));
     }
 }

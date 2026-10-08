@@ -33,35 +33,6 @@ class ChannelCallBindingsTest {
         assertEquals(0, bindings.size());
     }
 
-    @Test
-    void terminalFutureAutomaticallyUnbindsChannel() {
-        CallFutureRegistry futures = new CallFutureRegistry();
-        ChannelCallBindings bindings = new ChannelCallBindings(futures);
-        Promise<String> future = new Promise<>();
-        long callId = futures.register(future);
-        Channel channel = channel();
-        bindings.bind(callId, channel);
-
-        future.success("ok");
-
-        assertEquals(0, bindings.size());
-    }
-
-    @Test
-    void closeCancelsBoundCalls() throws Exception {
-        CallFutureRegistry futures = new CallFutureRegistry();
-        ChannelCallBindings bindings = new ChannelCallBindings(futures);
-        Promise<String> future = new Promise<>();
-        long callId = futures.register(future);
-        bindings.bind(callId, channel());
-
-        bindings.close();
-
-        assertEquals(TransportErrorCodes.CALL_BINDINGS_CLOSED.code(), future.await().cause().errorCode().code());
-        assertNull(futures.lookup(callId));
-        assertEquals(0, bindings.size());
-    }
-
     private static Channel channel() {
         return (Channel) Proxy.newProxyInstance(
                 Channel.class.getClassLoader(),
@@ -104,5 +75,34 @@ class ChannelCallBindingsTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void terminalFutureAutomaticallyUnbindsChannel() {
+        CallFutureRegistry futures = new CallFutureRegistry();
+        ChannelCallBindings bindings = new ChannelCallBindings(futures);
+        Promise<String> future = new Promise<>();
+        long callId = futures.register(future);
+        Channel channel = channel();
+        bindings.bind(callId, channel);
+
+        future.success("ok");
+
+        assertEquals(0, bindings.size());
+    }
+
+    @Test
+    void closeCancelsBoundCalls() throws Exception {
+        CallFutureRegistry futures = new CallFutureRegistry();
+        ChannelCallBindings bindings = new ChannelCallBindings(futures);
+        Promise<String> future = new Promise<>();
+        long callId = futures.register(future);
+        bindings.bind(callId, channel());
+
+        bindings.close();
+
+        assertEquals(TransportErrorCodes.CALL_BINDINGS_CLOSED.code(), future.await().cause().errorCode().code());
+        assertNull(futures.lookup(callId));
+        assertEquals(0, bindings.size());
     }
 }

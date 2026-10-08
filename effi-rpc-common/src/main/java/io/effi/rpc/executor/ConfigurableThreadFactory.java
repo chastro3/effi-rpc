@@ -12,16 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConfigurableThreadFactory implements ThreadFactory {
 
     private static final Thread.UncaughtExceptionHandler DEFAULT_EXCEPTION_HANDLER = new DefaultUncaughtExceptionHandler();
-
-    private String namePrefix;
-
-    private Boolean daemon;
-
-    private Integer priority;
-
-    private Thread.UncaughtExceptionHandler exceptionHandler;
-
     private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private String namePrefix;
+    private Boolean daemon;
+    private Integer priority;
+    private Thread.UncaughtExceptionHandler exceptionHandler;
 
     @Override
     public Thread newThread(Runnable task) {

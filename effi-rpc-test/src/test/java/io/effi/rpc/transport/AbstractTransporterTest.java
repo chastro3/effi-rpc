@@ -47,22 +47,6 @@ class AbstractTransporterTest {
         });
     }
 
-    private static final class CountingTransporter extends AbstractTransporter {
-
-        private final AtomicInteger created = new AtomicInteger();
-
-        @Override
-        protected Server createServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        protected Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
-            created.incrementAndGet();
-            return proxy(Client.class, (proxy, method, args) -> defaultValue(method.getReturnType()));
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private static <T> T proxy(Class<T> type, InvocationHandler handler) {
         return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, handler);
@@ -94,5 +78,21 @@ class AbstractTransporterTest {
             return 0F;
         }
         return 0D;
+    }
+
+    private static final class CountingTransporter extends AbstractTransporter {
+
+        private final AtomicInteger created = new AtomicInteger();
+
+        @Override
+        protected Server createServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
+            created.incrementAndGet();
+            return proxy(Client.class, (proxy, method, args) -> defaultValue(method.getReturnType()));
+        }
     }
 }

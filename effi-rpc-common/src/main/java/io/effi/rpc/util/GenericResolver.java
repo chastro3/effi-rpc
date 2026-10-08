@@ -15,8 +15,8 @@ public final class GenericResolver {
      * Resolves a generic type argument from the target class hierarchy.
      *
      * @param targetClass concrete target class
-     * @param baseClass generic base class or interface
-     * @param index type argument index
+     * @param baseClass   generic base class or interface
+     * @param index       type argument index
      * @return resolved generic type
      * @throws IllegalArgumentException if the base type cannot be resolved
      */

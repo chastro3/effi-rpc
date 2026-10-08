@@ -1,13 +1,13 @@
 package io.effi.rpc.transport.endpoint;
 
-import io.effi.rpc.concurrent.Future;
-import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.EndpointConfig;
+import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Promise;
 import io.effi.rpc.context.Peer;
+import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.TransportSupport;
-import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.message.EncodableOutputMessage;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
@@ -56,6 +56,8 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
         return endpoint;
     }
 
+    protected abstract Future<Void> doSend(Object message);
+
     @Override
     public TransportProtocol protocol() {
         return protocol;
@@ -65,6 +67,4 @@ public abstract class AbstractChannel extends AbstractAttributes implements Chan
     public ScopedPlatform platform() {
         return endpoint.platform();
     }
-
-    protected abstract Future<Void> doSend(Object message);
 }

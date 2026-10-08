@@ -49,13 +49,29 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
     }
 
     @Override
-    public int methodIndex() {
-        return methodIndex;
+    public ServantGroup<?> group() {
+        return servantMethod.group();
     }
 
     @Override
     public Method method() {
         return servantMethod.method();
+    }
+
+    @Override
+    public int methodIndex() {
+        return methodIndex;
+    }
+
+    @Override
+    public Object invoke(Object... args) throws EffiRpcException {
+        try {
+            return group().invoke(this, args);
+        } catch (Exception e) {
+            EffiRpcException exception = InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(e, toString());
+            logger.error(exception.getMessage(), e);
+            throw exception;
+        }
     }
 
     @Override
@@ -68,24 +84,8 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
         return label;
     }
 
-    @Override
-    public ServantGroup<?> group() {
-        return servantMethod.group();
-    }
-
     public ServantMethod<?> methodMapper() {
         return servantMethod;
-    }
-
-    @Override
-    public Object invoke(Object... args) throws EffiRpcException {
-        try {
-            return group().invoke(this, args);
-        } catch (Exception e) {
-            EffiRpcException exception = InteractionErrorCodes.SERVANT_INVOCATION_FAILED.fail(e, toString());
-            logger.error(exception.getMessage(), e);
-            throw exception;
-        }
     }
 
     /**
@@ -111,13 +111,13 @@ public abstract class AbstractServant extends AbstractPeer<AbstractServant.Build
         }
 
         @Override
-        protected PeerDescriptor.Kind kind() {
-            return PeerDescriptor.Kind.SERVANT;
+        protected ServantGroup<?> group() {
+            return group;
         }
 
         @Override
-        protected ServantGroup<?> group() {
-            return group;
+        protected PeerDescriptor.Kind kind() {
+            return PeerDescriptor.Kind.SERVANT;
         }
 
         public String label() {

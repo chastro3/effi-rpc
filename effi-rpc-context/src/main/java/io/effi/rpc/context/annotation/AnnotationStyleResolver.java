@@ -1,8 +1,8 @@
 package io.effi.rpc.context.annotation;
 
 import io.effi.rpc.annotation.component.Extensible;
-import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.option.HierarchicalOptions;
 
 import java.lang.reflect.Method;
 
@@ -17,7 +17,7 @@ public interface AnnotationStyleResolver {
     /**
      * Resolves annotations on the class.
      *
-     * @param type the class to be parsed
+     * @param type    the class to be parsed
      * @param options target options
      * @return updated options
      */
@@ -26,7 +26,7 @@ public interface AnnotationStyleResolver {
     /**
      * Resolves annotations on the method.
      *
-     * @param method the method to be parsed
+     * @param method  the method to be parsed
      * @param options target options
      * @return updated options
      */

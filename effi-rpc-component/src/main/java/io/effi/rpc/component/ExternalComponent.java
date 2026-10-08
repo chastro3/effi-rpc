@@ -1,10 +1,10 @@
 package io.effi.rpc.component;
 
 import io.effi.rpc.annotation.component.ScopedComponent;
+import io.effi.rpc.trait.Cleanable;
+import io.effi.rpc.trait.Identifiable;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.GenericKey;
-import io.effi.rpc.trait.Identifiable;
-import io.effi.rpc.trait.Cleanable;
 
 /**
  * Wraps external component instances with metadata and lifecycle management.

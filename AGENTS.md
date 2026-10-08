@@ -1,4 +1,5 @@
 <!-- CODEGRAPH_START -->
+
 ## CodeGraph
 
 This repository is indexed by CodeGraph (`.codegraph/` exists at the repo root).
@@ -6,8 +7,8 @@ Use CodeGraph before grep/find or reading files to understand or locate code:
 
 - MCP tools, when available: `codegraph_explore` or `codegraph_node`.
 - Shell fallback:
-  - `codegraph explore "<symbol names or question>"`
-  - `codegraph node <symbol-or-file>`
+    - `codegraph explore "<symbol names or question>"`
+    - `codegraph node <symbol-or-file>`
 
 Keep the index current with `codegraph sync .` after substantial source changes.
 

@@ -64,6 +64,35 @@ public final class ScopedPlatform extends ScopedContext {
         return (ScopedPlatform) super.name(name);
     }
 
+    @Override
+    protected String changeName(String oldName, String newName) {
+        if (!Objects.equals(oldName, newName)) {
+            if (StringUtil.isNotBlank(oldName))
+                PLATFORMS.remove(oldName);
+            PLATFORMS.put(newName, this);
+        }
+        return newName;
+    }
+
+    @Override
+    protected void doStart() {
+        applications().forEach(ScopedApplication::start);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+    }
+
+    /**
+     * Returns all applications registered in this platform.
+     */
+    public Collection<ScopedApplication> applications() {
+        return components(ScopedApplication.class);
+    }
+
+    @Override
+    protected void doClose() {
+        applications().forEach(ScopedApplication::close);
+        PLATFORMS.remove(name, this);
+    }
+
     /**
      * Returns the default application.
      */
@@ -91,7 +120,7 @@ public final class ScopedPlatform extends ScopedContext {
     /**
      * Creates an application with the supplied name and component repository.
      *
-     * @param name application name
+     * @param name       application name
      * @param repository application component repository
      * @return created application
      */
@@ -109,35 +138,6 @@ public final class ScopedPlatform extends ScopedContext {
     public ScopedApplication lookupApplication(String name) {
         if (StringUtil.isBlank(name)) return null;
         return namedComponent(ScopedApplication.class, name);
-    }
-
-    /**
-     * Returns all applications registered in this platform.
-     */
-    public Collection<ScopedApplication> applications() {
-        return components(ScopedApplication.class);
-    }
-
-    @Override
-    protected String changeName(String oldName, String newName) {
-        if (!Objects.equals(oldName, newName)) {
-            if (StringUtil.isNotBlank(oldName))
-                PLATFORMS.remove(oldName);
-            PLATFORMS.put(newName, this);
-        }
-        return newName;
-    }
-
-    @Override
-    protected void doStart() {
-        applications().forEach(ScopedApplication::start);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
-    }
-
-    @Override
-    protected void doClose() {
-        applications().forEach(ScopedApplication::close);
-        PLATFORMS.remove(name, this);
     }
 
     /**
@@ -172,7 +172,7 @@ public final class ScopedPlatform extends ScopedContext {
         protected ScopedPlatform platform;
 
         public Holder(ScopedPlatform platform) {
-           this.platform = AssertUtil.notNull(platform, "platform");
+            this.platform = AssertUtil.notNull(platform, "platform");
         }
 
         @Override

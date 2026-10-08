@@ -1,9 +1,9 @@
 package io.effi.rpc.core.call.failure;
 
-import io.effi.rpc.config.SmartURL;
-import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.metrics.DefaultMetrics;
+import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
@@ -36,29 +36,14 @@ class FailRetryTest {
         assertSame(failure, thrown);
     }
 
-    @Test
-    void retriesMarkedTransientFailure() throws EffiRpcException {
-        DefaultMetrics registry = metrics();
-        CallerMetrics state = new CallerMetrics("test");
-        registry.register(state);
-        EffiRpcException failure = PredefinedErrorCode.SERVICE_UNAVAILABLE
-                .fail("overloaded")
-                .withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
-
-        new FailRetry().handle(context(state), 1, failure);
-
-        MetricKey retryMetric = CallerMetrics.RETRY_COUNT.withTag("protocol", "test");
-        assertEquals(1L, registry.counter(retryMetric).count());
-    }
-
-    private static DefaultMetrics metrics() {
-        return new DefaultMetrics(ScopedPlatform.defaultInstance());
-    }
-
     private static CallContext<Request, Caller<?>> context(DefaultMetrics registry) {
         CallerMetrics peerMetrics = new CallerMetrics("test");
         registry.register(peerMetrics);
         return context(peerMetrics);
+    }
+
+    private static DefaultMetrics metrics() {
+        return new DefaultMetrics(ScopedPlatform.defaultInstance());
     }
 
     private static CallContext<Request, Caller<?>> context(CallerMetrics metrics) {
@@ -120,5 +105,20 @@ class FailRetryTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void retriesMarkedTransientFailure() throws EffiRpcException {
+        DefaultMetrics registry = metrics();
+        CallerMetrics state = new CallerMetrics("test");
+        registry.register(state);
+        EffiRpcException failure = PredefinedErrorCode.SERVICE_UNAVAILABLE
+                .fail("overloaded")
+                .withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));
+
+        new FailRetry().handle(context(state), 1, failure);
+
+        MetricKey retryMetric = CallerMetrics.RETRY_COUNT.withTag("protocol", "test");
+        assertEquals(1L, registry.counter(retryMetric).count());
     }
 }

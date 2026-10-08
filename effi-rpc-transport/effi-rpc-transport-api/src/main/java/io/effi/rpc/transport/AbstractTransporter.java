@@ -43,6 +43,10 @@ public abstract class AbstractTransporter implements Transporter {
         return Collections.unmodifiableCollection(clients.values());
     }
 
+    protected abstract Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform);
+
+    protected abstract Server createServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform);
+
     @Override
     public void clear() {
         clients().forEach(Client::close);
@@ -50,10 +54,6 @@ public abstract class AbstractTransporter implements Transporter {
         clients.clear();
         servers.clear();
     }
-
-    protected abstract Server createServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform);
-
-    protected abstract Client createClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform);
 
     protected record EndpointKey(String address, String configId) {
     }

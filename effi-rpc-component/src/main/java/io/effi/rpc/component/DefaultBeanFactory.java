@@ -137,6 +137,10 @@ public class DefaultBeanFactory implements BeanFactory {
         namedBeans.clear();
     }
 
+    private void releaseAll(Map<?, ?> map) {
+        map.values().forEach(ObjectUtil::release);
+    }
+
     @Override
     public ScopedContext owner() {
         return owner;
@@ -145,10 +149,6 @@ public class DefaultBeanFactory implements BeanFactory {
     @Override
     public void withOwner(ScopedContext owner) {
         this.owner = owner;
-    }
-
-    private void releaseAll(Map<?, ?> map) {
-        map.values().forEach(ObjectUtil::release);
     }
 }
 

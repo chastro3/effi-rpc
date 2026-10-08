@@ -56,18 +56,6 @@ public final class Promise<T> implements Future<T> {
     }
 
     /**
-     * Returns an already failed promise.
-     *
-     * @param cause failure cause
-     * @return failed promise
-     */
-    public static <T> Promise<T> failed(EffiRpcException cause) {
-        Promise<T> promise = new Promise<>();
-        promise.complete(Result.failure(cause));
-        return promise;
-    }
-
-    /**
      * Completes this promise with a terminal result.
      * <p>
      * The first completion attempt wins; later attempts return {@code false}.
@@ -86,6 +74,48 @@ public final class Promise<T> implements Future<T> {
         }
         publish(terminalResult);
         return true;
+    }
+
+    private void publish(Result<T> terminalResult) {
+        completion.complete(terminalResult);
+        Callback<T> callback;
+        while ((callback = callbacks.poll()) != null) {
+            dispatch(callback, terminalResult);
+        }
+    }
+
+    private void dispatch(Callback<T> callback, Result<T> terminalResult) {
+        Executor executor = callback.executor();
+        if (executor == null) {
+            invoke(callback.callback(), terminalResult);
+            return;
+        }
+        try {
+            executor.execute(() -> invoke(callback.callback(), terminalResult));
+        } catch (RejectedExecutionException e) {
+            logger.warn("Callback executor rejected completion; running inline", e);
+            invoke(callback.callback(), terminalResult);
+        }
+    }
+
+    private void invoke(Consumer<Result<T>> callback, Result<T> terminalResult) {
+        try {
+            callback.accept(terminalResult);
+        } catch (Throwable e) {
+            logger.error("Future callback failed.", e);
+        }
+    }
+
+    /**
+     * Returns an already failed promise.
+     *
+     * @param cause failure cause
+     * @return failed promise
+     */
+    public static <T> Promise<T> failed(EffiRpcException cause) {
+        Promise<T> promise = new Promise<>();
+        promise.complete(Result.failure(cause));
+        return promise;
     }
 
     /**
@@ -134,14 +164,17 @@ public final class Promise<T> implements Future<T> {
         return this;
     }
 
-    @Override
-    public boolean completed() {
-        return result.get() != null;
+    private void runCancellationHandler(Consumer<EffiRpcException> handler, EffiRpcException reason) {
+        try {
+            handler.accept(reason);
+        } catch (Throwable e) {
+            logger.error("Future cancellation handler failed.", e);
+        }
     }
 
     @Override
-    public Promise<T> onComplete(Consumer<Result<T>> callback) {
-        return onCompleteAsync(null, callback);
+    public boolean completed() {
+        return result.get() != null;
     }
 
     @Override
@@ -223,42 +256,9 @@ public final class Promise<T> implements Future<T> {
         return true;
     }
 
-    private void publish(Result<T> terminalResult) {
-        completion.complete(terminalResult);
-        Callback<T> callback;
-        while ((callback = callbacks.poll()) != null) {
-            dispatch(callback, terminalResult);
-        }
-    }
-
-    private void dispatch(Callback<T> callback, Result<T> terminalResult) {
-        Executor executor = callback.executor();
-        if (executor == null) {
-            invoke(callback.callback(), terminalResult);
-            return;
-        }
-        try {
-            executor.execute(() -> invoke(callback.callback(), terminalResult));
-        } catch (RejectedExecutionException e) {
-            logger.warn("Callback executor rejected completion; running inline", e);
-            invoke(callback.callback(), terminalResult);
-        }
-    }
-
-    private void invoke(Consumer<Result<T>> callback, Result<T> terminalResult) {
-        try {
-            callback.accept(terminalResult);
-        } catch (Throwable e) {
-            logger.error("Future callback failed.", e);
-        }
-    }
-
-    private void runCancellationHandler(Consumer<EffiRpcException> handler, EffiRpcException reason) {
-        try {
-            handler.accept(reason);
-        } catch (Throwable e) {
-            logger.error("Future cancellation handler failed.", e);
-        }
+    @Override
+    public Promise<T> onComplete(Consumer<Result<T>> callback) {
+        return onCompleteAsync(null, callback);
     }
 
     private record Callback<T>(Executor executor, Consumer<Result<T>> callback) {

@@ -56,11 +56,6 @@ public class DefaultLifecycleConfiguration {
             registerDefaultEvents(eventBus);
             eventBus.start();
         }
-        @Override
-        public void onClosed(ScopedPlatform platform) {
-            RegistryLocator.evict(platform);
-        }
-
 
         private void connectMetrics(ScopedPlatform platform, MpscEventBus eventBus, Metrics metrics, Scheduler scheduler) {
             metrics.register(eventBus.metrics());
@@ -75,6 +70,11 @@ public class DefaultLifecycleConfiguration {
 
         private void registerDefaultEvents(EventBus eventBus) {
             eventBus.register(IdleEvent.class, new IdleEventHandler());
+        }
+
+        @Override
+        public void onClosed(ScopedPlatform platform) {
+            RegistryLocator.evict(platform);
         }
     }
 

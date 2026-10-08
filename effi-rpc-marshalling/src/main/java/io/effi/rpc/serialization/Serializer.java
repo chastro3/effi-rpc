@@ -27,17 +27,6 @@ public interface Serializer {
     void serialize(Object obj, OutputStream out) throws IOException;
 
     /**
-     * Deserializes an object from the input stream with the given type.
-     *
-     * @param in   the input stream to read from
-     * @param type the target type to deserialize to
-     * @param <T>  the deserialized type
-     * @return the deserialized object
-     * @throws IOException if deserialization fails
-     */
-    <T> T deserialize(InputStream in, Type type) throws IOException;
-
-    /**
      * Deserializes ordered values from one payload.
      * <p>
      * Self-describing serializers may use the default implementation. Text or
@@ -52,6 +41,17 @@ public interface Serializer {
     default Object[] deserialize(InputStream in, Type[] types) throws IOException {
         return deserialize(in, Object[].class);
     }
+
+    /**
+     * Deserializes an object from the input stream with the given type.
+     *
+     * @param in   the input stream to read from
+     * @param type the target type to deserialize to
+     * @param <T>  the deserialized type
+     * @return the deserialized object
+     * @throws IOException if deserialization fails
+     */
+    <T> T deserialize(InputStream in, Type type) throws IOException;
 }
 
 

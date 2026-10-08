@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -18,13 +18,6 @@ import java.util.function.Function;
 public final class Futures {
 
     private Futures() {
-    }
-
-    /**
-     * Returns an already completed void future.
-     */
-    public static Future<Void> completedVoid() {
-        return Promise.completed(null);
     }
 
     /**
@@ -50,7 +43,7 @@ public final class Futures {
     /**
      * Applies a deadline to a source future.
      *
-     * @param source source future
+     * @param source   source future
      * @param deadline completion deadline
      * @return source future when the deadline is disabled; otherwise a deadline-aware future
      */
@@ -92,6 +85,13 @@ public final class Futures {
             });
         }
         return result;
+    }
+
+    /**
+     * Returns an already completed void future.
+     */
+    public static Future<Void> completedVoid() {
+        return Promise.completed(null);
     }
 
     /**

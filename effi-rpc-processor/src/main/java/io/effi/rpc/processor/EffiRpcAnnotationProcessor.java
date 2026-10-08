@@ -46,6 +46,21 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
     private Set<String> supportedAnnotation;
 
     @Override
+    public Set<String> getSupportedOptions() {
+        return Set.of(GROUP_ID, ARTIFACT_ID, VERSION, NATIVE_BUILD);
+    }
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        return supportedAnnotation;
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
+    }
+
+    @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         annotationHandlers = List.of(
@@ -77,21 +92,6 @@ public class EffiRpcAnnotationProcessor extends AbstractProcessor {
         }
 
         return false;
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
-    }
-
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        return supportedAnnotation;
-    }
-
-    @Override
-    public Set<String> getSupportedOptions() {
-        return Set.of(GROUP_ID, ARTIFACT_ID, VERSION, NATIVE_BUILD);
     }
 
     private String stackTraceAsString(Throwable e) {

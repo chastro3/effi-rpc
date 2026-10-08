@@ -36,6 +36,15 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        try {
+            super.channelInactive(ctx);
+        } finally {
+            H2Support.releaseRequestStream(ctx);
+        }
+    }
+
+    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Http2RequestStream requestStream = null;
         if (msg instanceof Http2HeadersFrame headersFrame) {
@@ -57,15 +66,6 @@ public final class Http2ServerHandler extends ChannelDuplexHandler {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        try {
-            super.channelInactive(ctx);
-        } finally {
-            H2Support.releaseRequestStream(ctx);
-        }
     }
 
     @Override

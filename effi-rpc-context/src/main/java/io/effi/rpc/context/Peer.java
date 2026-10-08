@@ -2,10 +2,10 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.tools.ThreadPool;
-import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.config.QueryPath;
-import io.effi.rpc.util.Attributes;
+import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.trait.Identifiable;
+import io.effi.rpc.util.Attributes;
 import io.effi.rpc.util.TypeCapture;
 
 /**
@@ -23,7 +23,7 @@ public interface Peer extends Attributes, Identifiable, Protocol.Supplier, Hiera
      * Builds the peer identity from its protocol and query path.
      *
      * @param protocol protocol name
-     * @param path query path
+     * @param path     query path
      * @return peer identity
      */
     static String buildId(String protocol, String path) {

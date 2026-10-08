@@ -34,33 +34,6 @@ class DefaultRouterTest {
         assertEquals(List.of(blue), result);
     }
 
-    @Test
-    void passesThroughWhenNoUrlRuleMatches() {
-        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
-        ServiceInstance green = instance("green-instance", Map.of("zone", "green"));
-        RouterConfig config = RouterConfig.builder()
-                .rule(".*canary", Map.of("zone", "blue"))
-                .build();
-        CallContext<Request, Caller<?>> context = context(config);
-
-        List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue, green));
-
-        assertEquals(List.of(blue, green), result);
-    }
-
-    @Test
-    void returnsEmptyWhenMetadataMatchesNoInstance() {
-        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
-        RouterConfig config = RouterConfig.builder()
-                .rule(".*green", Map.of("zone", "red"))
-                .build();
-        CallContext<Request, Caller<?>> context = context(config);
-
-        List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue));
-
-        assertEquals(List.of(), result);
-    }
-
     private static ServiceInstance instance(String id, Map<String, String> metadata) {
         return DefaultServiceInstance.builder()
                 .id(id)
@@ -125,5 +98,32 @@ class DefaultRouterTest {
             return 0F;
         }
         return 0D;
+    }
+
+    @Test
+    void passesThroughWhenNoUrlRuleMatches() {
+        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
+        ServiceInstance green = instance("green-instance", Map.of("zone", "green"));
+        RouterConfig config = RouterConfig.builder()
+                .rule(".*canary", Map.of("zone", "blue"))
+                .build();
+        CallContext<Request, Caller<?>> context = context(config);
+
+        List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue, green));
+
+        assertEquals(List.of(blue, green), result);
+    }
+
+    @Test
+    void returnsEmptyWhenMetadataMatchesNoInstance() {
+        ServiceInstance blue = instance("blue-instance", Map.of("zone", "blue"));
+        RouterConfig config = RouterConfig.builder()
+                .rule(".*green", Map.of("zone", "red"))
+                .build();
+        CallContext<Request, Caller<?>> context = context(config);
+
+        List<ServiceInstance> result = new DefaultRouter().route(context, List.of(blue));
+
+        assertEquals(List.of(), result);
     }
 }

@@ -45,18 +45,13 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5L;
-
-    protected MultiThreadIoEventLoopGroup bossGroup;
-
-    protected MultiThreadIoEventLoopGroup workerGroup;
-
     protected final LazySingleton<Promise<NettyChannel>> serverChannelFuture = LazySingleton.from(
             () -> NettyChannel.wrapWhenActive(bootstrap.bind(), this)
     );
-
-    protected Map<ChannelId, Channel> activeChannels = new ConcurrentHashMap<>();
-
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    protected MultiThreadIoEventLoopGroup bossGroup;
+    protected MultiThreadIoEventLoopGroup workerGroup;
+    protected Map<ChannelId, Channel> activeChannels = new ConcurrentHashMap<>();
 
     public NettyServer(ServerConfig config, InetSocketAddress address, ScopedPlatform platform) {
         super(config, address, platform, new ServerBootstrap());
@@ -68,8 +63,23 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     }
 
     @Override
-    public boolean active() {
-        return isActive(serverChannelFuture);
+    public InetSocketAddress localAddress() {
+        return address;
+    }
+
+    @Override
+    public Collection<Channel> channels() {
+        return list();
+    }
+
+    @Override
+    public Channel lookupChannel(InetSocketAddress remoteAddress) {
+        for (Channel channel : activeChannels.values()) {
+            if (NetUtil.isSameAddress(channel.remoteAddress(), remoteAddress)) {
+                return channel;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -106,28 +116,35 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     }
 
     @Override
-    public Channel lookupChannel(InetSocketAddress remoteAddress) {
-        for (Channel channel : activeChannels.values()) {
-            if (NetUtil.isSameAddress(channel.remoteAddress(), remoteAddress)) {
-                return channel;
-            }
+    public boolean active() {
+        return isActive(serverChannelFuture);
+    }
+
+    private Future<?> shutdownGracefully(EventLoopGroup group) {
+        if (group == null) {
+            return null;
         }
-        return null;
+        return group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private void awaitShutdown(Future<?> shutdown, String name) {
+        if (shutdown == null) {
+            return;
+        }
+        try {
+            if (!shutdown.await(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                logger.warn("Timed out waiting for {} event loop to stop", name);
+                shutdown.cancel(false);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            shutdown.cancel(false);
+        }
     }
 
     @Override
     public ServerConfig config() {
         return (ServerConfig) config;
-    }
-
-    @Override
-    public InetSocketAddress localAddress() {
-        return address;
-    }
-
-    @Override
-    public Collection<Channel> channels() {
-        return list();
     }
 
     @Override
@@ -188,28 +205,6 @@ public class NettyServer extends NettyEndpoint<ServerBootstrap> implements Serve
     @Override
     protected void configureChannelHandler(ServerBootstrap bootstrap) {
         bootstrap.childHandler(NettySupport.newChannelInitializer(this::configureChannel));
-    }
-
-    private Future<?> shutdownGracefully(EventLoopGroup group) {
-        if (group == null) {
-            return null;
-        }
-        return group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private void awaitShutdown(Future<?> shutdown, String name) {
-        if (shutdown == null) {
-            return;
-        }
-        try {
-            if (!shutdown.await(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                logger.warn("Timed out waiting for {} event loop to stop", name);
-                shutdown.cancel(false);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            shutdown.cancel(false);
-        }
     }
 
     private ThreadFactory newThreadFactory(String name) {

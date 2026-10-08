@@ -1,11 +1,11 @@
 package io.effi.rpc.config;
 
+import io.effi.rpc.trait.FluentBuilder;
+import io.effi.rpc.trait.Replicable;
 import io.effi.rpc.util.AbstractAttributes;
 import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.util.CollectionUtil;
-import io.effi.rpc.trait.FluentBuilder;
 import io.effi.rpc.util.NetUtil;
-import io.effi.rpc.trait.Replicable;
 import io.effi.rpc.util.StringUtil;
 
 import java.net.InetSocketAddress;
@@ -22,14 +22,10 @@ import java.util.Map;
 public class SmartURL extends AbstractAttributes implements Replicable<SmartURL> {
 
     private final String scheme;
-
-    private String host;
-
-    private int port;
-
     private final QueryPath queryPath;
-
     private final Map<String, String> queryParams = new HashMap<>();
+    private String host;
+    private int port;
 
     SmartURL(String scheme, String host, int port, QueryPath queryPath, Map<String, String> queryParams) {
         this.scheme = AssertUtil.notBlank(scheme, "scheme");
@@ -37,6 +33,19 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
         this.host = host;
         this.port = port;
         addQueryParams(queryParams);
+    }
+
+    /**
+     * Adds or replaces query parameters.
+     *
+     * @param params query parameters
+     * @return this URL
+     */
+    public SmartURL addQueryParams(Map<String, String> params) {
+        if (CollectionUtil.isNotEmpty(params)) {
+            this.queryParams.putAll(params);
+        }
+        return this;
     }
 
     /**
@@ -98,25 +107,12 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
     /**
      * Adds or replaces a query parameter.
      *
-     * @param name parameter name
+     * @param name  parameter name
      * @param value parameter value
      * @return this URL
      */
     public SmartURL addQueryParam(String name, String value) {
         this.queryParams.put(name, value);
-        return this;
-    }
-
-    /**
-     * Adds or replaces query parameters.
-     *
-     * @param params query parameters
-     * @return this URL
-     */
-    public SmartURL addQueryParams(Map<String, String> params) {
-        if (CollectionUtil.isNotEmpty(params)) {
-            this.queryParams.putAll(params);
-        }
         return this;
     }
 
@@ -133,7 +129,7 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
     /**
      * Returns a query parameter value or the supplied default.
      *
-     * @param name parameter name
+     * @param name         parameter name
      * @param defaultValue fallback value
      * @return parameter value, or the default when absent
      */
@@ -188,13 +184,24 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
     }
 
     /**
-     * Returns the host and port.
+     * Returns the query parameters.
      */
-    public String address() {
-        if (StringUtil.isBlank(host)) {
-            return StringUtil.empty();
-        }
-        return host + ":" + port;
+    public Map<String, String> queryParams() {
+        return Collections.unmodifiableMap(queryParams);
+    }
+
+    /**
+     * Returns the origin and path.
+     */
+    public String baseUrl() {
+        return origin() + "/" + path();
+    }
+
+    /**
+     * Returns the scheme and authority.
+     */
+    public String origin() {
+        return scheme + "://" + address();
     }
 
     /**
@@ -207,48 +214,14 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
     }
 
     /**
-     * Returns the encoded query string.
+     * Returns the host and port.
      */
-    public String query() {
-        return URLUtil.toQueryParam(queryParams);
+    public String address() {
+        if (StringUtil.isBlank(host)) {
+            return StringUtil.empty();
+        }
+        return host + ":" + port;
     }
-
-    /**
-     * Returns the query parameters.
-     */
-    public Map<String, String> queryParams() {
-        return Collections.unmodifiableMap(queryParams);
-    }
-
-    /**
-     * Returns the path and encoded query string.
-     */
-    public String queryPath() {
-        String query = query();
-        return path() + (StringUtil.isBlank(query) ? "" : ("?" + query));
-    }
-
-    /**
-     * Returns the scheme and authority.
-     */
-    public String origin() {
-        return scheme + "://" + address();
-    }
-
-    /**
-     * Returns the origin and path.
-     */
-    public String baseUrl() {
-        return origin() + "/" + path();
-    }
-
-    /**
-     * Returns the origin, path, and query string.
-     */
-    public String fullPath() {
-        return origin() + "/" + queryPath();
-    }
-
 
     @Override
     public SmartURL replicate() {
@@ -264,6 +237,28 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
     @Override
     public String toString() {
         return fullPath();
+    }
+
+    /**
+     * Returns the origin, path, and query string.
+     */
+    public String fullPath() {
+        return origin() + "/" + queryPath();
+    }
+
+    /**
+     * Returns the path and encoded query string.
+     */
+    public String queryPath() {
+        String query = query();
+        return path() + (StringUtil.isBlank(query) ? "" : ("?" + query));
+    }
+
+    /**
+     * Returns the encoded query string.
+     */
+    public String query() {
+        return URLUtil.toQueryParam(queryParams);
     }
 
     /**
@@ -283,15 +278,11 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
      */
     public static class Builder implements FluentBuilder<SmartURL, Builder> {
 
-        private String scheme;
-
-        private String host;
-
-        private int port;
-
-        private QueryPath queryPath;
-
         private final Map<String, String> queryParams = new HashMap<>();
+        private String scheme;
+        private String host;
+        private int port;
+        private QueryPath queryPath;
 
         Builder() {
         }
@@ -304,28 +295,6 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
          */
         public Builder scheme(String scheme) {
             this.scheme = scheme;
-            return this;
-        }
-
-        /**
-         * Sets the URL host.
-         *
-         * @param host URL host
-         * @return this builder
-         */
-        public Builder host(String host) {
-            this.host = host;
-            return this;
-        }
-
-        /**
-         * Sets the URL port.
-         *
-         * @param port URL port
-         * @return this builder
-         */
-        public Builder port(int port) {
-            this.port = port;
             return this;
         }
 
@@ -350,6 +319,28 @@ public class SmartURL extends AbstractAttributes implements Replicable<SmartURL>
                 host(address.getHostString());
                 port(address.getPort());
             }
+            return this;
+        }
+
+        /**
+         * Sets the URL host.
+         *
+         * @param host URL host
+         * @return this builder
+         */
+        public Builder host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        /**
+         * Sets the URL port.
+         *
+         * @param port URL port
+         * @return this builder
+         */
+        public Builder port(int port) {
+            this.port = port;
             return this;
         }
 

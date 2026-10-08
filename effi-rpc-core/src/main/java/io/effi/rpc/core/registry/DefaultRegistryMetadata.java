@@ -1,11 +1,11 @@
 package io.effi.rpc.core.registry;
 
 import com.sun.management.OperatingSystemMXBean;
-import io.effi.rpc.core.ApplicationServiceRegistrar;
-import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Servant;
+import io.effi.rpc.core.ApplicationServiceRegistrar;
+import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.transport.endpoint.ChannelTracker;
 
 import java.lang.management.ManagementFactory;
@@ -59,6 +59,10 @@ public class DefaultRegistryMetadata {
         connections = activeConnection.get();
     }
 
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
     /**
      * Converts a metadata map into a registry metadata snapshot.
      *
@@ -76,13 +80,6 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Returns the current CPU usage.
-     */
-    public double cpuUsage() {
-        return cpuUsage;
-    }
-
-    /**
      * Sets the CPU usage.
      *
      * @param cpuUsage CPU usage ratio
@@ -91,13 +88,6 @@ public class DefaultRegistryMetadata {
     public DefaultRegistryMetadata cpuUsage(double cpuUsage) {
         this.cpuUsage = cpuUsage;
         return this;
-    }
-
-    /**
-     * Returns the current memory usage ratio.
-     */
-    public double memoryUsage() {
-        return memoryUsage;
     }
 
     /**
@@ -112,13 +102,6 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Returns the current connection count.
-     */
-    public long connections() {
-        return connections;
-    }
-
-    /**
      * Sets the connection count.
      *
      * @param connections connection count
@@ -127,13 +110,6 @@ public class DefaultRegistryMetadata {
     public DefaultRegistryMetadata connections(long connections) {
         this.connections = connections;
         return this;
-    }
-
-    /**
-     * Returns the current servant count.
-     */
-    public int services() {
-        return services;
     }
 
     /**
@@ -148,13 +124,6 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Returns the current system load average.
-     */
-    public double loadAverage() {
-        return loadAverage;
-    }
-
-    /**
      * Sets the system load average.
      *
      * @param loadAverage system load average
@@ -163,6 +132,41 @@ public class DefaultRegistryMetadata {
     public DefaultRegistryMetadata loadAverage(double loadAverage) {
         this.loadAverage = loadAverage;
         return this;
+    }
+
+    /**
+     * Returns the current CPU usage.
+     */
+    public double cpuUsage() {
+        return cpuUsage;
+    }
+
+    /**
+     * Returns the current memory usage ratio.
+     */
+    public double memoryUsage() {
+        return memoryUsage;
+    }
+
+    /**
+     * Returns the current connection count.
+     */
+    public long connections() {
+        return connections;
+    }
+
+    /**
+     * Returns the current servant count.
+     */
+    public int services() {
+        return services;
+    }
+
+    /**
+     * Returns the current system load average.
+     */
+    public double loadAverage() {
+        return loadAverage;
     }
 
     /**
@@ -176,9 +180,5 @@ public class DefaultRegistryMetadata {
                 "services", String.valueOf(services),
                 "loadAverage", String.valueOf(loadAverage)
         );
-    }
-
-    private double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
     }
 }

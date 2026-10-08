@@ -46,6 +46,14 @@ public final class EventBusMetrics implements MetricsRegistrar {
         this.bus = bus;
     }
 
+    private static MetricKey publish(String result) {
+        return MetricKey.of("eventbus.publish.count").withTag("result", result);
+    }
+
+    private static MetricKey event(String result) {
+        return MetricKey.of("eventbus.event.count").withTag("result", result);
+    }
+
     @Override
     public void register(Metrics metrics) {
         this.published = metrics.counter(PUBLISHED);
@@ -84,13 +92,5 @@ public final class EventBusMetrics implements MetricsRegistrar {
 
     public void consumerFailed() {
         consumerFailed.increment();
-    }
-
-    private static MetricKey publish(String result) {
-        return MetricKey.of("eventbus.publish.count").withTag("result", result);
-    }
-
-    private static MetricKey event(String result) {
-        return MetricKey.of("eventbus.event.count").withTag("result", result);
     }
 }

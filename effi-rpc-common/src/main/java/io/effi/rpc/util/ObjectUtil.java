@@ -12,6 +12,9 @@ import java.util.Objects;
  */
 public final class ObjectUtil {
 
+    private ObjectUtil() {
+    }
+
     /**
      * Returns the object name: {@code id()} if {@link Identifiable},
      * otherwise lowercase class name.
@@ -24,6 +27,24 @@ public final class ObjectUtil {
         return StringUtil.isBlank(name)
                 ? lowercaseName(obj.getClass())
                 : name;
+    }
+
+    /**
+     * Gets the lowercase name of the class.
+     */
+    public static String lowercaseName(Class<?> type) {
+        String simpleName = simpleClassName(type);
+        char[] chars = simpleName.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return new String(chars);
+    }
+
+    /**
+     * Gets the simple class name of the class.
+     */
+    public static String simpleClassName(Class<?> type) {
+        Objects.requireNonNull(type);
+        return type.getSimpleName();
     }
 
     /**
@@ -54,27 +75,6 @@ public final class ObjectUtil {
         } else {
             return simpleClassName(o.getClass());
         }
-    }
-
-    /**
-     * Gets the simple class name of the class.
-     */
-    public static String simpleClassName(Class<?> type) {
-        Objects.requireNonNull(type);
-        return type.getSimpleName();
-    }
-
-    /**
-     * Gets the lowercase name of the class.
-     */
-    public static String lowercaseName(Class<?> type) {
-        String simpleName = simpleClassName(type);
-        char[] chars = simpleName.toCharArray();
-        chars[0] = Character.toLowerCase(chars[0]);
-        return new String(chars);
-    }
-
-    private ObjectUtil() {
     }
 
 }

@@ -34,7 +34,7 @@ public class EffiRpcException extends RuntimeException {
      * Creates an RPC exception from an error code and message arguments.
      *
      * @param errorCode error code
-     * @param args message arguments
+     * @param args      message arguments
      * @return RPC exception
      */
     public static EffiRpcException wrap(ErrorCode errorCode, Object... args) {
@@ -45,8 +45,8 @@ public class EffiRpcException extends RuntimeException {
      * Creates an RPC exception from an error code, wrapped failure, and message arguments.
      *
      * @param errorCode error code
-     * @param wrapped wrapped failure, or {@code null} when absent
-     * @param args message arguments
+     * @param wrapped   wrapped failure, or {@code null} when absent
+     * @param args      message arguments
      * @return RPC exception with the effective cause
      */
     public static EffiRpcException wrap(ErrorCode errorCode, Throwable wrapped, Object... args) {

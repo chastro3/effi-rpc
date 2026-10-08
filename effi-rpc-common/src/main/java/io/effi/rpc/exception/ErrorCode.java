@@ -16,11 +16,6 @@ public interface ErrorCode {
     String code();
 
     /**
-     * Returns the error message.
-     */
-    String message();
-
-    /**
      * Renders the message using the provided arguments.
      *
      * @param args the arguments to format the message
@@ -31,14 +26,9 @@ public interface ErrorCode {
     }
 
     /**
-     * Creates an {@link EffiRpcException} with this error code and the provided arguments.
-     *
-     * @param args the arguments to format the message
-     * @return the created exception
+     * Returns the error message.
      */
-    default EffiRpcException fail(Throwable cause, Object... args) {
-        return EffiRpcException.wrap(this, cause, args);
-    }
+    String message();
 
     /**
      * Creates an {@link EffiRpcException} with this error code and the provided arguments.
@@ -48,6 +38,16 @@ public interface ErrorCode {
      */
     default EffiRpcException fail(Object... args) {
         return fail(null, args);
+    }
+
+    /**
+     * Creates an {@link EffiRpcException} with this error code and the provided arguments.
+     *
+     * @param args the arguments to format the message
+     * @return the created exception
+     */
+    default EffiRpcException fail(Throwable cause, Object... args) {
+        return EffiRpcException.wrap(this, cause, args);
     }
 }
 

@@ -56,23 +56,21 @@ public final class SslContextManager {
         return doContextOf(supportedProtocols, config);
     }
 
-    /**
-     * Returns a client-side SSL context, creating it when necessary.
-     *
-     * @param supportedProtocols ALPN protocols
-     * @param config             client configuration
-     * @return client-side SSL context, or {@code null} when SSL is disabled
-     */
-    public static SslContext contextOf(String[] supportedProtocols, ClientConfig config) {
-        return doContextOf(supportedProtocols, config);
-    }
-
     private static SslContext doContextOf(String[] supportedProtocols, EndpointConfig config) {
         if (!sslEnabled(config)) return null;
         boolean isServer = config instanceof ServerConfig;
         Pair<ArrayIdentifier<String>, String> key = generateSslContextKey(supportedProtocols, config.id());
         Map<Pair<ArrayIdentifier<String>, String>, SslContext> contextMap = isServer ? SERVER_SSL_CONTEXT : CLIENT_SSL_CONTEXT;
         return contextMap.computeIfAbsent(key, k -> createSslContext(supportedProtocols, config.certificateConfig(), isServer));
+    }
+
+    private static boolean sslEnabled(EndpointConfig config) {
+        return config.option(TcpOptions.SSL);
+    }
+
+    private static Pair<ArrayIdentifier<String>, String> generateSslContextKey(String[] supportedProtocols, String name) {
+        ArrayIdentifier<String> identifier = ArrayIdentifier.of(supportedProtocols);
+        return Pair.of(identifier, name);
     }
 
     private static SslContext createSslContext(String[] supportedProtocols, CertificateConfig config, boolean isServer) {
@@ -106,25 +104,6 @@ public final class SslContextManager {
         }
     }
 
-    private static SslProvider ensureSslProvider() {
-        if (OpenSsl.isAvailable()) {
-            logger.info("Using OPENSSL provider.");
-            return SslProvider.OPENSSL;
-        } else {
-            logger.info("Using JDK provider.");
-            return SslProvider.JDK;
-        }
-    }
-
-    private static boolean sslEnabled(EndpointConfig config) {
-        return config.option(TcpOptions.SSL);
-    }
-
-    private static Pair<ArrayIdentifier<String>, String> generateSslContextKey(String[] supportedProtocols, String name) {
-        ArrayIdentifier<String> identifier = ArrayIdentifier.of(supportedProtocols);
-        return Pair.of(identifier, name);
-    }
-
     private static InputStream newInputStream(byte[] bytes) {
         if (bytes == null) return null;
         return new ByteArrayInputStream(bytes);
@@ -149,6 +128,27 @@ public final class SslContextManager {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Returns a client-side SSL context, creating it when necessary.
+     *
+     * @param supportedProtocols ALPN protocols
+     * @param config             client configuration
+     * @return client-side SSL context, or {@code null} when SSL is disabled
+     */
+    public static SslContext contextOf(String[] supportedProtocols, ClientConfig config) {
+        return doContextOf(supportedProtocols, config);
+    }
+
+    private static SslProvider ensureSslProvider() {
+        if (OpenSsl.isAvailable()) {
+            logger.info("Using OPENSSL provider.");
+            return SslProvider.OPENSSL;
+        } else {
+            logger.info("Using JDK provider.");
+            return SslProvider.JDK;
         }
     }
 }

@@ -2,6 +2,8 @@ plugins {
     base
 }
 
+description = "Root build for the Effi RPC multi-module project."
+
 allprojects {
     group = "cc.uniplat"
     version = "0.0.2-alpha"

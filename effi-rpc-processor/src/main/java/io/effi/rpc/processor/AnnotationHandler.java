@@ -25,6 +25,8 @@ public abstract class AnnotationHandler<T extends Annotation> extends Helper {
         handle(elements, roundEnv);
     }
 
+    protected abstract void handle(Set<? extends Element> elements, RoundEnvironment roundEnv);
+
     public Class<T> type() {
         return annotationType;
     }
@@ -36,7 +38,5 @@ public abstract class AnnotationHandler<T extends Annotation> extends Helper {
     void withResourceCollector(ResourceCollector resourceCollector) {
         this.resourceCollector = resourceCollector;
     }
-
-    protected abstract void handle(Set<? extends Element> elements, RoundEnvironment roundEnv);
 
 }

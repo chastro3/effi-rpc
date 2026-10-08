@@ -6,9 +6,9 @@ import io.effi.rpc.logging.LoggerFactory;
 import io.effi.rpc.util.ObjectUtil;
 import org.jctools.queues.MpscArrayQueue;
 
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * Runs the consumer loop for one control or telemetry lane.
@@ -62,37 +62,6 @@ final class EventConsumerLane {
                 .namePrefix("rpc-event-" + lane.name().toLowerCase() + "-" + index)
                 .daemon(daemon)
                 .newThread(this::consume);
-    }
-
-    boolean offer(Event event) {
-        return queue.offer(event);
-    }
-
-    long size() {
-        return queue.size();
-    }
-
-    void start() {
-        thread.start();
-    }
-
-    void unpark() {
-        LockSupport.unpark(thread);
-    }
-
-    void join(long millis) {
-        try {
-            thread.join(millis);
-            if (thread.isAlive()) {
-                logger.warn("Event consumer '{}' did not stop within {} ms", thread.getName(), millis);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    String name() {
-        return thread.getName();
     }
 
     private void consume() {
@@ -159,5 +128,36 @@ final class EventConsumerLane {
     @SuppressWarnings("unchecked")
     private void invoke(EventHandler<?> handler, Event event) {
         ((EventHandler<Event>) handler).onEvent(event);
+    }
+
+    boolean offer(Event event) {
+        return queue.offer(event);
+    }
+
+    long size() {
+        return queue.size();
+    }
+
+    void start() {
+        thread.start();
+    }
+
+    void unpark() {
+        LockSupport.unpark(thread);
+    }
+
+    void join(long millis) {
+        try {
+            thread.join(millis);
+            if (thread.isAlive()) {
+                logger.warn("Event consumer '{}' did not stop within {} ms", thread.getName(), millis);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    String name() {
+        return thread.getName();
     }
 }

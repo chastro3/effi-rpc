@@ -12,6 +12,9 @@ import io.effi.rpc.context.parameter.PathVar;
  */
 public final class HttpParameterBinders {
 
+    private HttpParameterBinders() {
+    }
+
     public static ParameterBinder bind(Argument argument) {
         if (argument instanceof PathVar<?> pathVar
                 && pathVar.get() instanceof Argument.Source source) {
@@ -29,8 +32,5 @@ public final class HttpParameterBinders {
             return HttpBodyParameterBinder.INSTANCE;
         }
         throw new IllegalArgumentException("Unsupported HTTP argument mapping: " + argument);
-    }
-
-    private HttpParameterBinders() {
     }
 }

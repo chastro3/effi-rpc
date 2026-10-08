@@ -102,6 +102,13 @@ class ApplicationServiceRegistrarTest {
         }
     }
 
+    private static void awaitClosed(ScopedApplication application) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+        while (application.active() && System.nanoTime() < deadline) {
+            Thread.sleep(10L);
+        }
+    }
+
     @Test
     void registersAllServersInOneBatchPerRegistry() throws Exception {
         ScopedPlatform platform = new ScopedPlatform("batch-registration-platform");
@@ -124,6 +131,12 @@ class ApplicationServiceRegistrarTest {
         } finally {
             registrar.deregister().await();
             platform.close();
+        }
+    }
+
+    private static int freePort() throws Exception {
+        try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            return socket.getLocalPort();
         }
     }
 
@@ -151,19 +164,6 @@ class ApplicationServiceRegistrarTest {
         } finally {
             registrar.deregister().await();
             platform.close();
-        }
-    }
-
-    private static int freePort() throws Exception {
-        try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
-            return socket.getLocalPort();
-        }
-    }
-
-    private static void awaitClosed(ScopedApplication application) throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
-        while (application.active() && System.nanoTime() < deadline) {
-            Thread.sleep(10L);
         }
     }
 
@@ -228,12 +228,12 @@ class ApplicationServiceRegistrarTest {
         }
 
         @Override
-        public boolean active() {
-            return true;
+        public void close() {
         }
 
         @Override
-        public void close() {
+        public boolean active() {
+            return true;
         }
     }
 }

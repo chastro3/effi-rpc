@@ -11,17 +11,10 @@ public record Deadline(long deadlineNanos) {
     private static final long NONE = Long.MAX_VALUE;
 
     /**
-     * Returns a deadline that never expires.
-     */
-    public static Deadline none() {
-        return new Deadline(NONE);
-    }
-
-    /**
      * Returns a deadline offset from the current monotonic time.
      *
      * @param timeout non-negative timeout
-     * @param unit timeout unit
+     * @param unit    timeout unit
      * @return deadline after the timeout, or a disabled deadline when nanos overflow
      * @throws IllegalArgumentException if the timeout is negative
      */
@@ -39,10 +32,10 @@ public record Deadline(long deadlineNanos) {
     }
 
     /**
-     * Indicates whether this deadline is disabled.
+     * Returns a deadline that never expires.
      */
-    public boolean isNone() {
-        return deadlineNanos == NONE;
+    public static Deadline none() {
+        return new Deadline(NONE);
     }
 
     /**
@@ -53,13 +46,10 @@ public record Deadline(long deadlineNanos) {
     }
 
     /**
-     * Returns the remaining nanoseconds, or {@link Long#MAX_VALUE} when disabled.
+     * Indicates whether this deadline is disabled.
      */
-    public long remainingNanos() {
-        if (isNone()) {
-            return NONE;
-        }
-        return Math.max(0L, deadlineNanos - System.nanoTime());
+    public boolean isNone() {
+        return deadlineNanos == NONE;
     }
 
     /**
@@ -70,6 +60,16 @@ public record Deadline(long deadlineNanos) {
      */
     public long remaining(TimeUnit unit) {
         return unit.convert(remainingNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    /**
+     * Returns the remaining nanoseconds, or {@link Long#MAX_VALUE} when disabled.
+     */
+    public long remainingNanos() {
+        if (isNone()) {
+            return NONE;
+        }
+        return Math.max(0L, deadlineNanos - System.nanoTime());
     }
 
     /**

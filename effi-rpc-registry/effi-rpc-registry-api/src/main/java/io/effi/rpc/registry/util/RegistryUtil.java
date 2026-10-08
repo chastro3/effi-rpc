@@ -39,17 +39,6 @@ public final class RegistryUtil {
     }
 
     /**
-     * Resolves the platform recorded in instance metadata.
-     *
-     * @param instance service instance
-     * @return the resolved platform, or {@code null} when absent
-     */
-    public static ScopedPlatform lookupPlatform(ServiceInstance instance) {
-        String platformName = instance.metadata().get(KeyConstant.PLATFORM);
-        return ScopedPlatform.lookup(platformName);
-    }
-
-    /**
      * Resolves the application recorded in instance metadata.
      *
      * @param instance service instance
@@ -62,6 +51,17 @@ public final class RegistryUtil {
         }
         String applicationName = instance.metadata().get(KeyConstant.APPLICATION);
         return platform.lookupApplication(applicationName);
+    }
+
+    /**
+     * Resolves the platform recorded in instance metadata.
+     *
+     * @param instance service instance
+     * @return the resolved platform, or {@code null} when absent
+     */
+    public static ScopedPlatform lookupPlatform(ServiceInstance instance) {
+        String platformName = instance.metadata().get(KeyConstant.PLATFORM);
+        return ScopedPlatform.lookup(platformName);
     }
 
 }
