@@ -22,7 +22,7 @@ import io.effi.rpc.transport.idle.IdleEventHandler;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Initializes configurations for the application and module, setting up event handlers and interceptors.
+ * Provides default lifecycle configuration for the platform and application.
  */
 public class DefaultLifecycleConfiguration {
 
@@ -80,23 +80,28 @@ public class DefaultLifecycleConfiguration {
     public static class ApplicationLifecycleListener implements ScopedApplication.Listener {
         @Override
         public void onStarted(ScopedApplication application) {
-            ApplicationServiceRegistrar coordinator =
+            ApplicationServiceRegistrar registrar =
                     application.singleComponent(ApplicationServiceRegistrar.class);
-            if (coordinator == null) {
-                coordinator = new ApplicationServiceRegistrar(application);
+            if (registrar == null) {
+                registrar = new ApplicationServiceRegistrar(application);
             }
-            coordinator.register();
+            registrar.register().onComplete(result -> {
+                if (result.failed()) {
+                    logger.error("Failed to register application '{}'", result.cause(), application.name());
+                    application.close();
+                }
+            });
         }
 
         @Override
         public void onClosing(ScopedApplication application) {
-            ApplicationServiceRegistrar coordinator =
+            ApplicationServiceRegistrar registrar =
                     application.singleComponent(ApplicationServiceRegistrar.class);
-            if (coordinator == null) {
+            if (registrar == null) {
                 return;
             }
             try {
-                Result<Void> result = coordinator.deregister()
+                Result<Void> result = registrar.deregister()
                         .await(Deadline.after(30, TimeUnit.SECONDS));
                 if (result.failed()) {
                     logger.error("Failed to stop application '{}'", result.cause(), application.name());

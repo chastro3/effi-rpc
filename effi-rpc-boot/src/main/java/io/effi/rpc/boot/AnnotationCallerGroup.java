@@ -20,7 +20,7 @@ import static io.effi.rpc.boot.AnnotationSupport.checkAnnotationStyle;
 import static io.effi.rpc.context.options.CallerOptions.PROTOCOL;
 
 /**
- * Annotation-based implementation of {@link io.effi.rpc.context.CallerGroup}.
+ * Provides the annotation-based implementation of {@link io.effi.rpc.context.CallerGroup}.
  */
 public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
 

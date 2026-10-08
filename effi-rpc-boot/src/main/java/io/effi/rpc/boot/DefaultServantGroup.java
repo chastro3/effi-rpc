@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 import static io.effi.rpc.component.serialization.options.SerializationOptions.SERIALIZER;
 
 /**
- * Provide the default implementation of {@link ServantGroup}.
+ * Provides the default implementation of {@link ServantGroup}.
  */
 public class DefaultServantGroup<T> extends AbstractPeerGroup<Servant, T> implements ServantGroup<T> {
 

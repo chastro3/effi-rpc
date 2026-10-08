@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Owns the transport resources of one client call attempt.
+ * Manages the transport resources of one client call attempt.
  * <p>
  * Acquires a channel, binds the attempt to it, and sends the request. Retry and deadline
  * policy belong to the call execution that creates the attempt. The state and current
@@ -53,6 +53,9 @@ public final class CallAttempt {
         replyFuture.onComplete(result -> release());
     }
 
+    /**
+     * Dispatches the attempt by acquiring a channel and sending the request.
+     */
     public void dispatch() {
         if (!(state.get() instanceof Idle)) {
             return;

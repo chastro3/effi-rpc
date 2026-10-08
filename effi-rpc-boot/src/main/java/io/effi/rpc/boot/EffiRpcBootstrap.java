@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 /**
- * Bootstrap class for initializing and configuring EffiRpc framework.
+ * Provides the entry point for initializing and configuring the Effi RPC framework.
  */
 public class EffiRpcBootstrap extends ScopedApplication.Holder {
 
@@ -22,6 +22,13 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
         super(application);
     }
 
+    /**
+     * Creates a bootstrap with a new application on the supplied platform.
+     *
+     * @param platform owning platform
+     * @param applicationName application name
+     * @return new bootstrap
+     */
     public static EffiRpcBootstrap newInstance(ScopedPlatform platform, String applicationName) {
         return newInstance(platform.newApplication(applicationName));
     }
@@ -46,16 +53,38 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
         return new EffiRpcBootstrap(application);
     }
 
+    /**
+     * Attaches a server bound to the local host.
+     *
+     * @param serverConfig server configuration
+     * @param port bound port
+     * @return this bootstrap
+     */
     public EffiRpcBootstrap server(ServerConfig serverConfig, int port) {
         ServerLauncher.attach(application, serverConfig, port);
         return this;
     }
 
+    /**
+     * Attaches a server bound to the supplied host.
+     *
+     * @param serverConfig server configuration
+     * @param host bound host
+     * @param port bound port
+     * @return this bootstrap
+     */
     public EffiRpcBootstrap server(ServerConfig serverConfig, String host, int port) {
         ServerLauncher.attach(application, serverConfig, host, port);
         return this;
     }
 
+    /**
+     * Attaches a server bound to the supplied address.
+     *
+     * @param serverConfig server configuration
+     * @param boundAddress bound address
+     * @return this bootstrap
+     */
     public EffiRpcBootstrap server(ServerConfig serverConfig, InetSocketAddress boundAddress) {
         ServerLauncher.attach(application, serverConfig, boundAddress);
         return this;
@@ -78,6 +107,11 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
 
     /**
      * Provides one interface-based service.
+     *
+     * @param targetType service interface
+     * @param service service implementation
+     * @param customizer service option customizer
+     * @return this bootstrap
      */
     public <T> EffiRpcBootstrap provide(Class<T> targetType, T service, Consumer<HierarchicalOptions> customizer) {
         InterfaceServantGroup.<T>builder()
@@ -102,6 +136,10 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
 
     /**
      * Creates one interface-based caller proxy.
+     *
+     * @param targetType remote interface
+     * @param customizer caller option customizer
+     * @return caller proxy
      */
     public <T> T consume(Class<T> targetType, Consumer<HierarchicalOptions> customizer) {
         return InterfaceCallerGroup.<T>builder()
@@ -110,14 +148,6 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
                 .module(application.defaultModule())
                 .build()
                 .proxy();
-    }
-
-    private static HierarchicalOptions options(Consumer<HierarchicalOptions> customizer) {
-        HierarchicalOptions options = HierarchicalOptions.create();
-        if (customizer != null) {
-            customizer.accept(options);
-        }
-        return options;
     }
 
     /**
@@ -133,6 +163,12 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
         return this;
     }
 
+    /**
+     * Registers a router configuration on the default module.
+     *
+     * @param routerConfig router configuration
+     * @return this bootstrap
+     */
     public EffiRpcBootstrap router(RouterConfig routerConfig) {
         application.defaultModule().registry().register(RouterConfig.class, routerConfig);
         return this;
@@ -143,18 +179,12 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      */
     public Future<Void> start() {
         application.start();
-        ApplicationServiceRegistrar coordinator =
+        ApplicationServiceRegistrar registrar =
                 application.singleComponent(ApplicationServiceRegistrar.class);
-        if (coordinator == null) {
-            coordinator = new ApplicationServiceRegistrar(application);
+        if (registrar == null) {
+            registrar = new ApplicationServiceRegistrar(application);
         }
-        Future<Void> startup = coordinator.register();
-        startup.onComplete(result -> {
-            if (result.failed()) {
-                application.close();
-            }
-        });
-        return startup;
+        return registrar.register();
     }
 
     /**
@@ -165,12 +195,18 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
         return this;
     }
 
+    /**
+     * Returns whether the application is active and its services are registered.
+     */
     public boolean ready() {
-        ApplicationServiceRegistrar coordinator =
+        ApplicationServiceRegistrar registrar =
                 application.singleComponent(ApplicationServiceRegistrar.class);
-        return application.active() && coordinator != null && coordinator.active();
+        return application.active() && registrar != null && registrar.active();
     }
 
+    /**
+     * Returns whether the application is active.
+     */
     public boolean live() {
         return application.active();
     }
@@ -187,6 +223,14 @@ public class EffiRpcBootstrap extends ScopedApplication.Holder {
      */
     public ScopedModule defaultModule() {
         return application.defaultModule();
+    }
+
+    private static HierarchicalOptions options(Consumer<HierarchicalOptions> customizer) {
+        HierarchicalOptions options = HierarchicalOptions.create();
+        if (customizer != null) {
+            customizer.accept(options);
+        }
+        return options;
     }
 
 }

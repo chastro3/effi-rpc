@@ -23,7 +23,7 @@ import static io.effi.rpc.boot.AnnotationSupport.checkAnnotationStyle;
 import static io.effi.rpc.context.options.ServantOptions.DECLARED_PROTOCOL;
 
 /**
- * Annotation-based implementation of {@link io.effi.rpc.context.ServantGroup}.
+ * Provides the annotation-based implementation of {@link io.effi.rpc.context.ServantGroup}.
  */
 public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
 

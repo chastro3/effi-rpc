@@ -19,6 +19,9 @@ import java.net.InetSocketAddress;
 
 import static io.effi.rpc.boot.stage.CallAttemptStage.NAME;
 
+/**
+ * Handles the call attempt stage for dispatching requests over a client channel.
+ */
 @Extension(NAME)
 public class CallAttemptStage implements Stage.CallUnit<Request, Caller<?>> {
 

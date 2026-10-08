@@ -14,7 +14,7 @@ import static io.effi.rpc.boot.configurator.DefaultThreadPoolResolver.NAME;
 import static io.effi.rpc.context.options.ThreadPoolOptions.THREAD_POOL;
 
 /**
- * Resolves the default thread pool for a peer.
+ * Provides default thread pool resolution for a peer.
  */
 @Extension(value = NAME, primary = true)
 public class DefaultThreadPoolResolver implements ThreadPoolResolver {

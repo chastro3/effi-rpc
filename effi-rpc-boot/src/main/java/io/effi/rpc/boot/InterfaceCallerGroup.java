@@ -17,7 +17,7 @@ import static io.effi.rpc.context.options.PeerOptions.PATH;
 import static io.effi.rpc.context.options.CallerOptions.PROTOCOL;
 
 /**
- * Builds a caller group from a plain Java interface.
+ * Provides a caller group for a plain Java interface.
  */
 public final class InterfaceCallerGroup<T> extends AbstractCallerGroup<T> {
 

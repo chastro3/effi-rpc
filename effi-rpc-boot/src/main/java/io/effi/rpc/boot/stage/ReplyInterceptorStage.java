@@ -10,7 +10,7 @@ import io.effi.rpc.context.Stage;
 import static io.effi.rpc.boot.stage.ReplyInterceptorStage.NAME;
 
 /**
- * Executes the reply interceptor chain during the reply phase.
+ * Handles the reply interceptor chain during the reply phase.
  *
  * @see io.effi.rpc.context.context.ReplyInterceptor
  */

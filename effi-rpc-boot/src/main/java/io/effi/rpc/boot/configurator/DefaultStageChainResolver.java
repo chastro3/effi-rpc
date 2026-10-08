@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.effi.rpc.boot.configurator.DefaultStageChainResolver.NAME;
 
 /**
- * Resolves the default stage chains for a peer.
+ * Provides default stage chain resolution for a peer.
  */
 @Extension(value = NAME, primary = true)
 public class DefaultStageChainResolver implements StageChainResolver, ScopedModule.Acceptor {

@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * SystemInfo.  todo 待优化
+ * Provides a runtime metric snapshot for registry metadata.
  */
 public class DefaultRegistryMetadata {
 
@@ -47,10 +47,10 @@ public class DefaultRegistryMetadata {
             activeService += module.componentCount(Servant.class);
         }
         services = activeService;
-        ApplicationServiceRegistrar coordinator =
+        ApplicationServiceRegistrar registrar =
                 application.singleComponent(ApplicationServiceRegistrar.class);
         AtomicInteger activeConnection = new AtomicInteger();
-        for (ServerLauncher serverLauncher : coordinator.serverLaunchers()) {
+        for (ServerLauncher serverLauncher : registrar.serverLaunchers()) {
             serverLauncher.server()
                     .ifPresent(server -> {
                         if (server instanceof ChannelTracker channelTracker) {
@@ -62,7 +62,10 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Converts map to DefaultRegistryMetadata.
+     * Converts a metadata map into a registry metadata snapshot.
+     *
+     * @param map metadata values by key
+     * @return metadata snapshot
      */
     public static DefaultRegistryMetadata valueOf(Map<String, String> map) {
         DefaultRegistryMetadata metadata = new DefaultRegistryMetadata();
@@ -74,10 +77,6 @@ public class DefaultRegistryMetadata {
         return metadata;
     }
 
-    private static double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
-    }
-
     /**
      * Returns the cpuUsage.
      */
@@ -86,7 +85,7 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Sets the cpuUsage.
+     * Configures the CPU usage.
      */
     public DefaultRegistryMetadata cpuUsage(double cpuUsage) {
         this.cpuUsage = cpuUsage;
@@ -101,7 +100,7 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Sets the memoryUsage.
+     * Configures the memory usage.
      */
     public DefaultRegistryMetadata memoryUsage(double memoryUsage) {
         this.memoryUsage = memoryUsage;
@@ -116,7 +115,7 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Sets the connections.
+     * Configures the connection count.
      */
     public DefaultRegistryMetadata connections(long connections) {
         this.connections = connections;
@@ -131,7 +130,7 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Sets the services.
+     * Configures the servant count.
      */
     public DefaultRegistryMetadata services(int services) {
         this.services = services;
@@ -146,7 +145,7 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * Sets the loadAverage.
+     * Configures the system load average.
      */
     public DefaultRegistryMetadata loadAverage(double loadAverage) {
         this.loadAverage = loadAverage;
@@ -154,7 +153,7 @@ public class DefaultRegistryMetadata {
     }
 
     /**
-     * SystemInfo to map.
+     * Converts this snapshot into a metadata map.
      */
     public Map<String, String> toMap() {
         return Map.of(
@@ -164,5 +163,9 @@ public class DefaultRegistryMetadata {
                 "services", String.valueOf(services),
                 "loadAverage", String.valueOf(loadAverage)
         );
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

@@ -13,6 +13,9 @@ import java.net.InetSocketAddress;
 
 import static io.effi.rpc.boot.stage.LocatorStage.NAME;
 
+/**
+ * Handles endpoint location for a caller request.
+ */
 @Extension(NAME)
 public class LocatorStage implements Stage.CallUnit<Request, Caller<?>> {
 

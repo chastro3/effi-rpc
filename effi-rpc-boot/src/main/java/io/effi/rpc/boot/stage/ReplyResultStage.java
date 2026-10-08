@@ -9,6 +9,9 @@ import io.effi.rpc.context.Stage;
 
 import static io.effi.rpc.boot.stage.ReplyResultStage.NAME;
 
+/**
+ * Handles the final reply result.
+ */
 @Extension(NAME)
 public class ReplyResultStage implements Stage.ReplyUnit<Response, Peer> {
 

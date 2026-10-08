@@ -20,7 +20,7 @@ import static io.effi.rpc.context.options.PeerOptions.PATH;
 import static io.effi.rpc.context.options.ServantOptions.DECLARED_PROTOCOL;
 
 /**
- * Builds a servant group from a plain Java interface and its implementation.
+ * Provides a servant group for a plain Java interface and its implementation.
  */
 public final class InterfaceServantGroup<T> extends DefaultServantGroup<T> {
 

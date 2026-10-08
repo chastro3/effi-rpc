@@ -35,7 +35,7 @@ import static io.effi.rpc.context.options.InterceptorOptions.INCLUDE;
 import static io.effi.rpc.context.options.ResolverOptions.STAGE_CHAIN_RESOLVER;
 
 /**
- * Resolves the default interceptor chains for a peer.
+ * Provides default interceptor chain resolution for a peer.
  */
 @SuppressWarnings("rawtypes")
 @Extension(value = NAME, primary = true)

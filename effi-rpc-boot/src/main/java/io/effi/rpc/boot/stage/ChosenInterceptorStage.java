@@ -10,7 +10,7 @@ import io.effi.rpc.context.Stage;
 import static io.effi.rpc.boot.stage.ChosenInterceptorStage.NAME;
 
 /**
- * Executes the chosen interceptor chain during the call phase.
+ * Handles the chosen interceptor chain during the call phase.
  *
  * @see io.effi.rpc.context.context.CallInterceptor
  */

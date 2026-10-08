@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,12 +40,12 @@ class ApplicationServiceRegistrarTest {
                     occupied.getInetAddress().getHostAddress(),
                     occupied.getLocalPort()
             );
-            ApplicationServiceRegistrar coordinator = new ApplicationServiceRegistrar(application);
+            ApplicationServiceRegistrar registrar = new ApplicationServiceRegistrar(application);
 
-            Future<Void> result = coordinator.register();
+            Future<Void> result = registrar.register();
 
             assertThrows(CompletionException.class, () -> result.toCompletableFuture().join());
-            assertFalse(coordinator.active());
+            assertFalse(registrar.active());
         }
     }
 
@@ -52,12 +53,12 @@ class ApplicationServiceRegistrarTest {
     void registerAfterCloseFails() throws Exception {
         ScopedPlatform platform = new ScopedPlatform("closed-platform");
         ScopedApplication application = platform.newApplication("closed-application");
-        ApplicationServiceRegistrar coordinator = new ApplicationServiceRegistrar(application);
+        ApplicationServiceRegistrar registrar = new ApplicationServiceRegistrar(application);
 
-        coordinator.deregister();
+        registrar.deregister();
 
-        assertTrue(coordinator.register().await().failed());
-        assertFalse(coordinator.active());
+        assertTrue(registrar.register().await().failed());
+        assertFalse(registrar.active());
     }
 
     @Test
@@ -76,6 +77,28 @@ class ApplicationServiceRegistrarTest {
             assertThrows(CompletionException.class, () -> startup.toCompletableFuture().join());
 
             assertFalse(application.active());
+        }
+    }
+
+    @Test
+    void applicationStartFailureClosesApplication() throws Exception {
+        try (ServerSocket occupied = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            ScopedPlatform platform = new ScopedPlatform("application-failure-platform");
+            ScopedApplication application = platform.newApplication("application-failure-application");
+            ServerLauncher.attach(
+                    application,
+                    Http1ServerConfig.defaultConfig(),
+                    occupied.getInetAddress().getHostAddress(),
+                    occupied.getLocalPort()
+            );
+
+            try {
+                application.start();
+                awaitClosed(application);
+                assertFalse(application.active());
+            } finally {
+                platform.close();
+            }
         }
     }
 
@@ -134,6 +157,13 @@ class ApplicationServiceRegistrarTest {
     private static int freePort() throws Exception {
         try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
             return socket.getLocalPort();
+        }
+    }
+
+    private static void awaitClosed(ScopedApplication application) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+        while (application.active() && System.nanoTime() < deadline) {
+            Thread.sleep(10L);
         }
     }
 

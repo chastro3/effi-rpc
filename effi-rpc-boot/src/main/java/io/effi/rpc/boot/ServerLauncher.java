@@ -23,6 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.APPLICATION;
 
+/**
+ * Manages the lifecycle of one server endpoint.
+ */
 @ScopedComponent(scope = APPLICATION)
 public class ServerLauncher extends ScopedApplication.Holder implements Closeable, Identifiable {
 
@@ -50,18 +53,52 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
         application.registry().register(ServerLauncher.class, this);
     }
 
+    /**
+     * Attaches a server bound to the local host.
+     *
+     * @param application owning application
+     * @param config server configuration
+     * @param port bound port
+     * @return attached server launcher
+     */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, int port) {
         return attach(application, config, NetUtil.localHost(), port);
     }
 
+    /**
+     * Attaches a server bound to the supplied host.
+     *
+     * @param application owning application
+     * @param config server configuration
+     * @param host bound host
+     * @param port bound port
+     * @return attached server launcher
+     */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, String host, int port) {
         return attach(application, config, InetSocketAddress.createUnresolved(host, port));
     }
 
+    /**
+     * Attaches a server bound to the supplied address.
+     *
+     * @param application owning application
+     * @param config server configuration
+     * @param boundAddress bound address
+     * @return attached server launcher
+     */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress) {
         return attach(application, config, boundAddress, 1);
     }
 
+    /**
+     * Attaches a weighted server bound to the supplied address.
+     *
+     * @param application owning application
+     * @param config server configuration
+     * @param boundAddress bound address
+     * @param weight server weight
+     * @return attached server launcher
+     */
     public static ServerLauncher attach(ScopedApplication application, ServerConfig config, InetSocketAddress boundAddress, int weight) {
         AssertUtil.notNull(application, "application");
         AssertUtil.notNull(config, "server config");
@@ -77,22 +114,41 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
         });
     }
 
+    /**
+     * Starts the server and returns its endpoint.
+     */
     public Server start() {
         return server.ensure();
     }
 
-    private Server startServer() {
-        ScopedPlatform platform = platform();
-        TransportProtocol protocol = platform.namedExtension(TransportProtocol.class, serverConfig.protocolName());
-        Server server = protocol.supplyServer(serverConfig, boundAddress, platform);
-        server.bind().onComplete(res -> {
-            if (res.succeeded()) {
-                logger.info("({}) Server started on port {}.", serverConfig.protocolName().toUpperCase(), boundAddress.getPort());
-            } else {
-                logger.error("Failed to open ({}) server on port {}.", res.cause(), serverConfig.protocolName(), boundAddress.getPort());
-            }
-        });
-        return server;
+    /**
+     * Returns the active server endpoint when available.
+     */
+    public Optional<Server> server() {
+        return active()
+                ? Optional.of(server.ensure())
+                : Optional.empty();
+    }
+
+    /**
+     * Returns the server configuration.
+     */
+    public ServerConfig serverConfig() {
+        return serverConfig;
+    }
+
+    /**
+     * Returns the bound address.
+     */
+    public InetSocketAddress boundAddress() {
+        return boundAddress;
+    }
+
+    /**
+     * Returns the server weight.
+     */
+    public int weight() {
+        return weight;
     }
 
     @Override
@@ -114,22 +170,18 @@ public class ServerLauncher extends ScopedApplication.Holder implements Closeabl
         return id;
     }
 
-    public Optional<Server> server() {
-        return active()
-                ? Optional.of(server.ensure())
-                : Optional.empty();
-    }
-
-    public ServerConfig serverConfig() {
-        return serverConfig;
-    }
-
-    public InetSocketAddress boundAddress() {
-        return boundAddress;
-    }
-
-    public int weight() {
-        return weight;
+    private Server startServer() {
+        ScopedPlatform platform = platform();
+        TransportProtocol protocol = platform.namedExtension(TransportProtocol.class, serverConfig.protocolName());
+        Server server = protocol.supplyServer(serverConfig, boundAddress, platform);
+        server.bind().onComplete(res -> {
+            if (res.succeeded()) {
+                logger.info("({}) Server started on port {}.", serverConfig.protocolName().toUpperCase(), boundAddress.getPort());
+            } else {
+                logger.error("Failed to open ({}) server on port {}.", res.cause(), serverConfig.protocolName(), boundAddress.getPort());
+            }
+        });
+        return server;
     }
 }
 

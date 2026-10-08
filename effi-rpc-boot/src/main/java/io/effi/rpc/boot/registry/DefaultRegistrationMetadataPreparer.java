@@ -10,7 +10,7 @@ import io.effi.rpc.registry.util.RegistryUtil;
 import static io.effi.rpc.boot.registry.DefaultRegistrationMetadataPreparer.NAME;
 
 /**
- * Registers default metadata to the registry.
+ * Provides default registration metadata for service instances.
  */
 @Extension(NAME)
 public class DefaultRegistrationMetadataPreparer implements RegistrationPreparer {

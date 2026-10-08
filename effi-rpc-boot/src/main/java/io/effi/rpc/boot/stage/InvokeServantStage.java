@@ -12,6 +12,9 @@ import io.effi.rpc.exception.EffiRpcException;
 
 import static io.effi.rpc.boot.stage.InvokeServantStage.NAME;
 
+/**
+ * Handles servant invocation for a received request.
+ */
 @Extension(NAME)
 public class InvokeServantStage implements Stage.CallUnit<Request, Servant> {
 

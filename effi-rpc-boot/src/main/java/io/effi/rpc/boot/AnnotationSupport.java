@@ -36,6 +36,9 @@ import java.util.stream.Collectors;
  */
 public final class AnnotationSupport {
 
+    private AnnotationSupport() {
+    }
+
     /**
      * Applies servant-group annotation values to the target options.
      *
