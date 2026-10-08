@@ -16,7 +16,7 @@ public interface Stage<M extends Message, P extends Peer, C extends Interaction.
     /**
      * Processes the stage with the given {@link Interaction.Context} and {@link Chain}.
      *
-     * @param context the {@link InteractionContext} to process
+     * @param context the {@link Interaction.Context} to process
      * @param chain   the {@link Chain} for sequential processing
      * @return the result of the stage execution
      */

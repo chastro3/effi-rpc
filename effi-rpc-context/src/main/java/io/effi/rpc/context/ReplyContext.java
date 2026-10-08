@@ -3,7 +3,7 @@ package io.effi.rpc.context;
 import io.effi.rpc.util.AssertUtil;
 
 /**
- * Represents reply contexts for RPC interactions.
+ * Provides contextual data for an RPC reply.
  * <p>
  * Encapsulates the context information available after response receipt
  * and parsing on the client side or after method invocation but before

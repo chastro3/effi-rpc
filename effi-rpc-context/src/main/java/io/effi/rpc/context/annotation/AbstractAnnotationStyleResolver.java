@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
 /**
- * todo 异步解析
  * Provides an abstract implementation of {@link AnnotationStyleResolver}.
  */
 public abstract class AbstractAnnotationStyleResolver<REQ extends Request> implements AnnotationStyleResolver {

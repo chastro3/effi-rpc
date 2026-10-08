@@ -5,21 +5,43 @@ import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AbstractAttributes;
 
+/**
+ * Defines the interaction model shared by RPC calls and replies.
+ */
 public interface Interaction {
 
+    /**
+     * Creates the reply future used by one interaction.
+     *
+     * @param context call context
+     * @param <T> reply future type
+     * @return reply future
+     */
     interface Mode<T extends ReplyFuture> {
 
+        /**
+         * Creates the reply future for the supplied call context.
+         *
+         * @param context call context
+         * @return reply future
+         */
         T newFuture(CallContext<Request, Caller<?>> context);
 
     }
 
+    /**
+     * Carries the message, peer, and module for one interaction.
+     *
+     * @param <M> message type
+     * @param <P> peer type
+     */
     abstract class Context<M extends Message, P extends Peer> extends AbstractAttributes implements ScopedModule.Supplier {
 
         private final ScopedModule module;
 
-        private final P peer;
-
         private final M message;
+
+        private final P peer;
 
         private final Mode<?> mode;
 
@@ -35,27 +57,38 @@ public interface Interaction {
             return module;
         }
 
+        /**
+         * Returns the interaction message.
+         */
         public M message() {
             return message;
         }
 
+        /**
+         * Returns the interaction peer.
+         */
         public P peer() {
             return peer;
         }
 
+        /**
+         * Returns the interaction mode.
+         */
         public Mode<?> mode() {
             return mode;
         }
     }
 
-
+    /**
+     * Defines one executable unit in an interaction pipeline.
+     *
+     * @param <M> message type
+     * @param <P> peer type
+     */
     interface Unit<M extends Message, P extends Peer> {
 
         /**
-         * Specifies this unit's type.
-         * <p>Defaults to {@code null}. Override to avoid reflection.</p>
-         *
-         * @return the unit type or {@code null} if unspecified
+         * Returns the unit type, or {@code null} when reflection should infer it.
          */
         default UnitType<M, P> unitType() {
             return null;
@@ -81,6 +114,9 @@ public interface Interaction {
 
     }
 
+    /**
+     * Represents the result of one interaction.
+     */
     interface Result extends io.effi.rpc.concurrent.Result<Object>, SmartURL.Supplier {
 
         @Override
@@ -92,15 +128,28 @@ public interface Interaction {
         /**
          * Returns the value or throws the failure cause.
          *
-         * @return result value
          * @throws EffiRpcException when this result failed
          */
         <T> T excepted();
 
+        /**
+         * Creates a successful interaction result.
+         *
+         * @param url result URL
+         * @param result result value
+         * @return successful result
+         */
         static Result success(SmartURL url, Object result) {
             return DefaultInteractionResult.success(url, result);
         }
 
+        /**
+         * Creates a failed interaction result.
+         *
+         * @param url result URL
+         * @param cause failure cause
+         * @return failed result
+         */
         static Result failure(SmartURL url, EffiRpcException cause) {
             return DefaultInteractionResult.failure(url, cause);
         }

@@ -3,7 +3,7 @@ package io.effi.rpc.context;
 import io.effi.rpc.component.ScopedModule;
 
 /**
- * Represents call contexts for RPC interactions.
+ * Provides contextual data for an RPC call.
  * <p>
  * Encapsulates the context information available before request sending
  * on the client side or before method invocation on the server side.

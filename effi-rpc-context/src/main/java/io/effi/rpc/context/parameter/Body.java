@@ -15,6 +15,9 @@ public class Body<T> extends Holder<T> implements Argument {
 
     /**
      * Wraps the given value into a Body instance.
+     *
+     * @param value body value
+     * @return body wrapper
      */
     public static <T> Body<T> wrap(T value) {
         return new Body<>(value);

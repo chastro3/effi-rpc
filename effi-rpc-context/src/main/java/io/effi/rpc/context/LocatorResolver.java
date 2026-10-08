@@ -12,5 +12,12 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 @Extensible(scope = PLATFORM)
 public interface LocatorResolver {
 
+    /**
+     * Resolves the locator configured by the supplied options.
+     *
+     * @param options peer options
+     * @param platform owning platform
+     * @return resolved locator
+     */
     Locator resolve(Options options, ScopedPlatform platform);
 }

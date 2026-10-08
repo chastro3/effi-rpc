@@ -76,10 +76,16 @@ public class AnnotationStyle {
         return getInstance(ScopedPlatform.defaultInstance(), name);
     }
 
+    /**
+     * Returns the annotation style name.
+     */
     public String name() {
         return name;
     }
 
+    /**
+     * Returns the annotation style resolver.
+     */
     public AnnotationStyleResolver resolver() {
         return resolver;
     }

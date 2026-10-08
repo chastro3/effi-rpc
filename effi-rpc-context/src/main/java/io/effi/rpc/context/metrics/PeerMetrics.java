@@ -35,25 +35,41 @@ public abstract class PeerMetrics implements MetricsRegistrar {
         registerSpecific(metrics);
     }
 
-    protected abstract void registerSpecific(Metrics metrics);
-
-    protected final MetricKey key(MetricKey metric) {
-        return metric.withTag("protocol", protocol);
-    }
-
+    /**
+     * Records the serialization duration of one operation.
+     *
+     * @param durationNanos elapsed nanoseconds
+     */
     public final void recordSerialization(long durationNanos) {
         serializationTimer.recordNanos(Math.max(0L, durationNanos));
     }
 
+    /**
+     * Records the deserialization duration of one operation.
+     *
+     * @param durationNanos elapsed nanoseconds
+     */
     public final void recordDeserialization(long durationNanos) {
         deserializationTimer.recordNanos(Math.max(0L, durationNanos));
     }
 
+    /**
+     * Returns the average serialization duration.
+     */
     public final double averageSerializationNanos() {
         return serializationTimer.snapshot().averageNanos();
     }
 
+    /**
+     * Returns the average deserialization duration.
+     */
     public final double averageDeserializationNanos() {
         return deserializationTimer.snapshot().averageNanos();
+    }
+
+    protected abstract void registerSpecific(Metrics metrics);
+
+    protected final MetricKey key(MetricKey metric) {
+        return metric.withTag("protocol", protocol);
     }
 }

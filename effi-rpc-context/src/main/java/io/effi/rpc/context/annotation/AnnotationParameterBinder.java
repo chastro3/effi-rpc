@@ -25,6 +25,16 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
         this.reader = AssertUtil.notNull(reader, "reader");
     }
 
+    /**
+     * Returns whether the supplied parameter carries the bound annotation.
+     *
+     * @param parameter reflected parameter
+     * @return {@code true} when the annotation is present
+     */
+    public boolean supports(Parameter parameter) {
+        return parameter.isAnnotationPresent(type);
+    }
+
     @Override
     public void bind(Object value, ParameterBinding binding, Invocation invocation) {
         T annotation = binding.parameter().getAnnotation(type);
@@ -41,24 +51,46 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
                 : reader.read(invocation, annotation, binding);
     }
 
-    public boolean supports(Parameter parameter) {
-        return parameter.isAnnotationPresent(type);
-    }
-
     @Override
     public String toString() {
         return "type=" + type.getName();
     }
 
+    /**
+     * Writes one annotated parameter value into an invocation.
+     *
+     * @param <T> annotation type
+     */
     @FunctionalInterface
     public interface Writer<T extends Annotation> {
 
+        /**
+         * Writes one value into the invocation.
+         *
+         * @param value source value
+         * @param annotation parameter annotation
+         * @param binding parameter binding
+         * @param invocation target invocation
+         */
         void write(Object value, T annotation, ParameterBinding binding, Invocation invocation);
     }
 
+    /**
+     * Reads one annotated parameter value from an invocation.
+     *
+     * @param <T> annotation type
+     */
     @FunctionalInterface
     public interface Reader<T extends Annotation> {
 
+        /**
+         * Reads one value from the invocation.
+         *
+         * @param invocation source invocation
+         * @param annotation parameter annotation
+         * @param binding parameter binding
+         * @return parameter value
+         */
         Object read(Invocation invocation, T annotation, ParameterBinding binding);
     }
 }

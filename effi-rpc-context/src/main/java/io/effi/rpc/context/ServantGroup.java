@@ -24,9 +24,6 @@ public interface ServantGroup<T> extends PeerGroup<Servant, T> {
     int indexOf(Servant servant);
 
     /**
-     * Invokes one method on the service implementation.
-     */
-    /**
      * Invokes one servant method and returns its result.
      *
      * @param servant servant to invoke

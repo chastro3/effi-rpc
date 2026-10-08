@@ -18,7 +18,8 @@ public interface AnnotationStyleResolver {
      * Resolves annotations on the class.
      *
      * @param type the class to be parsed
-     * @param config the options
+     * @param options target options
+     * @return updated options
      */
     HierarchicalOptions resolveType(Class<?> type, HierarchicalOptions options);
 
@@ -26,7 +27,7 @@ public interface AnnotationStyleResolver {
      * Resolves annotations on the method.
      *
      * @param method the method to be parsed
-     * @param config the options
+     * @param options target options
      * @return updated options
      */
     HierarchicalOptions resolveMethod(Method method, HierarchicalOptions options);

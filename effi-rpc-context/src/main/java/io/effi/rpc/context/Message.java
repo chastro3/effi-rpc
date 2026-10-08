@@ -3,7 +3,7 @@ package io.effi.rpc.context;
 import io.effi.rpc.config.SmartURL;
 
 /**
- * Represents a message carrying its request URL.
+ * Provides a message carrying its request URL.
  */
 public interface Message extends SmartURL.Supplier {
 

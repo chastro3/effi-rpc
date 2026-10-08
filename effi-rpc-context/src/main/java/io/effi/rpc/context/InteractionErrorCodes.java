@@ -3,6 +3,9 @@ package io.effi.rpc.context;
 import io.effi.rpc.exception.ErrorCode;
 import io.effi.rpc.exception.ErrorCodeAllocator;
 
+/**
+ * Defines error codes raised by RPC interaction processing.
+ */
 public interface InteractionErrorCodes {
 
     ErrorCodeAllocator CONTEXT_ERROR_CODE_ALLOCATOR = new ErrorCodeAllocator("interaction_");

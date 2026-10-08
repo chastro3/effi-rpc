@@ -16,7 +16,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
- * Protocol-facing future for a unary call.
+ * Provides the protocol-facing future for a unary call.
  */
 public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, SmartURL.Supplier {
 
@@ -37,11 +37,25 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
         context.message().url().set(KeyConstant.ATTR_UNIQUE_ID, id);
     }
 
+    /**
+     * Looks up the reply future registered for the supplied URL.
+     *
+     * @param platform owning platform
+     * @param url request URL
+     * @return matching reply future, or {@code null} when absent
+     */
     public static ReplyFuture lookup(ScopedPlatform platform, SmartURL url) {
         if (url == null) return null;
         return lookup(platform, url.get(KeyConstant.ATTR_UNIQUE_ID));
     }
 
+    /**
+     * Looks up the reply future registered for the supplied call identifier.
+     *
+     * @param platform owning platform
+     * @param callId call identifier
+     * @return matching reply future, or {@code null} when absent
+     */
     public static ReplyFuture lookup(ScopedPlatform platform, Long callId) {
         if (platform == null || callId == null) {
             return null;
@@ -54,6 +68,12 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
         return future instanceof ReplyFuture replyFuture ? replyFuture : null;
     }
 
+    /**
+     * Completes this future with the supplied reply context.
+     *
+     * @param replyContext reply context
+     * @return this future
+     */
     public ReplyFuture complete(ReplyContext<Response, Caller<?>> replyContext) {
         if (delegate.completed()) {
             return this;
@@ -68,11 +88,23 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
         return this;
     }
 
+    /**
+     * Fails this future with the supplied cause.
+     *
+     * @param cause failure cause
+     * @return this future
+     */
     public ReplyFuture failure(EffiRpcException cause) {
         delegate.failure(cause);
         return this;
     }
 
+    /**
+     * Registers a cancellation listener.
+     *
+     * @param action cancellation action
+     * @return this future
+     */
     public ReplyFuture onCancel(Consumer<EffiRpcException> action) {
         delegate.onCancel(action);
         return this;
@@ -123,6 +155,9 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
         return context.message().url();
     }
 
+    /**
+     * Returns the failure cause when this future has completed.
+     */
     public EffiRpcException cause() {
         if (!delegate.completed()) {
             return null;
@@ -135,18 +170,32 @@ public class ReplyFuture implements Future<ReplyContext<Response, Caller<?>>>, S
         }
     }
 
+    /**
+     * Returns the call identifier.
+     */
     public long id() {
         return id;
     }
 
+    /**
+     * Returns the call context associated with this future.
+     */
     public CallContext<Request, Caller<?>> context() {
         return context;
     }
 
+    /**
+     * Sets the raw interaction result.
+     *
+     * @param rawResult raw interaction result
+     */
     public void withRawResult(Interaction.Result rawResult) {
         this.rawResult = rawResult;
     }
 
+    /**
+     * Returns the raw interaction result.
+     */
     public Interaction.Result rawResult() {
         return rawResult;
     }

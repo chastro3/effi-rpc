@@ -4,10 +4,13 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.util.Attributes;
 
 /**
- * Represents one caller-side invocation.
+ * Defines one caller-side invocation.
  */
 public interface Invocation extends Attributes.Supplier, ScopedModule.Supplier {
 
+    /**
+     * Returns the ordered invocation arguments.
+     */
     InvocationArguments arguments();
 
     @Override

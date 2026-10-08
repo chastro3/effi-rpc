@@ -3,7 +3,7 @@ package io.effi.rpc.context;
 import io.effi.rpc.context.invocation.Invocation;
 
 /**
- * Creates protocol-specific request and response messages.
+ * Defines protocol-specific request and response message creation.
  * <p>
  * Provides a factory interface for creating RPC messages including
  * requests from caller(s) and responses from servant(s).

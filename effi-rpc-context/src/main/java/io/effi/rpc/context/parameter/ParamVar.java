@@ -16,6 +16,9 @@ public class ParamVar<T> extends Holder<T> implements Argument {
 
     /**
      * Creates a ParamVar instance wrapping a Target object initialized with the provided map.
+     *
+     * @param map source values
+     * @return target parameter variable
      */
     public static ParamVar<Target> target(Map<String, String> map) {
         Target target = new Target();
@@ -26,7 +29,7 @@ public class ParamVar<T> extends Holder<T> implements Argument {
     }
 
     /**
-     * Creates a ParamVar instance wrapping a Source object with no id specified.
+     * Returns a ParamVar wrapping a Source object with no id.
      * If it's a bean object, the value will be fetched from the parameters based on the field id.
      */
     public static ParamVar<Source> source() {
@@ -35,6 +38,9 @@ public class ParamVar<T> extends Holder<T> implements Argument {
 
     /**
      * Creates a ParamVar instance wrapping a Source object initialized with the specified id.
+     *
+     * @param name source name
+     * @return source parameter variable
      */
     public static ParamVar<Source> source(String name) {
         return new ParamVar<>(new Source(name));

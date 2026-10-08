@@ -3,7 +3,7 @@ package io.effi.rpc.context.invocation;
 import io.effi.rpc.util.AssertUtil;
 
 /**
- * Represents a method invocation with signature metadata.
+ * Defines a method invocation with signature metadata.
  */
 public final class MethodInvocation extends PositionalInvocation {
 
@@ -18,6 +18,9 @@ public final class MethodInvocation extends PositionalInvocation {
         this.signature = AssertUtil.notNull(signature, "signature");
     }
 
+    /**
+     * Returns the invoked method signature.
+     */
     public MethodSignature signature() {
         return signature;
     }

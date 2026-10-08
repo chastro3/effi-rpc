@@ -39,12 +39,15 @@ public final class ServantMetrics extends PeerMetrics {
         super(protocol, SERIALIZE_DURATION, DESERIALIZE_DURATION);
     }
 
-    @Override
-    protected void registerSpecific(Metrics metrics) {
-        this.requestCount = metrics.counter(key(REQUEST_COUNT));
-        this.successCount = metrics.counter(key(REQUEST_COUNT).withTag("status", "success"));
-        this.failureCount = metrics.counter(key(REQUEST_COUNT).withTag("status", "failure"));
-        this.responseTimer = metrics.timer(key(REQUEST_DURATION));
+    /**
+     * Returns the servant metrics of the supplied peer, or a shared no-op instance when absent.
+     *
+     * @param servant call servant
+     * @return servant metrics
+     */
+    public static ServantMetrics of(Servant servant) {
+        ServantMetrics metrics = servant == null ? null : servant.get(KEY);
+        return metrics == null ? NOOP : metrics;
     }
 
     /**
@@ -79,14 +82,11 @@ public final class ServantMetrics extends PeerMetrics {
         responseTimer.recordNanos(Math.max(0L, durationNanos));
     }
 
-    /**
-     * Returns the servant metrics of the supplied peer, or a shared no-op instance when absent.
-     *
-     * @param servant call servant
-     * @return servant metrics
-     */
-    public static ServantMetrics of(Servant servant) {
-        ServantMetrics metrics = servant == null ? null : servant.get(KEY);
-        return metrics == null ? NOOP : metrics;
+    @Override
+    protected void registerSpecific(Metrics metrics) {
+        this.requestCount = metrics.counter(key(REQUEST_COUNT));
+        this.successCount = metrics.counter(key(REQUEST_COUNT).withTag("status", "success"));
+        this.failureCount = metrics.counter(key(REQUEST_COUNT).withTag("status", "failure"));
+        this.responseTimer = metrics.timer(key(REQUEST_DURATION));
     }
 }

@@ -12,6 +12,12 @@ import io.effi.rpc.util.ReflectionUtil;
  */
 public record MethodBinder(MethodBinding binding) {
 
+    /**
+     * Binds the supplied values into an invocation.
+     *
+     * @param values positional argument values
+     * @return bound method invocation
+     */
     public MethodInvocation bind(Object[] values) {
         Object[] arguments = values == null ? new Object[0] : values;
         AssertUtil.valid(
@@ -31,6 +37,12 @@ public record MethodBinder(MethodBinding binding) {
         return invocation;
     }
 
+    /**
+     * Resolves positional values from the supplied invocation.
+     *
+     * @param invocation bound invocation
+     * @return resolved argument values
+     */
     public Object[] resolve(Invocation invocation) {
         Object[] arguments = new Object[binding.size()];
         for (int i = 0; i < binding.size(); i++) {

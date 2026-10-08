@@ -28,6 +28,12 @@ public class AnnotationOptionResolver<T extends AnnotatedElement, A extends Anno
         this.kvMappers = kvMappers;
     }
 
+    /**
+     * Resolves the bound annotation and applies its options.
+     *
+     * @param element annotated element
+     * @param options target options
+     */
     public void resolve(T element, Options options) {
         A annotation = element.getAnnotation(this.type);
         if (annotation != null) {

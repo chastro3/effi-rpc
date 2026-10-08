@@ -1,7 +1,7 @@
 package io.effi.rpc.context;
 
 /**
- * Represents RPC requests with reply requirement checking.
+ * Defines an RPC request with reply requirement checking.
  * <p>
  * Extends the basic message interface to include request-specific
  * functionality for determining if a reply is needed.

@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 
 /**
- * Represents an RPC servant that handles remote service invocations.
+ * Defines an RPC servant that handles remote service invocations.
  * <p>
  * Provides the interface for receiving and processing RPC calls,
  * managing remote services, methods, and parameter mapping.

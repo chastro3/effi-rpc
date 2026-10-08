@@ -47,14 +47,15 @@ public final class CallerMetrics extends PeerMetrics {
         super(protocol, SERIALIZE_DURATION, DESERIALIZE_DURATION);
     }
 
-    @Override
-    protected void registerSpecific(Metrics metrics) {
-        this.callCount = metrics.counter(key(CALL_COUNT));
-        this.successCount = metrics.counter(key(CALL_COUNT).withTag("status", "success"));
-        this.failureCount = metrics.counter(key(CALL_COUNT).withTag("status", "failure"));
-        this.retryCount = metrics.counter(key(RETRY_COUNT));
-        this.timeoutCount = metrics.counter(key(TIMEOUT_COUNT));
-        this.callTimer = metrics.timer(key(CALL_DURATION));
+    /**
+     * Returns the caller metrics of the supplied peer, or a shared no-op instance when absent.
+     *
+     * @param caller call caller
+     * @return caller metrics
+     */
+    public static CallerMetrics of(Caller<?> caller) {
+        CallerMetrics metrics = caller == null ? null : caller.get(KEY);
+        return metrics == null ? NOOP : metrics;
     }
 
     /**
@@ -103,14 +104,13 @@ public final class CallerMetrics extends PeerMetrics {
         timeoutCount.increment();
     }
 
-    /**
-     * Returns the caller metrics of the supplied peer, or a shared no-op instance when absent.
-     *
-     * @param caller call caller
-     * @return caller metrics
-     */
-    public static CallerMetrics of(Caller<?> caller) {
-        CallerMetrics metrics = caller == null ? null : caller.get(KEY);
-        return metrics == null ? NOOP : metrics;
+    @Override
+    protected void registerSpecific(Metrics metrics) {
+        this.callCount = metrics.counter(key(CALL_COUNT));
+        this.successCount = metrics.counter(key(CALL_COUNT).withTag("status", "success"));
+        this.failureCount = metrics.counter(key(CALL_COUNT).withTag("status", "failure"));
+        this.retryCount = metrics.counter(key(RETRY_COUNT));
+        this.timeoutCount = metrics.counter(key(TIMEOUT_COUNT));
+        this.callTimer = metrics.timer(key(CALL_DURATION));
     }
 }

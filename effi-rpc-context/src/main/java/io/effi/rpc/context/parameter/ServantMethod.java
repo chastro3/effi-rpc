@@ -8,7 +8,14 @@ import java.lang.reflect.Method;
 /**
  * Maps methods to remote service calls.
  */
-public record ServantMethod<T>(ServantGroup<T> group, Method method, MethodBinding binding) {
+public record ServantMethod<T>(
+        /** Owning servant group. */
+        ServantGroup<T> group,
+        /** Target method. */
+        Method method,
+        /** Method binding. */
+        MethodBinding binding
+) {
 
     public ServantMethod(ServantGroup<T> group, Method method, MethodBinding binding) {
         this.group = AssertUtil.notNull(group, "group");

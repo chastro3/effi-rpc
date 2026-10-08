@@ -34,6 +34,9 @@ public class AnnotationCalleeBuilder<S> {
 
     /**
      * Sets the style for method annotation parsing.
+     *
+     * @param style annotation style name
+     * @return this builder
      */
     public AnnotationCalleeBuilder<S> useStyle(String style) {
         this.style = style;

@@ -10,7 +10,7 @@ import io.effi.rpc.concurrent.Future;
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.MODULE;
 
 /**
- * Represents an RPC caller that initiates remote service invocations.
+ * Defines an RPC caller that initiates remote service invocations.
  * <p>
  * Provides the interface for making asynchronous and synchronous RPC calls,
  * managing client configurations, interceptors, and reply handling mechanisms.

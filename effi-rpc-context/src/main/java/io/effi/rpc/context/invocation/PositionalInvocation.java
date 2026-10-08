@@ -3,7 +3,7 @@ package io.effi.rpc.context.invocation;
 import io.effi.rpc.util.AssertUtil;
 
 /**
- * Represents a direct invocation without method signature metadata.
+ * Defines a direct invocation without method signature metadata.
  */
 public class PositionalInvocation implements Invocation {
 

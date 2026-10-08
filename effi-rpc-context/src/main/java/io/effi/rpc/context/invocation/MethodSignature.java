@@ -9,6 +9,12 @@ import java.util.stream.Collectors;
  */
 public record MethodSignature(String name, Class<?>[] parameterTypes) {
 
+    /**
+     * Creates a signature from the supplied method.
+     *
+     * @param method reflected method
+     * @return method signature
+     */
     public static MethodSignature of(Method method) {
         return new MethodSignature(method.getName(), method.getParameterTypes());
     }
