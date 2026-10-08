@@ -1,7 +1,7 @@
 package demo.consumer;
 
 import demo.consumer.model.ParentObject;
-import io.effi.rpc.boot.AnnotationCallerGroup;
+import io.effi.rpc.core.AnnotationCallerGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.CertificateConfig;

@@ -14,7 +14,7 @@ modules {
     module("effi-rpc-processor", { it.enablePublish() })
     module("effi-rpc-component", { it.enablePublish().enableProcessor() })
     module("effi-rpc-context", { it.enablePublish().enableProcessor() })
-    module("effi-rpc-boot", { it.enablePublish().enableProcessor() })
+    module("effi-rpc-core", { it.enablePublish().enableProcessor() })
     module("effi-rpc-governance", { it.enablePublish().enableProcessor() })
     module("effi-rpc-proxy", { it.enablePublish().enableProcessor() })
     module("effi-rpc-marshalling", { it.enablePublish().enableProcessor() })

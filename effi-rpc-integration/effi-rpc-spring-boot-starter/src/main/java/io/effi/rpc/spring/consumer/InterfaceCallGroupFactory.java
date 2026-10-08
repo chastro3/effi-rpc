@@ -1,6 +1,6 @@
 package io.effi.rpc.spring.consumer;
 
-import io.effi.rpc.boot.InterfaceCallerGroup;
+import io.effi.rpc.core.InterfaceCallerGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.options.CallerOptions;
 import io.effi.rpc.option.HierarchicalOptions;

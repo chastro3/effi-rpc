@@ -1,8 +1,7 @@
 package io.effi.rpc.protocol.http;
 
 import io.effi.rpc.context.Caller;
-import io.effi.rpc.context.Peer;
-import io.effi.rpc.context.support.AbstractCaller;
+import io.effi.rpc.core.AbstractCaller;
 import io.effi.rpc.protocol.http.support.HttpHeaders;
 import io.effi.rpc.serialization.json.JacksonSerializer;
 import io.effi.rpc.util.AssertUtil;
@@ -10,7 +9,6 @@ import io.effi.rpc.util.StringUtil;
 import io.effi.rpc.util.TypeCapture;
 import io.netty.handler.codec.http.HttpMethod;
 import io.effi.rpc.component.serialization.options.SerializationOptions;
-import io.effi.rpc.protocol.http.HttpOptions;
 
 /**
  * Provides a standard http implementation of {@link Caller}.

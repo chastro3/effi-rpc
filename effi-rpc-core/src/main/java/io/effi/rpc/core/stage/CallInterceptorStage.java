@@ -1,0 +1,29 @@
+package io.effi.rpc.core.stage;
+
+import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Interaction;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Request;
+import io.effi.rpc.context.Stage;
+
+import static io.effi.rpc.core.stage.CallInterceptorStage.NAME;
+
+/**
+ * Handles the call interceptor chain during the call phase.
+ *
+ * @see io.effi.rpc.context.Interceptor.CallUnit
+ */
+@Extension(NAME)
+public class CallInterceptorStage implements Stage.CallUnit<Request, Peer> {
+
+    public static final String NAME = "callInterceptorStage";
+
+    @Override
+    public Interaction.Result process(CallContext<Request, Peer> context, Chain chain) {
+        return context.peer()
+                .callInterceptorChain()
+                .proceed(context);
+    }
+
+}

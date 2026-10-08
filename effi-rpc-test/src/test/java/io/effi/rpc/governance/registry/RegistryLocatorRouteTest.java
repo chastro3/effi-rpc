@@ -47,7 +47,7 @@ class RegistryLocatorRouteTest {
                     (ServiceDiscovery) (serviceName, context, configs) -> List.of(instance));
             application.registry().register(Router.class, Constant.DEFAULT_NAME,
                     (Router) (context, instances) -> List.of());
-            RegistryLocator locator = RegistryLocator.cached(platform, "test-service", consulConfig());
+            io.effi.rpc.core.RegistryLocator locator = io.effi.rpc.core.RegistryLocator.cached(platform, "test-service", consulConfig());
 
             EffiRpcException failure = assertThrows(EffiRpcException.class,
                     () -> locator.locate(context(module)));

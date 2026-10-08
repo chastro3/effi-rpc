@@ -2,6 +2,7 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.annotation.component.Extensible;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.option.Options;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
@@ -11,5 +12,5 @@ import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 @Extensible(scope = PLATFORM)
 public interface LocatorResolver {
 
-    Locator resolve(PeerDescriptor descriptor, ScopedPlatform platform);
+    Locator resolve(Options options, ScopedPlatform platform);
 }

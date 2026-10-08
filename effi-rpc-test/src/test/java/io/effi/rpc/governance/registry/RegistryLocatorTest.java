@@ -25,16 +25,16 @@ class RegistryLocatorTest {
         RegistryConfig config = consulConfig();
 
         assertSame(
-                RegistryLocator.cached(platform, "hello", config),
-                RegistryLocator.cached(platform, "hello", config)
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", config),
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", config)
         );
         assertNotSame(
-                RegistryLocator.cached(platform, "hello", config),
-                RegistryLocator.cached(platform, "other", config)
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", config),
+                io.effi.rpc.core.RegistryLocator.cached(platform, "other", config)
         );
         assertNotSame(
-                RegistryLocator.cached(platform, "hello", config),
-                RegistryLocator.cached(new ScopedPlatform("registry-locator-other-platform"), "hello", config)
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", config),
+                io.effi.rpc.core.RegistryLocator.cached(new ScopedPlatform("registry-locator-other-platform"), "hello", config)
         );
     }
 
@@ -42,11 +42,11 @@ class RegistryLocatorTest {
     void evictsCachedLocatorWhenPlatformCloses() {
         ScopedPlatform platform = new ScopedPlatform("registry-locator-close-platform");
         RegistryConfig config = consulConfig();
-        RegistryLocator first = RegistryLocator.cached(platform, "hello", config);
+        io.effi.rpc.core.RegistryLocator first = io.effi.rpc.core.RegistryLocator.cached(platform, "hello", config);
 
         platform.close();
 
-        assertNotSame(first, RegistryLocator.cached(platform, "hello", config));
+        assertNotSame(first, io.effi.rpc.core.RegistryLocator.cached(platform, "hello", config));
     }
 
     @Test
@@ -56,12 +56,12 @@ class RegistryLocatorTest {
         RegistryConfig second = consulConfig("second");
 
         assertSame(
-                RegistryLocator.cached(platform, "hello", first, second),
-                RegistryLocator.cached(platform, "hello", second, first)
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", first, second),
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", second, first)
         );
         assertSame(
-                RegistryLocator.cached(platform, "hello", consulConfig("first")),
-                RegistryLocator.cached(platform, "hello", consulConfig("first"))
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", consulConfig("first")),
+                io.effi.rpc.core.RegistryLocator.cached(platform, "hello", consulConfig("first"))
         );
     }
 
@@ -79,7 +79,7 @@ class RegistryLocatorTest {
             public void clear() {
             }
         });
-        RegistryLocator locator = RegistryLocator.cached(platform, "hello", consulConfig());
+        io.effi.rpc.core.RegistryLocator locator = io.effi.rpc.core.RegistryLocator.cached(platform, "hello", consulConfig());
 
         locator.preloadDiscoveries();
         locator.preloadDiscoveries();

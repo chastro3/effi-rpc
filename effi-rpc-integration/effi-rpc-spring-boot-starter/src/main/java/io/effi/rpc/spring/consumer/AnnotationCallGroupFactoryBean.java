@@ -1,6 +1,6 @@
 package io.effi.rpc.spring.consumer;
 
-import io.effi.rpc.boot.AnnotationCallerGroup;
+import io.effi.rpc.core.AnnotationCallerGroup;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.spring.autoconfigure.EffiRpcProperties;

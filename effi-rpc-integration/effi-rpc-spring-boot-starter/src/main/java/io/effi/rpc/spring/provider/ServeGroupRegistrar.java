@@ -1,8 +1,8 @@
 package io.effi.rpc.spring.provider;
 
 import io.effi.rpc.annotation.rpc.ServeGroup;
-import io.effi.rpc.boot.AnnotationSupport;
-import io.effi.rpc.boot.InterfaceServantGroup;
+import io.effi.rpc.core.AnnotationSupport;
+import io.effi.rpc.core.InterfaceServantGroup;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.serialization.options.CompressionOptions;

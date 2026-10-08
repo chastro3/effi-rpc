@@ -5,16 +5,10 @@ import java.util.Arrays;
 /**
  * Stores ordered invocation arguments.
  */
-public final class InvocationArguments {
-
-    private final Object[] values;
+public record InvocationArguments(Object[] values) {
 
     public InvocationArguments(int size) {
-        this.values = new Object[size];
-    }
-
-    public InvocationArguments(Object[] values) {
-        this.values = values;
+        this(new Object[size]);
     }
 
     /**
@@ -25,6 +19,7 @@ public final class InvocationArguments {
      *
      * @return mutable backing array
      */
+    @Override
     public Object[] values() {
         return values;
     }

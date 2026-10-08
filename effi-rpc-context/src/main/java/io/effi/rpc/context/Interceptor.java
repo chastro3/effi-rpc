@@ -71,7 +71,7 @@ public interface Interceptor<M extends Message, P extends Peer, C extends Intera
      * <p>
      * For the client, invoked after a successful response is decoded and before returning it to the
      * caller; failed attempts carry no decoded reply and never reach this unit, they are owned by
-     * {@link io.effi.rpc.context.support.Unary.FailureHandler} instead.<br>
+     * the configured failure handler instead.<br>
      * For the server, invoked after processing the request and before sending the response, for both
      * succeeded and failed invocation results.
      *

@@ -3,7 +3,7 @@ package demo.consumer;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.context.parameter.Header;
-import io.effi.rpc.governance.registry.RegistryLocator;
+import io.effi.rpc.core.RegistryLocator;
 import io.effi.rpc.protocol.http.h2.Http2Caller;
 import io.effi.rpc.concurrent.Future;
 import io.effi.rpc.util.TypeCapture;

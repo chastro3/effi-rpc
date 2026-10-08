@@ -1,10 +1,10 @@
 package io.effi.rpc.test;
 
-import io.effi.rpc.boot.AnnotationCallerGroup;
-import io.effi.rpc.boot.AnnotationServantGroup;
-import io.effi.rpc.boot.ApplicationServiceRegistrar;
-import io.effi.rpc.boot.DefaultServantGroup;
-import io.effi.rpc.boot.ServerLauncher;
+import io.effi.rpc.core.AnnotationCallerGroup;
+import io.effi.rpc.core.AnnotationServantGroup;
+import io.effi.rpc.core.ApplicationServiceRegistrar;
+import io.effi.rpc.core.DefaultServantGroup;
+import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;

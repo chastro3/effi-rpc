@@ -75,7 +75,7 @@ effi-rpc-transport-netty
 
 effi-rpc-transport-api + effi-rpc-governance + effi-rpc-proxy
   ^
-effi-rpc-boot
+effi-rpc-core
   ^
 effi-rpc-protocols:effi-rpc-http
   ^
@@ -292,7 +292,7 @@ proxy / caller proxy
 
 RPC 调用语义核心，位于 component 之上、boot 和具体 protocol 之下。
 本模块定义协议无关的抽象和默认支撑实现，实际 HTTP/gRPC 行为仍以
-`effi-rpc-boot` 与 `effi-rpc-protocols` 的实现为准。
+`effi-rpc-core` 与 `effi-rpc-protocols` 的实现为准。
 
 **静态模型**
 
@@ -453,7 +453,7 @@ ReplyInterceptorStage
 - `context` 只定义契约和默认执行语义；HTTP/gRPC 的 message、codec、
   transport 绑定必须回到对应 protocol 模块核对。
 
-### 5.6 `effi-rpc-boot`
+### 5.6 `effi-rpc-core`
 
 默认启动、默认实现和注解驱动的组装层。
 

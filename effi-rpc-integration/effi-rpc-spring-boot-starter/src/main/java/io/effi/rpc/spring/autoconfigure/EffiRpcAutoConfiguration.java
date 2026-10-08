@@ -2,7 +2,7 @@ package io.effi.rpc.spring.autoconfigure;
 
 import io.effi.rpc.annotation.rpc.CallGroup;
 import io.effi.rpc.annotation.rpc.ServeGroup;
-import io.effi.rpc.boot.EffiRpcBootstrap;
+import io.effi.rpc.core.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;

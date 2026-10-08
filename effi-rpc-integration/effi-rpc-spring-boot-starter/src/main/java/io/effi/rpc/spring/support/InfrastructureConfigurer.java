@@ -1,6 +1,6 @@
 package io.effi.rpc.spring.support;
 
-import io.effi.rpc.boot.ServerLauncher;
+import io.effi.rpc.core.ServerLauncher;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;

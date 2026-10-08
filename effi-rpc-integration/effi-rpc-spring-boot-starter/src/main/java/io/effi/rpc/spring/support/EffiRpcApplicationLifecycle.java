@@ -1,6 +1,6 @@
 package io.effi.rpc.spring.support;
 
-import io.effi.rpc.boot.EffiRpcBootstrap;
+import io.effi.rpc.core.EffiRpcBootstrap;
 import io.effi.rpc.concurrent.Deadline;
 import io.effi.rpc.concurrent.Result;
 import org.springframework.context.SmartLifecycle;

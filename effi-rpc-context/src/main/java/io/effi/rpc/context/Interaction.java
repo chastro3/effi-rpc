@@ -2,7 +2,6 @@ package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.config.SmartURL;
-import io.effi.rpc.context.support.DefaultInteractionResult;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.util.AbstractAttributes;
 

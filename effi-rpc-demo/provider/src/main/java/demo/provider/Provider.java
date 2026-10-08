@@ -1,6 +1,6 @@
 package demo.provider;
 
-import io.effi.rpc.boot.EffiRpcBootstrap;
+import io.effi.rpc.core.EffiRpcBootstrap;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.registry.DefaultRegistryConfig;
 import io.effi.rpc.component.transport.CertificateConfig;

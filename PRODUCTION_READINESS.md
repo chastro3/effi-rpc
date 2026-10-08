@@ -111,7 +111,7 @@ Remaining integration acceptance:
 Location:
 
 - `effi-rpc-context/src/main/java/io/effi/rpc/context/ReplyFuture.java`
-- `effi-rpc-boot/src/main/java/io/effi/rpc/boot/confiurator/stage/FutureResultStage.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/confiurator/stage/FutureResultStage.java`
 - `effi-rpc-protocols/effi-rpc-http/src/main/java/io/effi/rpc/protocol/http/FutureBinder.java`
 - `effi-rpc-protocols/effi-rpc-http/src/main/java/io/effi/rpc/protocol/http/h1/Http1ClientHandler.java`
 - `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/NettyChannel.java`
@@ -212,9 +212,9 @@ Acceptance tests:
 
 Location:
 
-- `effi-rpc-boot/src/main/java/io/effi/rpc/boot/InitializedConfiguration.java`
-- `effi-rpc-boot/src/main/java/io/effi/rpc/boot/ApplicationServiceRegistrar.java`
-- `effi-rpc-boot/src/main/java/io/effi/rpc/boot/EffiRpcBootstrap.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/InitializedConfiguration.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/ApplicationServiceRegistrar.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/EffiRpcBootstrap.java`
 
 Problem:
 
@@ -447,7 +447,7 @@ Acceptance tests:
 
 Location:
 
-- `effi-rpc-boot/src/main/java/io/effi/rpc/boot/confiurator/DefaultThreadPoolConfigurator.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/confiurator/DefaultThreadPoolConfigurator.java`
 - `effi-rpc-common/src/main/java/io/effi/rpc/executor/RpcThreadPool.java`
 - `effi-rpc-common/src/main/java/io/effi/rpc/concurrent/AbstractFuture.java`
 - `effi-rpc-component/src/main/java/io/effi/rpc/component/ScopedContext.java`
