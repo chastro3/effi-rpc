@@ -2,7 +2,7 @@ plugins {
     base
 }
 
-description = "Root build for the Effi RPC multi-module project."
+description = "Multi-module RPC framework."
 
 allprojects {
     group = "cc.uniplat"

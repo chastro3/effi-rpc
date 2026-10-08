@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-description = "Spring Boot auto-configuration for Effi RPC."
+description = "Spring Boot auto-configuration."
 
 dependencies {
     api(project(":effi-rpc-protocols:effi-rpc-http"))

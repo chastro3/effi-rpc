@@ -2,7 +2,7 @@ plugins {
     `kotlin-dsl`
 }
 
-description = "Gradle build logic for Effi RPC."
+description = "Gradle build logic and publishing conventions."
 
 repositories {
     defaultRepositories()

@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-description = "Shared service contracts for Effi RPC demos."
+description = "Shared service contracts for RPC demos."
 
 dependencies {
     implementation(platform(project(":effi-rpc-bom")))

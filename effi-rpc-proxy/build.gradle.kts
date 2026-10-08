@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Interface and object proxy generation for Effi RPC."
+description = "Interface and object proxy generation."
 dependencies {
     api(project(":effi-rpc-annotation"))
     compileOnly("org.springframework:spring-core")

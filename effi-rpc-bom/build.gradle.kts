@@ -1,7 +1,7 @@
 plugins {
     id("java-platform")
 }
-description = "Dependency version alignment for Effi RPC."
+description = "Dependency version alignment."
 
 val jspecifyVersion = "1.0.1"
 val jetbrainsVersion = "26.1.0"

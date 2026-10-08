@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Common primitives, utilities, and constants for Effi RPC."
+description = "Common primitives, utilities, and constants."
 dependencies {
     api(platform(project(":effi-rpc-bom")))
     api("org.jspecify:jspecify")

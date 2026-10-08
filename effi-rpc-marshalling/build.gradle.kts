@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
 }
-description = "Serialization and compression support for Effi RPC."
+description = "Serialization and compression support."
 dependencies {
     api(project(":effi-rpc-component"))
     // serialization

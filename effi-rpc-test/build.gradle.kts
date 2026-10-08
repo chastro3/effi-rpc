@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-description = "Integration tests and benchmarks for Effi RPC."
+description = "Integration tests and benchmarks."
 
 dependencies {
     implementation(project(":effi-rpc-protocols:effi-rpc-http"))

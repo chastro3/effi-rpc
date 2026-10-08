@@ -4,7 +4,7 @@ plugins {
     id("application")
 }
 
-description = "Consumer application for Effi RPC demos."
+description = "RPC demo consumer application."
 
 dependencies {
     implementation(project(":effi-rpc-demo:api"))
