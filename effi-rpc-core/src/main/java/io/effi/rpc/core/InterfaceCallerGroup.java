@@ -3,7 +3,6 @@ package io.effi.rpc.core;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.parameter.MethodBinding;
-import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
@@ -70,7 +69,7 @@ public final class InterfaceCallerGroup<T> extends AbstractCallerGroup<T> {
                 ScopedModule methodModule = resolveModule(methodOptions);
                 TransportProtocol protocol = protocol(methodModule);
                 ReturnType returnType = returnType(method);
-                MethodBinding binding = MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
+                MethodBinding binding = MethodBinding.positional(method);
                 Caller<?> caller = protocol.createCaller(returnType.typeCapture(), methodOptions, methodModule);
                 group.registerMethodCaller(method, caller, returnType.rpcType(), binding);
             }

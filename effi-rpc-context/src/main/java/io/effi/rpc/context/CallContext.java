@@ -1,6 +1,8 @@
 package io.effi.rpc.context;
 
 import io.effi.rpc.component.ScopedModule;
+import io.effi.rpc.util.AssertUtil;
+import io.effi.rpc.util.AssertUtil;
 
 /**
  * Provides contextual data for an RPC call.
@@ -17,15 +19,14 @@ public class CallContext<R extends Request, P extends Peer> extends Interaction.
 
     public CallContext(ScopedModule module, R request, P peer, Interaction.Mode<?> mode, Object[] args) {
         super(module, request, peer, mode);
-        this.args = args;
+        this.args = AssertUtil.notNull(args, "args");
     }
 
     /**
-     * Returns the positional arguments shared by this call execution.
+     * Returns the final invocation arguments shared by this call execution.
      * <p>
-     * The array is intentionally mutable so call interceptors can adjust positional
-     * arguments before the protocol creates the request; callers must not replace the
-     * array reference.
+     * The array is intentionally mutable so call interceptors can adjust arguments;
+     * callers must not replace the array reference.
      */
     public Object[] args() {
         return args;

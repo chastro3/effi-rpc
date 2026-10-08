@@ -123,7 +123,13 @@ class WeightedLoadBalancerTest {
                     return defaultValue(method.getReturnType());
                 }
         );
-        return new CallContext<>(null, request, (Caller) caller, null, new Object[0]);
+        return new CallContext<>(
+                null,
+                request,
+                (Caller) caller,
+                null,
+                new Object[0]
+        );
     }
 
     private static ServiceInstance instance(String id, String weight) {

@@ -25,7 +25,13 @@ class PeerMetricsTest {
         CallerMetrics metrics = new CallerMetrics("test");
         registry.register(metrics);
 
-        CallContext<Request, Caller<?>> context = new CallContext<>(null, null, null, null, new Object[0]);
+        CallContext<Request, Caller<?>> context = new CallContext<>(
+                null,
+                null,
+                null,
+                null,
+                new Object[0]
+        );
         metrics.beginCall(context);
         metrics.recordCall(context, true);
 
@@ -40,7 +46,13 @@ class PeerMetricsTest {
         ServantMetrics metrics = new ServantMetrics("test");
         registry.register(metrics);
 
-        CallContext<Request, Servant> context = new CallContext<>(null, null, null, null, new Object[0]);
+        CallContext<Request, Servant> context = new CallContext<>(
+                null,
+                null,
+                null,
+                null,
+                new Object[0]
+        );
         metrics.beginRequest(context);
         metrics.recordRequest(context, false);
 

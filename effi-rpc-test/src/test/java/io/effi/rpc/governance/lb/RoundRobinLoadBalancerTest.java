@@ -49,7 +49,13 @@ class RoundRobinLoadBalancerTest {
                     return defaultValue(method.getReturnType());
                 }
         );
-        return new CallContext<>(null, null, (Caller) caller, null, new Object[0]);
+        return new CallContext<>(
+                null,
+                null,
+                (Caller) caller,
+                null,
+                new Object[0]
+        );
     }
 
     private static ServiceInstance instance(String id) {

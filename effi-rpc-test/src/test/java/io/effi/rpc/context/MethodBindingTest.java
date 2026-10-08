@@ -6,7 +6,6 @@ import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.ParameterBinder;
 import io.effi.rpc.context.parameter.ParameterBinding;
-import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.util.GenericKey;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,7 @@ class MethodBindingTest {
     @Test
     void positionalBindingKeepsMethodSignatureAndArgumentsInArrays() throws Exception {
         Method method = Sample.class.getMethod("hello", String.class, int.class);
-        MethodBinding binding = MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
+        MethodBinding binding = MethodBinding.positional(method);
 
         assertArrayEquals(method.getParameterTypes(), binding.signature().parameterTypes());
         assertEquals(2, binding.parameters().length);
@@ -41,13 +40,13 @@ class MethodBindingTest {
         GenericKey<Object> key = GenericKey.valueOf("test.named");
         ParameterBinder namedBinder = new ParameterBinder() {
             @Override
-            public void bind(Object value, ParameterBinding binding, Invocation invocation) {
+            public void write(Object value, ParameterBinding binding, Invocation invocation) {
                 invocation.set(key, value);
             }
 
             @Override
-            public Object resolve(ParameterBinding binding, Invocation invocation) {
-                return invocation.get(key);
+            public Object resolve(ParameterBinding binding, Request request, Peer peer) {
+                return null;
             }
         };
         MethodBinding binding = MethodBinding.of(method, new ParameterBinding[]{
@@ -58,7 +57,7 @@ class MethodBindingTest {
         MethodInvocation invocation = binder.bind(new Object[]{"tom"});
 
         assertTrue(invocation.arguments().isEmpty());
-        assertArrayEquals(new Object[]{"tom"}, binder.resolve(invocation));
+        assertEquals("tom", invocation.get(key));
     }
 
     private interface Sample {

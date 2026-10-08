@@ -181,7 +181,7 @@ proxy / caller proxy
 - Message：InputMessage / OutputMessage。
 - Codec：Encoder / Decoder / ClientExchangeContextCodec / ServerExchangeContextCodec。
 - TransportProtocol / ProtocolStack。
-- InvocationResolver / ClientResponseHandler / ServerRequestHandler。
+- CallContextResolver / ClientResponseHandler / ServerRequestHandler。
 
 `transport-netty` 提供：
 
@@ -307,7 +307,8 @@ RPC 调用语义核心，位于 component 之上、boot 和具体 protocol 之�
   `PeerFactory + MessageFactory`。
 - `Message / Request / Response` 表达协议消息边界：
   Request 决定是否需要回复，Response 暴露成功状态和失败原因。
-- `CallContext` 发生在请求发送前或服务端方法调用前；
+- `CallContext` 发生在请求发送前或服务端方法调用前，持有协议 `Request`、`Peer`、
+  `Mode`、最终 `Object[] args` 和执行属性。它不再持有 `Invocation`。
   `ReplyContext` 发生在收到响应后或服务端发送响应前。
 
 **构建与解析**
@@ -339,18 +340,19 @@ validate
 - `InvocationArguments` 是有序参数数组；
   `InvocationAttributes` 存放协议无关或协议私有的附加属性。
 - `MethodBinding` 表示一个方法的全部参数绑定，
-  `positional=true` 时使用数组位置，否则通过 invocation attributes 绑定。
-- `PositionParameterBinder` 只处理位置参数；
-  `AnnotationParameterBinder` 通过注解的 `Writer / Reader` 做双向绑定。
-- `MethodBinder.bind()` 校验参数数量并生成 `MethodInvocation`；
-  `MethodBinder.resolve()` 按 `ParameterBinding` 逐项取值并调用
-  `ReflectionUtil.convertToParameterType()` 做参数类型转换。
+  `positional=true` 时由协议层解码请求值，否则通过 `ParameterResolver.resolve` 绑定。
+- `ParameterWriter` 负责客户端写入，`ParameterResolver` 负责服务端解析，
+  `ParameterBinder` 组合两者；`AnnotationParameterBinder` 通过注解的 `Writer / Reader`
+  适配注解参数。
+- `MethodBinder.bind()` 校验参数数量并生成客户端 `MethodInvocation`；
+  服务端 `MethodBinder.resolve()` 从 `Request + Peer` 解析命名参数，
+  `resolvePositional()` 处理协议层已解码的位置参数，最终返回 `Object[]`。
 - `Body / Header / PathVar / ParamVar` 以及 `Argument.Source / Target`
   是参数来源和目标注入的中间模型。
 
 **调用链**
 
-默认调用方链由 boot 的 `DefaultStageChainResolver` 组装：
+默认调用方链由 core 的 `DefaultStageChainResolver` 组装：
 
 ```text
 CallInterceptorStage
@@ -363,7 +365,8 @@ CallInterceptorStage
 实际执行时：
 
 1. `CallExecution.execute()` 启动一次逻辑调用；
-2. 创建 `CallContext`，由 `Protocol.createRequest()` 创建协议请求；
+2. `Protocol.createRequest()` 先把 `Invocation` 转成协议 `Request`，再创建
+   持有 `Request + Object[] args` 的 `CallContext`；
 3. `CallInterceptorStage` 执行 `callInterceptorChain`；
 4. 拦截器链尾部的 `StageInterceptor` 继续执行下一 stage；
 5. `LocatorStage` 调用 `Caller.locator().locate(context)` 并写入目标地址；
@@ -374,8 +377,8 @@ CallInterceptorStage
 
 **服务端链**
 
-服务端由具体 protocol 的 invocation resolver 把协议消息转换为
-`PositionalInvocation`，然后执行：
+服务端由具体 protocol 的 `CallContextResolver` 先把协议消息解析成最终参数，
+再构造持有 `Request + Object[] args` 的 `CallContext`，然后执行：
 
 ```text
 CallInterceptorStage

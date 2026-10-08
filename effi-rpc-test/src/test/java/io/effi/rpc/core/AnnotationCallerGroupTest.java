@@ -7,7 +7,6 @@ import io.effi.rpc.context.invocation.MethodInvocation;
 import io.effi.rpc.context.invocation.PositionalInvocation;
 import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.context.parameter.MethodBinder;
-import io.effi.rpc.context.parameter.PositionParameterBinder;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -37,7 +36,7 @@ class AnnotationCallerGroupTest {
     @Test
     void argumentWithoutWrapperIsPassedThrough() throws NoSuchMethodException {
         Method method = SampleClient.class.getDeclaredMethod("call", String.class);
-        MethodBinding binding = MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
+        MethodBinding binding = MethodBinding.positional(method);
         MethodInvocation invocation = new MethodBinder(binding).bind(new Object[]{"value"});
 
         assertSame("value", invocation.arguments().get(0));

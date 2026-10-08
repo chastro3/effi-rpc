@@ -6,7 +6,6 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.context.annotation.AnnotationStyle;
 import io.effi.rpc.context.annotation.AnnotationStyleResolver;
 import io.effi.rpc.context.parameter.MethodBinding;
-import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.context.parameter.ServantMethod;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
@@ -126,7 +125,7 @@ public final class AnnotationServantGroup<T> extends DefaultServantGroup<T> {
                 resolver.resolveMethod(method, options);
                 return binding;
             }
-            return MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
+            return MethodBinding.positional(method);
         }
     }
 }

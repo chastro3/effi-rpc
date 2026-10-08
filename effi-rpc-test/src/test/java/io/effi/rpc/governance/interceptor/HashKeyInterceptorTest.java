@@ -48,7 +48,13 @@ class HashKeyInterceptorTest {
                     return defaultValue(method.getReturnType());
                 }
         );
-        return new CallContext<>(null, null, (Caller) caller, null, args);
+        return new CallContext<>(
+                null,
+                null,
+                (Caller) caller,
+                null,
+                args
+        );
     }
 
     private static Interceptor.Chain chain() {

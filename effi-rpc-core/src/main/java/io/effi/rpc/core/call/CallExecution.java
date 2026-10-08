@@ -91,11 +91,9 @@ public final class CallExecution<R> {
         if (cancelled.get() || completion.completed() || cancelIfExpired()) {
             return;
         }
-
         CallContext<Request, Caller<?>> context = newContext();
         attemptContext = context;
         CallerMetrics.of(caller).beginCall(context);
-
         ReplyFuture attempt;
         try {
             attempt = invoke(context);
@@ -130,7 +128,6 @@ public final class CallExecution<R> {
             onFailed(context, outcome.cause());
             return;
         }
-
         Interaction.Result result = attempt.rawResult();
         if (result == null) {
             metrics.recordCall(context, false);
@@ -148,7 +145,6 @@ public final class CallExecution<R> {
         if (cancelled.get() || completion.completed() || cancelIfExpired()) {
             return;
         }
-
         int failures = failureCount.incrementAndGet();
         try {
             failureHandler.handle(context, failures, cause);
@@ -250,7 +246,13 @@ public final class CallExecution<R> {
 
     private CallContext<Request, Caller<?>> newContext() {
         Request request = caller.protocol().createRequest(caller, invocation);
-        return new CallContext<>(caller.module(), request, caller, Unary.MODE, invocation.arguments().values());
+        return new CallContext<>(
+                caller.module(),
+                request,
+                caller,
+                Unary.MODE,
+                invocation.arguments().values()
+        );
     }
 
     private Deadline resolveDeadline() {

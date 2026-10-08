@@ -1,5 +1,7 @@
 package io.effi.rpc.protocol.http.arg.binder;
 
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.parameter.ParameterBinder;
 import io.effi.rpc.context.parameter.ParameterBinding;
@@ -21,16 +23,16 @@ public final class HttpBodyParameterBinder implements ParameterBinder {
     }
 
     @Override
-    public void bind(Object value, ParameterBinding binding, Invocation invocation) {
+    public void write(Object value, ParameterBinding binding, Invocation invocation) {
         invocation.set(HttpInvocationKeys.BODY, value);
     }
 
     @Override
-    public Object resolve(ParameterBinding binding, Invocation invocation) {
-        HttpDuplexRequest httpRequest = (HttpDuplexRequest) invocation.get(HttpInvocationKeys.REQUEST);
+    public Object resolve(ParameterBinding binding, Request request, Peer peer) {
+        HttpDuplexRequest httpRequest = (HttpDuplexRequest) request;
         try {
             return HttpUtil.decodeBody(
-                    invocation.module().platform(),
+                    peer.platform(),
                     httpRequest,
                     httpRequest.inputStream(),
                     binding.parameter().getParameterizedType()

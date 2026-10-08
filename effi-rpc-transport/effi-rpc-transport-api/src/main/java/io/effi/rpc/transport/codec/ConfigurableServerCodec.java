@@ -5,9 +5,7 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Servant;
-import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.metrics.ServantMetrics;
-import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.transport.TransportErrorCodes;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
@@ -23,7 +21,7 @@ public class ConfigurableServerCodec<RESP extends Response, REQ extends Request>
 
     private Decoder<REQ, Servant> decoder;
 
-    private InvocationResolver invocationResolver;
+    private CallContextResolver callContextResolver;
 
     /**
      * Sets the response encoder.
@@ -50,13 +48,13 @@ public class ConfigurableServerCodec<RESP extends Response, REQ extends Request>
     }
 
     /**
-     * Sets the invocation resolver.
+     * Sets the call context resolver.
      *
-     * @param invocationResolver invocation resolver
+     * @param callContextResolver call context resolver
      * @return this codec
      */
-    public ConfigurableServerCodec<RESP, REQ> invocationResolver(InvocationResolver invocationResolver) {
-        this.invocationResolver = invocationResolver;
+    public ConfigurableServerCodec<RESP, REQ> callContextResolver(CallContextResolver callContextResolver) {
+        this.callContextResolver = callContextResolver;
         return this;
     }
 
@@ -91,10 +89,7 @@ public class ConfigurableServerCodec<RESP extends Response, REQ extends Request>
         long startTime = System.nanoTime();
         try {
             REQ request = decoder.decode(inputMessage, servant);
-            MethodBinder methodBinder = servant.methodBinder();
-            Invocation invocation = invocationResolver.resolve(request, servant);
-            Object[] args = methodBinder.resolve(invocation);
-            CallContext<Request, Servant> context = new CallContext<>(servant.module(), request, servant, null, args);
+            CallContext<Request, Servant> context = callContextResolver.resolve(request, servant);
             metrics.recordDeserialization(System.nanoTime() - startTime);
             return context;
         } catch (Exception e) {

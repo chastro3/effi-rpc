@@ -191,7 +191,7 @@ public abstract class HttpProtocol extends AbstractProtocol {
         return new ConfigurableServerCodec<HttpResponse, HttpRequest>()
                 .encoder(serverCodec)
                 .decoder(serverCodec)
-                .invocationResolver(new HttpInvocationResolver());
+                .callContextResolver(new HttpCallContextResolver());
     }
 
     private Interaction.Result extractResult(HttpResponse response) {

@@ -111,7 +111,13 @@ class CallAttemptTest {
                 }
                 return defaultValue(method.getReturnType());
             });
-            this.context = new CallContext<>(module, request, caller, Unary.MODE, new Object[0]);
+            this.context = new CallContext<>(
+                    module,
+                    request,
+                    caller,
+                    Unary.MODE,
+                    new Object[0]
+            );
             this.future = Unary.MODE.newFuture(context);
             scheduler.addDisposable(
                     () -> future.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(timeoutMillis)),

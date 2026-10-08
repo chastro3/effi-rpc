@@ -1,6 +1,8 @@
 package io.effi.rpc.protocol.http.arg.annotation.jax;
 
 import io.effi.rpc.annotation.component.Extension;
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.context.annotation.AbstractAnnotationStyleResolver;
 import io.effi.rpc.context.annotation.AnnotationOptionResolver;
 import io.effi.rpc.context.annotation.AnnotationParameterBinder;
@@ -75,8 +77,8 @@ public class JaxRsStyleResolver extends AbstractAnnotationStyleResolver<HttpRequ
                         Body.class,
                         (value, annotation, binding, invocation) ->
                                 invocation.set(HttpInvocationKeys.BODY, value),
-                        (invocation, annotation, binding) ->
-                                HttpBodyParameterBinder.INSTANCE.resolve(binding, invocation)
+                        (request, peer, annotation, binding) ->
+                                HttpBodyParameterBinder.INSTANCE.resolve(binding, request, peer)
                 )
         };
     }
@@ -109,16 +111,16 @@ public class JaxRsStyleResolver extends AbstractAnnotationStyleResolver<HttpRequ
         values.put(name, String.valueOf(value));
     }
 
-    private Object readPath(Invocation invocation, PathParam annotation, ParameterBinding binding) {
-        return HttpPathParameterBinder.resolveValue(invocation, annotation.value(), defaultValue(binding));
+    private Object readPath(Request request, Peer peer, PathParam annotation, ParameterBinding binding) {
+        return HttpPathParameterBinder.resolveValue(request, peer, annotation.value(), defaultValue(binding));
     }
 
-    private Object readQuery(Invocation invocation, QueryParam annotation, ParameterBinding binding) {
-        return HttpQueryParameterBinder.resolveValue(invocation, annotation.value(), defaultValue(binding));
+    private Object readQuery(Request request, Peer peer, QueryParam annotation, ParameterBinding binding) {
+        return HttpQueryParameterBinder.resolveValue(request, annotation.value(), defaultValue(binding));
     }
 
-    private Object readHeader(Invocation invocation, HeaderParam annotation, ParameterBinding binding) {
-        return HttpHeaderParameterBinder.resolveValue(invocation, annotation.value(), defaultValue(binding));
+    private Object readHeader(Request request, Peer peer, HeaderParam annotation, ParameterBinding binding) {
+        return HttpHeaderParameterBinder.resolveValue(request, annotation.value(), defaultValue(binding));
     }
 
     private String defaultValue(ParameterBinding binding) {

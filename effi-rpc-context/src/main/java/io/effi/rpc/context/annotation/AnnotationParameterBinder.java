@@ -1,5 +1,7 @@
 package io.effi.rpc.context.annotation;
 
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.parameter.ParameterBinder;
 import io.effi.rpc.context.parameter.ParameterBinding;
@@ -36,7 +38,7 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
     }
 
     @Override
-    public void bind(Object value, ParameterBinding binding, Invocation invocation) {
+    public void write(Object value, ParameterBinding binding, Invocation invocation) {
         T annotation = binding.parameter().getAnnotation(type);
         if (annotation != null) {
             writer.write(value, annotation, binding, invocation);
@@ -44,11 +46,11 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
     }
 
     @Override
-    public Object resolve(ParameterBinding binding, Invocation invocation) {
+    public Object resolve(ParameterBinding binding, Request request, Peer peer) {
         T annotation = binding.parameter().getAnnotation(type);
         return annotation == null
                 ? null
-                : reader.read(invocation, annotation, binding);
+                : reader.read(request, peer, annotation, binding);
     }
 
     @Override
@@ -76,7 +78,7 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
     }
 
     /**
-     * Reads one annotated parameter value from an invocation.
+     * Reads one annotated parameter value from a request.
      *
      * @param <T> annotation type
      */
@@ -84,13 +86,14 @@ public final class AnnotationParameterBinder<T extends Annotation> implements Pa
     public interface Reader<T extends Annotation> {
 
         /**
-         * Reads one value from the invocation.
+         * Reads one value from the request.
          *
-         * @param invocation source invocation
+         * @param request source request
+         * @param peer target peer
          * @param annotation parameter annotation
          * @param binding parameter binding
          * @return parameter value
          */
-        Object read(Invocation invocation, T annotation, ParameterBinding binding);
+        Object read(Request request, Peer peer, T annotation, ParameterBinding binding);
     }
 }

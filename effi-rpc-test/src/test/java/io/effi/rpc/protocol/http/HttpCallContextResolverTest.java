@@ -4,12 +4,12 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.config.QueryPath;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.context.CallContext;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Servant;
-import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.MethodBinding;
 import io.effi.rpc.context.parameter.ParameterBinding;
-import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.protocol.http.arg.binder.HttpPathParameterBinder;
 import io.effi.rpc.protocol.http.arg.binder.HttpQueryParameterBinder;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-class HttpInvocationResolverTest {
+class HttpCallContextResolverTest {
 
     private static final AtomicInteger PLATFORM_IDS = new AtomicInteger();
 
@@ -41,23 +41,21 @@ class HttpInvocationResolverTest {
                 new ParameterBinding(0, method.getParameters()[0], new HttpPathParameterBinder("id", null)),
                 new ParameterBinding(1, method.getParameters()[1], new HttpQueryParameterBinder("age", null))
         });
-        MethodBinder binder = new MethodBinder(binding);
         HttpDuplexRequest request = request(
                 SmartURL.valueOf("http://127.0.0.1:8080/users/42?age=18"),
                 null
         );
         Servant servant = servant(binding, QueryPath.valueOf("/users/{id}"), null, null);
 
-        Invocation invocation = new HttpInvocationResolver().resolve(request, servant);
+        CallContext<Request, Servant> context = new HttpCallContextResolver().resolve(request, servant);
 
-        assertArrayEquals(new Object[]{"42", 18}, binder.resolve(invocation));
+        assertArrayEquals(new Object[]{"42", 18}, context.args());
     }
 
     @Test
     void resolvesMultiplePositionalValuesFromJson() throws Exception {
         Method method = Sample.class.getDeclaredMethod("hello", String.class, int.class);
-        MethodBinding binding = MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
-        MethodBinder binder = new MethodBinder(binding);
+        MethodBinding binding = MethodBinding.positional(method);
         JacksonSerializer serializer = new JacksonSerializer();
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         serializer.serialize(new Object[]{"tom", 18}, output);
@@ -69,9 +67,9 @@ class HttpInvocationResolverTest {
         ScopedModule module = platform.newApplication().newModule();
         Servant servant = servant(binding, QueryPath.empty(), platform, module);
 
-        Invocation invocation = new HttpInvocationResolver().resolve(request, servant);
+        CallContext<Request, Servant> context = new HttpCallContextResolver().resolve(request, servant);
 
-        assertArrayEquals(new Object[]{"tom", 18}, binder.resolve(invocation));
+        assertArrayEquals(new Object[]{"tom", 18}, context.args());
     }
 
     private static HttpDuplexRequest request(SmartURL url, byte[] body) {
@@ -101,7 +99,7 @@ class HttpInvocationResolverTest {
     ) {
         MethodBinder binder = new MethodBinder(binding);
         return (Servant) Proxy.newProxyInstance(
-                HttpInvocationResolverTest.class.getClassLoader(),
+                HttpCallContextResolverTest.class.getClassLoader(),
                 new Class<?>[]{Servant.class},
                 (proxy, method, args) -> switch (method.getName()) {
                     case "methodBinder" -> binder;

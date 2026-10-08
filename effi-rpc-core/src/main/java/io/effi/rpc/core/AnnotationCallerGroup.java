@@ -7,7 +7,6 @@ import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.annotation.AnnotationStyle;
 import io.effi.rpc.context.annotation.AnnotationStyleResolver;
 import io.effi.rpc.context.parameter.MethodBinding;
-import io.effi.rpc.context.parameter.PositionParameterBinder;
 import io.effi.rpc.option.HierarchicalOptions;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.util.AssertUtil;
@@ -123,7 +122,7 @@ public final class AnnotationCallerGroup<T> extends AbstractCallerGroup<T> {
             if (method.getParameterCount() > 0) {
                 throw new IllegalStateException("No annotation style configured for RPC method parameters: " + method.toGenericString());
             }
-            return MethodBinding.positional(method, PositionParameterBinder.INSTANCE);
+            return MethodBinding.positional(method);
         }
     }
 }

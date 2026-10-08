@@ -1,7 +1,5 @@
 package io.effi.rpc.protocol.http;
 
-import io.effi.rpc.config.QueryPath;
-import io.effi.rpc.protocol.http.support.HttpRequest;
 import io.effi.rpc.util.GenericKey;
 
 import java.util.Map;
@@ -22,12 +20,6 @@ public final class HttpInvocationKeys {
 
     public static final GenericKey<Object> BODY =
             GenericKey.valueOf("http.body");
-
-    public static final GenericKey<HttpRequest> REQUEST =
-            GenericKey.valueOf("http.request");
-
-    public static final GenericKey<QueryPath> PATH_TEMPLATE =
-            GenericKey.valueOf("http.pathTemplate");
 
     private HttpInvocationKeys() {
     }

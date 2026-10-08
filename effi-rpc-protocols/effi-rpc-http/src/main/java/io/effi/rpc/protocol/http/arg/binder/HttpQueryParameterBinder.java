@@ -1,5 +1,7 @@
 package io.effi.rpc.protocol.http.arg.binder;
 
+import io.effi.rpc.context.Peer;
+import io.effi.rpc.context.Request;
 import io.effi.rpc.context.invocation.Invocation;
 import io.effi.rpc.context.parameter.ParameterBinder;
 import io.effi.rpc.context.parameter.ParameterBinding;
@@ -23,20 +25,20 @@ public final class HttpQueryParameterBinder implements ParameterBinder {
         this.defaultValue = defaultValue;
     }
 
+    public static Object resolveValue(Request request, String name, String defaultValue) {
+        HttpRequest httpRequest = (HttpRequest) request;
+        Object value = httpRequest.url().getQueryParam(name);
+        return value == null ? defaultValue : value;
+    }
+
     @Override
-    public void bind(Object value, ParameterBinding binding, Invocation invocation) {
+    public void write(Object value, ParameterBinding binding, Invocation invocation) {
         Map<String, String> values = invocation.computeIfAbsent(HttpInvocationKeys.QUERY_PARAMETERS, HashMap::new);
         values.put(name, String.valueOf(value));
     }
 
     @Override
-    public Object resolve(ParameterBinding binding, Invocation invocation) {
-        return resolveValue(invocation, name, defaultValue);
-    }
-
-    public static Object resolveValue(Invocation invocation, String name, String defaultValue) {
-        HttpRequest request = invocation.get(HttpInvocationKeys.REQUEST);
-        Object value = request.url().getQueryParam(name);
-        return value == null ? defaultValue : value;
+    public Object resolve(ParameterBinding binding, Request request, Peer peer) {
+        return resolveValue(request, name, defaultValue);
     }
 }

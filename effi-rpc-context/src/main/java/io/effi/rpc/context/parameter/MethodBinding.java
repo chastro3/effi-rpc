@@ -32,14 +32,13 @@ public record MethodBinding(
      * Creates a positional method binding.
      *
      * @param method reflected method
-     * @param binder parameter binder
      * @return positional method binding
      */
-    public static MethodBinding positional(Method method, ParameterBinder binder) {
+    public static MethodBinding positional(Method method) {
         Parameter[] parameters = method.getParameters();
         ParameterBinding[] bindings = new ParameterBinding[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
-            bindings[i] = new ParameterBinding(i, parameters[i], binder);
+            bindings[i] = ParameterBinding.positional(i, parameters[i]);
         }
         return new MethodBinding(MethodSignature.of(method), bindings, true);
     }

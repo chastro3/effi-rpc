@@ -108,7 +108,13 @@ class RegistryLocatorRouteTest {
                     return defaultValue(method.getReturnType());
                 }
         );
-        return new CallContext<>(module, request, (Caller) caller, null, new Object[0]);
+        return new CallContext<>(
+                module,
+                request,
+                (Caller) caller,
+                null,
+                new Object[0]
+        );
     }
 
     private static Object defaultValue(Class<?> type) {
