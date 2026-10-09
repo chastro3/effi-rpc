@@ -7,6 +7,7 @@ import io.effi.rpc.component.tools.ThreadPool;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.core.PeerDescriptor;
 import io.effi.rpc.executor.RpcThreadPool;
+import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.util.StringUtil;
 
 import static io.effi.rpc.context.options.ThreadPoolOptions.THREAD_POOL;
@@ -30,6 +31,7 @@ public class DefaultThreadPoolResolver implements ThreadPoolResolver {
         if (StringUtil.isNotBlank(configuredName)) {
             ThreadPool threadPool = module.platform().namedComponent(ThreadPool.class, configuredName);
             if (threadPool != null) {
+                registerMetrics(module.platform(), threadPool);
                 return threadPool;
             }
         }
@@ -42,6 +44,7 @@ public class DefaultThreadPoolResolver implements ThreadPoolResolver {
         synchronized (platform) {
             ThreadPool existing = platform.namedComponent(ThreadPool.class, name);
             if (existing != null) {
+                registerMetrics(platform, existing);
                 return existing;
             }
             ThreadPool threadPool = new ThreadPool(
@@ -49,7 +52,15 @@ public class DefaultThreadPoolResolver implements ThreadPoolResolver {
                     io ? RpcThreadPool.defaultIOExecutor(name) : RpcThreadPool.defaultCPUExecutor(name)
             );
             platform.registry().register(ThreadPool.class, name, threadPool);
+            registerMetrics(platform, threadPool);
             return threadPool;
+        }
+    }
+
+    private void registerMetrics(ScopedPlatform platform, ThreadPool threadPool) {
+        Metrics metrics = platform.singleComponent(Metrics.class);
+        if (metrics != null) {
+            metrics.register(threadPool.metrics());
         }
     }
 }

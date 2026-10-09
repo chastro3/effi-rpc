@@ -4,6 +4,7 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.options.TransportOptions;
 import io.effi.rpc.component.transport.support.DefaultClientConfig;
+import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.option.Options;
 import io.effi.rpc.protocol.http.h1.Http1Client;
 import io.effi.rpc.protocol.http.h1.Http1Protocol;
@@ -21,6 +22,7 @@ import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NettyEndpointLifecycleTest {
@@ -52,11 +54,23 @@ class NettyEndpointLifecycleTest {
         NettyChannel channel = fetchChannel(client);
         assertTrue(channel.active());
         assertEquals(1, client.poolMetrics().acquired());
+        assertEquals(1D, poolAcquired(client));
 
         client.discard(channel);
 
         await(() -> client.poolMetrics().acquired() == 0, "pool slot was not released");
+        assertEquals(0D, poolAcquired(client));
         assertFalse(channel.active());
+    }
+
+    private double poolAcquired(Http1Client client) {
+        Metrics metrics = platform.singleComponent(Metrics.class);
+        assertNotNull(metrics);
+        String endpoint = client.config().id() + "@" + client.remoteAddress();
+        return metrics.gauge(
+                ConnectionPoolMetrics.ACQUIRED_CONNECTIONS.withTag("endpoint", endpoint),
+                () -> -1D
+        ).value();
     }
 
     private Http1Client start(int idleTriggerInterval, int idleCountThreshold) throws Exception {

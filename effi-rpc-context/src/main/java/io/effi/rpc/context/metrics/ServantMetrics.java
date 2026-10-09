@@ -17,6 +17,8 @@ public final class ServantMetrics extends PeerMetrics {
 
     public static final MetricKey REQUEST_DURATION = MetricKey.of("rpc.server.request.duration");
 
+    public static final MetricKey OVERLOAD_COUNT = MetricKey.of("rpc.server.overload.count");
+
     public static final MetricKey SERIALIZE_DURATION = MetricKey.of("rpc.server.serialize.duration");
 
     public static final MetricKey DESERIALIZE_DURATION = MetricKey.of("rpc.server.deserialize.duration");
@@ -32,6 +34,8 @@ public final class ServantMetrics extends PeerMetrics {
     private MetricCounter successCount = MetricCounter.NOOP;
 
     private MetricCounter failureCount = MetricCounter.NOOP;
+
+    private MetricCounter overloadCount = MetricCounter.NOOP;
 
     private MetricTimer responseTimer = MetricTimer.NOOP;
 
@@ -82,11 +86,19 @@ public final class ServantMetrics extends PeerMetrics {
         responseTimer.recordNanos(Math.max(0L, durationNanos));
     }
 
+    /**
+     * Records one request rejected because the servant thread pool is saturated.
+     */
+    public void recordOverload() {
+        overloadCount.increment();
+    }
+
     @Override
     protected void registerSpecific(Metrics metrics) {
         this.requestCount = metrics.counter(key(REQUEST_COUNT));
         this.successCount = metrics.counter(key(REQUEST_COUNT).withTag("status", "success"));
         this.failureCount = metrics.counter(key(REQUEST_COUNT).withTag("status", "failure"));
+        this.overloadCount = metrics.counter(key(OVERLOAD_COUNT));
         this.responseTimer = metrics.timer(key(REQUEST_DURATION));
     }
 }

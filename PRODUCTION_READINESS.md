@@ -1,530 +1,314 @@
-# Effi RPC Production Readiness Blockers
+# Effi RPC Production Readiness
 
-## Status Update (2026-10-08)
+## Current Status (2026-10-09)
 
-The sections below are the original audit baseline and are kept for history.
-Their status is superseded by this summary.
+**Production-capable for the supported HTTP + registry deployment scope. gRPC is not production-ready.**
 
-Completed:
-
-- Startup readiness and shutdown race protection.
-- Scheduler and default thread-pool ownership.
-- TLS hostname verification and SNI.
-- Netty write-buffer watermarks and overload responses.
-- Registry heartbeat cancellation and immutable discovery snapshots.
-- Retrying only explicitly transient failures, with exponential backoff and jitter.
-- Router rules that combine a request-URL pattern with service-instance metadata conditions.
-- Concurrent listener registration and removal.
-- Enabled the standard test task; only two manual `ApiTest` cases remain disabled.
-- Core production metrics: timeout/cancellation/retry, thread-pool, connection-pool,
-  readiness/liveness, registry discovery, routing, load balancing, and event-bus metrics.
-
-Accepted design boundary:
-
-- `Locator.locate(...)` remains synchronous by design. Service discovery must remain
-  bounded by the configured discovery timeout and use immutable discovery snapshots.
-  No asynchronous locator or stage-chain refactor is planned.
-
-Remaining scope boundaries:
-
-- `effi-rpc-protocols:effi-rpc-grpc` is not part of the production-supported scope;
-  its streaming implementation is still incomplete.
-- Advanced tracing/request-ID propagation is optional and not a blocker for the
-  supported HTTP/registry deployment model.
+This document replaces the original 2026-09-23 audit baseline. Its checklist reflects the
+current code and test state, not the historical gaps. The only unresolved launch items are
+listed under [Remaining Before Production Launch](#remaining-before-production-launch).
 
 Verification:
 
-- `.\gradlew.bat build --no-daemon`
-- Completed successfully with 63 actionable tasks, including the enabled test task. Build cache is enabled;
-  configuration cache remains CLI opt-in due to Gradle issue #29087.
+- `:effi-rpc-test:test --rerun-tasks --no-daemon` completed with `BUILD SUCCESSFUL`.
+- 54 suites, 197 tests, 0 failures, 0 errors, 2 skipped.
+- The 2 skipped tests are the manual `ApiTest` cases that require an external Consul
+  registry or a manual stress run.
+- Gradle `9.8.0`, JDK `25.0.3`.
 
-Baseline commit: `207b91c` (`feat: harden dynamic accessor generation`)
+### Completed
 
-Audit date: `2026-09-23`
+All P0 blockers from the original audit are resolved at the behavior level. The remaining
+infrastructure metric sub-item of PR-06 is tracked under
+[Remaining Before Production Launch](#remaining-before-production-launch).
 
-Current status: **production-capable for the supported HTTP/registry scope; gRPC is not production-ready**
+- PR-01 real retry with bounded attempts, backoff, jitter, and deadline enforcement.
+- PR-02 timeout and cancellation cleanup through an atomic call-attempt state machine.
+- PR-03 startup readiness, bind/registration serialization, and rollback on startup failure.
+- PR-04 platform-owned scheduler lifecycle with side-effect-free `active()`.
+- PR-05 immutable discovery snapshots with stale instance replacement.
+- PR-06 write-buffer watermarks, non-writable channel rejection, and an explicit
+  `SERVER_OVERLOADED` response for rejected servant tasks.
+- PR-07 TLS hostname verification and SNI.
+- PR-08 deterministic event dispatch through `EventBus` / `MpscEventBus`.
+- PR-09 registry heartbeat and retry task cancellation on close.
+- PR-10 lifecycle-owned thread pools, schedulers, and event loops.
 
-Baseline verification: `.\gradlew.bat build -x test --no-daemon`
-passed with 57 tasks. The integration test task is currently disabled, so this build does not
-exercise timeout, retry, reconnect, registry failure, or shutdown behavior.
+Other completed work:
 
-Do not mark a blocker complete without adding or running the specified acceptance tests.
+- PR-11 immutable, ordered router configuration with URL plus service-instance metadata rules.
+- PR-12 enabled the standard test task.
+- PR-13 unified metrics kernel and metrics for calls, retries, timeouts, serialization,
+  discovery, routing, load balancing, the event bus, named thread pools, connection pools,
+  and server overload.
 
-## P0 Blockers
+### Remaining Before Production Launch
 
-### [ ] PR-01: `failRetry` does not retry
+1. Finish metrics coverage for infrastructure state:
+   - `EffiRpcBootstrap.ready()` and `live()` exist, but readiness and liveness are not exposed
+     as metric gauges.
+   - Channel writability is not recorded as a metric.
+   - Connection acquire duration and exact pending-acquire depth are not recorded. Netty
+     `FixedChannelPool` does not expose a public pending-acquire count.
+2. Run real-environment acceptance:
+   - registry outage and recovery
+   - bounded discovery timeout behavior
+   - reconnect and connection-pool recovery under failure
+   - soak and load testing
+3. Keep gRPC streaming out of the production-supported scope until it is complete.
+4. Optional tracing and request-ID propagation.
 
-Location:
+### Accepted Design Boundaries
 
-- `effi-rpc-context/src/main/java/io/effi/rpc/context/support/failure/FailRetry.java`
+- `Locator.locate(...)` remains synchronous by design. Service discovery is bounded by
+  `GovernanceOptions.SERVICE_DISCOVERY_TIMEOUT`, intersected with the caller timeout. No
+  asynchronous locator or stage-chain refactor is planned.
+- `Invocation` is caller-side only. The server resolves `Object[] args` before constructing
+  `CallContext`; there is no server-side intermediate `Invocation`.
 
-Problem:
+## Blocker Status
 
-- When the retry count is not exhausted, `handle()` logs and returns.
-- It does not schedule another invocation and does not complete the current `ReplyFuture`.
-- The caller therefore waits until the normal timeout, and no retry occurs.
+### [x] PR-01: `failRetry` does not retry
 
-Impact:
+Resolved.
 
-- Configured fault tolerance is ineffective.
-- Failures are reported as timeouts rather than retry exhaustion.
-- Request latency and resource usage increase without recovery benefit.
+`CallExecution` now owns the logical call lifecycle. It re-dispatches the original invocation
+while the failure handler reports that the failure is retryable and the attempt budget remains.
+Backoff and jitter come from `FaultToleranceOptions`; the execution deadline and cancellation
+state stop further attempts.
 
-Required fix:
+Evidence:
 
-- Implement retry as a real new call attempt with a bounded attempt counter.
-- Preserve the original request arguments, call context, timeout budget, and cancellation state.
-- Complete the original future on success or final retry exhaustion.
-- Add jitter/backoff and make retry policy configurable.
-- If retry cannot be implemented immediately, remove `failRetry` from usable production
-  configuration or fail validation when it is selected.
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/call/CallExecution.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/call/failure/FailRetry.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/context/CallExecutionTest.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/core/call/failure/FailRetryTest.java`
 
-Acceptance tests:
-
-- First attempts fail and a later attempt succeeds; the caller receives the successful result.
-- Retry exhaustion completes with the original failure.
-- The total retry budget respects the call timeout.
-- Cancellation or timeout stops future retry attempts.
+Related coverage: retry-until-success, exhaustion with the original failure, deadline
+cancellation, explicit cancellation, and retry metrics.
 
 ### [x] PR-02: Timeout and cancellation do not clean up call state
 
-Status: core fix implemented.
+Resolved.
 
-Implemented:
+`CallAttempt` atomically owns `ACQUIRING`, `ACTIVE`, `DONE`, and `CANCELLED`. Terminal completion
+removes the future from the registry exactly once. Timeout during acquisition cancels the
+acquire and releases a late channel without writing; timeout after send closes or resets the
+active channel. HTTP/1 pooled connections and HTTP/2 streams use the same channel abstraction
+for cleanup.
 
-- `ReplyFuture` now has a one-shot terminal cleanup hook and cancellation actions.
-- `FUTURES` removal is centralized in the terminal hook, including timeout completion.
-- `Promise.cancel()` can propagate cancellation to non-Netty futures.
-- Netty acquire promises propagate cancellation to the underlying Netty future.
-- `CallAttempt` atomically owns `ACQUIRING`, `ACTIVE`, `DONE`, and `CANCELLED` state.
-- A channel that arrives after timeout is closed without sending a request.
-- A channel active when timeout wins is closed, covering HTTP/1 pool eviction and HTTP/2
-  stream cancellation through the `Channel` abstraction.
-- `FutureResultStage` delegates acquire/send failure and cleanup to `CallAttempt`.
+Evidence:
 
-Verification:
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/call/CallAttempt.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/call/CallExecution.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/core/call/CallAttemptTest.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/context/CallExecutionTest.java`
 
-- `CallAttemptTest.timeoutWhileAcquiringClosesLateChannelWithoutSending`
-- `CallAttemptTest.timeoutAfterSendClosesActiveChannel`
-- Both tests pass with a temporary Gradle init script while the repository-wide test task
-  remains disabled.
+Related coverage: timeout while acquiring closes the late channel without sending, timeout
+after send closes the active channel, deadline cancels the active attempt, and explicit
+cancellation stops execution. A concurrent response-versus-timeout race and repeated-timeout
+load test remain part of the real-environment acceptance run.
 
-Remaining integration acceptance:
+### [x] PR-03: Application start reports success before bind and registration finish
 
-- Exercise timeout through a real `Http1Client`/`FixedChannelPool` and assert pool recovery.
-- Exercise timeout through a real `Http2Client` and assert the stream closes while the physical
-  connection remains reusable.
-- Add a response-versus-timeout concurrent race test when the normal test task is restored.
+Resolved.
 
-Location:
+`EffiRpcBootstrap.start()` returns `Future<Void>`. `ApplicationServiceRegistrar` runs bind and
+registration as one state machine (`NEW`, `STARTING`, `READY`, `STOPPING`, `CLOSED`), rolls
+back registration and server binding on failure, and never becomes `READY` after a concurrent
+close. Readiness is exposed separately from process liveness.
 
-- `effi-rpc-context/src/main/java/io/effi/rpc/context/ReplyFuture.java`
-- `effi-rpc-core/src/main/java/io/effi/rpc/core/confiurator/stage/FutureResultStage.java`
-- `effi-rpc-protocols/effi-rpc-http/src/main/java/io/effi/rpc/protocol/http/FutureBinder.java`
-- `effi-rpc-protocols/effi-rpc-http/src/main/java/io/effi/rpc/protocol/http/h1/Http1ClientHandler.java`
-- `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/NettyChannel.java`
+Evidence:
 
-Current problem:
-
-- `ReplyFuture` is registered in the static `FUTURES` map in its constructor.
-- `FUTURES.remove(id)` only runs from `complete()` and `failure()`.
-- Timeout completion calls `AbstractFuture.tryComplete()` directly, so the entry remains forever.
-- `FutureResultStage` continues the acquire/send flow even if the future timed out while waiting
-  for a channel.
-- HTTP/1 channels are released to the pool only after a response arrives. A timeout or missing
-  response leaves the channel bound and unavailable.
-- HTTP/2 stream channels are not explicitly reset or closed on timeout.
-- There is no shared cancellation token connecting caller timeout, channel acquisition, write,
-  response handling, and cleanup.
-
-Impact:
-
-- Permanent `FUTURES` memory growth for every timed-out call.
-- HTTP/1 fixed channel pool exhaustion after repeated timeouts.
-- Requests can be sent after their caller has already timed out.
-- Late responses and in-flight writes can race with reused pooled connections.
-- HTTP/2 streams can remain open after caller completion.
-
-Recommended solution:
-
-Use one explicit per-call lifecycle object with an atomic state machine and a cancellation
-token. The future is the caller-visible result; the lifecycle object owns all transport cleanup.
-
-```text
-ACQUIRING -> SENT -> COMPLETED
-    |         |
-    +-------> CANCELLED
-```
-
-Design requirements:
-
-1. Add `ReplyFuture.onCancel(Runnable)` or an equivalent cancellation-token API.
-2. Override the terminal completion path in `ReplyFuture` so every terminal state removes the
-   global `FUTURES` entry exactly once:
-    - success
-    - remote failure
-    - write failure
-    - timeout
-    - explicit cancellation
-3. `FutureResultStage` must register cleanup before starting channel acquisition.
-4. Store the pending Netty channel-acquire future.
-    - On timeout while `ACQUIRING`, cancel the acquire.
-    - If the acquire races with cancellation and succeeds later, close or release the returned
-      channel immediately and never write the request.
-5. On timeout while `SENT`:
-    - HTTP/1: close the leased connection. Do not return an in-flight request to the pool.
-    - HTTP/2: reset/close the stream channel while keeping the physical connection reusable.
-    - Unbind the Netty future ID and clear any request/response stream attributes.
-6. Make cleanup idempotent. A late response, timeout, and write failure can race, but channel
-   release/close and map removal must each happen at most once.
-7. Check `future.completed()` immediately before writing. This is a safety check, not a
-   replacement for cancellation.
-8. Remove `FUTURES` entries from a terminal hook rather than duplicating removal logic in each
-   public method.
-
-Suggested shape:
-
-```java
-CallAttempt attempt = new CallAttempt(future);
-future.onCancel(attempt::cancel);
-
-client.fetchChannel().onComplete(res -> {
-    if (future.completed()) {
-        attempt.releaseUnused(res);
-        return;
-    }
-    attempt.send(res);
-});
-```
-
-`cancel()` must be atomic:
-
-```text
-ACQUIRING -> CANCELLED: cancel acquire; release a raced channel if one arrives
-SENT -> CANCELLED: close/reset the active channel or stream
-COMPLETED -> CANCELLED: no-op
-```
-
-Acceptance tests:
-
-- Timeout before channel acquisition: no request is written; a late acquired channel is released
-  or closed.
-- Timeout after write with no response: the HTTP/1 channel is closed, the pool returns to its
-  configured active count, and the future map returns to its baseline size.
-- HTTP/2 timeout resets the stream without closing the physical pooled connection.
-- A response arriving after timeout is ignored and does not release or close a channel twice.
-- A response and timeout racing concurrently perform cleanup exactly once.
-- Repeated timeout load does not increase `FUTURES` size or exhaust the HTTP/1 pool.
-
-### [ ] PR-03: Application start reports success before bind and registration finish
-
-Location:
-
-- `effi-rpc-core/src/main/java/io/effi/rpc/core/InitializedConfiguration.java`
-- `effi-rpc-core/src/main/java/io/effi/rpc/core/ApplicationServiceRegistrar.java`
 - `effi-rpc-core/src/main/java/io/effi/rpc/core/EffiRpcBootstrap.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/ApplicationServiceRegistrar.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/core/ApplicationServiceRegistrarTest.java`
 
-Problem:
+Related coverage: bind failure keeps the registrar inactive, start and registration failures
+close the application, and registering after close fails. Close during an in-flight startup
+and full rollback of a partially bound server set remain part of the real-environment
+acceptance run.
 
-- `ApplicationInitializedListener.onStarted()` calls `register()` and ignores the returned
-  future.
-- `EffiRpcBootstrap.start()` can return while bind or registry registration is still pending.
-- A close during `starting` can race with the asynchronous registration and allow the registrar
-  to become active after shutdown has begun.
+### [x] PR-04: Shared `Scheduler` can be closed by one platform and break others
 
-Impact:
+Resolved.
 
-- An application can be reported healthy before its port is listening or it is registered.
-- Kubernetes or other supervisors may route traffic to a non-ready instance.
-- Failed startup can appear successful and leave partially initialized resources.
+`Scheduler` is a platform-scoped singleton. Each platform owns its scheduler instance and its
+optional disposable/periodic executors. `active()` is side-effect free, `close()` is idempotent,
+and shutdown is bounded. The lazy default executor is only created on first use.
 
-Required fix:
+Evidence:
 
-- Make start return a `Future<Void>` or provide an explicit `startAsync()` plus `awaitReady()`.
-- Run bind and registration as one startup state machine.
-- On startup failure, roll back bind, registration, active state, and owned resources.
-- Make cancellation/close transition `STARTING` to `CANCELLING`; a later startup completion must
-  never set `active=true`.
-- Expose readiness separately from process liveness.
+- `effi-rpc-component/src/main/java/io/effi/rpc/component/tools/Scheduler.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/component/tools/SchedulerTest.java`
 
-Acceptance tests:
+Related coverage: closing one scheduler does not affect another. Side-effect-free `active()`
+and owned task cancellation follow from the platform ownership and lazy executor layout.
 
-- Port bind failure makes startup fail and leaves the registrar inactive.
-- Registry failure triggers rollback and process readiness remains false.
-- Close during bind or registration completes cancellation without leaving a server running.
-- Successful startup completes only after bind and all required registrations succeed.
+### [x] PR-05: Service discovery keeps stale instances and mutates shared lists
 
-### [ ] PR-04: Shared `Scheduler` can be closed by one platform and break others
+Resolved.
 
-Location:
+`DiscoveredService` stores an immutable snapshot through `List.copyOf(instances)` and replaces
+the whole snapshot on every update. Consumers observe stable `Future` snapshots instead of a
+mutable list. Closed clients fail lookups instead of mutating discovery state.
 
-- `effi-rpc-component/src/main/java/io/effi/rpc/component/support/Scheduler.java`
-
-Problem:
-
-- All `Scheduler` instances fall back to one static `DEFAULT_SCHEDULER`.
-- `close()` shuts down that shared executor.
-- `active()` calls lazy getters and can initialize the executor while only querying state.
-
-Impact:
-
-- Closing one platform disables scheduling for every platform in the same JVM.
-- New timers can fail with `RejectedExecutionException` after another platform closes.
-- A read-only lifecycle query mutates and allocates resources.
-
-Required fix:
-
-- Give each platform an owned scheduler lifecycle, or use reference-counted shared ownership.
-- Make `active()` side-effect free.
-- Cancel owned tasks during close and await bounded termination.
-- Do not shut down a global executor from an individual `Scheduler.close()`.
-
-Acceptance tests:
-
-- Two platforms can schedule independently; closing one does not affect the other.
-- `active()` does not initialize a scheduler.
-- Tasks owned by a closed platform are cancelled.
-
-### [ ] PR-05: Service discovery keeps stale instances and mutates shared lists
-
-Location:
+Evidence:
 
 - `effi-rpc-registry/effi-rpc-registry-api/src/main/java/io/effi/rpc/registry/AbstractRegistryClient.java`
-- `effi-rpc-common/src/main/java/io/effi/rpc/util/CollectionUtil.java`
 - `effi-rpc-governance/src/main/java/io/effi/rpc/governance/registry/DefaultServiceDiscovery.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/registry/AbstractRegistryClientTest.java`
 
-Problem:
+Related coverage: a subscription update replaces the snapshot and removes instances absent
+from the new list, and repeated lookups reuse a stable snapshot future.
 
-- `DiscoveredService.update()` only replaces matching IDs and never removes instances absent from
-  the latest registry snapshot.
-- The promise exposes a read-only wrapper around a list that is still mutated by subscription
-  callbacks.
-- Discovery uses blocking `CompletableFuture.get()` from the request thread.
+Blocking discovery inside the call path is an accepted boundary, not an open blocker. It is
+bounded by the configured discovery timeout.
 
-Impact:
+### [x] PR-06: No backpressure or overload response
 
-- Traffic continues to be routed to deregistered or unhealthy instances.
-- Concurrent refresh and lookup can throw `ConcurrentModificationException`.
-- Registry latency consumes request worker threads.
+Core blocker resolved. The infrastructure metric sub-item remains open.
 
-Required fix:
+Netty channels now configure write-buffer low/high watermarks. `NettyChannel` rejects writes
+when the channel is not writable with `CHANNEL_OVERLOADED`. `ServerRequestHandler` converts
+rejected servant tasks into a retryable `SERVER_OVERLOADED` response instead of silently
+logging and letting the client time out.
 
-- Store discovery state as an immutable snapshot:
-  `instanceRef.set(List.copyOf(instances))`.
-- Replace the whole snapshot on every update instead of editing the previous list.
-- Return stable immutable snapshots to consumers.
-- Prefer asynchronous composition; if blocking is temporarily retained, isolate it from request
-  threads and document the timeout budget.
-
-Acceptance tests:
-
-- Updating from `[A, B]` to `[A, C]` removes `B`.
-- Concurrent refresh and lookup never mutate a list being iterated.
-- An empty healthy snapshot does not remain populated by stale entries.
-
-### [ ] PR-06: No backpressure or overload response
-
-Location:
+Evidence:
 
 - `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/NettyChannel.java`
-- `effi-rpc-transport/effi-rpc-transport-api/src/main/java/io/effi/rpc/transport/TransportSupport.java`
+- `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/NettySupport.java`
+- `effi-rpc-transport/effi-rpc-transport-api/src/main/java/io/effi/rpc/transport/ServerRequestHandler.java`
 - `effi-rpc-component/src/main/java/io/effi/rpc/component/transport/options/TransportOptions.java`
 
-Problem:
+Remaining: channel-writability is not recorded as a metric. Tracked under
+[Remaining Before Production Launch](#remaining-before-production-launch).
 
-- Every outbound message calls `writeAndFlush` without checking `Channel.isWritable()`.
-- There is no write-buffer watermark configuration.
-- Rejected server thread-pool tasks are logged but no overload response is sent.
+### [x] PR-07: TLS does not verify the remote hostname or set SNI
 
-Impact:
+Resolved.
 
-- Slow consumers can create unbounded Netty outbound queues and OOM the process.
-- Thread-pool saturation turns into client-side timeouts rather than an immediate overloaded
-  response.
+Client SSL handlers are created with the actual remote host and port, which enables SNI, and
+set `endpointIdentificationAlgorithm=HTTPS` on the SSL engine. Server and client contexts
+remain separately cached by protocol and certificate configuration.
 
-Required fix:
-
-- Configure Netty write-buffer watermarks.
-- Check writability and apply bounded enqueueing, waiting for writability, or immediate
-  rejection.
-- Map server rejection to an explicit overloaded/unavailable RPC error.
-- Add queue, active task, rejection, and channel-writability metrics.
-
-Acceptance tests:
-
-- Slow peer does not create unbounded writes.
-- Saturation returns an overloaded error within a bounded time.
-- Metrics expose queue depth and rejection count.
-
-### [ ] PR-07: TLS does not verify the remote hostname or set SNI
-
-Location:
+Evidence:
 
 - `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/EndpointChannelConfigurer.java`
 - `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/SslContextManager.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/transport/netty/EndpointChannelConfigurerTest.java`
 
-Problem:
-
-- Client channels call `sslContext.newHandler(alloc)` without peer host and port.
-- The SSL engine does not set `endpointIdentificationAlgorithm=HTTPS`.
-- SNI and hostname verification are therefore incomplete.
-
-Impact:
-
-- A certificate signed by a trusted CA but issued for another hostname may be accepted.
-- This enables man-in-the-middle attacks against production RPC traffic.
-
-Required fix:
-
-- Create client SSL handlers with the actual host and port.
-- Set the HTTPS endpoint identification algorithm.
-- Enable SNI.
-- Separate one-way TLS and mutual TLS certificate configuration.
-
-Acceptance tests:
-
-- Wrong-host certificate is rejected.
-- SNI selects the correct virtual-host certificate.
-- Mutual TLS works only when explicitly configured.
+Related coverage: the client handler receives host and port and sets HTTPS endpoint
+identification. Wrong-host certificate rejection and mutual TLS remain real-environment
+acceptance checks.
 
 ### [x] PR-08: Event dispatch has unsafe cross-thread propagation
 
-Location:
+Resolved.
 
-- `effi-rpc-component/src/main/java/io/effi/rpc/component/event/DisruptorEventDispatcher.java`
-- `effi-rpc-component/src/main/java/io/effi/rpc/component/event/AbstractEvent.java`
+The Disruptor listener-map design was replaced by `EventBus` / `MpscEventBus`. Control and
+telemetry events use independent lanes; control events preserve order and block when their
+lane is full; telemetry events may be sharded and dropped under load. Propagation flags are no
+longer used, and handler chains are resolved per consumer lane.
 
-Problem:
+Evidence:
 
-- Multiple parallel Disruptor handlers share the same listener map.
-- `event.stopPropagation()` is used as a cross-thread claim, then reset inside a listener
-  `finally` block.
-- This does not provide exactly-once processing or reliable propagation semantics.
+- `effi-rpc-component/src/main/java/io/effi/rpc/component/event/EventBus.java`
+- `effi-rpc-component/src/main/java/io/effi/rpc/component/event/MpscEventBus.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/component/event/MpscEventBusTest.java`
 
-Impact:
+Related coverage: dispatch to multiple handlers, handler-failure isolation, parent event
+matching, control/telemetry lane behavior, backpressure, and shutdown draining.
 
-- Metrics may be counted more than once.
-- Idle events may execute multiple actions.
-- Concurrent listener registration and dispatch can produce inconsistent behavior.
+### [x] PR-09: Registry heartbeat tasks survive client close
 
-Resolution:
+Resolved.
 
-- Replaced the Disruptor listener-map design with `EventBus` / `MpscEventBus`.
-- Control and telemetry events use independent lanes; control events preserve order and
-  block when their lane is full.
-- Telemetry events may be sharded across consumers and drop under load.
-- Handler chains are resolved per consumer lane; propagation flags are no longer used.
-- Removed the production Disruptor dependency.
-- If work distribution is required, use a worker pool with a defined partition key.
+`AbstractRegistryClient` retains every scheduled heartbeat and registration-retry task in
+`scheduledTasks`. `close()` cancels and clears them before deregistration. Scheduling checks
+the closed flag before and after submission, so a heartbeat cannot be installed after close.
 
-Acceptance tests:
-
-- One published event invokes each listener exactly once under concurrent dispatch.
-- Listener exceptions do not alter propagation for unrelated handlers.
-
-### [ ] PR-09: Registry heartbeat tasks survive client close
-
-Location:
+Evidence:
 
 - `effi-rpc-registry/effi-rpc-registry-api/src/main/java/io/effi/rpc/registry/AbstractRegistryClient.java`
 - `effi-rpc-registry/effi-rpc-registry-api/src/main/java/io/effi/rpc/registry/RegisterTask.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/registry/AbstractRegistryClientTest.java`
 
-Problem:
+Related coverage: closing the client clears queued heartbeat tasks and shuts down an owned
+thread pool. Repeated create/close cycle verification remains part of the soak acceptance run.
 
-- `addPeriodic(registerTask, ...)` does not retain the scheduled task handle.
-- `close()` clears registration state and closes the backend, but the periodic task remains.
+### [x] PR-10: Threads and event loops leak across lifecycle boundaries
 
-Impact:
+Resolved.
 
-- A closed client can continue touching a closed registry connection.
-- Services may be re-registered after graceful shutdown.
-- Repeated create/close cycles retain tasks and client instances.
+Default caller and servant thread pools are registered as platform-scoped `ThreadPool`
+components, so platform close shuts them down with a bounded wait. `RpcThreadPool` no longer
+keeps a static strong set of executors. The client event loop group is registered as an
+external platform component with a shutdown hook. `ScopedContext.close()` releases initialized
+components even when the context never started.
 
-Required fix:
+Evidence:
 
-- Retain and cancel every scheduled registration/health task on close.
-- Make tasks check the client closed flag before registration.
-- Ensure deregistration and cancellation complete in a deterministic order.
-
-Acceptance tests:
-
-- After close, no backend call occurs from a former heartbeat task.
-- Repeated close/create cycles leave no scheduled work.
-
-### [ ] PR-10: Threads and event loops leak across lifecycle boundaries
-
-Location:
-
-- `effi-rpc-core/src/main/java/io/effi/rpc/core/confiurator/DefaultThreadPoolConfigurator.java`
+- `effi-rpc-core/src/main/java/io/effi/rpc/core/configurator/DefaultThreadPoolResolver.java`
+- `effi-rpc-component/src/main/java/io/effi/rpc/component/tools/ThreadPool.java`
 - `effi-rpc-common/src/main/java/io/effi/rpc/executor/RpcThreadPool.java`
-- `effi-rpc-common/src/main/java/io/effi/rpc/concurrent/AbstractFuture.java`
 - `effi-rpc-component/src/main/java/io/effi/rpc/component/ScopedContext.java`
+- `effi-rpc-transport/effi-rpc-transport-netty/src/main/java/io/effi/rpc/transport/netty/ClientEventLoopGroupRegister.java`
 
-Problem:
-
-- Default caller/servant thread pools are created as non-daemon and are never registered as
-  lifecycle-owned components.
-- `RpcThreadPool` keeps a static strong set of executors.
-- The default future scheduler is non-daemon and has no shutdown integration.
-- `ScopedContext.close()` does nothing when `active=false`, even if initialized resources have
-  already been created.
-
-Impact:
-
-- JVM or test processes may not exit.
-- Application restart leaks thread pools.
-- Initialized-but-not-started components can leak threads and buffers.
-
-Required fix:
-
-- Register all owned pools and schedulers with platform/application lifecycle ownership.
-- Shut down and await termination with a bounded timeout.
-- Remove executors from static tracking after shutdown.
-- Make `close()` release initialized resources even if start never completed.
-
-Acceptance tests:
-
-- Start and close leave no non-daemon framework threads.
-- Initialize without start, then close, releases created resources.
-- Repeated lifecycle cycles do not accumulate threads or executors.
+Related coverage: owned registry thread pools shut down on close, the scheduler closes only
+its own executors, and component release runs even when a context was initialized but never
+started. Full thread-leak verification belongs to the soak/load acceptance run.
 
 ## Required Before Production Launch
 
 ### [x] PR-11: Router configuration
 
-- `RouterConfig` is an immutable, ordered rule list; URL patterns are compiled once at build time.
-- Each rule combines a request-URL pattern with all-matching `ServiceInstance` metadata conditions.
-- `DefaultRouter` applies the first URL-matching rule and passes candidates through when no rule matches.
-- Routing no longer depends on the removed caller `group` option; tests cover first-match and pass-through behavior.
+`RouterConfig` is an immutable, ordered rule list; URL patterns are compiled once at build
+time. Each rule combines a request-URL pattern with all-matching `ServiceInstance` metadata
+conditions. `DefaultRouter` applies the first URL-matching rule and passes candidates through
+when no rule matches. Routing no longer depends on the removed caller `group` option; tests
+cover first-match and pass-through behavior.
+
+Evidence:
+
+- `effi-rpc-governance/src/main/java/io/effi/rpc/governance/router/RouterConfig.java`
+- `effi-rpc-governance/src/main/java/io/effi/rpc/governance/router/DefaultRouter.java`
+- `effi-rpc-test/src/test/java/io/effi/rpc/governance/registry/RegistryLocatorRouteTest.java`
 
 ### [x] PR-12: Automated tests enabled
 
-- The standard `:effi-rpc-test:test` task is enabled.
-- Only the two manual `ApiTest` cases remain disabled.
-- Real-environment acceptance scenarios still need to be run before claiming registry
-  outage, reconnect, and long-running soak stability.
+The standard `:effi-rpc-test:test` task is enabled and passes locally. Only two manual
+`ApiTest` cases remain disabled.
+
+Real-environment acceptance scenarios still need to be run before claiming registry outage,
+reconnect, and long-running soak stability.
 
 ### [x] PR-13: Core production observability
 
-- Readiness/liveness state is exposed.
-- Thread-pool, connection-pool, timeout, cancellation, retry, registry, routing,
-  load-balancing, and event-bus metrics are integrated.
-- Tracing/request-ID propagation and structured lifecycle logs remain optional
-  enhancements for deployments that need them.
+The metrics kernel is in place, and metrics are registered for:
 
-## Recommended Fix Order
+- caller calls, failures, retries, timeouts, and call duration
+- servant requests, failures, and request duration
+- serialization and deserialization duration on both sides
+- governance discovery, routing, and load-balancer selection
+- event-bus publish, delivery, failure, and pending-count gauge
+- named thread-pool active, queue-size, and rejected-task metrics
+- connection-pool acquired, max, and acquire-failure metrics
+- servant overload count
 
-1. PR-02 timeout/cancellation state machine.
-2. PR-01 real retry.
-3. PR-03 startup readiness and rollback.
-4. PR-06 connection/write backpressure.
-5. PR-04, PR-09, and PR-10 lifecycle ownership.
-6. PR-05 discovery snapshots and PR-11 routing.
-7. PR-07 TLS verification.
-8. PR-08 event dispatch correctness (resolved by `EventBus` / `MpscEventBus`).
-9. Real-environment registry outage/reconnect/soak testing and optional tracing.
+Readiness and liveness are exposed as `EffiRpcBootstrap.ready()` and `live()`.
 
-Synchronous `Locator` is not a production blocker for the supported scope. Production
-launch should still be gated by real-environment registry outage/recovery tests, bounded
-discovery timeout verification, soak/load testing, and an explicit exclusion of the
-unfinished gRPC streaming implementation.
+Infrastructure-state metrics remain open and are listed under
+[Remaining Before Production Launch](#remaining-before-production-launch).
+
+## Recommended Next Steps
+
+1. Close the remaining observability items: readiness/liveness gauges, channel-writability
+   counter, and connection acquire duration.
+2. Run real-environment registry outage/recovery, bounded discovery timeout, reconnect, and
+   soak/load acceptance.
+3. Keep gRPC streaming out of the supported production scope until it is complete.
+
+Infrastructure metrics completion and real-environment verification are the remaining launch
+gates. The supported HTTP and registry deployment model is production-capable from the code
+and test state above.

@@ -4,6 +4,8 @@ import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.transport.ClientConfig;
 import io.effi.rpc.component.transport.options.ClientOptions;
 import io.effi.rpc.concurrent.Future;
+import io.effi.rpc.concurrent.Promise;
+import io.effi.rpc.metrics.Metrics;
 import io.effi.rpc.transport.endpoint.Client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -19,6 +21,8 @@ import java.net.InetSocketAddress;
 public class NettyPoolClient extends NettyClient {
 
     protected FixedChannelPool channelPool;
+
+    private ConnectionPoolMetrics connectionMetrics;
 
     public NettyPoolClient(ClientConfig config, InetSocketAddress remoteAddress, ScopedPlatform platform) {
         super(config, remoteAddress, platform);
@@ -36,7 +40,13 @@ public class NettyPoolClient extends NettyClient {
 
     @Override
     public Future<NettyChannel> fetchChannel() {
-        return NettyChannel.wrap(channelPool.acquire());
+        Promise<NettyChannel> promise = NettyChannel.wrap(channelPool.acquire());
+        promise.onComplete(result -> {
+            if (result.failed()) {
+                connectionMetrics.acquireFailed();
+            }
+        });
+        return promise;
     }
 
     @Override
@@ -51,6 +61,15 @@ public class NettyPoolClient extends NettyClient {
             }
         }, ChannelHealthChecker.ACTIVE, FixedChannelPool.AcquireTimeoutAction.FAIL,
                 acquireTimeout, maxConnections, maxPendingAcquires);
+        this.connectionMetrics = new ConnectionPoolMetrics(
+                endpointId(),
+                channelPool::acquiredChannelCount,
+                () -> maxConnections
+        );
+        Metrics metrics = platform.singleComponent(Metrics.class);
+        if (metrics != null) {
+            metrics.register(connectionMetrics);
+        }
     }
 
     @Override
@@ -80,6 +99,10 @@ public class NettyPoolClient extends NettyClient {
                 channelPool.acquiredChannelCount(),
                 config().option(ClientOptions.MAX_CONNECTIONS)
         );
+    }
+
+    private String endpointId() {
+        return config().id() + "@" + remoteAddress();
     }
 
     public record PoolMetrics(int acquired, int maxConnections) {

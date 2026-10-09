@@ -12,6 +12,7 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
 import io.effi.rpc.context.Servant;
+import io.effi.rpc.context.metrics.ServantMetrics;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.logging.Logger;
 import io.effi.rpc.logging.LoggerFactory;
@@ -79,6 +80,7 @@ public final class ServerRequestHandler {
 
     private static void reject(Result<Void> result, Servant servant, InputMessage inputMessage, ServerExchange exchange) {
         if (result.succeeded()) return;
+        ServantMetrics.of(servant).recordOverload();
         EffiRpcException failure = InteractionErrorCodes.SERVER_OVERLOADED
                 .fail(result.cause(), servant.id())
                 .withMetadata(Map.of(KeyConstant.RETRYABLE, Boolean.TRUE.toString()));

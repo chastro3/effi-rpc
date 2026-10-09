@@ -71,10 +71,25 @@ class PeerMetricsTest {
         callerMetrics.recordCall(10L, true);
         callerMetrics.recordRetry();
         callerMetrics.recordTimeout();
-        ServantMetrics.of(null).recordRequest(10L, true);
+        ServantMetrics servantMetrics = ServantMetrics.of(null);
+        servantMetrics.recordRequest(10L, true);
+        servantMetrics.recordOverload();
 
         assertEquals(0D, new CallerMetrics("test").averageSerializationNanos());
         assertEquals(0D, new ServantMetrics("test").averageDeserializationNanos());
+    }
+
+    @Test
+    void recordsServerOverload() {
+        DefaultMetrics registry = new DefaultMetrics(ScopedPlatform.defaultInstance());
+        ServantMetrics metrics = new ServantMetrics("test");
+        registry.register(metrics);
+
+        metrics.recordOverload();
+
+        assertEquals(1L, registry.counter(
+                ServantMetrics.OVERLOAD_COUNT.withTag("protocol", "test")
+        ).count());
     }
 
     @Test

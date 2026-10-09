@@ -10,24 +10,41 @@ import io.effi.rpc.util.AssertUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.effi.rpc.annotation.component.ScopedComponent.Scope.PLATFORM;
 
 /**
- * Manages named thread pools that wrap {@link ExecutorService} instances.
- * <p>
- * Provides lifecycle management and asynchronous execution capabilities
- * for thread pools.
+ * Manages a named thread pool bound to a platform.
  */
 @ScopedComponent(scope = PLATFORM)
-public record ThreadPool(String id, ExecutorService executor) implements Closeable, Identifiable {
+public final class ThreadPool implements Closeable, Identifiable {
+
+    private final String id;
+
+    private final ExecutorService executor;
+
+    private final ThreadPoolMetrics metrics;
 
     public ThreadPool(String id, ExecutorService executor) {
         this.id = AssertUtil.notBlank(id, "id");
         this.executor = AssertUtil.notNull(executor, "executor");
+        this.metrics = new ThreadPoolMetrics(this);
+    }
+
+    /**
+     * Returns the underlying executor.
+     */
+    public ExecutorService executor() {
+        return executor;
+    }
+
+    /**
+     * Returns the metrics owned by this thread pool.
+     */
+    public ThreadPoolMetrics metrics() {
+        return metrics;
     }
 
     /**
@@ -49,6 +66,7 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
                 }
             });
         } catch (RejectedExecutionException e) {
+            metrics.rejected();
             promise.failure(ConcurrentErrorCodes.TASK_REJECTED.fail(e, "submit"));
         }
         return promise;
@@ -72,19 +90,15 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
                 }
             });
         } catch (RejectedExecutionException e) {
+            metrics.rejected();
             promise.failure(ConcurrentErrorCodes.TASK_REJECTED.fail(e, "submit"));
         }
         return promise;
     }
 
-    /**
-     * Returns the current thread pool metrics snapshot.
-     */
-    public Metrics metrics() {
-        if (executor instanceof ThreadPoolExecutor pool) {
-            return new Metrics(pool.getActiveCount(), pool.getQueue().size(), pool.getCompletedTaskCount());
-        }
-        return new Metrics(-1, -1, -1);
+    @Override
+    public String id() {
+        return id;
     }
 
     @Override
@@ -103,18 +117,5 @@ public record ThreadPool(String id, ExecutorService executor) implements Closeab
     @Override
     public boolean active() {
         return !executor.isShutdown();
-    }
-
-    /**
-     * Captures thread pool metrics.
-     */
-    public record Metrics(
-            /** Number of active tasks. */
-            int activeCount,
-            /** Number of queued tasks. */
-            int queueSize,
-            /** Number of completed tasks. */
-            long completedTaskCount
-    ) {
     }
 }
