@@ -1,6 +1,7 @@
 package io.effi.rpc.governance.lb;
 
 import io.effi.rpc.context.CallContext;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.registry.DefaultServiceInstance;
@@ -41,7 +42,7 @@ class RoundRobinLoadBalancerTest {
                 null,
                 null,
                 (Caller) caller,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
     }

@@ -4,9 +4,9 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.Stage;
-import io.effi.rpc.core.stage.CallAttemptStage;
 import io.effi.rpc.core.stage.CallInterceptorStage;
 import io.effi.rpc.core.stage.ChosenInterceptorStage;
+import io.effi.rpc.core.stage.InteractionDispatchStage;
 import io.effi.rpc.core.stage.LocatorStage;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class DefaultStageChainResolverTest {
 
     private static final String[] CALLER_CALL_STAGES = {
-            CallInterceptorStage.NAME, LocatorStage.NAME, ChosenInterceptorStage.NAME, CallAttemptStage.NAME
+            CallInterceptorStage.NAME, LocatorStage.NAME, ChosenInterceptorStage.NAME, InteractionDispatchStage.NAME
     };
 
     @Test

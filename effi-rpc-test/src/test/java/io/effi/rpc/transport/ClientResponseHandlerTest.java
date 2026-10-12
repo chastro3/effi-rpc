@@ -15,7 +15,7 @@ import io.effi.rpc.context.ReplyContext;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Response;
-import io.effi.rpc.core.call.Unary;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.transport.codec.ClientExchangeContextCodec;
 import io.effi.rpc.transport.endpoint.Channel;
 import io.effi.rpc.transport.message.InputMessage;
@@ -50,7 +50,7 @@ class ClientResponseHandlerTest {
                 module,
                 request,
                 caller,
-                Unary.MODE,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
         ReplyFuture replyFuture = new ReplyFuture(context);

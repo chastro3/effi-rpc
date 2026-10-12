@@ -16,8 +16,8 @@ public class CallContext<R extends Request, P extends Peer> extends Interaction.
 
     private final Object[] args;
 
-    public CallContext(ScopedModule module, R request, P peer, Interaction.Mode<?> mode, Object[] args) {
-        super(module, request, peer, mode);
+    public CallContext(ScopedModule module, R request, P peer, Interaction.Mode mode, Object[] args) {
+        super(module, request, peer, AssertUtil.notNull(mode, "mode"));
         this.args = AssertUtil.notNull(args, "args");
     }
 

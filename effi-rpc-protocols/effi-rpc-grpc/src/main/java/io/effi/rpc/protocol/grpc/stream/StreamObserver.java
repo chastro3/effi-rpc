@@ -1,4 +1,4 @@
-package io.effi.rpc.protocol.grpc;
+package io.effi.rpc.protocol.grpc.stream;
 
 /**
  * Handles asynchronous stream of messages for gRPC calls,

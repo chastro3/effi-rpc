@@ -312,7 +312,7 @@ RPC 调用语义核心，位于 component 之上、boot 和具体 protocol 之�
 - `Message / Request / Response` 表达协议消息边界：
   Request 决定是否需要回复，Response 暴露成功状态和失败原因。
 - `CallContext` 发生在请求发送前或服务端方法调用前，持有协议 `Request`、`Peer`、
-  `Mode`、最终 `Object[] args` 和执行属性。它不再持有 `Invocation`。
+  `Mode`（交互策略）、最终 `Object[] args` 和执行属性。它不再持有 `Invocation`。
   `ReplyContext` 发生在收到响应后或服务端发送响应前。
 
 **构建与解析**
@@ -362,7 +362,7 @@ validate
 CallInterceptorStage
   -> LocatorStage
     -> ChosenInterceptorStage
-      -> CallAttemptStage
+      -> InteractionDispatchStage
         -> tail
 ```
 
@@ -375,7 +375,10 @@ CallInterceptorStage
 4. 拦截器链尾部的 `StageInterceptor` 继续执行下一 stage；
 5. `LocatorStage` 调用 `Caller.locator().locate(context)` 并写入目标地址；
 6. `ChosenInterceptorStage` 执行目标选择后的 `chosenInterceptorChain`；
-7. `CallAttemptStage` 创建 `ReplyFuture`、`CallAttempt` 并交给 transport；
+7. `InteractionDispatchStage` 执行 `context.mode().dispatch(context)`。`Mode` 是
+   context 里的交互策略接口：一元实现在 core（`UnaryMode` 创建 `ReplyFuture`、
+   `CallAttempt` 并交给 transport），gRPC 实现在 grpc 模块（`GrpcStreamMode`
+   打开 gRPC 自己的 `StreamHandle`）；
 8. transport 完成响应后进入 reply stage chain；
 9. `CallExecution` 读取 `ReplyFuture.rawResult()`，最终完成自身的 `Promise`。
 
@@ -406,7 +409,7 @@ ReplyInterceptorStage
       -> Interaction.Result
 ```
 
-`CallAttemptStage` 注册的完成回调会执行调用方 reply stage chain；
+`UnaryMode` 注册的完成回调会执行调用方 reply stage chain；
 `ReplyResultStage` 是最终结果出口，负责把 `ReplyContext.result()` 继续向上返回。
 
 **失败、超时与取消**

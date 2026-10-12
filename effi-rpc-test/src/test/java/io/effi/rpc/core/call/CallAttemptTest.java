@@ -148,10 +148,10 @@ class CallAttemptTest {
                     module,
                     request,
                     caller,
-                    Unary.MODE,
+                    UnaryMode.INSTANCE,
                     new Object[0]
             );
-            this.future = Unary.MODE.newFuture(context);
+            this.future = UnaryMode.INSTANCE.newHandle(context);
             scheduler.addDisposable(
                     () -> future.cancel(PredefinedErrorCode.DEADLINE_EXCEEDED.fail(timeoutMillis)),
                     timeoutMillis,

@@ -1,6 +1,5 @@
-package io.effi.rpc.core.stage;
+package io.effi.rpc.core.call;
 
-import io.effi.rpc.annotation.component.Extension;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
@@ -9,7 +8,6 @@ import io.effi.rpc.context.InteractionErrorCodes;
 import io.effi.rpc.context.ReplyFuture;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Stage;
-import io.effi.rpc.core.call.CallAttempt;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.transport.TransportProtocol;
 import io.effi.rpc.transport.TransportSupport;
@@ -17,25 +15,35 @@ import io.effi.rpc.transport.endpoint.Client;
 
 import java.net.InetSocketAddress;
 
-import static io.effi.rpc.core.stage.CallAttemptStage.NAME;
-
 /**
- * Handles the call attempt stage for dispatching requests over a client channel.
+ * Provides the unary interaction strategy backed by one reply future.
  */
-@Extension(NAME)
-public class CallAttemptStage implements Stage.CallUnit<Request, Caller<?>> {
+public final class UnaryMode implements Interaction.Mode {
 
-    public static final String NAME = "callAttemptStage";
+    public static final UnaryMode INSTANCE = new UnaryMode();
+
+    private UnaryMode() {
+    }
+
+    /**
+     * Creates the reply future that carries the unary reply.
+     *
+     * @param context call context
+     * @return reply future
+     */
+    public ReplyFuture newHandle(CallContext<Request, Caller<?>> context) {
+        return new ReplyFuture(context);
+    }
 
     @Override
-    public Interaction.Result process(CallContext<Request, Caller<?>> context, Chain chain) {
+    public Interaction.Result dispatch(CallContext<Request, Caller<?>> context) {
         Caller<?> caller = context.peer();
-        Chain reverseStageChain = caller.replyStageChain();
+        Stage.Chain reverseStageChain = caller.replyStageChain();
         SmartURL requestUrl = context.message().url();
         InetSocketAddress remoteAddress = InetSocketAddress.createUnresolved(requestUrl.host(), requestUrl.port());
         TransportProtocol protocol = TransportSupport.findProtocol(caller);
         Client client = protocol.supplyClient(caller.clientConfig(), remoteAddress, context.platform());
-        ReplyFuture replyFuture = context.mode().newFuture(context);
+        ReplyFuture replyFuture = newHandle(context);
         CallAttempt attempt = new CallAttempt(replyFuture, client, protocol);
         replyFuture.onComplete(res -> {
             // Failed attempts carry no decoded reply; Unary.FailureHandler owns their outcome.
@@ -50,6 +58,6 @@ public class CallAttemptStage implements Stage.CallUnit<Request, Caller<?>> {
             }
         });
         attempt.dispatch();
-        return Interaction.Result.success(context.message().url(), replyFuture);
+        return Interaction.Result.success(requestUrl, replyFuture);
     }
 }

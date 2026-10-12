@@ -6,6 +6,7 @@ description = "Integration tests and benchmarks."
 
 dependencies {
     implementation(project(":effi-rpc-protocols:effi-rpc-http"))
+    testImplementation(project(":effi-rpc-protocols:effi-rpc-grpc"))
     implementation(project(":effi-rpc-registry:effi-rpc-registry-consul"))
     implementation(project(":effi-rpc-registry:effi-rpc-registry-nacos"))
     testImplementation(project(":effi-rpc-integration:effi-rpc-spring-boot-starter"))

@@ -5,9 +5,9 @@ import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.constant.Constant;
 import io.effi.rpc.context.Stage;
 import io.effi.rpc.core.PeerDescriptor;
-import io.effi.rpc.core.stage.CallAttemptStage;
 import io.effi.rpc.core.stage.CallInterceptorStage;
 import io.effi.rpc.core.stage.ChosenInterceptorStage;
+import io.effi.rpc.core.stage.InteractionDispatchStage;
 import io.effi.rpc.core.stage.InvokeServantStage;
 import io.effi.rpc.core.stage.LocatorStage;
 import io.effi.rpc.core.stage.ReplyInterceptorStage;
@@ -38,7 +38,7 @@ public class DefaultStageChainResolver implements StageChainResolver, ScopedModu
     @Override
     public void accept(ScopedModule module) {
         String[] callerCallChainNames = {
-                CallInterceptorStage.NAME, LocatorStage.NAME, ChosenInterceptorStage.NAME, CallAttemptStage.NAME
+                CallInterceptorStage.NAME, LocatorStage.NAME, ChosenInterceptorStage.NAME, InteractionDispatchStage.NAME
         };
         String[] servantCallChainNames = {
                 CallInterceptorStage.NAME, InvokeServantStage.NAME
@@ -51,12 +51,6 @@ public class DefaultStageChainResolver implements StageChainResolver, ScopedModu
         defaultReplyChain = resolveStageChain(module, replyChainNames);
     }
 
-    Stage.Chain resolveStageChain(ScopedModule module, String[] names) {
-        String[] stageNames = names.clone();
-        ArrayIdentifier<String> key = ArrayIdentifier.of(stageNames);
-        return stageChainCache.computeIfAbsent(key, ignored -> ImmutableStageChain.of(module, stageNames));
-    }
-
     @Override
     public Stage.Chain resolveCallChain(PeerDescriptor descriptor, ScopedModule module) {
         return descriptor.kind() == PeerDescriptor.Kind.CALLER
@@ -67,5 +61,11 @@ public class DefaultStageChainResolver implements StageChainResolver, ScopedModu
     @Override
     public Stage.Chain resolveReplyChain(PeerDescriptor descriptor, ScopedModule module) {
         return defaultReplyChain;
+    }
+
+    Stage.Chain resolveStageChain(ScopedModule module, String[] names) {
+        String[] stageNames = names.clone();
+        ArrayIdentifier<String> key = ArrayIdentifier.of(stageNames);
+        return stageChainCache.computeIfAbsent(key, ignored -> ImmutableStageChain.of(module, stageNames));
     }
 }

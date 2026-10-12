@@ -1,6 +1,7 @@
 package io.effi.rpc.governance.registry;
 
 import io.effi.rpc.component.ScopedApplication;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.metrics.DefaultMetrics;
@@ -102,7 +103,7 @@ class RegistryLocatorRouteTest {
                 module,
                 request,
                 (Caller) caller,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
     }

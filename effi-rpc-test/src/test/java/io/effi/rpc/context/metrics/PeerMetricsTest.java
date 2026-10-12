@@ -3,6 +3,7 @@ package io.effi.rpc.context.metrics;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.metrics.DefaultMetrics;
 import io.effi.rpc.context.CallContext;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Peer;
 import io.effi.rpc.context.Request;
@@ -29,7 +30,7 @@ class PeerMetricsTest {
                 null,
                 null,
                 null,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
         metrics.beginCall(context);
@@ -50,7 +51,7 @@ class PeerMetricsTest {
                 null,
                 null,
                 null,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
         metrics.beginRequest(context);

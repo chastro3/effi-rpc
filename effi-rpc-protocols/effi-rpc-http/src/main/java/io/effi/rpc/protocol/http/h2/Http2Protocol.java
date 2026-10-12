@@ -23,7 +23,7 @@ import java.util.Map;
 import static io.effi.rpc.protocol.http.h2.Http2Protocol.NAME;
 
 /**
- * Implements {@link TransportProtocol} using http2.
+ * Provides an HTTP/2 implementation of {@link TransportProtocol}.
  */
 @Extension(value = NAME, primary = true)
 public class Http2Protocol extends HttpProtocol {
@@ -33,7 +33,11 @@ public class Http2Protocol extends HttpProtocol {
     public static final HttpVersion VERSION = new Version();
 
     public Http2Protocol() {
-        super(VERSION);
+        this(VERSION);
+    }
+
+    protected Http2Protocol(HttpVersion version) {
+        super(version);
     }
 
     @Override
@@ -56,7 +60,7 @@ public class Http2Protocol extends HttpProtocol {
         return new Http2Client(config, remoteAddress, platform);
     }
 
-    private static final class Version implements HttpVersion {
+    protected static class Version implements HttpVersion {
 
         @Override
         public String name() {

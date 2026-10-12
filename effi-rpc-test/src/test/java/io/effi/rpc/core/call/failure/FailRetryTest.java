@@ -3,6 +3,7 @@ package io.effi.rpc.core.call.failure;
 import io.effi.rpc.component.ScopedPlatform;
 import io.effi.rpc.component.metrics.DefaultMetrics;
 import io.effi.rpc.config.SmartURL;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
@@ -69,7 +70,7 @@ class FailRetryTest {
                 null,
                 request,
                 (Caller) caller,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
     }

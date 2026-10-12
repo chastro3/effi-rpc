@@ -3,6 +3,7 @@ package io.effi.rpc.governance.lb;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Request;
 import io.effi.rpc.exception.EffiRpcException;
@@ -70,7 +71,7 @@ class WeightedLoadBalancerTest {
                 null,
                 request,
                 (Caller) caller,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
     }

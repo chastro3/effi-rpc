@@ -3,6 +3,7 @@ package io.effi.rpc.governance.router;
 import io.effi.rpc.component.ScopedApplication;
 import io.effi.rpc.component.ScopedModule;
 import io.effi.rpc.component.ScopedPlatform;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.config.SmartURL;
 import io.effi.rpc.context.CallContext;
 import io.effi.rpc.context.Caller;
@@ -62,7 +63,7 @@ class DefaultRouterTest {
                 module,
                 request,
                 (Caller) caller,
-                null,
+                UnaryMode.INSTANCE,
                 new Object[0]
         );
     }

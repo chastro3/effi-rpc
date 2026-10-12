@@ -5,6 +5,7 @@ import io.effi.rpc.context.Request;
 import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.parameter.MethodBinder;
 import io.effi.rpc.context.parameter.MethodBinding;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.protocol.http.support.HttpDuplexRequest;
 import io.effi.rpc.protocol.http.support.HttpUtil;
 import io.effi.rpc.serialization.Serializer;
@@ -15,7 +16,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 /**
- * Resolves HTTP requests into server call contexts.
+ * Provides server call contexts resolved from HTTP requests.
  */
 public final class HttpCallContextResolver implements CallContextResolver {
 
@@ -27,7 +28,7 @@ public final class HttpCallContextResolver implements CallContextResolver {
         Object[] arguments = binding.positional()
                 ? methodBinder.resolvePositional(decodedPositionalArguments(httpRequest, binding, servant))
                 : methodBinder.resolve(request, servant);
-        return new CallContext<>(servant.module(), request, servant, null, arguments);
+        return new CallContext<>(servant.module(), request, servant, UnaryMode.INSTANCE, arguments);
     }
 
     private Object[] decodedPositionalArguments(HttpDuplexRequest request, MethodBinding binding, Servant servant) {

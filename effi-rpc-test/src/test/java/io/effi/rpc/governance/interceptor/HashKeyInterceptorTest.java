@@ -2,6 +2,7 @@ package io.effi.rpc.governance.interceptor;
 
 import io.effi.rpc.constant.KeyConstant;
 import io.effi.rpc.context.CallContext;
+import io.effi.rpc.core.call.UnaryMode;
 import io.effi.rpc.context.Caller;
 import io.effi.rpc.context.Interaction;
 import io.effi.rpc.context.Interceptor;
@@ -43,7 +44,7 @@ class HashKeyInterceptorTest {
                 null,
                 null,
                 (Caller) caller,
-                null,
+                UnaryMode.INSTANCE,
                 args
         );
     }

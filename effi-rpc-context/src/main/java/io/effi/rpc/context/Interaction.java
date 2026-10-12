@@ -11,21 +11,20 @@ import io.effi.rpc.util.AbstractAttributes;
 public interface Interaction {
 
     /**
-     * Creates the reply future used by one interaction.
-     *
-     * @param context call context
-     * @param <T>     reply future type
-     * @return reply future
+     * Defines one interaction strategy for a call context.
+     * <p>
+     * Implementations realize an interaction on the wire and live with the module that
+     * owns the transport, so protocol details stay out of this contract.
      */
-    interface Mode<T extends ReplyFuture> {
+    interface Mode {
 
         /**
-         * Creates the reply future for the supplied call context.
+         * Dispatches the interaction through the peer stage chain.
          *
          * @param context call context
-         * @return reply future
+         * @return stage-chain result
          */
-        T newFuture(CallContext<Request, Caller<?>> context);
+        Result dispatch(CallContext<Request, Caller<?>> context);
 
     }
 
@@ -61,7 +60,6 @@ public interface Interaction {
          * @return the result of processing
          */
         <C extends Interaction.Context> Result proceed(C context);
-
     }
 
     /**
@@ -85,7 +83,7 @@ public interface Interaction {
          *
          * @param url   result URL
          * @param cause failure cause
-         * @return failed result
+         * @return failed interaction result
          */
         static Result failure(SmartURL url, EffiRpcException cause) {
             return DefaultInteractionResult.failure(url, cause);
@@ -119,9 +117,9 @@ public interface Interaction {
 
         private final P peer;
 
-        private final Mode<?> mode;
+        private final Mode mode;
 
-        protected Context(ScopedModule module, M message, P peer, Mode<?> mode) {
+        protected Context(ScopedModule module, M message, P peer, Mode mode) {
             this.module = module;
             this.message = message;
             this.peer = peer;
@@ -150,7 +148,7 @@ public interface Interaction {
         /**
          * Returns the interaction mode.
          */
-        public Mode<?> mode() {
+        public Mode mode() {
             return mode;
         }
     }

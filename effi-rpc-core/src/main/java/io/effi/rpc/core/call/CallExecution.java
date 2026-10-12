@@ -31,7 +31,7 @@ import static io.effi.rpc.context.options.FaultToleranceOptions.RETRY_JITTER;
 import static io.effi.rpc.context.options.FaultToleranceOptions.RETRY_MAX_BACKOFF;
 
 /**
- * Executes one logical unary call, including deadline control and retry attempts.
+ * Manages one logical unary call, including deadline control and retry attempts.
  */
 public final class CallExecution<R> {
 
@@ -66,6 +66,27 @@ public final class CallExecution<R> {
         this.completion.onComplete(ignored -> cancelDeadline());
     }
 
+    /**
+     * Starts this execution and returns the future that completes with the unary result.
+     */
+    public Future<R> execute() {
+        if (started.compareAndSet(false, true) && !cancelIfExpired()) {
+            scheduleDeadline();
+            dispatch();
+        }
+        return completion;
+    }
+
+    /**
+     * Cancels this execution and its active attempt.
+     *
+     * @param reason the cancellation reason
+     * @return {@code true} when the execution was cancelled
+     */
+    public boolean cancel(EffiRpcException reason) {
+        return completion.cancel(reason);
+    }
+
     private Deadline resolveDeadline() {
         long timeout = caller.option(TIMEOUT);
         return timeout < 0
@@ -88,27 +109,6 @@ public final class CallExecution<R> {
         if (task != null) {
             task.cancel(false);
         }
-    }
-
-    /**
-     * Starts this execution and returns the future that completes with the unary result.
-     */
-    public Future<R> execute() {
-        if (started.compareAndSet(false, true) && !cancelIfExpired()) {
-            scheduleDeadline();
-            dispatch();
-        }
-        return completion;
-    }
-
-    /**
-     * Cancels this execution and its active attempt.
-     *
-     * @param reason the cancellation reason
-     * @return {@code true} when the execution was cancelled
-     */
-    public boolean cancel(EffiRpcException reason) {
-        return completion.cancel(reason);
     }
 
     private void dispatch() {
@@ -253,13 +253,7 @@ public final class CallExecution<R> {
 
     private CallContext<Request, Caller<?>> newContext() {
         Request request = caller.protocol().createRequest(caller, invocation);
-        return new CallContext<>(
-                caller.module(),
-                request,
-                caller,
-                Unary.MODE,
-                invocation.arguments().values()
-        );
+        return new CallContext<>(caller.module(), request, caller, UnaryMode.INSTANCE, invocation.arguments().values());
     }
 
     private EffiRpcException toRpcException(Throwable cause) {
