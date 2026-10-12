@@ -9,6 +9,8 @@ import java.lang.reflect.Parameter;
  * Binds every parameter declared by one method.
  */
 public record MethodBinding(
+        /** Reflected method. */
+        Method method,
         /** Method signature. */
         MethodSignature signature,
         /** Parameter bindings in declaration order. */
@@ -25,7 +27,7 @@ public record MethodBinding(
      * @return method binding
      */
     public static MethodBinding of(Method method, ParameterBinding[] parameters) {
-        return new MethodBinding(MethodSignature.of(method), parameters, false);
+        return new MethodBinding(method, MethodSignature.of(method), parameters, false);
     }
 
     /**
@@ -40,7 +42,7 @@ public record MethodBinding(
         for (int i = 0; i < parameters.length; i++) {
             bindings[i] = ParameterBinding.positional(i, parameters[i]);
         }
-        return new MethodBinding(MethodSignature.of(method), bindings, true);
+        return new MethodBinding(method, MethodSignature.of(method), bindings, true);
     }
 
     /**

@@ -9,6 +9,7 @@ import io.effi.rpc.context.Servant;
 import io.effi.rpc.context.metrics.ServantMetrics;
 import io.effi.rpc.exception.EffiRpcException;
 import io.effi.rpc.protocol.http.HttpOptions;
+import io.effi.rpc.protocol.grpc.GrpcMethod;
 import io.effi.rpc.protocol.grpc.GrpcProtocol;
 import io.effi.rpc.protocol.grpc.GrpcStreamMode;
 import io.effi.rpc.protocol.grpc.GrpcSupport;

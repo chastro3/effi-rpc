@@ -192,7 +192,7 @@ proxy / caller proxy
 协议层：
 
 - `effi-rpc-http`：HTTP/1、HTTP/2、协商、header/path/query/body 参数绑定、HTTP codec。
-- `effi-rpc-grpc`：gRPC streaming 和 HTTP/2 之上的调用骨架。
+- `effi-rpc-grpc`：HTTP/2 之上的 gRPC 一元与三种流式调用实现。
 
 ## 5. 模块逐个精读
 
@@ -638,18 +638,45 @@ HTTP 协议实现。
 
 ### 5.14 `effi-rpc-protocols:effi-rpc-grpc`
 
-gRPC 协议骨架。
+gRPC 协议实现，构建在 HTTP/2 之上，覆盖一元与三种流式调用。
 
-现有能力：
+包结构：
 
-- `GrpcCaller`
-- `StreamObserver`
-- `ServerStreamFuture`
+- 根包：`GrpcProtocol`（协议注册）、`GrpcStreamMode`（交互模式）、`GrpcSupport`（共享工具）、
+  `GrpcMethod`（方法契约）。
+- `codec/`：`GrpcFraming`（5 字节长度前缀）、`GrpcMessage`、`GrpcHeaders`、`GrpcStatus`、
+  `GrpcStatusMapper`。
+- `stream/`：`GrpcStream` 状态机、`GrpcClientStream` / `GrpcServerStream`、
+  `StreamHandle`、`StreamObserver`。
+- `client/`：`GrpcCaller`、`GrpcClient`、`GrpcClientCall`、`GrpcClientHandler`、
+  `GrpcClientChannelConfigurer`。
+- `server/`：`GrpcServant`、`GrpcServer`、`GrpcServerHandler`（每流一次调用）、
+  `GrpcCallResolver`（解析 servant 并交接）、`GrpcMethod`、`GrpcRequest`、`OutboundStreamObserver`。
 
-注意：
+客户端形态解析：
 
-- 当前 streaming 相关实现部分仍是占位或未完整实现。
-- 该模块应视为 HTTP/2 + gRPC 方向的未完成区域，不能当成成熟 gRPC 实现。
+- 形态由调用点判定：接口方法返回 `StreamObserver` → 返回请求 observer；
+  参数里出现 `StreamObserver` → 服务端流；否则一元。
+- 回复消息类型取不到自返回类型（流式方法返回 `void` 或请求方向的 `StreamObserver<T>`），
+  由 `MethodInvocation.method()` 解析方法签名取得（`GrpcMethod.responseType()`）。
+- `MethodBinding` / `MethodInvocation` 携带反射 `Method`；proxy 路径天然是
+  `MethodInvocation`，方法契约由此进入 caller，`PeerFactory` 与 invocation 属性均不参与。
+
+服务端：
+
+- `GrpcCallResolver` 在 HEADERS 上按 `:path` 解析 `GrpcServant`，再 `pipeline.replace`
+  成 `GrpcServerHandler`；未知路径回 UNIMPLEMENTED。
+- `GrpcServerHandler` 持有本次调用状态，`handlerAdded` 开流并在需要时提前调用 servant；
+  请求路径经 `servant.callStageChain()`，业务执行在 `servant.threadPool()` 上。
+- servant 失败经 `GrpcStatusMapper` 映射为 gRPC status 回写 trailers。
+
+边界：
+
+- interface 式（`InterfaceCallerGroup` / `InterfaceServantGroup` + `protocol = "grpc"`）
+  四种形态均可用；注解式 `@Call` 走 `AnnotationStyleResolver`，gRPC 未提供 positional
+  style，带参数的方法请用 interface 式。
+- 客户端一元有 deadline（`CallerOptions.TIMEOUT`）；流式没有整体 deadline。
+- 客户端流与双向流 Java 签名相同，统一映射到同一个请求 observer 入口。
 
 ### 5.15 `effi-rpc-registry:effi-rpc-registry-api`
 
@@ -794,7 +821,8 @@ initialize
 ## 10. 当前边界与风险
 
 - Spring Boot starter 是集成边界，本文不展开。
-- `effi-rpc-grpc` streaming 能力尚未达到完整生产实现。
+- `effi-rpc-grpc` 已覆盖四种调用形态，但注解式调用、流式 deadline、压缩与 metadata
+  传递仍待补齐，不能当成完整 gRPC 实现。
 - `effi-rpc-metrics` 已提供统一指标内核；新模块应提供 `XxxMetrics implements MetricsRegistrar`，其他代码只调用该门面的语义方法。
 - HTTP/3、Triple 支持尚未完成。
 - `PRODUCTION_READINESS.md` 记录的是更严格的生产加固清单，不能把“代码可启动”误认为“生产已完备”。

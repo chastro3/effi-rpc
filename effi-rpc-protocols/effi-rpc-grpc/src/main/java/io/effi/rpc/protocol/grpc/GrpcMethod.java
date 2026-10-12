@@ -1,21 +1,23 @@
-package io.effi.rpc.protocol.grpc.server;
+package io.effi.rpc.protocol.grpc;
 
-import io.effi.rpc.util.AssertUtil;
 import io.effi.rpc.protocol.grpc.stream.StreamObserver;
+import io.effi.rpc.util.AssertUtil;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * Defines the static contract of one gRPC service method.
+ * Defines the static contract of one gRPC method.
  * <p>
- * Resolves the call shape, message types, and argument layout once when the servant
- * is built, so transport handlers never inspect the reflected method per call.
+ * Resolves the call shape, message types, and argument layout once when the caller or
+ * servant is built, so transport handlers never inspect the reflected method per call.
  */
 public final class GrpcMethod {
 
     private final Type requestType;
+
+    private final Type responseType;
 
     private final int requestIndex;
 
@@ -46,6 +48,7 @@ public final class GrpcMethod {
         this.responseObserverIndex = responseObserverIndex;
         this.requestObserver = StreamObserver.class.isAssignableFrom(method.getReturnType());
         this.requestType = resolveRequestType(method, genericTypes);
+        this.responseType = resolveResponseType(method, genericTypes);
         validate(method, requestParameters);
     }
 
@@ -54,6 +57,13 @@ public final class GrpcMethod {
      */
     public Type requestType() {
         return requestType;
+    }
+
+    /**
+     * Returns the reply message type.
+     */
+    public Type responseType() {
+        return responseType;
     }
 
     /**
@@ -96,6 +106,16 @@ public final class GrpcMethod {
                     : Object.class;
         }
         return requestIndex < 0 ? Object.class : genericTypes[requestIndex];
+    }
+
+    private Type resolveResponseType(Method method, Type[] genericTypes) {
+        if (responseObserverIndex < 0) {
+            return method.getGenericReturnType();
+        }
+        Type parameterType = genericTypes[responseObserverIndex];
+        return parameterType instanceof ParameterizedType parameterizedType
+                ? parameterizedType.getActualTypeArguments()[0]
+                : Object.class;
     }
 
     private void validate(Method method, int requestParameters) {

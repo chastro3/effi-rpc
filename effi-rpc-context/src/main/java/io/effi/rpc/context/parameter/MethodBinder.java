@@ -26,6 +26,7 @@ public record MethodBinder(MethodBinding binding) {
                 "argument count does not match method signature"
         );
         MethodInvocation invocation = new MethodInvocation(
+                binding.method(),
                 binding.signature(),
                 new InvocationArguments(binding.positional() ? binding.size() : 0),
                 new InvocationAttributes()

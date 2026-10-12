@@ -2,6 +2,7 @@ package io.effi.rpc.protocol.grpc.server;
 
 import io.effi.rpc.component.serialization.options.SerializationOptions;
 import io.effi.rpc.context.parameter.ServantMethod;
+import io.effi.rpc.protocol.grpc.GrpcMethod;
 import io.effi.rpc.protocol.grpc.GrpcProtocol;
 import io.effi.rpc.protocol.http.HttpServant;
 import io.effi.rpc.serialization.protobuf.ProtobufSerializer;
